@@ -175,7 +175,7 @@ describe('ChannelConnection', () => {
             logoff: jest.fn(() => undefined),
             logon: jest.fn(() => undefined),
             initialized: true,
-            supportsLogoff: true
+            supportsReAuth: true
           }
 
           const protocolSupplier = () => protocol
@@ -201,7 +201,7 @@ describe('ChannelConnection', () => {
               logoff: jest.fn(() => undefined),
               logon: jest.fn(({ onComplete }) => onCompleteObservers.push(onComplete)),
               initialized: true,
-              supportsLogoff: true
+              supportsReAuth: true
             }
 
             const protocolSupplier = () => protocol
@@ -237,7 +237,7 @@ describe('ChannelConnection', () => {
               logoff: jest.fn(({ onError }) => onLogoffErrors.push(onError)),
               logon: jest.fn(() => undefined),
               initialized: true,
-              supportsLogoff: true
+              supportsReAuth: true
             }
 
             const protocolSupplier = () => protocol
@@ -272,7 +272,7 @@ describe('ChannelConnection', () => {
               logoff: jest.fn(() => undefined),
               logon: jest.fn(({ onError }) => onLoginErrors.push(onError)),
               initialized: true,
-              supportsLogoff: true
+              supportsReAuth: true
             }
 
             const protocolSupplier = () => protocol
@@ -308,7 +308,7 @@ describe('ChannelConnection', () => {
             logoff: jest.fn(() => undefined),
             logon: jest.fn(() => undefined),
             initialized: true,
-            supportsLogoff: false
+            supportsReAuth: false
           }
 
           const protocolSupplier = () => protocol
