@@ -170,7 +170,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       const connection = await this._connectionPool.acquire({ auth, skipReAuth: true }, address)
       connectionsToRelease.push(connection)
 
-      const lastMessageIsNotLogin = !connection.protocol().isLastMessageLogin()
+      const lastMessageIsNotLogin = !connection.protocol().isLastMessageLogon()
 
       if (!connection.supportsReAuth && !allowStickyConnection) {
         throw newError('Driver is connected to a database that does not support user switch.')

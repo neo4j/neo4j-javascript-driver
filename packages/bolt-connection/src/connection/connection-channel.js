@@ -203,7 +203,7 @@ export default class ChannelConnection extends Connection {
           onError: reject
         })
 
-        this._protocol.login({
+        this._protocol.logon({
           authToken,
           onError: reject,
           onComplete: () => resolve(this),
@@ -213,7 +213,7 @@ export default class ChannelConnection extends Connection {
     }
 
     this._protocol.logoff()
-    this._protocol.login({ authToken, flush: true })
+    this._protocol.logon({ authToken, flush: true })
 
     return this
   }

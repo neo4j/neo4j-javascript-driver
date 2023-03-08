@@ -173,7 +173,7 @@ describe('ChannelConnection', () => {
           const protocol = {
             initialize: jest.fn(observer => observer.onComplete({})),
             logoff: jest.fn(() => undefined),
-            login: jest.fn(() => undefined),
+            logon: jest.fn(() => undefined),
             initialized: true,
             supportsLogoff: true
           }
@@ -185,7 +185,7 @@ describe('ChannelConnection', () => {
 
           expect(protocol.initialize).not.toHaveBeenCalled()
           expect(protocol.logoff).toHaveBeenCalledWith()
-          expect(protocol.login).toHaveBeenCalledWith({ authToken, flush: true })
+          expect(protocol.logon).toHaveBeenCalledWith({ authToken, flush: true })
           expect(connection.authToken).toEqual(authToken)
         })
 
@@ -199,7 +199,7 @@ describe('ChannelConnection', () => {
             const protocol = {
               initialize: jest.fn(observer => observer.onComplete({})),
               logoff: jest.fn(() => undefined),
-              login: jest.fn(({ onComplete }) => onCompleteObservers.push(onComplete)),
+              logon: jest.fn(({ onComplete }) => onCompleteObservers.push(onComplete)),
               initialized: true,
               supportsLogoff: true
             }
@@ -215,7 +215,7 @@ describe('ChannelConnection', () => {
 
             expect(protocol.initialize).not.toHaveBeenCalled()
             expect(protocol.logoff).toHaveBeenCalled()
-            expect(protocol.login).toHaveBeenCalledWith(expect.objectContaining({
+            expect(protocol.logon).toHaveBeenCalledWith(expect.objectContaining({
               authToken,
               flush: true
             }))
@@ -235,7 +235,7 @@ describe('ChannelConnection', () => {
             const protocol = {
               initialize: jest.fn(observer => observer.onComplete({})),
               logoff: jest.fn(({ onError }) => onLogoffErrors.push(onError)),
-              login: jest.fn(() => undefined),
+              logon: jest.fn(() => undefined),
               initialized: true,
               supportsLogoff: true
             }
@@ -251,7 +251,7 @@ describe('ChannelConnection', () => {
 
             expect(protocol.initialize).not.toHaveBeenCalled()
             expect(protocol.logoff).toHaveBeenCalled()
-            expect(protocol.login).toHaveBeenCalledWith(expect.objectContaining({
+            expect(protocol.logon).toHaveBeenCalledWith(expect.objectContaining({
               authToken,
               flush: true
             }))
@@ -261,7 +261,7 @@ describe('ChannelConnection', () => {
             await expect(connectionPromise).rejects.toBe(expectedError)
           })
 
-          it('should notify login errors', async () => {
+          it('should notify logon errors', async () => {
             const authToken = {
               scheme: 'none'
             }
@@ -270,7 +270,7 @@ describe('ChannelConnection', () => {
             const protocol = {
               initialize: jest.fn(observer => observer.onComplete({})),
               logoff: jest.fn(() => undefined),
-              login: jest.fn(({ onError }) => onLoginErrors.push(onError)),
+              logon: jest.fn(({ onError }) => onLoginErrors.push(onError)),
               initialized: true,
               supportsLogoff: true
             }
@@ -286,7 +286,7 @@ describe('ChannelConnection', () => {
 
             expect(protocol.initialize).not.toHaveBeenCalled()
             expect(protocol.logoff).toHaveBeenCalled()
-            expect(protocol.login).toHaveBeenCalledWith(expect.objectContaining({
+            expect(protocol.logon).toHaveBeenCalledWith(expect.objectContaining({
               authToken,
               flush: true
             }))
@@ -306,7 +306,7 @@ describe('ChannelConnection', () => {
           const protocol = {
             initialize: jest.fn(observer => observer.onComplete({})),
             logoff: jest.fn(() => undefined),
-            login: jest.fn(() => undefined),
+            logon: jest.fn(() => undefined),
             initialized: true,
             supportsLogoff: false
           }
@@ -320,7 +320,7 @@ describe('ChannelConnection', () => {
 
           expect(protocol.initialize).not.toHaveBeenCalled()
           expect(protocol.logoff).not.toHaveBeenCalled()
-          expect(protocol.login).not.toHaveBeenCalled()
+          expect(protocol.logon).not.toHaveBeenCalled()
           expect(connection.authToken).toEqual(null)
         })
       })
