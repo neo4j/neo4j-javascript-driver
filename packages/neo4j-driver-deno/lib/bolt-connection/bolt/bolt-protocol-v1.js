@@ -27,12 +27,13 @@ import { structure, v1 } from '../packstream/index.js'
 import RequestMessage from './request-message.js'
 import {
   LoginObserver,
+  LogoffObserver,
   ResetObserver,
   ResultStreamObserver,
   // eslint-disable-next-line no-unused-vars
   StreamObserver
 } from './stream-observers.js'
-import { internal } from '../../core/index.ts'
+import { internal, newError } from '../../core/index.ts'
 import transformersFactories from './bolt-protocol-v1.transformer.js'
 import Transformer from './transformer.js'
 
@@ -100,6 +101,27 @@ export default class BoltProtocol {
   }
 
   /**
+   * @property {boolean} supportsReAuth Either if the protocol version supports re-auth or not.
+   */
+  get supportsReAuth () {
+    return false
+  }
+
+  /**
+   * @property {boolean} initialized Either if the protocol was initialized or not
+   */
+  get initialized () {
+    return !!this._initialized
+  }
+
+  /**
+   * @property {object} authToken The token used in the last login
+   */
+  get authToken () {
+    return this._authToken
+  }
+
+  /**
    * Get the packer.
    * @return {Packer} the protocol's packer.
    */
@@ -160,6 +182,61 @@ export default class BoltProtocol {
     this.write(RequestMessage.init(userAgent, authToken), observer, true)
 
     return observer
+  }
+
+  /**
+   * Performs logoff of the underlying connection
+   *
+   * @param {Object} param
+   * @param {function(err: Error)} param.onError the callback to invoke on error.
+   * @param {function()} param.onComplete the callback to invoke on completion.
+   * @param {boolean} param.flush whether to flush the buffered messages.
+   *
+   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
+   */
+  logoff ({ onComplete, onError, flush } = {}) {
+    const observer = new LogoffObserver({
+      onCompleted: onComplete,
+      onError: onError
+    })
+
+    const error = newError(
+      'Driver is connected to a database that does not support logoff. ' +
+        'Please upgrade to Neo4j 5.5.0 or later in order to use this functionality.'
+    )
+
+    // unsupported API was used, consider this a fatal error for the current connection
+    this._onProtocolError(error.message)
+    observer.onError(error)
+    throw error
+  }
+
+  /**
+   * Performs login of the underlying connection
+   *
+   * @param {Object} args
+   * @param {Object} args.authToken the authentication token.
+   * @param {function(err: Error)} args.onError the callback to invoke on error.
+   * @param {function()} args.onComplete the callback to invoke on completion.
+   * @param {boolean} args.flush whether to flush the buffered messages.
+   *
+   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
+   */
+  logon ({ authToken, onComplete, onError, flush } = {}) {
+    const observer = new LoginObserver({
+      onCompleted: () => this._onLoginCompleted({}, authToken, onComplete),
+      onError: (error) => this._onLoginError(error, onError)
+    })
+
+    const error = newError(
+      'Driver is connected to a database that does not support logon. ' +
+        'Please upgrade to Neo4j 5.5.0 or later in order to use this functionality.'
+    )
+
+    // unsupported API was used, consider this a fatal error for the current connection
+    this._onProtocolError(error.message)
+    observer.onError(error)
+    throw error
   }
 
   /**
@@ -391,15 +468,15 @@ export default class BoltProtocol {
       this.packable(messageStruct)()
 
       this._chunker.messageBoundary()
-
       if (flush) {
         this._chunker.flush()
       }
     }
   }
 
-  isLastMessageLogin () {
-    return this._lastMessageSignature === 0x01
+  isLastMessageLogon () {
+    return this._lastMessageSignature === 0x01 ||
+      this._lastMessageSignature === 0x6A
   }
 
   isLastMessageReset () {
@@ -472,7 +549,9 @@ export default class BoltProtocol {
     this._responseHandler._resetFailure()
   }
 
-  _onLoginCompleted (metadata, onCompleted) {
+  _onLoginCompleted (metadata, authToken, onCompleted) {
+    this._initialized = true
+    this._authToken = authToken
     if (metadata) {
       const serverVersion = metadata.server
       if (!this._server.version) {

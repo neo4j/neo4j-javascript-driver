@@ -40,6 +40,9 @@ const COMMIT = 0x12 // 0001 0010 // COMMIT
 const ROLLBACK = 0x13 // 0001 0011 // ROLLBACK
 const ROUTE = 0x66 // 0110 0110 // ROUTE
 
+const LOGON = 0x6A // LOGON
+const LOGOFF = 0x6B // LOGOFF
+
 const DISCARD = 0x2f // 0010 1111 // DISCARD
 const PULL = 0x3f // 0011 1111 // PULL
 
@@ -118,6 +121,52 @@ export default class RequestMessage {
       HELLO,
       [metadata],
       () => `HELLO {user_agent: '${userAgent}', ...}`
+    )
+  }
+
+  /**
+   * Create a new HELLO message.
+   * @param {string} userAgent the user agent.
+   * @param {Object} optional server side routing, set to routing context to turn on server side routing (> 4.1)
+   * @return {RequestMessage} new HELLO message.
+   */
+  static hello5x1 (userAgent, routing = null) {
+    const metadata = { user_agent: userAgent }
+    if (routing) {
+      metadata.routing = routing
+    }
+
+    return new RequestMessage(
+      HELLO,
+      [metadata],
+      () => `HELLO {user_agent: '${userAgent}', ...}`
+    )
+  }
+
+  /**
+   * Create a new LOGON message.
+   *
+   * @param {object} authToken The auth token
+   * @returns {RequestMessage} new LOGON message
+   */
+  static logon (authToken) {
+    return new RequestMessage(
+      LOGON,
+      [authToken],
+      () => 'LOGON { ... }'
+    )
+  }
+
+  /**
+   * Create a new LOGOFF message.
+   *
+   * @returns {RequestMessage} new LOGOFF message
+   */
+  static logoff () {
+    return new RequestMessage(
+      LOGOFF,
+      [],
+      () => 'LOGOFF'
     )
   }
 
