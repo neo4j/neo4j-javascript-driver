@@ -24,7 +24,7 @@ interface StreamObserver {
   /**
    * Will be called on every record that comes in and transform a raw record
    * to an Object. If user-provided observer is present, pass transformed record
-   * to its onNext method; otherwise, push to record que.
+   * to its onNext method; otherwise push to record que.
    * @param {Array} rawRecord - An array with the raw record
    */
   onNext?: (rawRecord: any[]) => void
