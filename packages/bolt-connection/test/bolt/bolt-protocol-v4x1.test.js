@@ -463,4 +463,39 @@ describe('#unit BoltProtocolV4x1', () => {
       expect(unpacked).toEqual(object)
     })
   })
+
+  describe('Bolt v5.1', () => {
+    it('should not support logoff', () => {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV4x1(recorder, null, false)
+
+      expect(protocol.supportsReAuth).toBe(false)
+    })
+
+    it('should thrown when logoff is called', () => {
+      verifyMethodNotSupportedError(
+        protocol => protocol.logoff(),
+        'Driver is connected to a database that does not support logoff. ' +
+        'Please upgrade to Neo4j 5.5.0 or later in order to use this functionality.')
+    })
+
+    it('should thrown when logon is called', () => {
+      verifyMethodNotSupportedError(
+        protocol => protocol.logon(),
+        'Driver is connected to a database that does not support logon. ' +
+        'Please upgrade to Neo4j 5.5.0 or later in order to use this functionality.')
+    })
+
+    /**
+     * @param {string} impersonatedUser The impersonated user.
+     * @param {function(protocol)} fn
+     */
+    function verifyMethodNotSupportedError (fn, message) {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV4x1(recorder, null, false,
+        () => null, null, () => {})
+
+      expect(() => fn(protocol)).toThrowError(message)
+    }
+  })
 })

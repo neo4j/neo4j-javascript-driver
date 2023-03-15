@@ -451,6 +451,38 @@ class LoginObserver extends StreamObserver {
   }
 }
 
+class LogoffObserver extends StreamObserver {
+  /**
+   *
+   * @param {Object} param -
+   * @param {function(err: Error)} param.onError
+   * @param {function(metadata)} param.onCompleted
+   */
+  constructor ({ onError, onCompleted } = {}) {
+    super()
+    this._onError = onError
+    this._onCompleted = onCompleted
+  }
+
+  onNext (record) {
+    this.onError(
+      newError('Received RECORD when logging off ' + json.stringify(record))
+    )
+  }
+
+  onError (error) {
+    if (this._onError) {
+      this._onError(error)
+    }
+  }
+
+  onCompleted (metadata) {
+    if (this._onCompleted) {
+      this._onCompleted(metadata)
+    }
+  }
+}
+
 class ResetObserver extends StreamObserver {
   /**
    *
@@ -671,6 +703,7 @@ export {
   StreamObserver,
   ResultStreamObserver,
   LoginObserver,
+  LogoffObserver,
   ResetObserver,
   FailedObserver,
   CompletedObserver,

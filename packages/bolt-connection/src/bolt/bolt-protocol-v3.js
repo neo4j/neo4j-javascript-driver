@@ -72,7 +72,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
   initialize ({ userAgent, authToken, onError, onComplete } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
-      onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
+      onCompleted: metadata => this._onLoginCompleted(metadata, authToken, onComplete)
     })
 
     this.write(RequestMessage.hello(userAgent, authToken), observer, true)

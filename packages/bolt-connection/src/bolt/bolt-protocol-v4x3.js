@@ -94,7 +94,7 @@ export default class BoltProtocol extends BoltProtocolV42 {
         if (metadata.patch_bolt !== undefined) {
           this._applyPatches(metadata.patch_bolt)
         }
-        return this._onLoginCompleted(metadata, onComplete)
+        return this._onLoginCompleted(metadata, authToken, onComplete)
       }
     })
 

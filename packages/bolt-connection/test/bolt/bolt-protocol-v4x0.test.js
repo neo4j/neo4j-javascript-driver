@@ -589,6 +589,15 @@ describe('#unit BoltProtocolV4x0', () => {
       expect(unpacked).toEqual(object)
     })
   })
+
+  describe('Bolt v5.1', () => {
+    it('should not support logoff', () => {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV4x0(recorder, null, false)
+
+      expect(protocol.supportsReAuth).toBe(false)
+    })
+  })
 })
 
 class SpiedBoltProtocolV4x0 extends BoltProtocolV4x0 {

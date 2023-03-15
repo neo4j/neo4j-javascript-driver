@@ -3120,7 +3120,7 @@ class FakeConnection extends Connection {
   protocol () {
     return {
       version: this._protocolVersion,
-      isLastMessageLogin: () => this._firstUsage
+      isLastMessageLogon: () => this._firstUsage
     }
   }
 }

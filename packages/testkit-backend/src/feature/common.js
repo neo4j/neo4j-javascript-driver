@@ -16,6 +16,7 @@ const features = [
   'Feature:Bolt:4.3',
   'Feature:Bolt:4.4',
   'Feature:Bolt:5.0',
+  'Feature:Bolt:5.1',
   'Feature:Bolt:Patch:UTC',
   'Feature:API:ConnectionAcquisitionTimeout',
   'Feature:API:Driver.ExecuteQuery',
@@ -24,7 +25,8 @@ const features = [
   'Optimization:EagerTransactionBegin',
   'Optimization:ImplicitDefaultArguments',
   'Optimization:MinimalBookmarksSet',
-  'Optimization:MinimalResets'
+  'Optimization:MinimalResets',
+  'Optimization:AuthPipelining'
 ]
 
 export default features
