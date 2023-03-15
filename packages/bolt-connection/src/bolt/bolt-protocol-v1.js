@@ -24,7 +24,7 @@ import {
 // eslint-disable-next-line no-unused-vars
 import { Chunker } from '../channel'
 import { structure, v1 } from '../packstream'
-import RequestMessage from './request-message'
+import RequestMessage, { SIGNATURES } from './request-message'
 import {
   LoginObserver,
   LogoffObserver,
@@ -475,12 +475,12 @@ export default class BoltProtocol {
   }
 
   isLastMessageLogon () {
-    return this._lastMessageSignature === 0x01 ||
-      this._lastMessageSignature === 0x6A
+    return this._lastMessageSignature === SIGNATURES.HELLO ||
+      this._lastMessageSignature === SIGNATURES.LOGON
   }
 
   isLastMessageReset () {
-    return this._lastMessageSignature === 0x0f
+    return this._lastMessageSignature === SIGNATURES.RESET
   }
 
   /**

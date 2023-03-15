@@ -51,6 +51,23 @@ const READ_MODE = 'r'
 
 const NO_STATEMENT_ID = -1
 
+const SIGNATURES = Object.freeze({
+  INIT,
+  RESET,
+  RUN,
+  PULL_ALL,
+  HELLO,
+  GOODBYE,
+  BEGIN,
+  COMMIT,
+  ROLLBACK,
+  ROUTE,
+  LOGON,
+  LOGOFF,
+  DISCARD,
+  PULL
+})
+
 export default class RequestMessage {
   constructor (signature, fields, toString) {
     this.signature = signature
@@ -376,3 +393,7 @@ const RESET_MESSAGE = new RequestMessage(RESET, [], () => 'RESET')
 const COMMIT_MESSAGE = new RequestMessage(COMMIT, [], () => 'COMMIT')
 const ROLLBACK_MESSAGE = new RequestMessage(ROLLBACK, [], () => 'ROLLBACK')
 const GOODBYE_MESSAGE = new RequestMessage(GOODBYE, [], () => 'GOODBYE')
+
+export {
+  SIGNATURES
+}
