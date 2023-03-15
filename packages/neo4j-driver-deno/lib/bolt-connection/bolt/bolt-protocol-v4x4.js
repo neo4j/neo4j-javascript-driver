@@ -21,6 +21,7 @@ import BoltProtocolV43 from './bolt-protocol-v4x3.js'
 import { internal } from '../../core/index.ts'
 import RequestMessage from './request-message.js'
 import { RouteObserver, ResultStreamObserver } from './stream-observers.js'
+import { assertNotificationFilterIsEmpty } from './bolt-protocol-util.js'
 
 import transformersFactories from './bolt-protocol-v4x4.transformer.js'
 import utcTransformersFactories from './bolt-protocol-v5x0.utc.transformer.js'
@@ -87,6 +88,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
       database,
       mode,
       impersonatedUser,
+      notificationFilter,
       beforeKeys,
       afterKeys,
       beforeError,
@@ -116,6 +118,9 @@ export default class BoltProtocol extends BoltProtocolV43 {
       lowRecordWatermark
     })
 
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
+
     const flushRun = reactive
     this.write(
       RequestMessage.runWithMetadata(query, parameters, {
@@ -142,6 +147,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
     database,
     mode,
     impersonatedUser,
+    notificationFilter,
     beforeError,
     afterError,
     beforeComplete,
@@ -155,6 +161,9 @@ export default class BoltProtocol extends BoltProtocolV43 {
       afterComplete
     })
     observer.prepareToHandleSingleResponse()
+
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.begin({ bookmarks, txConfig, database, mode, impersonatedUser }),

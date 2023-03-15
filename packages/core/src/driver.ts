@@ -283,7 +283,7 @@ class SessionConfig {
      * // notification categories
      * const sessionWithDefaultSeverityLevel = driver.session({
      *     database: 'neo4j',
-     *     notificationFilters: {
+     *     notificationFilter: {
      *         disabledCategories: [
      *             neo4j.notificationFilterDisabledCategory.HINT, // or 'HINT'
      *             neo4j.notificationFilterDisabledCategory.UNRECOGNIZED // or 'UNRECOGNIZED'
@@ -294,7 +294,7 @@ class SessionConfig {
      * // using default disabled categories, but configuring minimum severity level to 'WARNING'
      * const sessionWithDefaultSeverityLevel = driver.session({
      *     database: 'neo4j',
-     *     notificationFilters: {
+     *     notificationFilter: {
      *         minimumSeverityLevel: neo4j.notificationFilterMinimumSeverityLevel.WARNING // or 'WARNING'
      *     }
      * })

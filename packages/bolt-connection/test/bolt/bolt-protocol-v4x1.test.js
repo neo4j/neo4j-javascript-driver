@@ -37,6 +37,7 @@ import {
 
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
+import { notificationFilterBehaviour } from './behaviour'
 
 const {
   txConfig: { TxConfig },
@@ -498,4 +499,14 @@ describe('#unit BoltProtocolV4x1', () => {
       expect(() => fn(protocol)).toThrowError(message)
     }
   })
+
+  describe('Bolt v5.2', () => {
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  function newProtocol (recorder) {
+    return new BoltProtocolV4x1(recorder, null, false, undefined, undefined, () => {})
+  }
 })

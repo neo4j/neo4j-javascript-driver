@@ -43,6 +43,7 @@ import {
 
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
+import { notificationFilterBehaviour } from './behaviour'
 
 const {
   bookmarks: { Bookmarks },
@@ -706,6 +707,16 @@ describe('#unit BoltProtocolV3', () => {
       expect(() => fn(protocol)).toThrowError(message)
     }
   })
+
+  describe('Bolt v5.2', () => {
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  function newProtocol (recorder) {
+    return new BoltProtocolV3(recorder, null, false, undefined, undefined, () => {})
+  }
 })
 
 class SpiedBoltProtocolV3 extends BoltProtocolV3 {

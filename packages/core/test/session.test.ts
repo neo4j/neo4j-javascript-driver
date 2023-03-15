@@ -490,7 +490,7 @@ describe('session', () => {
 
     it.each(
       validNotificationFilters()
-    )('should call run query with notificationFilters', async (notificationFilter?: NotificationFilter) => {
+    )('should call run query with notificationFilter', async (notificationFilter?: NotificationFilter) => {
       const connection = mockBeginWithSuccess(newFakeConnection())
 
       const { session } = setupSession({
@@ -817,7 +817,7 @@ describe('session', () => {
 
     it.each(
       validNotificationFilters()
-    )('should call run query with notificationFilters', async (notificationFilter?: NotificationFilter) => {
+    )('should call run query with notificationFilter', async (notificationFilter?: NotificationFilter) => {
       const connection = newFakeConnection()
 
       const { session } = setupSession({

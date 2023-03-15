@@ -43,6 +43,7 @@ import {
 
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
+import { notificationFilterBehaviour } from './behaviour'
 
 const WRITE = 'WRITE'
 
@@ -598,6 +599,16 @@ describe('#unit BoltProtocolV4x0', () => {
       expect(protocol.supportsReAuth).toBe(false)
     })
   })
+
+  describe('Bolt v5.2', () => {
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  function newProtocol (recorder) {
+    return new BoltProtocolV4x0(recorder, null, false, undefined, undefined, () => {})
+  }
 })
 
 class SpiedBoltProtocolV4x0 extends BoltProtocolV4x0 {

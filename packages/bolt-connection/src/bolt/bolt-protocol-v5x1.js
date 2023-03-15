@@ -18,6 +18,7 @@
  */
 import BoltProtocolV5x0 from './bolt-protocol-v5x0'
 
+import { assertNotificationFilterIsEmpty } from './bolt-protocol-util'
 import transformersFactories from './bolt-protocol-v5x1.transformer'
 import Transformer from './transformer'
 import RequestMessage from './request-message'
@@ -48,14 +49,15 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
   /**
    * Initialize a connection with the server
    *
-   * @param {Object} param0 The params
-   * @param {string} param0.userAgent The user agent
-   * @param {any} param0.authToken The auth token
-   * @param {function(error)} param0.onError On error callback
-   * @param {function(onComplte)} param0.onComplete On complete callback
+   * @param {Object} args The params
+   * @param {string} args.userAgent The user agent
+   * @param {any} args.authToken The auth token
+   * @param {NotificationFilter} args.notificationFilter The notification filters.
+   * @param {function(error)} args.onError On error callback
+   * @param {function(onComplete)} args.onComplete On complete callback
    * @returns {LoginObserver} The Login observer
    */
-  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const state = {}
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
@@ -64,6 +66,9 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
         return this._onLoginCompleted(metadata)
       }
     })
+
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.hello5x1(userAgent, this._serversideRouting),

@@ -19,7 +19,8 @@
 import {
   assertDatabaseIsEmpty,
   assertTxConfigIsEmpty,
-  assertImpersonatedUserIsEmpty
+  assertImpersonatedUserIsEmpty,
+  assertNotificationFilterIsEmpty
 } from './bolt-protocol-util'
 // eslint-disable-next-line no-unused-vars
 import { Chunker } from '../channel'
@@ -169,15 +170,19 @@ export default class BoltProtocol {
    * @param {Object} param
    * @param {string} param.userAgent the user agent.
    * @param {Object} param.authToken the authentication token.
+   * @param {NotificationFilter} param.notificationFilter the notification filter.
    * @param {function(err: Error)} param.onError the callback to invoke on error.
    * @param {function()} param.onComplete the callback to invoke on completion.
    * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
     })
+
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(RequestMessage.init(userAgent, authToken), observer, true)
 
@@ -254,6 +259,7 @@ export default class BoltProtocol {
    * @param {string} param.database the target database name.
    * @param {string} param.mode the access mode.
    * @param {string} param.impersonatedUser the impersonated user
+   * @param {NotificationFilter} param.notificationFilter the notification filter.
    * @param {function(err: Error)} param.beforeError the callback to invoke before handling the error.
    * @param {function(err: Error)} param.afterError the callback to invoke after handling the error.
    * @param {function()} param.beforeComplete the callback to invoke before handling the completion.
@@ -266,6 +272,7 @@ export default class BoltProtocol {
     database,
     mode,
     impersonatedUser,
+    notificationFilter,
     beforeError,
     afterError,
     beforeComplete,
@@ -280,6 +287,7 @@ export default class BoltProtocol {
         database,
         mode,
         impersonatedUser,
+        notificationFilter,
         beforeError,
         afterError,
         beforeComplete,
@@ -362,6 +370,7 @@ export default class BoltProtocol {
    * @param {TxConfig} param.txConfig the transaction configuration.
    * @param {string} param.database the target database name.
    * @param {string} param.impersonatedUser the impersonated user
+   * @param {NotificationFilter} param.notificationFilter the notification filter.
    * @param {string} param.mode the access mode.
    * @param {function(keys: string[])} param.beforeKeys the callback to invoke before handling the keys.
    * @param {function(keys: string[])} param.afterKeys the callback to invoke after handling the keys.
@@ -381,6 +390,7 @@ export default class BoltProtocol {
       database,
       mode,
       impersonatedUser,
+      notificationFilter,
       beforeKeys,
       afterKeys,
       beforeError,
@@ -410,6 +420,8 @@ export default class BoltProtocol {
     assertDatabaseIsEmpty(database, this._onProtocolError, observer)
     // passing impersonated user on this protocol version throws an error
     assertImpersonatedUserIsEmpty(impersonatedUser, this._onProtocolError, observer)
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(RequestMessage.run(query, parameters), observer, false)
     this.write(RequestMessage.pullAll(), observer, flush)

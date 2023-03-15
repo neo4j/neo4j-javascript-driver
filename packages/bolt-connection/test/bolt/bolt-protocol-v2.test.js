@@ -37,6 +37,7 @@ import {
 
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
+import { notificationFilterBehaviour } from './behaviour'
 
 describe('#unit BoltProtocolV2', () => {
   beforeEach(() => {
@@ -501,4 +502,14 @@ describe('#unit BoltProtocolV2', () => {
       expect(() => fn(protocol)).toThrowError(message)
     }
   })
+
+  describe('Bolt v5.2', () => {
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  function newProtocol (recorder) {
+    return new BoltProtocolV2(recorder, null, false, undefined, undefined, () => {})
+  }
 })

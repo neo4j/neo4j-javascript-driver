@@ -18,7 +18,7 @@
  */
 import BoltProtocolV2 from './bolt-protocol-v2'
 import RequestMessage from './request-message'
-import { assertDatabaseIsEmpty, assertImpersonatedUserIsEmpty } from './bolt-protocol-util'
+import { assertDatabaseIsEmpty, assertImpersonatedUserIsEmpty, assertNotificationFilterIsEmpty } from './bolt-protocol-util'
 import {
   StreamObserver,
   LoginObserver,
@@ -69,11 +69,14 @@ export default class BoltProtocol extends BoltProtocolV2 {
     return metadata
   }
 
-  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, authToken, onComplete)
     })
+
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(RequestMessage.hello(userAgent, authToken), observer, true)
 
@@ -89,6 +92,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     txConfig,
     database,
     impersonatedUser,
+    notificationFilter,
     mode,
     beforeError,
     afterError,
@@ -108,6 +112,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
     assertDatabaseIsEmpty(database, this._onProtocolError, observer)
     // passing impersonated user on this protocol version throws an error
     assertImpersonatedUserIsEmpty(impersonatedUser, this._onProtocolError, observer)
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.begin({ bookmarks, txConfig, mode }),
@@ -166,6 +172,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
       txConfig,
       database,
       impersonatedUser,
+      notificationFilter,
       mode,
       beforeKeys,
       afterKeys,
@@ -194,6 +201,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
     assertDatabaseIsEmpty(database, this._onProtocolError, observer)
     // passing impersonated user on this protocol version throws an error
     assertImpersonatedUserIsEmpty(impersonatedUser, this._onProtocolError, observer)
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.runWithMetadata(query, parameters, {

@@ -379,7 +379,7 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
 
       it.each(
         validNotificationFilters()
-      )('should call not run query with notificationFilters', async (notificationFilter?: NotificationFilter) => {
+      )('should call not run query with notificationFilter', async (notificationFilter?: NotificationFilter) => {
         const connection = newFakeConnection()
         const tx = newTransaction({
           connection,

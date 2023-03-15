@@ -40,6 +40,7 @@ import {
 } from 'neo4j-driver-core'
 
 import { alloc } from '../../src/channel'
+import { notificationFilterBehaviour } from './behaviour'
 
 const WRITE = 'WRITE'
 
@@ -1089,4 +1090,14 @@ describe('#unit BoltProtocolV5x1', () => {
       expect(unpacked).toEqual(struct)
     })
   })
+
+  describe('Bolt v5.2', () => {
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  function newProtocol (recorder) {
+    return new BoltProtocolV5x1(recorder, null, false, undefined, undefined, () => {})
+  }
 })
