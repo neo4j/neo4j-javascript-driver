@@ -86,6 +86,7 @@ export function createChannelConnection (
         config.disableLosslessIntegers,
         serversideRouting,
         chunker,
+        config.notificationFilter,
         createProtocol
       )
 
@@ -119,6 +120,7 @@ export default class ChannelConnection extends Connection {
     disableLosslessIntegers = false,
     serversideRouting = null,
     chunker, // to be removed,
+    notificationFilter,
     protocolSupplier
   ) {
     super(errorHandler)
@@ -134,6 +136,7 @@ export default class ChannelConnection extends Connection {
     this._chunker = chunker
     this._log = createConnectionLogger(this, log)
     this._serversideRouting = serversideRouting
+    this._notificationFilter = notificationFilter
 
     // connection from the database, returned in response for HELLO message and might not be available
     this._dbConnectionId = null
@@ -187,6 +190,7 @@ export default class ChannelConnection extends Connection {
       this._protocol.initialize({
         userAgent,
         authToken,
+        notificationFilter: this._notificationFilter,
         onError: err => reject(err),
         onComplete: metadata => {
           if (metadata) {

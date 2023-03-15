@@ -19,6 +19,7 @@
 
 import ChannelConnection from '../../src/connection/connection-channel'
 import { int, internal, newError } from 'neo4j-driver-core'
+import { notificationFilterBehaviour } from '../bolt/behaviour'
 
 const {
   serverAddress: { ServerAddress },
@@ -122,6 +123,30 @@ describe('ChannelConnection', () => {
             `supplied an invalid connection receive timeout value (${metadata.hints['connection.recv_timeout_seconds']}). ` +
             'Please, verify the server configuration and status because this can be the symptom of a bigger issue.'
         )
+      }
+    )
+
+    it.each(
+      notificationFilterBehaviour.notificationFilterFixture()
+    )(
+      'should send notificationFilter=%o to initialize ',
+      async (notificationFilter) => {
+        const channel = {
+          setupReceiveTimeout: jest.fn().mockName('setupReceiveTimeout')
+        }
+        const protocol = {
+          initialize: jest.fn(observer =>
+            observer.onComplete({})
+          )
+        }
+        const protocolSupplier = () => protocol
+        const connection = spyOnConnectionChannel({ channel, protocolSupplier, notificationFilter })
+
+        await connection.connect('userAgent', {})
+
+        const call = protocol.initialize.mock.calls[0][0]
+
+        expect(call.notificationFilter).toBe(notificationFilter)
       }
     )
   })
@@ -522,6 +547,7 @@ describe('ChannelConnection', () => {
     disableLosslessIntegers,
     serversideRouting,
     chuncker,
+    notificationFilter,
     protocolSupplier
   }) {
     address = address || ServerAddress.fromUrl('bolt://localhost')
@@ -534,6 +560,7 @@ describe('ChannelConnection', () => {
       disableLosslessIntegers,
       serversideRouting,
       chuncker,
+      notificationFilter,
       protocolSupplier
     )
   }
