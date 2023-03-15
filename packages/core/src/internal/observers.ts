@@ -23,15 +23,15 @@ import ResultSummary from '../result-summary'
 interface StreamObserver {
   /**
    * Will be called on every record that comes in and transform a raw record
-   * to a Object. If user-provided observer is present, pass transformed record
-   * to it's onNext method, otherwise, push to record que.
+   * to an Object. If user-provided observer is present, pass transformed record
+   * to its onNext method; otherwise push to record que.
    * @param {Array} rawRecord - An array with the raw record
    */
   onNext?: (rawRecord: any[]) => void
   /**
    * Will be called on errors.
    * If user-provided observer is present, pass the error
-   * to it's onError method, otherwise set instance variable _error.
+   * to its onError method, otherwise set instance variable _error.
    * @param {Object} error - An error object
    */
   onError: (error: Error) => void
@@ -40,7 +40,6 @@ interface StreamObserver {
 
 /**
  * Interface to observe updates on the Result which is being produced.
- *
  */
 interface ResultObserver {
   /**
@@ -51,7 +50,7 @@ interface ResultObserver {
   onKeys?: (keys: string[]) => void
 
   /**
-   * Receive the each record present on the {@link @Result}
+   * Receive each record present on the {@link @Result}
    * @param {Record} record The {@link Record} produced
    */
   onNext?: (record: Record) => void
@@ -115,7 +114,7 @@ export interface ResultStreamObserver extends StreamObserver {
    * @param {Object} observer - Observer object
    * @param {function(keys: String[])} observer.onKeys - Handle stream header, field keys.
    * @param {function(record: Object)} observer.onNext - Handle records, one by one.
-   * @param {function(metadata: Object)} observer.onCompleted - Handle stream tail, the metadata.
+   * @param {function(metadata: Object)} observer.onCompleted - Handle stream tail, the summary.
    * @param {function(error: Object)} observer.onError - Handle errors, should always be provided.
    */
   subscribe: (observer: ResultObserver) => void
