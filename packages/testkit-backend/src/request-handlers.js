@@ -39,6 +39,7 @@ export function NewDriver (neo4j, context, data, wire) {
         authToken.parameters
       )
   }
+
   const resolver = resolverRegistered
     ? address =>
         new Promise((resolve, reject) => {
@@ -83,6 +84,12 @@ export function NewDriver (neo4j, context, data, wire) {
   if ('maxTxRetryTimeMs' in data) {
     config.maxTransactionRetryTime = data.maxTxRetryTimeMs
   }
+  if ('notificationsMinSeverity' in data || 'notificationsDisabledCategories' in data) {
+    config.notificationFilter = {
+      minimumSeverityLevel: data.notificationsMinSeverity,
+      disabledCategories: data.notificationsDisabledCategories
+    }
+  }
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)
@@ -126,6 +133,13 @@ export function NewSession (neo4j, context, data, wire) {
       return
     }
   }
+  let notificationFilter
+  if ('notificationsMinSeverity' in data || 'notificationsDisabledCategories' in data) {
+    notificationFilter = {
+      minimumSeverityLevel: data.notificationsMinSeverity,
+      disabledCategories: data.notificationsDisabledCategories
+    }
+  }
   const driver = context.getDriver(driverId)
   const session = driver.session({
     defaultAccessMode: accessMode,
@@ -133,7 +147,8 @@ export function NewSession (neo4j, context, data, wire) {
     database,
     fetchSize,
     impersonatedUser,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilter
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))

@@ -42,6 +42,7 @@ function mapProfile (profile, child = false, binder) {
 function mapNotification (notification) {
   return {
     ...notification,
+    rawCategory: notification.rawCategory || '',
     position: Object.keys(notification.position).length !== 0 ? notification.position : undefined
   }
 }
