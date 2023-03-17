@@ -38,6 +38,7 @@ import { newError } from './error'
 import Result from './result'
 import { Query } from './types'
 import { Dict } from './record'
+import NotificationFilter from './notification-filter'
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -61,19 +62,22 @@ class Transaction {
   private _bookmarks: Bookmarks
   private readonly _activePromise: Promise<void>
   private _acceptActive: () => void
+  private readonly _notificationFilter?: NotificationFilter
 
   /**
    * @constructor
-   * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
-   * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
-   * @param {function(bookmarks: Bookmarks)} onBookmarks callback invoked when new bookmark is produced.
-   * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the conneciton
+   * @param {object} args
+   * @param {ConnectionHolder} args.connectionHolder - the connection holder to get connection from.
+   * @param {function()} args.onClose - Function to be called when transaction is committed or rolled back.
+   * @param {function(bookmarks: Bookmarks)} args.onBookmarks callback invoked when new bookmark is produced.
+   * @param {function()} args.onConnection - Function to be called when a connection is obtained to ensure the conneciton
    * is not yet released.
-   * @param {boolean} reactive whether this transaction generates reactive streams
-   * @param {number} fetchSize - the record fetch size in each pulling batch.
-   * @param {string} impersonatedUser - The name of the user which should be impersonated for the duration of the session.
-   * @param {number} highRecordWatermark - The high watermark for the record buffer.
-   * @param {number} lowRecordWatermark - The low watermark for the record buffer.
+   * @param {boolean} args.reactive whether this transaction generates reactive streams
+   * @param {number} args.fetchSize - the record fetch size in each pulling batch.
+   * @param {string} args.impersonatedUser - The name of the user which should be impersonated for the duration of the session.
+   * @param {number} args.highRecordWatermark - The high watermark for the record buffer.
+   * @param {number} args.lowRecordWatermark - The low watermark for the record buffer.
+   * @param {NotificationFilter} args.notificationFilter - The notification filter used for this transaction.
    */
   constructor ({
     connectionHolder,
@@ -84,7 +88,8 @@ class Transaction {
     fetchSize,
     impersonatedUser,
     highRecordWatermark,
-    lowRecordWatermark
+    lowRecordWatermark,
+    notificationFilter
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -95,6 +100,7 @@ class Transaction {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
+    notificationFilter?: NotificationFilter
   }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
@@ -110,6 +116,7 @@ class Transaction {
     this._lowRecordWatermak = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
     this._bookmarks = Bookmarks.empty()
+    this._notificationFilter = notificationFilter
     this._acceptActive = () => { } // satisfy DenoJS
     this._activePromise = new Promise((resolve, reject) => {
       this._acceptActive = resolve
@@ -138,6 +145,7 @@ class Transaction {
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
             impersonatedUser: this._impersonatedUser,
+            notificationFilter: this._notificationFilter,
             beforeError: (error: Error) => {
               if (events != null) {
                 events.onError(error)

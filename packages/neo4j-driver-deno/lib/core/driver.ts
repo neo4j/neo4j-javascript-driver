@@ -46,6 +46,7 @@ import EagerResult from './result-eager.ts'
 import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import QueryExecutor from './internal/query-executor.ts'
 import { newError } from './error.ts'
+import NotificationFilter from './notification-filter.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -94,6 +95,7 @@ type CreateSession = (args: {
   fetchSize: number
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
+  notificationFilter?: NotificationFilter
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -103,6 +105,7 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
+  notificationFilter?: NotificationFilter
 }
 
 /**
@@ -117,6 +120,7 @@ class SessionConfig {
   impersonatedUser?: string
   fetchSize?: number
   bookmarkManager?: BookmarkManager
+  notificationFilter?: NotificationFilter
 
   /**
    * @constructor
@@ -235,6 +239,70 @@ class SessionConfig {
      * @since 5.0
      */
     this.bookmarkManager = undefined
+
+    /**
+     * Configure filter for {@link Notification} objects returned in {@link ResultSummary#notifications}.
+     *
+     * This configuration enables filter notifications by:
+     *
+     * * the minimum severity level ({@link NotificationFilterMinimumSeverityLevel})
+     * * disabling notification categories ({@link NotificationFilterDisabledCategory})
+     *
+     *
+     * Disabling notifications can be done by defining the minimum severity level to 'OFF'.
+     * Default values can be use by omitting the configuration.
+     *
+     * @example
+     * // enabling warning notification, but disabling `HINT` and `DEPRECATION` notifications.
+     * const session = driver.session({
+     *     database: 'neo4j',
+     *     notificationFilter: {
+     *         minimumSeverityLevel: neo4j.notificationFilterMinimumSeverityLevel.WARNING, // or 'WARNING
+     *         disabledCategories: [
+     *             neo4j.notificationFilterDisabledCategory.HINT, // or 'HINT'
+     *             neo4j.notificationFilterDisabledCategory.DEPRECATION // or 'DEPRECATION'
+     *        ]
+     *     }
+     * })
+     *
+     * @example
+     * // disabling notifications for a session
+     * const session = driver.session({
+     *     database: 'neo4j',
+     *     notificationFilter: {
+     *         minimumSeverityLevel: neo4j.notificationFilterMinimumSeverityLevel.OFF // or 'OFF'
+     *     }
+     * })
+     *
+     * @example
+     * // using default values configured in the driver
+     * const sessionWithDefaultValues = driver.session({ database: 'neo4j' })
+     * // or driver.session({ database: 'neo4j', notificationFilter: undefined })
+     *
+     * // using default minimum severity level, but disabling 'HINT' and 'UNRECOGNIZED'
+     * // notification categories
+     * const sessionWithDefaultSeverityLevel = driver.session({
+     *     database: 'neo4j',
+     *     notificationFilter: {
+     *         disabledCategories: [
+     *             neo4j.notificationFilterDisabledCategory.HINT, // or 'HINT'
+     *             neo4j.notificationFilterDisabledCategory.UNRECOGNIZED // or 'UNRECOGNIZED'
+     *        ]
+     *     }
+     * })
+     *
+     * // using default disabled categories, but configuring minimum severity level to 'WARNING'
+     * const sessionWithDefaultSeverityLevel = driver.session({
+     *     database: 'neo4j',
+     *     notificationFilter: {
+     *         minimumSeverityLevel: neo4j.notificationFilterMinimumSeverityLevel.WARNING // or 'WARNING'
+     *     }
+     * })
+     *
+     * @type {NotificationFilter|undefined}
+     * @since 5.7
+     */
+    this.notificationFilter = undefined
   }
 }
 
@@ -627,7 +695,8 @@ class Driver {
     database = '',
     impersonatedUser,
     fetchSize,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilter
   }: SessionConfig = {}): Session {
     return this._newSession({
       defaultAccessMode,
@@ -637,7 +706,8 @@ class Driver {
       impersonatedUser,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!),
-      bookmarkManager
+      bookmarkManager,
+      notificationFilter
     })
   }
 
@@ -675,7 +745,8 @@ class Driver {
     reactive,
     impersonatedUser,
     fetchSize,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilter
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
@@ -684,6 +755,7 @@ class Driver {
     impersonatedUser?: string
     fetchSize: number
     bookmarkManager?: BookmarkManager
+    notificationFilter?: NotificationFilter
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -700,7 +772,8 @@ class Driver {
       reactive,
       impersonatedUser,
       fetchSize,
-      bookmarkManager
+      bookmarkManager,
+      notificationFilter
     })
   }
 

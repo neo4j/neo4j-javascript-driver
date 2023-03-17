@@ -36,7 +36,15 @@ import {
   isPathSegment,
   isRelationship,
   isUnboundRelationship,
-  RoutingControl
+  RoutingControl,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  notificationCategory,
+  NotificationCategory,
+  notificationFilterMinimumSeverityLevel,
+  NotificationFilterMinimumSeverityLevel,
+  NotificationFilterDisabledCategory,
+  notificationFilterDisabledCategory
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -111,3 +119,45 @@ const neo4jIsPath: boolean = isPath({})
 const neo4jIsPathSegment: boolean = isPathSegment({})
 const neo4jIsRelationship: boolean = isRelationship({})
 const neo4jIsUnboundRelationship: boolean = isUnboundRelationship({})
+
+const unknownSeverityString: string = notificationSeverityLevel.UNKNOWN
+const warningSeverityString: string = notificationSeverityLevel.WARNING
+const informationSeverityString: string = notificationSeverityLevel.INFORMATION
+const unknownSeverity: NotificationSeverityLevel = notificationSeverityLevel.UNKNOWN
+const warningSeverity: NotificationSeverityLevel = notificationSeverityLevel.WARNING
+const informationSeverity: NotificationSeverityLevel = notificationSeverityLevel.INFORMATION
+
+const hintCategoryString: string = notificationCategory.HINT
+const deprecationCategoryString: string = notificationCategory.DEPRECATION
+const performanceCategoryString: string = notificationCategory.PERFORMANCE
+const genericCategoryString: string = notificationCategory.GENERIC
+const unrecognizedCategoryString: string = notificationCategory.UNRECOGNIZED
+const unsupportedCategoryString: string = notificationCategory.UNSUPPORTED
+const unknownCategoryString: string = notificationCategory.UNKNOWN
+const hintCategory: NotificationCategory = notificationCategory.HINT
+const deprecationCategory: NotificationCategory = notificationCategory.DEPRECATION
+const performanceCategory: NotificationCategory = notificationCategory.PERFORMANCE
+const genericCategory: NotificationCategory = notificationCategory.GENERIC
+const unrecognizedCategory: NotificationCategory = notificationCategory.UNRECOGNIZED
+const unsupportedCategory: NotificationCategory = notificationCategory.UNSUPPORTED
+const unknownCategory: NotificationCategory = notificationCategory.UNKNOWN
+
+const offNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.OFF
+const warningNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.WARNING
+const infoNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.INFORMATION
+const offNotificationFilterMinimumSeverityLevel: NotificationFilterMinimumSeverityLevel = notificationFilterMinimumSeverityLevel.OFF
+const warningNotificationFilterMinimumSeverityLevel: NotificationFilterMinimumSeverityLevel = notificationFilterMinimumSeverityLevel.WARNING
+const infoNotificationFilterMinimumSeverityLevel: NotificationFilterMinimumSeverityLevel = notificationFilterMinimumSeverityLevel.INFORMATION
+
+const hintDisabledCategoryString: string = notificationFilterDisabledCategory.HINT
+const deprecationDisabledCategoryString: string = notificationFilterDisabledCategory.DEPRECATION
+const performanceDisabledCategoryString: string = notificationFilterDisabledCategory.PERFORMANCE
+const genericDisabledCategoryString: string = notificationFilterDisabledCategory.GENERIC
+const unrecognizedDisabledCategoryString: string = notificationFilterDisabledCategory.UNRECOGNIZED
+const unsupportedDisabledCategoryString: string = notificationFilterDisabledCategory.UNSUPPORTED
+const hintDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.HINT
+const deprecationDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.DEPRECATION
+const performanceDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.PERFORMANCE
+const genericDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.GENERIC
+const unrecognizedDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.UNRECOGNIZED
+const unsupportedDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.UNSUPPORTED

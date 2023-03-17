@@ -409,4 +409,39 @@ describe('index', () => {
     expect(neo4j.routing.WRITERS).toBeDefined()
     expect(neo4j.routing.READERS).toBeDefined()
   })
+
+  it('should export notificationSeverityLevel', () => {
+    expect(neo4j.notificationSeverityLevel).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.WARNING).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.INFORMATION).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.UNKNOWN).toBeDefined()
+  })
+
+  it('should export notificationCategory', () => {
+    expect(neo4j.notificationCategory).toBeDefined()
+    expect(neo4j.notificationCategory.HINT).toBeDefined()
+    expect(neo4j.notificationCategory.UNRECOGNIZED).toBeDefined()
+    expect(neo4j.notificationCategory.UNSUPPORTED).toBeDefined()
+    expect(neo4j.notificationCategory.PERFORMANCE).toBeDefined()
+    expect(neo4j.notificationCategory.DEPRECATION).toBeDefined()
+    expect(neo4j.notificationCategory.GENERIC).toBeDefined()
+    expect(neo4j.notificationCategory.UNKNOWN).toBeDefined()
+  })
+
+  it('should export notificationFilterMinimumSeverityLevel', () => {
+    expect(neo4j.notificationFilterMinimumSeverityLevel).toBeDefined()
+    expect(neo4j.notificationFilterMinimumSeverityLevel.WARNING).toBeDefined()
+    expect(neo4j.notificationFilterMinimumSeverityLevel.INFORMATION).toBeDefined()
+    expect(neo4j.notificationFilterMinimumSeverityLevel.OFF).toBeDefined()
+  })
+
+  it('should export notificationFilterDisabledCategory', () => {
+    expect(neo4j.notificationFilterDisabledCategory).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.HINT).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.UNRECOGNIZED).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.UNSUPPORTED).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.PERFORMANCE).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.DEPRECATION).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.GENERIC).toBeDefined()
+  })
 })

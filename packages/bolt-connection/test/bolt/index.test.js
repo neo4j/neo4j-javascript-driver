@@ -31,6 +31,8 @@ import BoltProtocolV4x2 from '../../src/bolt/bolt-protocol-v4x2'
 import BoltProtocolV4x3 from '../../src/bolt/bolt-protocol-v4x3'
 import BoltProtocolV4x4 from '../../src/bolt/bolt-protocol-v4x4'
 import BoltProtocolV5x0 from '../../src/bolt/bolt-protocol-v5x0'
+import BoltProtocolV5x1 from '../../src/bolt/bolt-protocol-v5x1'
+import BoltProtocolV5x2 from '../../src/bolt/bolt-protocol-v5x2'
 
 const {
   logger: { Logger }
@@ -44,17 +46,17 @@ describe('#unit Bolt', () => {
       const writtenBuffer = channel.written[0]
 
       const boltMagicPreamble = '60 60 b0 17'
-      const protocolVersion5x1to5x0 = '00 01 01 05'
+      const protocolVersion5x2to5x0 = '00 02 02 05'
       const protocolVersion4x4to4x2 = '00 02 04 04'
       const protocolVersion4x1 = '00 00 01 04'
       const protocolVersion3 = '00 00 00 03'
 
       expect(writtenBuffer.toHex()).toEqual(
-        `${boltMagicPreamble} ${protocolVersion5x1to5x0} ${protocolVersion4x4to4x2} ${protocolVersion4x1} ${protocolVersion3}`
+        `${boltMagicPreamble} ${protocolVersion5x2to5x0} ${protocolVersion4x4to4x2} ${protocolVersion4x1} ${protocolVersion3}`
       )
     })
 
-    it('should handle a successful handshake without reaining buffer', done => {
+    it('should handle a successful handshake without remaining buffer', done => {
       const { channel, handshakePromise } = subject()
       const expectedProtocolVersion = 4.3
 
@@ -360,7 +362,8 @@ describe('#unit Bolt', () => {
         v(4.3, BoltProtocolV4x3),
         v(4.4, BoltProtocolV4x4),
         v(5.0, BoltProtocolV5x0),
-        v(5.1, BoltProtocolV5x0)
+        v(5.1, BoltProtocolV5x1),
+        v(5.2, BoltProtocolV5x2)
       ]
 
       availableProtocols.forEach(lambda)

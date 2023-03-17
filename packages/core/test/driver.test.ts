@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { bookmarkManager, ConnectionProvider, EagerResult, newError, Result, ResultSummary, ServerInfo, Session } from '../src'
+import { bookmarkManager, ConnectionProvider, EagerResult, newError, NotificationFilter, Result, ResultSummary, ServerInfo, Session } from '../src'
 import Driver, { QueryConfig, READ, routing } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
@@ -26,6 +26,7 @@ import { ConfiguredCustomResolver } from '../src/internal/resolver'
 import { LogLevel } from '../src/types'
 import resultTransformers from '../src/result-transformers'
 import Record, { Dict } from '../src/record'
+import { validNotificationFilters } from './utils/notification-filters.fixtures'
 
 describe('Driver', () => {
   let driver: Driver | null
@@ -158,6 +159,30 @@ describe('Driver', () => {
           expect(createSession).toBeCalledWith(expect.objectContaining({
             bookmarkManager: undefined,
             bookmarks: Bookmarks.empty()
+          }))
+        } finally {
+          await session.close()
+          await driver.close()
+        }
+      })
+    })
+
+    describe('when set config.notificationFilters', () => {
+      it.each(
+        validNotificationFilters()
+      )('should send valid "notificationFilters" to the session', async (notificationFilter?: NotificationFilter) => {
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        const session = driver.session({ notificationFilter })
+
+        try {
+          expect(createSession).toBeCalledWith(expect.objectContaining({
+            notificationFilter
           }))
         } finally {
           await session.close()
@@ -507,6 +532,33 @@ describe('Driver', () => {
         spiedExecute.mockRejectedValue(failure)
 
         await expect(driver?.executeQuery(query, params)).rejects.toThrow(failure)
+      })
+    })
+  })
+
+  describe('constructor', () => {
+    describe('when set config.notificationFilters', () => {
+      it.each(
+        validNotificationFilters()
+      )('should send valid "notificationFilters" to the connection provider', async (notificationFilter?: NotificationFilter) => {
+        const createConnectionProviderMock = jest.fn(mockCreateConnectonProvider(connectionProvider))
+        const driver = new Driver(
+          META_INFO,
+          { notificationFilter },
+          createConnectionProviderMock,
+          createSession
+        )
+
+        driver._getOrCreateConnectionProvider()
+
+        expect(createConnectionProviderMock).toHaveBeenCalledWith(
+          expect.any(Number),
+          expect.objectContaining({ notificationFilter }),
+          expect.any(Object),
+          expect.any(Object)
+        )
+
+        await driver.close()
       })
     })
   })

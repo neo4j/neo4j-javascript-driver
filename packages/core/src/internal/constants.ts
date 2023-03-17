@@ -35,6 +35,7 @@ const BOLT_PROTOCOL_V4_3: number = 4.3
 const BOLT_PROTOCOL_V4_4: number = 4.4
 const BOLT_PROTOCOL_V5_0: number = 5.0
 const BOLT_PROTOCOL_V5_1: number = 5.1
+const BOLT_PROTOCOL_V5_2: number = 5.2
 
 export {
   FETCH_ALL,
@@ -52,5 +53,6 @@ export {
   BOLT_PROTOCOL_V4_3,
   BOLT_PROTOCOL_V4_4,
   BOLT_PROTOCOL_V5_0,
-  BOLT_PROTOCOL_V5_1
+  BOLT_PROTOCOL_V5_1,
+  BOLT_PROTOCOL_V5_2
 }

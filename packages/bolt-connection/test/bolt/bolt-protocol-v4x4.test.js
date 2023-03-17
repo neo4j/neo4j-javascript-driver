@@ -40,6 +40,7 @@ import {
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
 import fc from 'fast-check'
+import { notificationFilterBehaviour } from './behaviour'
 
 const WRITE = 'WRITE'
 
@@ -1163,4 +1164,14 @@ describe('#unit BoltProtocolV4x4', () => {
       expect(() => fn(protocol)).toThrowError(message)
     }
   })
+
+  describe('Bolt v5.2', () => {
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  function newProtocol (recorder) {
+    return new BoltProtocolV4x4(recorder, null, false, undefined, undefined, () => {})
+  }
 })

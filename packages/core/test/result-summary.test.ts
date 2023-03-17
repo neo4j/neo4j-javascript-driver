@@ -17,7 +17,14 @@
  * limitations under the License.
  */
 
-import { ServerInfo } from '../src/result-summary'
+import {
+  ServerInfo,
+  Notification,
+  NotificationSeverityLevel,
+  NotificationCategory,
+  notificationSeverityLevel,
+  notificationCategory
+} from '../src/result-summary'
 
 describe('ServerInfo', () => {
   it.each([
@@ -48,3 +55,125 @@ describe('ServerInfo', () => {
     }
   )
 })
+
+describe('Notification', () => {
+  describe('.severityLevel', () => {
+    it.each(getValidSeverityLevels())('should fill severityLevel with the rawSeverityLevel equals to %s', rawSeverityLevel => {
+      const rawNotification = {
+        severity: rawSeverityLevel
+      }
+
+      const notification = new Notification(rawNotification)
+
+      expect(notification.severityLevel).toBe(rawSeverityLevel)
+      expect(notification.rawSeverityLevel).toBe(rawSeverityLevel)
+    })
+
+    it.each([
+      'UNKNOWN',
+      null,
+      undefined,
+      'I_AM_NOT_OKAY',
+      'information'
+    ])('should fill severityLevel UNKNOWN if the rawSeverityLevel equals to %s', rawSeverityLevel => {
+      const rawNotification = {
+        severity: rawSeverityLevel
+      }
+
+      const notification = new Notification(rawNotification)
+
+      expect(notification.severityLevel).toBe('UNKNOWN')
+      expect(notification.rawSeverityLevel).toBe(rawSeverityLevel)
+    })
+  })
+
+  describe('.category', () => {
+    it.each(getValidCategories())('should fill category with the rawCategory equals to %s', rawCategory => {
+      const rawNotification = {
+        category: rawCategory
+      }
+
+      const notification = new Notification(rawNotification)
+
+      expect(notification.category).toBe(rawCategory)
+      expect(notification.rawCategory).toBe(rawCategory)
+    })
+
+    it.each([
+      'UNKNOWN',
+      undefined,
+      null,
+      'DUNNO',
+      'deprecation'
+    ])('should fill category with UNKNOWN the rawCategory equals to %s', rawCategory => {
+      const rawNotification = {
+        category: rawCategory
+      }
+
+      const notification = new Notification(rawNotification)
+
+      expect(notification.category).toBe('UNKNOWN')
+      expect(notification.rawCategory).toBe(rawCategory)
+    })
+  })
+})
+
+describe('notificationSeverityLevel', () => {
+  it('should have keys equals to values', () => {
+    for (const [key, value] of Object.entries(notificationSeverityLevel)) {
+      expect(key).toEqual(value)
+    }
+  })
+
+  it('should have values assignable to NotificationSeverityLevel', () => {
+    for (const [, value] of Object.entries(notificationSeverityLevel)) {
+      const assignableValue: NotificationSeverityLevel = value
+      expect(assignableValue).toBeDefined()
+    }
+  })
+
+  it.each(getValidSeverityLevels())('should have %s as key', (severity) => {
+    const keys = Object.keys(notificationSeverityLevel)
+    expect(keys.includes(severity)).toBe(true)
+  })
+})
+
+describe('notificationCategory', () => {
+  it('should have keys equals to values', () => {
+    for (const [key, value] of Object.entries(notificationCategory)) {
+      expect(key).toEqual(value)
+    }
+  })
+
+  it('should values be assignable to NotificationCategory', () => {
+    for (const [, value] of Object.entries(notificationCategory)) {
+      const assignableValue: NotificationCategory = value
+      expect(assignableValue).toBeDefined()
+    }
+  })
+
+  it.each(getValidCategories())('should have %s as key', (category) => {
+    const keys = Object.keys(notificationCategory)
+    expect(keys.includes(category)).toBe(true)
+  })
+})
+
+function getValidSeverityLevels (): NotificationSeverityLevel[] {
+  return [
+    'WARNING',
+    'INFORMATION',
+    'UNKNOWN'
+  ]
+}
+
+function getValidCategories (): NotificationCategory[] {
+  return [
+    'HINT',
+    'UNRECOGNIZED',
+    'UNSUPPORTED',
+    'PERFORMANCE',
+    'DEPRECATION',
+    'GENERIC',
+    'UNKNOWN'
+  ]
+}

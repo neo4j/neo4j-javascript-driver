@@ -17,11 +17,12 @@
  * limitations under the License.
  */
 
-import { ConnectionProvider, newError, Transaction, TransactionPromise } from '../src'
+import { ConnectionProvider, newError, NotificationFilter, Transaction, TransactionPromise } from '../src'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { ConnectionHolder } from '../src/internal/connection-holder'
 import { TxConfig } from '../src/internal/tx-config'
 import FakeConnection from './utils/connection.fake'
+import { validNotificationFilters } from './utils/notification-filters.fixtures'
 
 testTx('Transaction', newRegularTransaction)
 
@@ -375,6 +376,25 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
         expect(connection.seenBeginTransaction.length).toEqual(1)
         expect(connection.seenQueries.length).toEqual(1)
       })
+
+      it.each(
+        validNotificationFilters()
+      )('should call not run query with notificationFilter', async (notificationFilter?: NotificationFilter) => {
+        const connection = newFakeConnection()
+        const tx = newTransaction({
+          connection,
+          notificationFilter
+        })
+
+        tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
+
+        await tx.run('RETURN 1')
+        expect(connection.seenProtocolOptions[0]).not.toEqual(
+          expect.objectContaining({
+            notificationFilter
+          })
+        )
+      })
     })
 
     describe('.close()', () => {
@@ -467,6 +487,7 @@ type TransactionFactory<T extends Transaction> = (_: {
   fetchSize?: number
   highRecordWatermark?: number
   lowRecordWatermark?: number
+  notificationFilter?: NotificationFilter
 }) => T
 
 function newTransactionPromise ({
@@ -474,13 +495,15 @@ function newTransactionPromise ({
   fetchSize = 1000,
   highRecordWatermark = 700,
   lowRecordWatermark = 300,
-  errorResolvingConnection = undefined
+  errorResolvingConnection = undefined,
+  notificationFilter
 }: {
   connection?: FakeConnection
   fetchSize?: number
   highRecordWatermark?: number
   lowRecordWatermark?: number
   errorResolvingConnection?: Error
+  notificationFilter?: NotificationFilter
 }): TransactionPromise {
   const connectionProvider = new ConnectionProvider()
   // @ts-expect-error
@@ -504,7 +527,8 @@ function newTransactionPromise ({
     fetchSize,
     impersonatedUser: '',
     highRecordWatermark,
-    lowRecordWatermark
+    lowRecordWatermark,
+    notificationFilter
   })
 
   return transaction
@@ -514,12 +538,14 @@ function newRegularTransaction ({
   connection,
   fetchSize = 1000,
   highRecordWatermark = 700,
-  lowRecordWatermark = 300
+  lowRecordWatermark = 300,
+  notificationFilter
 }: {
   connection: FakeConnection
   fetchSize?: number
   highRecordWatermark?: number
   lowRecordWatermark?: number
+  notificationFilter?: NotificationFilter
 }): Transaction {
   const connectionProvider = new ConnectionProvider()
   connectionProvider.acquireConnection = async () => await Promise.resolve(connection)
@@ -537,7 +563,8 @@ function newRegularTransaction ({
     fetchSize,
     impersonatedUser: '',
     highRecordWatermark,
-    lowRecordWatermark
+    lowRecordWatermark,
+    notificationFilter
   })
 
   return transaction

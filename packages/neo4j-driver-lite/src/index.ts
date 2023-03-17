@@ -84,7 +84,16 @@ import {
   RoutingControl,
   routing,
   resultTransformers,
-  ResultTransformer
+  ResultTransformer,
+  notificationCategory,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  NotificationCategory,
+  NotificationFilter,
+  NotificationFilterDisabledCategory,
+  NotificationFilterMinimumSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -228,7 +237,11 @@ const {
  *         return ['127.0.0.1:8888', 'fallback.db.com:7687'];
  *       },
  *
- *      // Optionally override the default user agent name.
+ *       // Configure filter for Notification objects returned in ResultSummary#notifications.
+ *       // See SessionConfig#notificationFilter for usage instructions.
+ *       notificationFilter: undefined,
+ *
+ *       // Optionally override the default user agent name.
  *       userAgent: USER_AGENT
  *     }
  *
@@ -497,7 +510,11 @@ const forExport = {
   ConnectionProvider,
   Connection,
   bookmarkManager,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 }
 
 export {
@@ -559,7 +576,11 @@ export {
   ConnectionProvider,
   Connection,
   bookmarkManager,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 }
 export type {
   QueryResult,
@@ -575,6 +596,11 @@ export type {
   SessionConfig,
   QueryConfig,
   RoutingControl,
-  ResultTransformer
+  ResultTransformer,
+  NotificationCategory,
+  NotificationSeverityLevel,
+  NotificationFilter,
+  NotificationFilterDisabledCategory,
+  NotificationFilterMinimumSeverityLevel
 }
 export default forExport

@@ -26,6 +26,7 @@ import {
 
 import { Bookmarks } from './internal/bookmarks.ts'
 import { TxConfig } from './internal/tx-config.ts'
+import NotificationFilter from './notification-filter.ts'
 
 /**
  * Represents a {@link Promise<Transaction>} object and a {@link Transaction} object.
@@ -47,14 +48,16 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
 
   /**
    * @constructor
-   * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
-   * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
-   * @param {function(bookmarks: Bookmarks)} onBookmarks callback invoked when new bookmark is produced.
-   * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the connection
+   * @param {object} args
+   * @param {ConnectionHolder} args.connectionHolder - the connection holder to get connection from.
+   * @param {function()} args.onClose - Function to be called when transaction is committed or rolled back.
+   * @param {function(bookmarks: Bookmarks)} args.onBookmarks callback invoked when new bookmark is produced.
+   * @param {function()} args.onConnection - Function to be called when a connection is obtained to ensure the connection
    * is not yet released.
-   * @param {boolean} reactive whether this transaction generates reactive streams
-   * @param {number} fetchSize - the record fetch size in each pulling batch.
-   * @param {string} impersonatedUser - The name of the user which should be impersonated for the duration of the session.
+   * @param {boolean} args.reactive whether this transaction generates reactive streams
+   * @param {number} args.fetchSize - the record fetch size in each pulling batch.
+   * @param {string} args.impersonatedUser - The name of the user which should be impersonated for the duration of the session.
+   * @param {NotificationFilter} args.notificationFilter - The notification filter used for this transaction.
    */
   constructor ({
     connectionHolder,
@@ -65,7 +68,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     fetchSize,
     impersonatedUser,
     highRecordWatermark,
-    lowRecordWatermark
+    lowRecordWatermark,
+    notificationFilter
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -76,6 +80,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
+    notificationFilter?: NotificationFilter
   }) {
     super({
       connectionHolder,
@@ -86,7 +91,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
       fetchSize,
       impersonatedUser,
       highRecordWatermark,
-      lowRecordWatermark
+      lowRecordWatermark,
+      notificationFilter
     })
   }
 

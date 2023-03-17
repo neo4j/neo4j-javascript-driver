@@ -16,23 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import BoltProtocolV5x0 from './bolt-protocol-v5x0'
+import BoltProtocolV5x1 from './bolt-protocol-v5x1'
 
-import { assertNotificationFilterIsEmpty } from './bolt-protocol-util'
-import transformersFactories from './bolt-protocol-v5x1.transformer'
+import transformersFactories from './bolt-protocol-v5x2.transformer'
 import Transformer from './transformer'
 import RequestMessage from './request-message'
-import { LoginObserver, LogoffObserver } from './stream-observers'
+import { LoginObserver, ResultStreamObserver } from './stream-observers'
 
 import { internal } from 'neo4j-driver-core'
 
 const {
-  constants: { BOLT_PROTOCOL_V5_1 }
+  constants: { BOLT_PROTOCOL_V5_2, FETCH_ALL }
 } = internal
 
-export default class BoltProtocol extends BoltProtocolV5x0 {
+export default class BoltProtocol extends BoltProtocolV5x1 {
   get version () {
-    return BOLT_PROTOCOL_V5_1
+    return BOLT_PROTOCOL_V5_2
   }
 
   get transformer () {
@@ -67,11 +66,8 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
       }
     })
 
-    // passing notification filter on this protocol version throws an error
-    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
-
     this.write(
-      RequestMessage.hello5x1(userAgent, this._serversideRouting),
+      RequestMessage.hello5x2(userAgent, notificationFilter, this._serversideRouting),
       observer,
       false
     )
@@ -84,53 +80,92 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
     })
   }
 
-  /**
-   * Performs login of the underlying connection
-   *
-   * @param {Object} args
-   * @param {Object} args.authToken the authentication token.
-   * @param {function(err: Error)} args.onError the callback to invoke on error.
-   * @param {function()} args.onComplete the callback to invoke on completion.
-   * @param {boolean} args.flush whether to flush the buffered messages.
-   *
-   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
-   */
-  logon ({ authToken, onComplete, onError, flush } = {}) {
-    const observer = new LoginObserver({
-      onCompleted: () => this._onLoginCompleted(null, authToken, onComplete),
-      onError: (error) => this._onLoginError(error, onError)
+  beginTransaction ({
+    bookmarks,
+    txConfig,
+    database,
+    mode,
+    impersonatedUser,
+    notificationFilter,
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
+    const observer = new ResultStreamObserver({
+      server: this._server,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
     })
+    observer.prepareToHandleSingleResponse()
 
     this.write(
-      RequestMessage.logon(authToken),
+      RequestMessage.begin({ bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter }),
       observer,
-      flush
+      true
     )
 
     return observer
   }
 
-  /**
-   * Performs logoff of the underlying connection
-   *
-   * @param {Object} param
-   * @param {function(err: Error)} param.onError the callback to invoke on error.
-   * @param {function()} param.onComplete the callback to invoke on completion.
-   * @param {boolean} param.flush whether to flush the buffered messages.
-   *
-   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
-  */
-  logoff ({ onComplete, onError, flush } = {}) {
-    const observer = new LogoffObserver({
-      onCompleted: onComplete,
-      onError: onError
+  run (
+    query,
+    parameters,
+    {
+      bookmarks,
+      txConfig,
+      database,
+      mode,
+      impersonatedUser,
+      notificationFilter,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete,
+      flush = true,
+      reactive = false,
+      fetchSize = FETCH_ALL,
+      highRecordWatermark = Number.MAX_VALUE,
+      lowRecordWatermark = Number.MAX_VALUE
+    } = {}
+  ) {
+    const observer = new ResultStreamObserver({
+      server: this._server,
+      reactive: reactive,
+      fetchSize: fetchSize,
+      moreFunction: this._requestMore.bind(this),
+      discardFunction: this._requestDiscard.bind(this),
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete,
+      highRecordWatermark,
+      lowRecordWatermark
     })
 
+    const flushRun = reactive
     this.write(
-      RequestMessage.logoff(),
+      RequestMessage.runWithMetadata(query, parameters, {
+        bookmarks,
+        txConfig,
+        database,
+        mode,
+        impersonatedUser,
+        notificationFilter
+      }),
       observer,
-      flush
+      flushRun && flush
     )
+
+    if (!reactive) {
+      this.write(RequestMessage.pull({ n: fetchSize }), observer, flush)
+    }
 
     return observer
   }

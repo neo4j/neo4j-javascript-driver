@@ -38,6 +38,7 @@ import utils from '../test-utils'
 import { LoginObserver } from '../../src/bolt/stream-observers'
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
+import { notificationFilterBehaviour } from './behaviour'
 
 const WRITE = 'WRITE'
 
@@ -635,4 +636,14 @@ describe('#unit BoltProtocolV1', () => {
       expect(() => fn(protocol)).toThrowError(message)
     }
   })
+
+  describe('Bolt v5.2', () => {
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
+    notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  function newProtocol (recorder) {
+    return new BoltProtocolV1(recorder, null, false, undefined, undefined, () => {})
+  }
 })

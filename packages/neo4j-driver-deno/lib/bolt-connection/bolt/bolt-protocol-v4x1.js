@@ -20,6 +20,7 @@ import BoltProtocolV4 from './bolt-protocol-v4x0.js'
 import RequestMessage from './request-message.js'
 import { LoginObserver } from './stream-observers.js'
 import { internal } from '../../core/index.ts'
+import { assertNotificationFilterIsEmpty } from './bolt-protocol-util.js'
 
 import transformersFactories from './bolt-protocol-v4x1.transformer.js'
 import Transformer from './transformer.js'
@@ -72,11 +73,14 @@ export default class BoltProtocol extends BoltProtocolV4 {
     return this._transformer
   }
 
-  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, authToken, onComplete)
     })
+
+    // passing notification filter on this protocol version throws an error
+    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.hello(userAgent, authToken, this._serversideRouting),

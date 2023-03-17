@@ -19,6 +19,7 @@
 
 import RequestMessage from '../../src/bolt/request-message'
 import { internal, int, json } from 'neo4j-driver-core'
+import { notificationFilterBehaviour } from './behaviour'
 
 const {
   bookmarks: { Bookmarks },
@@ -428,5 +429,124 @@ describe('#unit RequestMessage', () => {
         )
       })
     })
+  })
+
+  describe('BoltV5.2', () => {
+    it.each(
+      notificationFilterFixtures()
+    )('should create HELLO message where notificationFilters=%o', (notificationFilter, expectedNotificationFilter) => {
+      const userAgent = 'my-driver/1.0.2'
+      const message = RequestMessage.hello5x2(userAgent, notificationFilter)
+
+      const expectedFields = { user_agent: userAgent, ...expectedNotificationFilter }
+
+      expect(message.signature).toEqual(0x01)
+      expect(message.fields).toEqual([
+        expectedFields
+      ])
+      expect(message.toString()).toEqual(
+        `HELLO ${json.stringify(expectedFields)}`
+      )
+    })
+
+    it.each(
+      notificationFilterFixtures()
+    )('should create BEGIN message where notificationFilters=%o', (notificationFilter, expectedNotificationFilter) => {
+      ;[READ, WRITE].forEach(mode => {
+        const bookmarks = new Bookmarks([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10'
+        ])
+        const impersonatedUser = 'the impostor'
+        const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
+
+        const message = RequestMessage.begin({ bookmarks, txConfig, mode, impersonatedUser, notificationFilter })
+
+        const expectedMode = {}
+        if (mode === READ) {
+          expectedMode.mode = 'r'
+        }
+        const expectedMetadata = {
+          bookmarks: bookmarks.values(),
+          tx_timeout: int(42),
+          tx_metadata: { key: 42 },
+          imp_user: impersonatedUser,
+          ...expectedMode,
+          ...expectedNotificationFilter
+        }
+
+        expect(message.signature).toEqual(0x11)
+        expect(message.fields).toEqual([expectedMetadata])
+        expect(message.toString()).toEqual(
+          `BEGIN ${json.stringify(expectedMetadata)}`
+        )
+      })
+    })
+
+    it.each(
+      notificationFilterFixtures()
+    )('should create RUN message where notificationFilters=%o', (notificationFilter, expectedNotificationFilter) => {
+      ;[READ, WRITE].forEach(mode => {
+        const query = 'RETURN $x'
+        const parameters = { x: 42 }
+        const bookmarks = new Bookmarks([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10',
+          'neo4j:bookmark:v1:tx100'
+        ])
+        const txConfig = new TxConfig({
+          timeout: 999,
+          metadata: { a: 'a', b: 'b' }
+        })
+        const impersonatedUser = 'the impostor'
+
+        const message = RequestMessage.runWithMetadata(query, parameters, {
+          bookmarks,
+          txConfig,
+          mode,
+          impersonatedUser,
+          notificationFilter
+        })
+
+        const expectedMode = {}
+        if (mode === READ) {
+          expectedMode.mode = 'r'
+        }
+
+        const expectedMetadata = {
+          bookmarks: bookmarks.values(),
+          tx_timeout: int(999),
+          tx_metadata: { a: 'a', b: 'b' },
+          imp_user: impersonatedUser,
+          ...expectedMode,
+          ...expectedNotificationFilter
+        }
+
+        expect(message.signature).toEqual(0x10)
+        expect(message.fields).toEqual([query, parameters, expectedMetadata])
+        expect(message.toString()).toEqual(
+          `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+            expectedMetadata
+          )}`
+        )
+      })
+    })
+
+    function notificationFilterFixtures () {
+      return notificationFilterBehaviour.notificationFilterFixture()
+        .map(notificationFilter => {
+          const expectedNotificationFilter = {}
+          if (notificationFilter) {
+            if (notificationFilter.minimumSeverityLevel) {
+              expectedNotificationFilter.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
+            }
+
+            if (notificationFilter.disabledCategories) {
+              expectedNotificationFilter.notifications_disabled_categories = notificationFilter.disabledCategories
+            }
+          }
+          return [notificationFilter, expectedNotificationFilter]
+        })
+    }
   })
 })
