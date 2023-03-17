@@ -246,6 +246,14 @@ function notificationFilterSetFixture () {
   const disabledCategories = Object.values(notificationFilterDisabledCategory)
   const disabledCategoriesSet = [...disabledCategories.keys()]
     .map(length => disabledCategories.slice(0, length + 1))
+
+  /** Polyfill flatMap for Node10 tests */
+  if (!minimumSeverityLevelSet.flatMap) {
+    minimumSeverityLevelSet.flatMap = function (callback, thisArg) {
+      return minimumSeverityLevelSet.concat.apply([], minimumSeverityLevelSet.map(callback, thisArg))
+    }
+  }
+
   return [
     {},
     ...minimumSeverityLevelSet.map(minimumSeverityLevel => ({ minimumSeverityLevel })),
