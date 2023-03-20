@@ -551,7 +551,7 @@ describe('Driver', () => {
         expect(output).toEqual(expected)
       })
 
-      it('should handle correct record shape type mapping for a custom result transformer', async () => {
+      it('should handle correct explicity record shape type mapping for a custom result transformer', async () => {
         interface Person {
           name: string
           age: number
@@ -586,7 +586,7 @@ describe('Driver', () => {
         const query = 'Query'
         const params = {}
 
-        const output = driver?.executeQuery<Dict, string>(query, params, {
+        const output = driver?.executeQuery(query, params, {
           // @ts-expect-error
           routing: 'GO FIGURE'
         })
