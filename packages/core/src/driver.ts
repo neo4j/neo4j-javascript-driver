@@ -47,6 +47,7 @@ import resultTransformers, { ResultTransformer } from './result-transformers'
 import QueryExecutor from './internal/query-executor'
 import { newError } from './error'
 import NotificationFilter from './notification-filter'
+import { Dict } from './record'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -331,12 +332,12 @@ Object.freeze(routing)
  * @experimental This can be changed or removed anytime.
  * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
-class QueryConfig<T = EagerResult> {
+class QueryConfig<RecordShape extends Dict = Dict, T = EagerResult<RecordShape>> {
   routing?: RoutingControl
   database?: string
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager | null
-  resultTransformer?: ResultTransformer<T>
+  resultTransformer?: ResultTransformer<T, RecordShape>
 
   /**
    * @constructor
@@ -539,9 +540,9 @@ class Driver {
    * @see {@link resultTransformers} for provided result transformers.
    * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
-  async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
+  async executeQuery<RecordShape extends Dict = Dict, T = EagerResult<RecordShape>> (query: Query, parameters?: any, config: QueryConfig<RecordShape, T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.defaultExecuteQueryBookmarkManager)
-    const resultTransformer = (config.resultTransformer ?? resultTransformers.eagerResultTransformer()) as ResultTransformer<T>
+    const resultTransformer = (config.resultTransformer ?? resultTransformers.eagerResultTransformer()) as ResultTransformer<T, RecordShape>
     const routingConfig: string = config.routing ?? routing.WRITERS
 
     if (routingConfig !== routing.READERS && routingConfig !== routing.WRITERS) {

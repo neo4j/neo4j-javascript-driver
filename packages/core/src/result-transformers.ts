@@ -29,7 +29,8 @@ async function createEagerResultFromResult<Entries extends Dict> (result: Result
   return new EagerResult<Entries>(keys, records, summary)
 }
 
-type ResultTransformer<T> = (result: Result) => Promise<T>
+type ResultTransformer<T, RecordShape extends Dict = Dict> = (result: Result<RecordShape>) => Promise<T>
+
 /**
  * Protocol for transforming {@link Result}.
  *
@@ -64,10 +65,10 @@ class ResultTransformers {
    *
    *
    * @experimental This can be changed or removed anytime.
-   * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
+   * @returns {ResultTransformer<EagerResult<RecordShape>>} The result transformer
    * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
-  eagerResultTransformer<Entries extends Dict = Dict>(): ResultTransformer<EagerResult<Entries>> {
+  eagerResultTransformer<RecordShape extends Dict = Dict>(): ResultTransformer<EagerResult<RecordShape>> {
     return createEagerResultFromResult
   }
 

@@ -428,6 +428,42 @@ describe('Driver', () => {
         expect(aObject.name).toBe('A Person')
         expect(aObject.age).toBe(25)
       })
+
+      it('should be able get type-safe Records by setting it on the generic params', async () => {
+        interface Person {
+          name: string
+          age: number
+        }
+
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+        const expected: EagerResult = {
+          keys: ['name', 'age'],
+          records: [
+            new Record(['name', 'age'], ['A Person', 25])
+          ],
+          summary: new ResultSummary(query, params, {}, 5.0)
+        }
+        spiedExecute.mockResolvedValue(expected)
+
+        const eagerResult = await driver?.executeQuery<Person>(query, params)
+
+        const [aPerson] = eagerResult?.records ?? []
+
+        expect(aPerson).toBeDefined()
+        if (aPerson != null) {
+          expect(aPerson.get('name')).toEqual('A Person')
+          expect(aPerson.get('age')).toEqual(25)
+        } else {
+          fail('aPerson should not be null')
+        }
+
+        const aObject: Person = aPerson.toObject()
+
+        expect(aObject.name).toBe('A Person')
+        expect(aObject.age).toBe(25)
+      })
     })
 
     describe('when config is defined', () => {
@@ -485,8 +521,60 @@ describe('Driver', () => {
         const expected: string = 'myMock'
         spiedExecute.mockResolvedValue(expected)
 
-        const output: string | undefined = await driver?.executeQuery<string>(query, params, {
+        const output: string | undefined = await driver?.executeQuery<Dict, string>(query, params, {
           resultTransformer: customResultMapper
+        })
+
+        expect(output).toEqual(expected)
+      })
+
+      it('should handle correct record shape type mapping for a custom result transformer', async () => {
+        interface Person {
+          name: string
+          age: number
+        }
+
+        async function customResultMapper (result: Result<Person>): Promise<string> {
+          return 'myMock'
+        }
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+
+        const expected: string = 'myMock'
+        spiedExecute.mockResolvedValue(expected)
+
+        const output: string | undefined = await driver?.executeQuery(query, params, {
+          resultTransformer: customResultMapper
+        })
+
+        expect(output).toEqual(expected)
+      })
+
+      it('should handle correct record shape type mapping for a custom result transformer', async () => {
+        interface Person {
+          name: string
+          age: number
+        }
+
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+
+        const expected: string = 'myMock'
+        spiedExecute.mockResolvedValue(expected)
+
+        const output: string | undefined = await driver?.executeQuery<Person, string>(query, params, {
+          resultTransformer: async (result) => {
+            const objects = (await result).records.map(record => record.toObject())
+            // @ts-expect-error
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _ignored: string[] = objects
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _people: Person[] = objects
+            return expected
+          }
         })
 
         expect(output).toEqual(expected)
@@ -498,7 +586,7 @@ describe('Driver', () => {
         const query = 'Query'
         const params = {}
 
-        const output = driver?.executeQuery<string>(query, params, {
+        const output = driver?.executeQuery<Dict, string>(query, params, {
           // @ts-expect-error
           routing: 'GO FIGURE'
         })
@@ -506,7 +594,7 @@ describe('Driver', () => {
         await expect(output).rejects.toThrow(expectedError)
       })
 
-      function extendsDefaultWith<T = EagerResult<Dict>> (config: QueryConfig<T>) {
+      function extendsDefaultWith<RecordShape extends Dict = Dict, T = EagerResult<RecordShape>> (config: QueryConfig<RecordShape, T>) {
         return () => {
           const defaultConfig = {
             resultTransformer: resultTransformers.eagerResultTransformer(),
