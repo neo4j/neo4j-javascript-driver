@@ -44,6 +44,7 @@ export default class AuthTokenManager {
 /**
  * Interface which defines an {@link AuthToken} with an expiry data time associated
  * @interface
+ * @experimental Exposed as preview feature.
  * @since 5.7
  */
 export class TemporalAuthData {
@@ -80,6 +81,7 @@ export class TemporalAuthData {
  * @param {object} param0 - The params
  * @param {function(): Promise<TemporalAuthData>} param0.getAuthData - Retrieves a new valid auth token
  * @returns {AuthTokenManager} The temporal auth data manager.
+ * @experimental Exposed as preview feature.
  */
 export function temporalAuthDataManager ({ getAuthData }: { getAuthData: () => Promise<TemporalAuthData> }): AuthTokenManager {
   if (typeof getAuthData !== 'function') {

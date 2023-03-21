@@ -209,6 +209,7 @@ class SessionConfig {
      * configured with an auth.
      *
      * @type {AuthToken|undefined}
+     * @experimental Exposed as preview feature.
      * @see {@link driver}
      */
     this.auth = undefined
