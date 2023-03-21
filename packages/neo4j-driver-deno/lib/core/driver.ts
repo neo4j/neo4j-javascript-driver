@@ -203,10 +203,7 @@ class SessionConfig {
      * session lifetime.
      *
      * **Warning**: This option is only enable by default when the driver is connected with Neo4j Database servers
-     * which supports Bolt 5.1 and onwards. For enabling backwards compatibility mode, please configure the
-     * driver with `backwardsCompatibleAuth` enable. Beware, the backwards compatible mode comes with
-     * a huge performance penalty since it uses a new connection for each unit of work run in a session
-     * configured with an auth.
+     * which supports Bolt 5.1 and onwards.
      *
      * @type {AuthToken|undefined}
      * @experimental Exposed as preview feature.

@@ -24,18 +24,28 @@ import { util } from './internal/index.ts'
 /**
  * Interface for the piece of software responsible for keeping track of current active {@link AuthToken} across the driver.
  * @interface
+ * @experimental Exposed as preview feature.
  * @since 5.7
  */
 export default class AuthTokenManager {
   /**
-   * Returns a valid token
-   *
+   * Returns a valid token.
+   * 
+   * **Warning**: This method must only ever return auth information belonging to the same identity.
+   * Switching identities using the `AuthTokenManager` is undefined behavior.
+   * 
    * @returns {Promise<AuthToken>|AuthToken} The valid auth token or a promise for a valid auth token
    */
   getToken (): Promise<AuthToken> | AuthToken {
     throw new Error('Not Implemented')
   }
 
+  /**
+   * Called to notify a token expiration.
+   * 
+   * @param {AuthToken} token The expired token.
+   * @return {void} 
+   */
   onTokenExpired (token: AuthToken): void {
     throw new Error('Not implemented')
   }
@@ -77,9 +87,13 @@ export class TemporalAuthData {
 
 /**
  * Creates a {@link AuthTokenManager} for handle {@link AuthToken} which is expires.
+ * 
+ * **Warning**: `getAuthData` must only ever return auth information belonging to the same identity.
+ * Switching identities using the `AuthTokenManager` is undefined behavior. 
  *
  * @param {object} param0 - The params
- * @param {function(): Promise<TemporalAuthData>} param0.getAuthData - Retrieves a new valid auth token
+ * @param {function(): Promise<TemporalAuthData>} param0.getAuthData - Retrieves a new valid auth token. 
+ * Must only ever return auth information belonging to the same identity.
  * @returns {AuthTokenManager} The temporal auth data manager.
  * @experimental Exposed as preview feature.
  */
