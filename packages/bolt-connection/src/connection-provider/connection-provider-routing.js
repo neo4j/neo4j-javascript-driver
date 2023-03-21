@@ -117,17 +117,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       `Routing driver ${this._id} will close connections to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
 
-    this._authenticationProvider.handleError({ connection, code: error.code })
-
-    if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {
-      this._connectionPool.apply(address, (conn) => { conn.authToken = null })
-    }
-
-    if (connection) {
-      connection.close().catch(() => undefined)
-    }
-
-    return error
+    return super._handleAuthorizationExpired(error, address, connection, database)
   }
 
   _handleWriteFailure (error, address, database) {

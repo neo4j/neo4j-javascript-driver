@@ -74,7 +74,8 @@ import {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  temporalAuthDataManager
+  temporalAuthDataManager,
+  staticAuthTokenManager
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -106,17 +107,11 @@ function createAuthManager (authTokenOrManager) {
     return authTokenOrManager
   }
 
-  let token = authTokenOrManager
+  let authToken = authTokenOrManager
   // Sanitize authority token. Nicer error from server when a scheme is set.
-  token = token || {}
-  token.scheme = token.scheme || 'none'
-  return temporalAuthDataManager({
-    getAuthData: async function () {
-      return {
-        token
-      }
-    }
-  })
+  authToken = authToken || {}
+  authToken.scheme = authToken.scheme || 'none'
+  return staticAuthTokenManager({ authToken })
 }
 
 /**

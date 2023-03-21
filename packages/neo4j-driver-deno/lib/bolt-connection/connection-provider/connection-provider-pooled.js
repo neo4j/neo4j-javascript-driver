@@ -19,7 +19,7 @@
 
 import { createChannelConnection, ConnectionErrorHandler } from '../connection/index.js'
 import Pool, { PoolConfig } from '../pool/index.js'
-import { error, ConnectionProvider, ServerInfo, newError } from '../../core/index.ts'
+import { error, ConnectionProvider, ServerInfo, newError, isStaticAuthTokenManger } from '../../core/index.ts'
 import AuthenticationProvider from './authentication-provider.js'
 import { object } from '../lang/index.js'
 
@@ -41,6 +41,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._id = id
     this._config = config
     this._log = log
+    this._authTokenManager = authTokenManager
     this._authenticationProvider = new AuthenticationProvider({ authTokenManager, userAgent })
     this._createChannelConnection =
       createChannelConnectionHook ||
@@ -226,5 +227,23 @@ export default class PooledConnectionProvider extends ConnectionProvider {
 
   static _removeIdleObserverOnConnection (conn) {
     conn._updateCurrentObserver()
+  }
+
+  _handleAuthorizationExpired (error, address, connection) {
+    this._authenticationProvider.handleError({ connection, code: error.code })
+
+    if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {
+      this._connectionPool.apply(address, (conn) => { conn.authToken = null })
+    }
+
+    if (connection) {
+      connection.close().catch(() => undefined)
+    }
+
+    if (error.code === 'Neo.ClientError.Security.TokenExpired' && !isStaticAuthTokenManger(this._authTokenManager)) {
+      error.retriable = true
+    }
+
+    return error
   }
 }

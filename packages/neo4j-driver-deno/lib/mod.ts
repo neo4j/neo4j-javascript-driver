@@ -96,7 +96,8 @@ import {
   notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   temporalAuthDataManager,
-  TemporalAuthData
+  TemporalAuthData,
+  staticAuthTokenManager
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import {
@@ -139,17 +140,11 @@ function createAuthManager (authTokenOrProvider: AuthToken | AuthTokenManager): 
     return authTokenOrProvider
   }
 
-  let token: AuthToken = authTokenOrProvider
+  let authToken: AuthToken = authTokenOrProvider
   // Sanitize authority token. Nicer error from server when a scheme is set.
-  token = token ?? {}
-  token.scheme = token.scheme ?? 'none'
-  return temporalAuthDataManager({
-    getAuthData: async function (): Promise<TemporalAuthData> {
-      return {
-        token
-      }
-    }
-  })
+  authToken = authToken ?? {}
+  authToken.scheme = authToken.scheme ?? 'none'
+  return staticAuthTokenManager({ authToken })
 }
 
 /**

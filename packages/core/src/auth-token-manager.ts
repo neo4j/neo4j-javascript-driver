@@ -90,6 +90,30 @@ export function temporalAuthDataManager ({ getAuthData }: { getAuthData: () => P
   return new TemporalAuthDataManager(getAuthData)
 }
 
+/**
+ * Create a {@link AuthTokenManager} for handle static {@link AuthToken}
+ *
+ * @private
+ * @param {param} args - The args
+ * @param {AuthToken} args.authToken - The static auth token which will always used in the driver.
+ * @returns {AuthTokenManager} The temporal auth data manager.
+ */
+export function staticAuthTokenManager ({ authToken }: { authToken: AuthToken }): AuthTokenManager {
+  return new StaticAuthTokenManager(authToken)
+}
+
+/**
+ * Checks if the manager is a StaticAuthTokenManager
+ *
+ * @private
+ * @experimental
+ * @param {AuthTokenManager} manager The auth token manager to be checked.
+ * @returns {boolean} Manager is StaticAuthTokenManager
+ */
+export function isStaticAuthTokenManger (manager: AuthTokenManager): manager is StaticAuthTokenManager {
+  return manager instanceof StaticAuthTokenManager
+}
+
 interface TokenRefreshObserver {
   onCompleted: (data: TemporalAuthData) => void
   onError: (error: Error) => void
@@ -169,5 +193,21 @@ class TemporalAuthDataManager implements AuthTokenManager {
         onError: reject
       })
     })
+  }
+}
+
+class StaticAuthTokenManager implements AuthTokenManager {
+  constructor (
+    private readonly _authToken: AuthToken
+  ) {
+
+  }
+
+  getToken (): AuthToken {
+    return this._authToken
+  }
+
+  onTokenExpired (_: AuthToken): void {
+    // nothing to do here
   }
 }
