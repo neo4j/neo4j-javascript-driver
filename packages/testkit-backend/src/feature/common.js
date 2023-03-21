@@ -4,6 +4,7 @@ const features = [
   'Feature:Auth:Custom',
   'Feature:Auth:Kerberos',
   'Feature:Auth:Bearer',
+  'Feature:Auth:Managed',
   'Feature:API:BookmarkManager',
   'Feature:API:Session:AuthConfig',
   'Feature:API:SSLConfig',
