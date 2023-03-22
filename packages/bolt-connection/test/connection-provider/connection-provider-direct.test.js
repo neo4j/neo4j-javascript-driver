@@ -504,11 +504,7 @@ describe('constructor', () => {
 })
 
 describe('user-switching', () => {
-  describe.each([
-    undefined,
-    false,
-    null
-  ])('when allowStickyConnection is %s', (allowStickyConnection) => {
+  describe('should not allow sticky connections', () => {
     describe('when does not supports re-auth', () => {
       it.each([
         ['new connection', { other: 'auth' }, { other: 'auth' }, true],
@@ -524,7 +520,6 @@ describe('user-switching', () => {
           .acquireConnection({
             accessMode: 'READ',
             database: '',
-            allowStickyConnection,
             auth: acquireAuth
           })
           .catch(functional.identity)
@@ -551,73 +546,6 @@ describe('user-switching', () => {
           .acquireConnection({
             accessMode: 'READ',
             database: '',
-            allowStickyConnection,
-            auth: acquireAuth
-          })
-
-        expect(acquiredConnection).toBe(connection)
-        expect(acquiredConnection._sticky).toEqual(false)
-      })
-    })
-  })
-
-  describe.each([
-    true
-  ])('when allowStickyConnection is %s', (allowStickyConnection) => {
-    describe('when does not supports re-auth', () => {
-      it.each([
-        ['new connection', { other: 'auth' }, { other: 'auth' }, false],
-        ['old connection', { some: 'auth' }, { other: 'token' }, true]
-      ])('should raise and error when try switch user on acquire [%s]', async (_, connAuth, acquireAuth, shouldCreateNew) => {
-        const address = ServerAddress.fromUrl('localhost:123')
-        const pool = newPool()
-        const connection = new FakeConnection(address, () => {}, undefined, connAuth)
-        const connection2 = new FakeConnection(address, () => {}, undefined, connAuth)
-        const poolAcquire = jest.spyOn(pool, 'acquire')
-          .mockResolvedValueOnce(connection)
-          .mockResolvedValueOnce(connection2)
-        const connectionProvider = newDirectConnectionProvider(address, pool)
-
-        const acquiredConnection = await connectionProvider
-          .acquireConnection({
-            accessMode: 'READ',
-            database: '',
-            allowStickyConnection,
-            auth: acquireAuth
-          })
-
-        expect(poolAcquire).toHaveBeenCalledWith({ auth: acquireAuth }, address)
-
-        if (shouldCreateNew) {
-          expect(connection._release).toHaveBeenCalled()
-          expect(connection._sticky).toBe(false)
-          expect(acquiredConnection).toEqual(connection2)
-          expect(poolAcquire).toHaveBeenCalledWith({ auth: acquireAuth }, address, { requireNew: true })
-        } else {
-          expect(acquiredConnection).toEqual(connection)
-        }
-
-        expect(acquiredConnection._release).not.toHaveBeenCalled()
-        expect(acquiredConnection._sticky).toEqual(true)
-      })
-    })
-
-    describe('when supports re-auth', () => {
-      const connAuth = { some: 'auth' }
-      const acquireAuth = connAuth
-
-      it('should return connection when try switch user on acquire', async () => {
-        const address = ServerAddress.fromUrl('localhost:123')
-        const pool = newPool()
-        const connection = new FakeConnection(address, () => {}, undefined, connAuth, { supportsReAuth: true })
-        jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
-        const connectionProvider = newDirectConnectionProvider(address, pool)
-
-        const acquiredConnection = await connectionProvider
-          .acquireConnection({
-            accessMode: 'READ',
-            database: '',
-            allowStickyConnection,
             auth: acquireAuth
           })
 

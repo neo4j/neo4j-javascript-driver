@@ -164,7 +164,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     return serverInfo
   }
 
-  async _verifyAuthentication ({ getAddress, auth, allowStickyConnection }) {
+  async _verifyAuthentication ({ getAddress, auth }) {
     const connectionsToRelease = []
     try {
       const address = await getAddress()
@@ -173,7 +173,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
 
       const lastMessageIsNotLogin = !connection.protocol().isLastMessageLogon()
 
-      if (!connection.supportsReAuth && !allowStickyConnection) {
+      if (!connection.supportsReAuth) {
         throw newError('Driver is connected to a database that does not support user switch.')
       }
       if (lastMessageIsNotLogin && connection.supportsReAuth) {
@@ -194,21 +194,14 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     }
   }
 
-  async _getStickyConnection ({ auth, connection, address, allowStickyConnection }) {
+  async _verifyStickyConnection ({ auth, connection, address }) {
     const connectionWithSameCredentials = object.equals(auth, connection.authToken)
     const shouldCreateStickyConnection = !connectionWithSameCredentials
     connection._sticky = connectionWithSameCredentials && !connection.supportsReAuth
 
-    if (allowStickyConnection !== true && (shouldCreateStickyConnection || connection._sticky)) {
+    if (shouldCreateStickyConnection || connection._sticky) {
       await connection._release()
       throw newError('Driver is connected to a database that does not support user switch.')
-    } else if (allowStickyConnection === true && shouldCreateStickyConnection) {
-      await connection._release()
-      connection = await this._connectionPool.acquire({ auth }, address, { requireNew: true })
-      connection._sticky = true
-      return connection
-    } else if (connection._sticky) {
-      return connection
     }
   }
 

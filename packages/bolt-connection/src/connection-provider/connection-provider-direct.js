@@ -47,7 +47,7 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmarks, auth, allowStickyConnection, forceReAuth } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, auth, forceReAuth } = {}) {
     const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
       errorCode: SERVICE_UNAVAILABLE,
       handleAuthorizationExpired: (error, address, conn) =>
@@ -57,15 +57,11 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
     const connection = await this._connectionPool.acquire({ auth, forceReAuth }, this._address)
 
     if (auth) {
-      const stickyConnection = await this._getStickyConnection({
+      await this._verifyStickyConnection({
         auth,
         connection,
-        address: this._address,
-        allowStickyConnection
+        address: this._address
       })
-      if (stickyConnection) {
-        return stickyConnection
-      }
       return connection
     }
 
@@ -132,9 +128,8 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
     )
   }
 
-  async verifyAuthentication ({ auth, allowStickyConnection }) {
+  async verifyAuthentication ({ auth }) {
     return this._verifyAuthentication({
-      allowStickyConnection,
       auth,
       getAddress: () => this._address
     })

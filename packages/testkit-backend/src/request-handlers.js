@@ -14,8 +14,7 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     authorizationToken,
     authTokenManagerId,
     userAgent,
-    resolverRegistered,
-    backwardsCompatibleAuth
+    resolverRegistered
   } = data
 
   let parsedAuthToken = null
@@ -41,7 +40,6 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     userAgent,
     resolver,
     useBigInt: true,
-    backwardsCompatibleAuth,
     logging: neo4j.logging.console(context.logLevel || context.environmentLogLevel)
   }
   if ('encrypted' in data) {

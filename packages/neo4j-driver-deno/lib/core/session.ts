@@ -86,6 +86,7 @@ class Session {
    * @param {boolean} args.reactive - Whether this session should create reactive streams
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
    * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
+   * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
    * @param {NotificationFilter} args.notificationFilter - The notification filter used for this session.
    */
   constructor ({
