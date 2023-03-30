@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import neo4j from '../../src'
+import neo4j, { Neo4jError } from '../../src'
 // eslint-disable-next-line no-unused-vars
 import RxSession from '../../src/session-rx'
 // eslint-disable-next-line no-unused-vars
@@ -344,15 +344,23 @@ describe('#integration-rx summary', () => {
       runnable = await session.beginTransaction().toPromise()
     }
 
+    let dropUser = true
+
     try {
       await verifySystemUpdates(
         runnable,
-        "CREATE USER foo SET PASSWORD 'bar'",
+        "CREATE USER foo SET PASSWORD 'barizon1'",
         {},
         1
       )
+    } catch (e) {
+      // the user should not be dropped if their creation fails
+      dropUser = !(e instanceof Neo4jError)
+      throw e
     } finally {
-      await verifySystemUpdates(runnable, 'DROP USER foo', {}, 1)
+      if (dropUser) {
+        await verifySystemUpdates(runnable, 'DROP USER foo', {}, 1)
+      }
     }
   }
 
