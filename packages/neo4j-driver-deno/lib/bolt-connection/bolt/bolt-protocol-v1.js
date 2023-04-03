@@ -236,7 +236,7 @@ export default class BoltProtocol {
 
     // TODO: Verify the Neo4j version in the message
     const error = newError(
-      'Driver is connected to a database that does not support login. ' +
+      'Driver is connected to a database that does not support logon. ' +
         'Please upgrade to Neo4j 5.5.0 or later in order to use this functionality.'
     )
 

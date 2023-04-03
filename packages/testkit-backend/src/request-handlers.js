@@ -121,7 +121,6 @@ export function NewSession ({ neo4j }, context, data, wire) {
       return
     }
   }
-<<<<<<< HEAD
   let notificationFilter
   if ('notificationsMinSeverity' in data || 'notificationsDisabledCategories' in data) {
     notificationFilter = {
@@ -129,12 +128,10 @@ export function NewSession ({ neo4j }, context, data, wire) {
       disabledCategories: data.notificationsDisabledCategories
     }
   }
-=======
   const auth = data.authorizationToken != null
     ? context.binder.parseAuthToken(data.authorizationToken.data)
     : undefined
 
->>>>>>> 7fa91180 (Session config)
   const driver = context.getDriver(driverId)
   const session = driver.session({
     defaultAccessMode: accessMode,
