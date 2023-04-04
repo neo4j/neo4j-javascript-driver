@@ -202,7 +202,7 @@ class SessionConfig {
      * driver creation. This configuration allows switch user and/or authorization information for the
      * session lifetime.
      *
-     * **Warning**: This option is only enable by default when the driver is connected with Neo4j Database servers
+     * **Warning**: This option is only enable when the driver is connected with Neo4j Database servers
      * which supports Bolt 5.1 and onwards.
      *
      * @type {AuthToken|undefined}

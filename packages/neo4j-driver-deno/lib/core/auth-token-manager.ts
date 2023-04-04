@@ -25,7 +25,7 @@ import { util } from './internal/index.ts'
  * Interface for the piece of software responsible for keeping track of current active {@link AuthToken} across the driver.
  * @interface
  * @experimental Exposed as preview feature.
- * @since 5.7
+ * @since 5.8
  */
 export default class AuthTokenManager {
   /**
@@ -55,7 +55,7 @@ export default class AuthTokenManager {
  * Interface which defines an {@link AuthToken} with an expiration data time associated
  * @interface
  * @experimental Exposed as preview feature.
- * @since 5.7
+ * @since 5.8
  */
 export class AuthTokenAndExpiration {
   public readonly token: AuthToken
