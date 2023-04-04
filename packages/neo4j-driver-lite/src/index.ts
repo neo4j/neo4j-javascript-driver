@@ -95,8 +95,8 @@ import {
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
-  temporalAuthDataManager,
-  TemporalAuthData,
+  expirationBasedAuthTokenManager,
+  AuthTokenAndExpiration,
   staticAuthTokenManager
 } from 'neo4j-driver-core'
 import {
@@ -543,7 +543,7 @@ const forExport = {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  temporalAuthDataManager
+  expirationBasedAuthTokenManager
 }
 
 export {
@@ -610,13 +610,13 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  temporalAuthDataManager
+  expirationBasedAuthTokenManager
 }
 export type {
   QueryResult,
   AuthToken,
   AuthTokenManager,
-  TemporalAuthData,
+  AuthTokenAndExpiration,
   Config,
   EncryptionLevel,
   TrustStrategy,

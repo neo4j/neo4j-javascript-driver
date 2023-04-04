@@ -120,11 +120,11 @@ export function AuthTokenManagerOnAuthExpiredRequest ({ id, authTokenManagerId, 
 }
 
 export function TemporalAuthTokenManager ({ id }) {
-  return response('TemporalAuthTokenManager', { id })
+  return response('ExpirationBasedAuthTokenManager', { id })
 }
 
 export function TemporalAuthTokenProviderRequest ({ id, temporalAuthTokenManagerId }) {
-  return response('TemporalAuthTokenProviderRequest', { id, temporalAuthTokenManagerId })
+  return response('ExpirationBasedAuthTokenProviderRequest', { id, expirationBasedAuthTokenManagerId: temporalAuthTokenManagerId })
 }
 
 export function DriverIsAuthenticated ({ id, authenticated }) {

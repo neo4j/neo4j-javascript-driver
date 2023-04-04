@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { temporalAuthDataManager } from 'neo4j-driver-core'
+import { expirationBasedAuthTokenManager } from 'neo4j-driver-core'
 import { object } from '../lang'
 
 /**
@@ -25,8 +25,8 @@ import { object } from '../lang'
  */
 export default class AuthenticationProvider {
   constructor ({ authTokenManager, userAgent }) {
-    this._authTokenManager = authTokenManager || temporalAuthDataManager({
-      getAuthData: () => {}
+    this._authTokenManager = authTokenManager || expirationBasedAuthTokenManager({
+      tokenProvider: () => {}
     })
     this._userAgent = userAgent
   }

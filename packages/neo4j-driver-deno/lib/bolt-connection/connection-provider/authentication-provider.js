@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { temporalAuthDataManager } from '../../core/index.ts'
+import { expirationBasedAuthTokenManager } from '../../core/index.ts'
 import { object } from '../lang/index.js'
 
 /**
@@ -25,8 +25,8 @@ import { object } from '../lang/index.js'
  */
 export default class AuthenticationProvider {
   constructor ({ authTokenManager, userAgent }) {
-    this._authTokenManager = authTokenManager || temporalAuthDataManager({
-      getAuthData: () => {}
+    this._authTokenManager = authTokenManager || expirationBasedAuthTokenManager({
+      tokenProvider: () => {}
     })
     this._userAgent = userAgent
   }

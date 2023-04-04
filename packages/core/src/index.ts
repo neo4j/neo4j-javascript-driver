@@ -87,7 +87,7 @@ import Session, { TransactionConfig } from './session'
 import Driver, * as driver from './driver'
 import auth from './auth'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager'
-import AuthTokenManager, { temporalAuthDataManager, staticAuthTokenManager, isStaticAuthTokenManger, TemporalAuthData } from './auth-token-manager'
+import AuthTokenManager, { expirationBasedAuthTokenManager, staticAuthTokenManager, isStaticAuthTokenManger, AuthTokenAndExpiration } from './auth-token-manager'
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver'
 import * as types from './types'
 import * as json from './json'
@@ -164,7 +164,7 @@ const forExport = {
   json,
   auth,
   bookmarkManager,
-  temporalAuthDataManager,
+  expirationBasedAuthTokenManager,
   routing,
   resultTransformers,
   notificationCategory,
@@ -232,7 +232,7 @@ export {
   json,
   auth,
   bookmarkManager,
-  temporalAuthDataManager,
+  expirationBasedAuthTokenManager,
   staticAuthTokenManager,
   isStaticAuthTokenManger,
   routing,
@@ -253,7 +253,7 @@ export type {
   BookmarkManager,
   BookmarkManagerConfig,
   AuthTokenManager,
-  TemporalAuthData,
+  AuthTokenAndExpiration,
   SessionConfig,
   QueryConfig,
   RoutingControl,

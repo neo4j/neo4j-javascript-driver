@@ -20,7 +20,7 @@
 import DirectConnectionProvider from '../../src/connection-provider/connection-provider-direct'
 import { Pool } from '../../src/pool'
 import { Connection, DelegateConnection } from '../../src/connection'
-import { internal, newError, ServerInfo, staticAuthTokenManager, temporalAuthDataManager } from 'neo4j-driver-core'
+import { internal, newError, ServerInfo, staticAuthTokenManager, expirationBasedAuthTokenManager } from 'neo4j-driver-core'
 import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
 import { functional } from '../../src/lang'
 
@@ -209,7 +209,7 @@ it('should call authenticationAuthProvider.handleError when TokenExpired happens
 it('should change error to retriable when error when TokenExpired happens and staticAuthTokenManager is not being used', async () => {
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
-  const connectionProvider = newDirectConnectionProvider(address, pool, temporalAuthDataManager({ getAuthData: () => null }))
+  const connectionProvider = newDirectConnectionProvider(address, pool, expirationBasedAuthTokenManager({ tokenProvider: () => null }))
 
   const conn = await connectionProvider.acquireConnection({
     accessMode: 'READ',

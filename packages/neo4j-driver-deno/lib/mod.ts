@@ -95,8 +95,8 @@ import {
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
-  temporalAuthDataManager,
-  TemporalAuthData,
+  expirationBasedAuthTokenManager,
+  AuthTokenAndExpiration,
   staticAuthTokenManager
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
@@ -544,7 +544,7 @@ const forExport = {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  temporalAuthDataManager
+  expirationBasedAuthTokenManager
 }
 
 export {
@@ -611,13 +611,13 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  temporalAuthDataManager
+  expirationBasedAuthTokenManager
 }
 export type {
   QueryResult,
   AuthToken,
   AuthTokenManager,
-  TemporalAuthData,
+  AuthTokenAndExpiration,
   Config,
   EncryptionLevel,
   TrustStrategy,

@@ -26,11 +26,11 @@ export {
   StartSubTest,
   ExecuteQuery,
   NewAuthTokenManager,
-  NewTemporalAuthTokenManager,
   AuthTokenManagerClose,
   AuthTokenManagerGetAuthCompleted,
   AuthTokenManagerOnAuthExpiredCompleted,
-  TemporalAuthTokenProviderCompleted,
+  NewExpirationBasedAuthTokenManager,
+  ExpirationBasedAuthTokenProviderCompleted,
   FakeTimeInstall,
   FakeTimeTick,
   FakeTimeUninstall

@@ -52,14 +52,14 @@ export default class AuthTokenManager {
 }
 
 /**
- * Interface which defines an {@link AuthToken} with an expiry data time associated
+ * Interface which defines an {@link AuthToken} with an expiration data time associated
  * @interface
  * @experimental Exposed as preview feature.
  * @since 5.7
  */
-export class TemporalAuthData {
+export class AuthTokenAndExpiration {
   public readonly token: AuthToken
-  public readonly expiry?: Date
+  public readonly expiration?: Date
 
   private constructor () {
     /**
@@ -74,34 +74,34 @@ export class TemporalAuthData {
      * The expected expiration date of the auth token.
      *
      * This information will be used for triggering the auth token refresh
-     * in managers created with {@link temporalAuthDataManager}.
+     * in managers created with {@link expirationBasedAuthTokenManager}.
      *
      * If this value is not defined, the {@link AuthToken} will be considered valid
      * until a `Neo.ClientError.Security.TokenExpired` error happens.
      *
      * @type {Date|undefined}
      */
-    this.expiry = undefined
+    this.expiration = undefined
   }
 }
 
 /**
  * Creates a {@link AuthTokenManager} for handle {@link AuthToken} which is expires.
  *
- * **Warning**: `getAuthData` must only ever return auth information belonging to the same identity.
+ * **Warning**: `tokenProvider` must only ever return auth information belonging to the same identity.
  * Switching identities using the `AuthTokenManager` is undefined behavior.
  *
  * @param {object} param0 - The params
- * @param {function(): Promise<TemporalAuthData>} param0.getAuthData - Retrieves a new valid auth token.
+ * @param {function(): Promise<AuthTokenAndExpiration>} param0.tokenProvider - Retrieves a new valid auth token.
  * Must only ever return auth information belonging to the same identity.
  * @returns {AuthTokenManager} The temporal auth data manager.
  * @experimental Exposed as preview feature.
  */
-export function temporalAuthDataManager ({ getAuthData }: { getAuthData: () => Promise<TemporalAuthData> }): AuthTokenManager {
-  if (typeof getAuthData !== 'function') {
-    throw new TypeError(`getAuthData should be function, but got: ${typeof getAuthData}`)
+export function expirationBasedAuthTokenManager ({ tokenProvider }: { tokenProvider: () => Promise<AuthTokenAndExpiration> }): AuthTokenManager {
+  if (typeof tokenProvider !== 'function') {
+    throw new TypeError(`tokenProvider should be function, but got: ${typeof tokenProvider}`)
   }
-  return new TemporalAuthDataManager(getAuthData)
+  return new ExpirationBasedAuthTokenManager(tokenProvider)
 }
 
 /**
@@ -129,7 +129,7 @@ export function isStaticAuthTokenManger (manager: AuthTokenManager): manager is 
 }
 
 interface TokenRefreshObserver {
-  onCompleted: (data: TemporalAuthData) => void
+  onCompleted: (data: AuthTokenAndExpiration) => void
   onError: (error: Error) => void
 }
 
@@ -142,7 +142,7 @@ class TokenRefreshObservable implements TokenRefreshObserver {
     this._subscribers.push(sub)
   }
 
-  onCompleted (data: TemporalAuthData): void {
+  onCompleted (data: AuthTokenAndExpiration): void {
     this._subscribers.forEach(sub => sub.onCompleted(data))
   }
 
@@ -151,10 +151,10 @@ class TokenRefreshObservable implements TokenRefreshObserver {
   }
 }
 
-class TemporalAuthDataManager implements AuthTokenManager {
+class ExpirationBasedAuthTokenManager implements AuthTokenManager {
   constructor (
-    private readonly _getAuthData: () => Promise<TemporalAuthData>,
-    private _currentAuthData?: TemporalAuthData,
+    private readonly _tokenProvider: () => Promise<AuthTokenAndExpiration>,
+    private _currentAuthData?: AuthTokenAndExpiration,
     private _refreshObservable?: TokenRefreshObservable) {
 
   }
@@ -162,8 +162,8 @@ class TemporalAuthDataManager implements AuthTokenManager {
   async getToken (): Promise<AuthToken> {
     if (this._currentAuthData === undefined ||
         (
-          this._currentAuthData.expiry !== undefined &&
-          this._currentAuthData.expiry < new Date()
+          this._currentAuthData.expiration !== undefined &&
+          this._currentAuthData.expiration < new Date()
         )) {
       await this._refreshAuthToken()
     }
@@ -182,7 +182,7 @@ class TemporalAuthDataManager implements AuthTokenManager {
       this._currentAuthData = undefined
       this._refreshObservable = new TokenRefreshObservable()
 
-      Promise.resolve(this._getAuthData())
+      Promise.resolve(this._tokenProvider())
         .then(data => {
           this._currentAuthData = data
           this._refreshObservable?.onCompleted(data)
@@ -200,8 +200,8 @@ class TemporalAuthDataManager implements AuthTokenManager {
     }
   }
 
-  private async _refreshAuthToken (): Promise<TemporalAuthData> {
-    return await new Promise<TemporalAuthData>((resolve, reject) => {
+  private async _refreshAuthToken (): Promise<AuthTokenAndExpiration> {
+    return await new Promise<AuthTokenAndExpiration>((resolve, reject) => {
       this._scheduleRefreshAuthToken({
         onCompleted: resolve,
         onError: reject

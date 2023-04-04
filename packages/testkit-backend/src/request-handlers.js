@@ -538,19 +538,6 @@ export function NewAuthTokenManager (_, context, _data, wire) {
   wire.writeResponse(responses.AuthTokenManager({ id }))
 }
 
-export function NewTemporalAuthTokenManager ({ neo4j }, context, _, wire) {
-  const id = context.addAuthTokenManager((temporalAuthTokenManagerId) => {
-    return neo4j.temporalAuthDataManager({
-      getAuthData: () => new Promise((resolve, reject) => {
-        const id = context.addTemporalAuthTokenProviderRequest(resolve, reject)
-        wire.writeResponse(responses.TemporalAuthTokenProviderRequest({ id, temporalAuthTokenManagerId }))
-      })
-    })
-  })
-
-  wire.writeResponse(responses.TemporalAuthTokenManager({ id }))
-}
-
 export function AuthTokenManagerClose (_, context, { id }, wire) {
   context.removeAuthTokenManager(id)
   wire.writeResponse(responses.AuthTokenManager({ id }))
@@ -566,10 +553,23 @@ export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId 
   context.removeAuthTokenManagerOnAuthExpiredRequest(requestId)
 }
 
-export function TemporalAuthTokenProviderCompleted (_, context, { requestId, auth }) {
+export function NewExpirationBasedAuthTokenManager ({ neo4j }, context, _, wire) {
+  const id = context.addAuthTokenManager((temporalAuthTokenManagerId) => {
+    return neo4j.expirationBasedAuthTokenManager({
+      tokenProvider: () => new Promise((resolve, reject) => {
+        const id = context.addTemporalAuthTokenProviderRequest(resolve, reject)
+        wire.writeResponse(responses.TemporalAuthTokenProviderRequest({ id, temporalAuthTokenManagerId }))
+      })
+    })
+  })
+
+  wire.writeResponse(responses.TemporalAuthTokenManager({ id }))
+}
+
+export function ExpirationBasedAuthTokenProviderCompleted (_, context, { requestId, auth }) {
   const request = context.getTemporalAuthTokenProviderRequest(requestId)
   request.resolve({
-    expiry: auth.data.expiresInMs != null
+    expiration: auth.data.expiresInMs != null
       ? new Date(new Date().getTime() + auth.data.expiresInMs)
       : undefined,
     token: context.binder.parseAuthToken(auth.data.auth.data)
