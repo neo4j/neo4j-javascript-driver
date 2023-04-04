@@ -39,7 +39,7 @@ describe('QueryExecutor', () => {
     const { queryExecutor, createSession } = createExecutor()
 
     await queryExecutor.execute({
-      routing: 'WRITERS',
+      routing: 'WRITE',
       resultTransformer: async (result: Result) => await Promise.resolve(),
       ...executorConfig
     }, 'query')
@@ -47,12 +47,12 @@ describe('QueryExecutor', () => {
     expect(createSession).toBeCalledWith(expectConfig)
   })
 
-  describe('when routing="READERS"', () => {
+  describe('when routing="READ"', () => {
     const baseConfig: {
-      routing: 'READERS'
+      routing: 'READ'
       resultTransformer: (result: Result) => Promise<void>
     } = {
-      routing: 'READERS',
+      routing: 'READ',
       resultTransformer: async (result: Result) => await Promise.resolve()
     }
 
@@ -174,12 +174,12 @@ describe('QueryExecutor', () => {
     })
   })
 
-  describe('when routing="WRITERS"', () => {
+  describe('when routing="WRITE"', () => {
     const baseConfig: {
-      routing: 'WRITERS'
+      routing: 'WRITE'
       resultTransformer: (result: Result) => Promise<void>
     } = {
-      routing: 'WRITERS',
+      routing: 'WRITE',
       resultTransformer: async (result: Result) => await Promise.resolve()
     }
 

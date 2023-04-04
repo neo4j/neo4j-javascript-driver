@@ -35,17 +35,12 @@ type ResultTransformer<T> = (result: Result) => Promise<T>
  *
  * @typedef {function<T>(result:Result):Promise<T>} ResultTransformer
  * @interface
- * @experimental This can be changed or removed anytime.
  *
  * @see {@link resultTransformers} for provided implementations.
  * @see {@link Driver#executeQuery} for usage.
- * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 /**
  * Defines the object which holds the common {@link ResultTransformer} used with {@link Driver#executeQuery}.
- *
- * @experimental This can be changed or removed anytime.
- * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 class ResultTransformers {
   /**
@@ -62,10 +57,7 @@ class ResultTransformers {
    * // is equivalent to:
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
    *
-   *
-   * @experimental This can be changed or removed anytime.
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
-   * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
   eagerResultTransformer<Entries extends Dict = Dict>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
@@ -126,14 +118,12 @@ class ResultTransformers {
    * const objects = await session.executeRead(tx => getRecordsAsObjects(tx.run('MATCH (p:Person{ age: $age }) RETURN p.name as name')))
    * objects.forEach(object => console.log(`${object.name} has 25`))
    *
-   * @experimental This can be changed or removed anytime.
    * @param {object} config The result transformer configuration
    * @param {function(record:Record):R} [config.map=function(record) {  return record }] Method called for mapping each record
    * @param {function(records:R[], summary:ResultSummary, keys:string[]):T} [config.collect=function(records, summary, keys) { return { records, summary, keys }}] Method called for mapping
    * the result data to the transformer output.
    * @returns {ResultTransformer<T>} The result transformer
    * @see {@link Driver#executeQuery}
-   * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
   mappedResultTransformer <
     R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
@@ -178,9 +168,6 @@ class ResultTransformers {
 
 /**
  * Holds the common {@link ResultTransformer} used with {@link Driver#executeQuery}.
- *
- * @experimental This can be changed or removed anytime.
- * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 const resultTransformers = new ResultTransformers()
 

@@ -397,8 +397,8 @@ describe('Driver', () => {
         expect(eagerResult).toEqual(expected)
         expect(spiedExecute).toBeCalledWith({
           resultTransformer: resultTransformers.eagerResultTransformer(),
-          bookmarkManager: driver?.defaultExecuteQueryBookmarkManager,
-          routing: routing.WRITERS,
+          bookmarkManager: driver?.executeQueryBookmarkManager,
+          routing: routing.WRITE,
           database: undefined,
           impersonatedUser: undefined
         }, query, params)
@@ -423,8 +423,8 @@ describe('Driver', () => {
         expect(summary).toEqual(expected.summary)
         expect(spiedExecute).toBeCalledWith({
           resultTransformer: resultTransformers.eagerResultTransformer(),
-          bookmarkManager: driver?.defaultExecuteQueryBookmarkManager,
-          routing: routing.WRITERS,
+          bookmarkManager: driver?.executeQueryBookmarkManager,
+          routing: routing.WRITE,
           database: undefined,
           impersonatedUser: undefined
         }, query, params)
@@ -476,8 +476,8 @@ describe('Driver', () => {
 
       it.each([
         ['empty config', 'the query', {}, {}, extendsDefaultWith({})],
-        ['config.routing=WRITERS', 'another query $s', { s: 'str' }, { routing: routing.WRITERS }, extendsDefaultWith({ routing: routing.WRITERS })],
-        ['config.routing=READERS', 'create num $d', { d: 1 }, { routing: routing.READERS }, extendsDefaultWith({ routing: routing.READERS })],
+        ['config.routing=WRITE', 'another query $s', { s: 'str' }, { routing: routing.WRITE }, extendsDefaultWith({ routing: routing.WRITE })],
+        ['config.routing=READ', 'create num $d', { d: 1 }, { routing: routing.READ }, extendsDefaultWith({ routing: routing.READ })],
         ['config.database="dbname"', 'q', {}, { database: 'dbname' }, extendsDefaultWith({ database: 'dbname' })],
         ['config.impersonatedUser="the_user"', 'q', {}, { impersonatedUser: 'the_user' }, extendsDefaultWith({ impersonatedUser: 'the_user' })],
         ['config.bookmarkManager=null', 'q', {}, { bookmarkManager: null }, extendsDefaultWith({ bookmarkManager: undefined })],
@@ -547,8 +547,8 @@ describe('Driver', () => {
         return () => {
           const defaultConfig = {
             resultTransformer: resultTransformers.eagerResultTransformer(),
-            bookmarkManager: driver?.defaultExecuteQueryBookmarkManager,
-            routing: routing.WRITERS,
+            bookmarkManager: driver?.executeQueryBookmarkManager,
+            routing: routing.WRITE,
             database: undefined,
             impersonatedUser: undefined
           }

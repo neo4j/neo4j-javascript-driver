@@ -21,7 +21,6 @@
  * Interface for the piece of software responsible for keeping track of current active bookmarks accross the driver.
  * @interface
  * @since 5.0
- * @experimental
  */
 export default class BookmarkManager {
   /**
@@ -66,7 +65,6 @@ export interface BookmarkManagerConfig {
  * @typedef {Object} BookmarkManagerConfig
  *
  * @since 5.0
- * @experimental
  * @property {Iterable<string>} [initialBookmarks] Defines the initial set of bookmarks. The key is the database name and the values are the bookmarks.
  * @property {function():Promise<Iterable<string>>} [bookmarksSupplier] Called for supplying extra bookmarks to the BookmarkManager
  * @property {function(bookmarks: Iterable<string>): Promise<void>} [bookmarksConsumer] Called when the set of bookmarks  get updated
@@ -75,7 +73,6 @@ export interface BookmarkManagerConfig {
  * Provides an configured {@link BookmarkManager} instance.
  *
  * @since 5.0
- * @experimental
  * @param {BookmarkManagerConfig} [config={}]
  * @returns {BookmarkManager}
  */

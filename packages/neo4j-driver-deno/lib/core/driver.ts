@@ -253,7 +253,6 @@ class SessionConfig {
      * await linkedSession2.close()
      * await unlinkedSession.close()
      *
-     * @experimental
      * @type {BookmarkManager|undefined}
      * @since 5.0
      */
@@ -325,21 +324,21 @@ class SessionConfig {
   }
 }
 
-type RoutingControl = 'WRITERS' | 'READERS'
-const WRITERS: RoutingControl = 'WRITERS'
-const READERS: RoutingControl = 'READERS'
+type RoutingControl = 'WRITE' | 'READ'
+const ROUTING_WRITE: RoutingControl = 'WRITE'
+const ROUTING_READ: RoutingControl = 'READ'
 /**
- * @typedef {'WRITERS'|'READERS'} RoutingControl
+ * @typedef {'WRITE'|'READ'} RoutingControl
  */
 /**
  * Constants that represents routing modes.
  *
  * @example
- * driver.executeQuery("<QUERY>", <PARAMETERS>, { routing: neo4j.routing.WRITERS })
+ * driver.executeQuery("<QUERY>", <PARAMETERS>, { routing: neo4j.routing.WRITE })
  */
 const routing = {
-  WRITERS,
-  READERS
+  WRITE: ROUTING_WRITE,
+  READ: ROUTING_READ
 }
 
 Object.freeze(routing)
@@ -347,8 +346,6 @@ Object.freeze(routing)
 /**
  * The query configuration
  * @interface
- * @experimental This can be changed or removed anytime.
- * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 class QueryConfig<T = EagerResult> {
   routing?: RoutingControl
@@ -367,7 +364,7 @@ class QueryConfig<T = EagerResult> {
      *
      * @type {RoutingControl}
      */
-    this.routing = routing.WRITERS
+    this.routing = routing.WRITE
 
     /**
      * Define the transformation will be applied to the Result before return from the
@@ -398,7 +395,7 @@ class QueryConfig<T = EagerResult> {
      * A BookmarkManager is a piece of software responsible for keeping casual consistency between different pieces of work by sharing bookmarks
      * between the them.
      *
-     * By default, it uses the driver's non mutable driver level bookmark manager. See, {@link Driver.defaultExecuteQueryBookmarkManager}
+     * By default, it uses the driver's non mutable driver level bookmark manager. See, {@link Driver.executeQueryBookmarkManager}
      *
      * Can be set to null to disable causal chaining.
      * @type {BookmarkManager|null}
@@ -472,11 +469,9 @@ class Driver {
   /**
    * The bookmark managed used by {@link Driver.executeQuery}
    *
-   * @experimental This can be changed or removed anytime.
    * @type {BookmarkManager}
-   * @returns {BookmarkManager}
    */
-  get defaultExecuteQueryBookmarkManager (): BookmarkManager {
+  get executeQueryBookmarkManager (): BookmarkManager {
     return this._defaultExecuteQueryBookmarkManager
   }
 
@@ -498,7 +493,7 @@ class Driver {
    * const { keys, records, summary } = await driver.executeQuery(
    *    'MATCH (p:Person{ name: $name }) RETURN p',
    *    { name: 'Person1'},
-   *    { routing: neo4j.routing.READERS})
+   *    { routing: neo4j.routing.READ})
    *
    * @example
    * // Run a read query returning a Person Nodes per elementId
@@ -526,7 +521,7 @@ class Driver {
    *    "<QUERY>",
    *    <PARAMETERS>,
    *    {
-   *       routing: neo4j.routing.WRITERS,
+   *       routing: neo4j.routing.WRITE,
    *       resultTransformer: transformer,
    *       database: "<DATABASE>",
    *       impersonatedUser: "<USER>",
@@ -549,21 +544,19 @@ class Driver {
    * }
    *
    * @public
-   * @experimental This can be changed or removed anytime.
    * @param {string | {text: string, parameters?: object}} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in the query
    * @param {QueryConfig<T>} config - The query configuration
    * @returns {Promise<T>}
    *
    * @see {@link resultTransformers} for provided result transformers.
-   * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
   async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
-    const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.defaultExecuteQueryBookmarkManager)
+    const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.executeQueryBookmarkManager)
     const resultTransformer = (config.resultTransformer ?? resultTransformers.eagerResultTransformer()) as ResultTransformer<T>
-    const routingConfig: string = config.routing ?? routing.WRITERS
+    const routingConfig: string = config.routing ?? routing.WRITE
 
-    if (routingConfig !== routing.READERS && routingConfig !== routing.WRITERS) {
+    if (routingConfig !== routing.READ && routingConfig !== routing.WRITE) {
       throw newError(`Illegal query routing config: "${routingConfig}"`)
     }
 
