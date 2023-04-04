@@ -554,27 +554,27 @@ export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId 
 }
 
 export function NewExpirationBasedAuthTokenManager ({ neo4j }, context, _, wire) {
-  const id = context.addAuthTokenManager((temporalAuthTokenManagerId) => {
+  const id = context.addAuthTokenManager((expirationBasedAuthTokenManagerId) => {
     return neo4j.expirationBasedAuthTokenManager({
       tokenProvider: () => new Promise((resolve, reject) => {
-        const id = context.addTemporalAuthTokenProviderRequest(resolve, reject)
-        wire.writeResponse(responses.TemporalAuthTokenProviderRequest({ id, temporalAuthTokenManagerId }))
+        const id = context.addExpirationBasedAuthTokenProviderRequest(resolve, reject)
+        wire.writeResponse(responses.ExpirationBasedAuthTokenProviderRequest({ id, expirationBasedAuthTokenManagerId }))
       })
     })
   })
 
-  wire.writeResponse(responses.TemporalAuthTokenManager({ id }))
+  wire.writeResponse(responses.ExpirationBasedAuthTokenManager({ id }))
 }
 
 export function ExpirationBasedAuthTokenProviderCompleted (_, context, { requestId, auth }) {
-  const request = context.getTemporalAuthTokenProviderRequest(requestId)
+  const request = context.getExpirationBasedAuthTokenProviderRequest(requestId)
   request.resolve({
     expiration: auth.data.expiresInMs != null
       ? new Date(new Date().getTime() + auth.data.expiresInMs)
       : undefined,
     token: context.binder.parseAuthToken(auth.data.auth.data)
   })
-  context.removeTemporalAuthTokenProviderRequest(requestId)
+  context.removeExpirationBasedAuthTokenProviderRequest(requestId)
 }
 
 export function GetRoutingTable (_, context, { driverId, database }, wire) {

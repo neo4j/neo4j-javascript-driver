@@ -15,7 +15,7 @@ export default class Context {
     this._authTokenManagers = {}
     this._authTokenManagerGetAuthRequests = {}
     this._authTokenManagerOnAuthExpiredRequests = {}
-    this._temporalAuthTokenProviderRequests = {}
+    this._expirationBasedAuthTokenProviderRequests = {}
     this._binder = binder
     this._environmentLogLevel = environmentLogLevel
   }
@@ -201,16 +201,16 @@ export default class Context {
     delete this._authTokenManagerOnAuthExpiredRequests[id]
   }
 
-  addTemporalAuthTokenProviderRequest (resolve, reject) {
-    return this._add(this._temporalAuthTokenProviderRequests, { resolve, reject })
+  addExpirationBasedAuthTokenProviderRequest (resolve, reject) {
+    return this._add(this._expirationBasedAuthTokenProviderRequests, { resolve, reject })
   }
 
-  getTemporalAuthTokenProviderRequest (id) {
-    return this._temporalAuthTokenProviderRequests[id]
+  getExpirationBasedAuthTokenProviderRequest (id) {
+    return this._expirationBasedAuthTokenProviderRequests[id]
   }
 
-  removeTemporalAuthTokenProviderRequest (id) {
-    delete this._temporalAuthTokenProviderRequests[id]
+  removeExpirationBasedAuthTokenProviderRequest (id) {
+    delete this._expirationBasedAuthTokenProviderRequests[id]
   }
 
   _add (map, object) {
