@@ -50,13 +50,14 @@ export default class BoltProtocol extends BoltProtocolV5x1 {
    *
    * @param {Object} args The params
    * @param {string} args.userAgent The user agent
+   * @param {string} args.boltAgent The bolt agent
    * @param {any} args.authToken The auth token
    * @param {NotificationFilter} args.notificationFilter The notification filters.
    * @param {function(error)} args.onError On error callback
    * @param {function(onComplete)} args.onComplete On complete callback
    * @returns {LoginObserver} The Login observer
    */
-  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
+  initialize ({ userAgent, boltAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const state = {}
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
@@ -67,7 +68,8 @@ export default class BoltProtocol extends BoltProtocolV5x1 {
     })
 
     this.write(
-      RequestMessage.hello5x2(userAgent, notificationFilter, this._serversideRouting),
+      // if useragent is null then for all versions before 5.3 it should be bolt agent by default
+      RequestMessage.hello5x2(userAgent === '' || userAgent == null ? boltAgent : userAgent, notificationFilter, this._serversideRouting),
       observer,
       false
     )

@@ -129,15 +129,15 @@ async function copyAndTransform(inDir: string, outDir: string) {
         }
       }
 
-      // Special fix for bolt-connection/channel/index.js
+      // Special fix for bolt-connection/channel/index.js and core/bolt-agent/index.js
       // Replace the "node channel" with the "deno channel", since Deno supports different APIs
-      if (inPath.endsWith("channel/index.js")) {
+      // Replace the "node boltAgent" with the "deno boltAgent", since Deno supports different APIs
+      if (inPath.endsWith("channel/index.js") || inPath.endsWith("bolt-agent/index.ts")) {
         contents = contents.replace(
-          `export * from './node/index.js'`,
-          `export * from './deno/index.js'`,
+          `export * from './node/index'`,
+          `export * from './deno/index'`,
         );
       }
-      
     }
 
     await Deno.writeTextFile(outPath, contents);

@@ -24,11 +24,12 @@ import { object } from '../lang/index.js'
  * Class which provides Authorization for {@link Connection}
  */
 export default class AuthenticationProvider {
-  constructor ({ authTokenManager, userAgent }) {
+  constructor ({ authTokenManager, userAgent, boltAgent }) {
     this._authTokenManager = authTokenManager || expirationBasedAuthTokenManager({
       tokenProvider: () => {}
     })
     this._userAgent = userAgent
+    this._boltAgent = boltAgent
   }
 
   async authenticate ({ connection, auth, skipReAuth, waitReAuth, forceReAuth }) {
@@ -38,7 +39,7 @@ export default class AuthenticationProvider {
         forceReAuth === true
       )
       if (connection.authToken == null || shouldReAuth) {
-        return await connection.connect(this._userAgent, auth, waitReAuth || false)
+        return await connection.connect(this._userAgent, this._boltAgent, auth, waitReAuth || false)
       }
       return connection
     }

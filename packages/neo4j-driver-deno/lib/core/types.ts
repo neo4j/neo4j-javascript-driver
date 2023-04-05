@@ -64,7 +64,8 @@ export interface Config {
   useBigInt?: boolean
   logging?: LoggingConfig
   resolver?: (address: string) => string[] | Promise<string[]>
-  userAgent?: string
+  userAgent?: string,
+  boltAgent?: string
 }
 
 /**

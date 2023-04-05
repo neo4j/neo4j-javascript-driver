@@ -33,7 +33,7 @@ const AUTHENTICATION_ERRORS = [
 
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
-    { id, config, log, userAgent, authTokenManager, newPool = (...args) => new Pool(...args) },
+    { id, config, log, userAgent, boltAgent, authTokenManager, newPool = (...args) => new Pool(...args) },
     createChannelConnectionHook = null
   ) {
     super()
@@ -42,7 +42,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._config = config
     this._log = log
     this._authTokenManager = authTokenManager
-    this._authenticationProvider = new AuthenticationProvider({ authTokenManager, userAgent })
+    this._authenticationProvider = new AuthenticationProvider({ authTokenManager, userAgent, boltAgent })
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
@@ -67,7 +67,6 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       config: PoolConfig.fromDriverConfig(config),
       log: this._log
     })
-    this._userAgent = userAgent
     this._openConnections = {}
   }
 

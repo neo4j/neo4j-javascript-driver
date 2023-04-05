@@ -192,6 +192,38 @@ export default class RequestMessage {
   }
 
   /**
+   * Create a new HELLO message.
+   * @param {string} userAgent the user agent.
+   * @param {string} boltAgent the bolt agent.
+   * @param {NotificationFilter} notificationFilter the notification filter configured
+   * @param {Object} routing server side routing, set to routing context to turn on server side routing (> 4.1)
+   * @return {RequestMessage} new HELLO message.
+   */
+  static hello5x3 (userAgent, boltAgent, notificationFilter = null, routing = null) {
+    const metadata = { user_agent: userAgent, bolt_agent: boltAgent }
+
+    if (notificationFilter) {
+      if (notificationFilter.minimumSeverityLevel) {
+        metadata.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
+      }
+
+      if (notificationFilter.disabledCategories) {
+        metadata.notifications_disabled_categories = notificationFilter.disabledCategories
+      }
+    }
+
+    if (routing) {
+      metadata.routing = routing
+    }
+
+    return new RequestMessage(
+      HELLO,
+      [metadata],
+      () => `HELLO ${json.stringify(metadata)}`
+    )
+  }
+
+  /**
    * Create a new LOGON message.
    *
    * @param {object} authToken The auth token

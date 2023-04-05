@@ -65,6 +65,7 @@ export interface Config {
   logging?: LoggingConfig
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
+  boltAgent?: string
 }
 
 /**

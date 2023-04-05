@@ -298,8 +298,7 @@ function driver (url, authToken, config = {}) {
 
   const authTokenManager = createAuthManager(authToken)
 
-  // Use default user agent or user agent specified by user.
-  config.userAgent = config.userAgent || USER_AGENT
+  config.boltAgent = BOLT_AGENT
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
   const meta = {
@@ -321,6 +320,7 @@ function driver (url, authToken, config = {}) {
           authTokenManager,
           address,
           userAgent: config.userAgent,
+          boltAgent: config.boltAgent,
           routingContext: parsedUrl.query
         })
     } else {
@@ -337,7 +337,8 @@ function driver (url, authToken, config = {}) {
           log,
           authTokenManager,
           address,
-          userAgent: config.userAgent
+          userAgent: config.userAgent,
+          boltAgent: config.boltAgent
         })
     }
   }
@@ -363,7 +364,7 @@ async function hasReachableServer (url, config) {
   }
 }
 
-const USER_AGENT = 'neo4j-javascript/' + VERSION
+const BOLT_AGENT = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
 
 /**
  * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.

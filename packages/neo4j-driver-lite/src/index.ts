@@ -335,7 +335,8 @@ function driver (
   const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
-  config.userAgent = config.userAgent ?? USER_AGENT
+  config.userAgent = config.userAgent ?? BOLT_AGENT
+  config.boltAgent = BOLT_AGENT
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
   const meta = {
@@ -362,6 +363,7 @@ function driver (
           authTokenManager,
           address,
           userAgent: config.userAgent,
+          boltAgent: config.boltAgent,
           routingContext: parsedUrl.query
         })
     } else {
@@ -378,7 +380,8 @@ function driver (
           log,
           authTokenManager,
           address,
-          userAgent: config.userAgent
+          userAgent: config.userAgent,
+          boltAgent: config.boltAgent
         })
     }
   }
@@ -404,7 +407,7 @@ async function hasReachableServer (url: string, config?: Pick<Config, 'logging'>
   }
 }
 
-const USER_AGENT: string = 'neo4j-javascript/' + VERSION
+const BOLT_AGENT = internal.boltAgent.BoltAgent.fromVersion('neo4j-javascript/' + VERSION)
 
 /**
  * Object containing constructors for all neo4j types.

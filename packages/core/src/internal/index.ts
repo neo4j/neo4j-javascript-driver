@@ -30,6 +30,7 @@ import * as urlUtil from './url-util'
 import * as serverAddress from './server-address'
 import * as resolver from './resolver'
 import * as objectUtil from './object-util'
+import * as boltAgent from './bolt-agent/index'
 
 export {
   util,
@@ -44,5 +45,6 @@ export {
   urlUtil,
   serverAddress,
   resolver,
-  objectUtil
+  objectUtil,
+  boltAgent
 }

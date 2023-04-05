@@ -183,9 +183,11 @@ export default class ChannelConnection extends Connection {
   /**
    * Send initialization message.
    * @param {string} userAgent the user agent for this driver.
+   * @param {string} boltAgent the bolt agent for this driver.
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
+<<<<<<< HEAD
   async connect (userAgent, authToken, waitReAuth) {
     if (this._protocol.initialized && !this._protocol.supportsReAuth) {
       throw newError('Connection does not support re-auth')
@@ -216,6 +218,10 @@ export default class ChannelConnection extends Connection {
     this._protocol.logon({ authToken, flush: true })
 
     return this
+=======
+  connect (userAgent, boltAgent, authToken) {
+    return this._initialize(userAgent, boltAgent, authToken)
+>>>>>>> dce70ae8 (Bolt agent added to hello metadata)
   }
 
   /**
@@ -224,12 +230,13 @@ export default class ChannelConnection extends Connection {
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if initialization is successful. Rejected promise otherwise.
    */
-  _initialize (userAgent, authToken) {
+  _initialize (userAgent, boltAgent, authToken) {
     const self = this
     return new Promise((resolve, reject) => {
       this._protocol.initialize({
         userAgent,
         authToken,
+        boltAgent,
         notificationFilter: this._notificationFilter,
         onError: err => reject(err),
         onComplete: metadata => {

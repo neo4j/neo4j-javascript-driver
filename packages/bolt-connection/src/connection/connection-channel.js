@@ -183,10 +183,11 @@ export default class ChannelConnection extends Connection {
   /**
    * Send initialization message.
    * @param {string} userAgent the user agent for this driver.
+   * @param {string} boltAgent the bolt agent for this driver.
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
-  async connect (userAgent, authToken, waitReAuth) {
+  async connect (userAgent, boltAgent, authToken, waitReAuth) {
     if (this._protocol.initialized && !this._protocol.supportsReAuth) {
       throw newError('Connection does not support re-auth')
     }
@@ -194,7 +195,7 @@ export default class ChannelConnection extends Connection {
     this._authToken = authToken
 
     if (!this._protocol.initialized) {
-      return await this._initialize(userAgent, authToken)
+      return await this._initialize(userAgent, boltAgent, authToken)
     }
 
     if (waitReAuth) {
@@ -221,14 +222,16 @@ export default class ChannelConnection extends Connection {
   /**
    * Perform protocol-specific initialization which includes authentication.
    * @param {string} userAgent the user agent for this driver.
+   * @param {string} boltAgent the bolt agent for this driver.
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if initialization is successful. Rejected promise otherwise.
    */
-  _initialize (userAgent, authToken) {
+  _initialize (userAgent, boltAgent, authToken) {
     const self = this
     return new Promise((resolve, reject) => {
       this._protocol.initialize({
         userAgent,
+        boltAgent,
         authToken,
         notificationFilter: this._notificationFilter,
         onError: err => reject(err),
