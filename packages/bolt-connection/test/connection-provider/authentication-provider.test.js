@@ -685,11 +685,11 @@ describe('AuthenticationProvider', () => {
       ]
 
       function nonValidCodesScenarios () {
-        return [
+        return polyfillFlatMap([
           'Neo.ClientError.Security.AuthorizationExpired',
           'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase',
           'Neo.Made.Up.Error'
-        ].flatMap(code => [
+        ]).flatMap(code => [
           [
               `connection and provider has same auth token and error code does not trigger re-fresh (code=${code})`, () => {
                 const authToken = { scheme: 'bearer', credentials: 'token' }
@@ -733,11 +733,11 @@ describe('AuthenticationProvider', () => {
       }
 
       function nonValidCodesWithDifferentAuthScenarios () {
-        return [
+        return polyfillFlatMap([
           'Neo.ClientError.Security.AuthorizationExpired',
           'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase',
           'Neo.Made.Up.Error'
-        ].flatMap(code => [
+        ]).flatMap(code => [
           [
             `connection and provider has different auth token and error code does not trigger re-fresh (code=${code})`,
             () => {
@@ -823,6 +823,16 @@ describe('AuthenticationProvider', () => {
       'Neo.ClientError.Security.Unauthorized',
       'Neo.ClientError.Security.TokenExpired'
     ]
+  }
+
+  function polyfillFlatMap (arr) {
+    /** Polyfill flatMap for Node10 tests */
+    if (!arr.flatMap) {
+      arr.flatMap = function (callback, thisArg) {
+        return arr.concat.apply([], arr.map(callback, thisArg))
+      }
+    }
+    return arr
   }
 
   function refreshObserverMock () {
