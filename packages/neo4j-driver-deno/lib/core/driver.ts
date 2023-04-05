@@ -810,7 +810,7 @@ class Driver {
     impersonatedUser?: string
     fetchSize: number
     bookmarkManager?: BookmarkManager
-    notificationFilter?: NotificationFilter,
+    notificationFilter?: NotificationFilter
     auth?: AuthToken
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
