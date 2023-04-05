@@ -819,10 +819,10 @@ describe('AuthenticationProvider', () => {
   }
 
   function errorCodeTriggerRefreshAuth () {
-    return [
+    return polyfillFlatMap([
       'Neo.ClientError.Security.Unauthorized',
       'Neo.ClientError.Security.TokenExpired'
-    ]
+    ])
   }
 
   function polyfillFlatMap (arr) {
