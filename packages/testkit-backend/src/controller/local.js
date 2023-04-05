@@ -3,6 +3,7 @@ import Controller from './interface'
 import stringify from '../stringify'
 import { isFrontendError } from '../request-handlers'
 import CypherNativeBinders from '../cypher-native-binders'
+import FakeTime from '../mock/fake-time'
 
 /**
  * Local controller handles the requests locally by redirecting them to the correct request handler/service.
@@ -37,7 +38,12 @@ export default class LocalController extends Controller {
       throw new Error(`Unknown request: ${name}`)
     }
 
-    return await this._requestHandlers[name](this._neo4j, this._contexts.get(contextId), data, {
+    return await this._requestHandlers[name]({
+      neo4j: this._neo4j,
+      mock: {
+        FakeTime
+      }
+    }, this._contexts.get(contextId), data, {
       writeResponse: (response) => this._writeResponse(contextId, response),
       writeError: (e) => this._writeError(contextId, e),
       writeBackendError: (msg) => this._writeBackendError(contextId, msg)
@@ -53,6 +59,7 @@ export default class LocalController extends Controller {
   }
 
   _writeError (contextId, e) {
+    console.trace(e)
     if (e.name) {
       if (isFrontendError(e)) {
         this._writeResponse(contextId, newResponse('FrontendError', {

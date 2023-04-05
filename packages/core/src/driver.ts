@@ -38,7 +38,8 @@ import {
   LoggingConfig,
   TrustStrategy,
   SessionMode,
-  Query
+  Query,
+  AuthToken
 } from './types'
 import { ServerAddress } from './internal/server-address'
 import BookmarkManager, { bookmarkManager } from './bookmark-manager'
@@ -96,6 +97,7 @@ type CreateSession = (args: {
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
+  auth?: AuthToken
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -121,6 +123,7 @@ class SessionConfig {
   fetchSize?: number
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
+  auth?: AuthToken
 
   /**
    * @constructor
@@ -191,6 +194,22 @@ class SessionConfig {
      * @type {string|undefined}
      */
     this.impersonatedUser = undefined
+
+    /**
+     * The {@link AuthToken} which will be used for the duration of the session.
+     *
+     * By default, the session will use connections authenticated with {@link AuthToken} configured in the
+     * driver creation. This configuration allows switch user and/or authorization information for the
+     * session lifetime.
+     *
+     * **Warning**: This option is only enable when the driver is connected with Neo4j Database servers
+     * which supports Bolt 5.1 and onwards.
+     *
+     * @type {AuthToken|undefined}
+     * @experimental Exposed as preview feature.
+     * @see {@link driver}
+     */
+    this.auth = undefined
 
     /**
      * The record fetch size of each batch of this session.
@@ -574,6 +593,26 @@ class Driver {
   }
 
   /**
+   * This method verifies the authorization credentials work by trying to acquire a connection
+   * to one of the servers with the given credentials.
+   *
+   * @param {object} param - object parameter
+   * @property {AuthToken} param.auth - the target auth for the to-be-acquired connection
+   * @property {string} param.database - the target database for the to-be-acquired connection
+   *
+   * @returns {Promise<boolean>} promise resolved with true if succeed, false if failed with
+   *  authentication issue and rejected with error if non-authentication error happens.
+   */
+  async verifyAuthentication ({ database, auth }: { auth?: AuthToken, database?: string } = {}): Promise<boolean> {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return await connectionProvider.verifyAuthentication({
+      database: database ?? 'system',
+      auth,
+      accessMode: READ
+    })
+  }
+
+  /**
    * Get ServerInfo for the giver database.
    *
    * @param {Object} param - The object parameter
@@ -622,6 +661,19 @@ class Driver {
   supportsUserImpersonation (): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsUserImpersonation()
+  }
+
+  /**
+   * Returns whether the driver session re-auth functionality capabilities based on the protocol
+   * version negotiated via handshake.
+   *
+   * Note that this function call _always_ causes a round-trip to the server.
+   *
+   * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
+   */
+  supportsSessionAuth (): Promise<boolean> {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.supportsSessionAuth()
   }
 
   /**
@@ -696,7 +748,8 @@ class Driver {
     impersonatedUser,
     fetchSize,
     bookmarkManager,
-    notificationFilter
+    notificationFilter,
+    auth
   }: SessionConfig = {}): Session {
     return this._newSession({
       defaultAccessMode,
@@ -707,7 +760,8 @@ class Driver {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!),
       bookmarkManager,
-      notificationFilter
+      notificationFilter,
+      auth
     })
   }
 
@@ -746,7 +800,8 @@ class Driver {
     impersonatedUser,
     fetchSize,
     bookmarkManager,
-    notificationFilter
+    notificationFilter,
+    auth
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
@@ -756,6 +811,7 @@ class Driver {
     fetchSize: number
     bookmarkManager?: BookmarkManager
     notificationFilter?: NotificationFilter
+    auth?: AuthToken
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -773,7 +829,8 @@ class Driver {
       impersonatedUser,
       fetchSize,
       bookmarkManager,
-      notificationFilter
+      notificationFilter,
+      auth
     })
   }
 

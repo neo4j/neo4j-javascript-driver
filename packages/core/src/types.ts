@@ -43,11 +43,12 @@ export type TrustStrategy =
 export interface Parameters { [key: string]: any }
 export interface AuthToken {
   scheme: string
-  principal: string
+  principal?: string
   credentials: string
   realm?: string
   parameters?: Parameters
 }
+
 export interface Config {
   encrypted?: boolean | EncryptionLevel
   trust?: TrustStrategy

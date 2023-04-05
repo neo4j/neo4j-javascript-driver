@@ -255,7 +255,9 @@ describe('index', () => {
         supportsTransactionConfig: async () => true,
         supportsUserImpersonation: async () => true,
         verifyConnectivityAndGetServerInfo: async () => new ServerInfo({}),
-        getNegotiatedProtocolVersion: async () => 5.0
+        getNegotiatedProtocolVersion: async () => 5.0,
+        verifyAuthentication: async () => true,
+        supportsSessionAuth: async () => true
       }
     })
     expect(session).toBeDefined()

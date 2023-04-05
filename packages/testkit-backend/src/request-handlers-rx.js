@@ -9,8 +9,10 @@ export {
   StartTest,
   GetFeatures,
   VerifyConnectivity,
+  VerifyAuthentication,
   GetServerInfo,
   CheckMultiDBSupport,
+  CheckSessionAuthSupport,
   ResolverResolutionCompleted,
   GetRoutingTable,
   ForcedRoutingTableUpdate,
@@ -22,10 +24,19 @@ export {
   BookmarksSupplierCompleted,
   BookmarksConsumerCompleted,
   StartSubTest,
-  ExecuteQuery
+  ExecuteQuery,
+  NewAuthTokenManager,
+  AuthTokenManagerClose,
+  AuthTokenManagerGetAuthCompleted,
+  AuthTokenManagerOnAuthExpiredCompleted,
+  NewExpirationBasedAuthTokenManager,
+  ExpirationBasedAuthTokenProviderCompleted,
+  FakeTimeInstall,
+  FakeTimeTick,
+  FakeTimeUninstall
 } from './request-handlers.js'
 
-export function NewSession (neo4j, context, data, wire) {
+export function NewSession ({ neo4j }, context, data, wire) {
   let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
   switch (accessMode) {
     case 'r':
@@ -53,6 +64,10 @@ export function NewSession (neo4j, context, data, wire) {
       disabledCategories: data.notificationsDisabledCategories
     }
   }
+  const auth = data.authorizationToken != null
+    ? context.binder.parseAuthToken(data.authorizationToken.data)
+    : undefined
+
   const driver = context.getDriver(driverId)
   const session = driver.rxSession({
     defaultAccessMode: accessMode,
@@ -61,7 +76,8 @@ export function NewSession (neo4j, context, data, wire) {
     fetchSize,
     impersonatedUser,
     bookmarkManager,
-    notificationFilter
+    notificationFilter,
+    auth
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))

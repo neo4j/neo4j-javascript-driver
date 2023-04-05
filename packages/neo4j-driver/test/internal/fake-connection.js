@@ -79,6 +79,14 @@ export default class FakeConnection extends Connection {
     this._server.version = value
   }
 
+  get authToken () {
+    return this._authToken
+  }
+
+  set authToken (authToken) {
+    this._authToken = authToken
+  }
+
   protocol () {
     // return fake protocol object that simply records seen queries and parameters
     return {
@@ -174,5 +182,9 @@ export default class FakeConnection extends Connection {
   closed () {
     this._open = false
     return this
+  }
+
+  async close () {
+    this._open = false
   }
 }

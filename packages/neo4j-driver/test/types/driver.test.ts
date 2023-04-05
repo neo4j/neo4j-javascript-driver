@@ -38,7 +38,7 @@ const dummy: any = null
 
 const authToken: AuthToken = dummy
 const scheme: string = authToken.scheme
-const principal: string = authToken.principal
+const principal: string | undefined = authToken.principal
 const credentials: string = authToken.credentials
 const realm1: undefined = authToken.realm as undefined
 const realm2: string = authToken.realm as string

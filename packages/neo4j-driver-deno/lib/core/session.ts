@@ -30,7 +30,7 @@ import { TransactionExecutor } from './internal/transaction-executor.ts'
 import { Bookmarks } from './internal/bookmarks.ts'
 import { TxConfig } from './internal/tx-config.ts'
 import ConnectionProvider from './connection-provider.ts'
-import { Query, SessionMode } from './types.ts'
+import { AuthToken, Query, SessionMode } from './types.ts'
 import Connection from './connection.ts'
 import { NumberOrInteger } from './graph-types.ts'
 import TransactionPromise from './transaction-promise.ts'
@@ -86,6 +86,7 @@ class Session {
    * @param {boolean} args.reactive - Whether this session should create reactive streams
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
    * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
+   * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
    * @param {NotificationFilter} args.notificationFilter - The notification filter used for this session.
    */
   constructor ({
@@ -98,7 +99,8 @@ class Session {
     fetchSize,
     impersonatedUser,
     bookmarkManager,
-    notificationFilter
+    notificationFilter,
+    auth
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -110,6 +112,7 @@ class Session {
     impersonatedUser?: string
     bookmarkManager?: BookmarkManager
     notificationFilter?: NotificationFilter
+    auth?: AuthToken
   }) {
     this._mode = mode
     this._database = database
@@ -119,6 +122,7 @@ class Session {
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
+      auth,
       database,
       bookmarks,
       connectionProvider,
@@ -128,6 +132,7 @@ class Session {
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
+      auth,
       database,
       bookmarks,
       connectionProvider,

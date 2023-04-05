@@ -73,7 +73,9 @@ import {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  expirationBasedAuthTokenManager,
+  staticAuthTokenManager
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -90,6 +92,27 @@ const {
   serverAddress: { ServerAddress },
   urlUtil
 } = internal
+
+function isAuthTokenManager (value) {
+  return typeof value === 'object' &&
+    value != null &&
+    'getToken' in value &&
+    'onTokenExpired' in value &&
+    typeof value.getToken === 'function' &&
+    typeof value.onTokenExpired === 'function'
+}
+
+function createAuthManager (authTokenOrManager) {
+  if (isAuthTokenManager(authTokenOrManager)) {
+    return authTokenOrManager
+  }
+
+  let authToken = authTokenOrManager
+  // Sanitize authority token. Nicer error from server when a scheme is set.
+  authToken = authToken || {}
+  authToken.scheme = authToken.scheme || 'none'
+  return staticAuthTokenManager({ authToken })
+}
 
 /**
  * Construct a new Neo4j Driver. This is your main entry point for this
@@ -273,9 +296,7 @@ function driver (url, authToken, config = {}) {
     config.trust = trust
   }
 
-  // Sanitize authority token. Nicer error from server when a scheme is set.
-  authToken = authToken || {}
-  authToken.scheme = authToken.scheme || 'none'
+  const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
   config.userAgent = config.userAgent || USER_AGENT
@@ -297,7 +318,7 @@ function driver (url, authToken, config = {}) {
           config,
           log,
           hostNameResolver,
-          authToken,
+          authTokenManager,
           address,
           userAgent: config.userAgent,
           routingContext: parsedUrl.query
@@ -314,7 +335,7 @@ function driver (url, authToken, config = {}) {
           id,
           config,
           log,
-          authToken,
+          authTokenManager,
           address,
           userAgent: config.userAgent
         })
@@ -496,7 +517,8 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  expirationBasedAuthTokenManager
 }
 
 export {
@@ -563,6 +585,7 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  expirationBasedAuthTokenManager
 }
 export default forExport

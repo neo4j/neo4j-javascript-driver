@@ -1,4 +1,5 @@
 import Context from "../src/context.js";
+import { FakeTime } from "./deps.ts";
 import {
   RequestHandlerMap,
   TestkitRequest,
@@ -74,7 +75,7 @@ export function createHandler(
 
       const handleRequest = requestHandlers[name];
 
-      handleRequest(neo4j, context, data, wire);
+      handleRequest({ neo4j, mock: { FakeTime } }, context, data, wire);
     }
   };
 }

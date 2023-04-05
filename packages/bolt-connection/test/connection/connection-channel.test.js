@@ -149,6 +149,182 @@ describe('ChannelConnection', () => {
         expect(call.notificationFilter).toBe(notificationFilter)
       }
     )
+    it('should set the AuthToken in the context', async () => {
+      const authToken = {
+        scheme: 'none'
+      }
+      const protocol = {
+        initialize: jest.fn(observer => observer.onComplete({}))
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ protocolSupplier })
+
+      await connection.connect('userAgent', authToken)
+
+      expect(connection.authToken).toEqual(authToken)
+    })
+
+    describe('re-auth', () => {
+      describe('when protocol support re-auth', () => {
+        it('should call logoff and login', async () => {
+          const authToken = {
+            scheme: 'none'
+          }
+          const protocol = {
+            initialize: jest.fn(observer => observer.onComplete({})),
+            logoff: jest.fn(() => undefined),
+            logon: jest.fn(() => undefined),
+            initialized: true,
+            supportsReAuth: true
+          }
+
+          const protocolSupplier = () => protocol
+          const connection = spyOnConnectionChannel({ protocolSupplier })
+
+          await connection.connect('userAgent', authToken)
+
+          expect(protocol.initialize).not.toHaveBeenCalled()
+          expect(protocol.logoff).toHaveBeenCalledWith()
+          expect(protocol.logon).toHaveBeenCalledWith({ authToken, flush: true })
+          expect(connection.authToken).toEqual(authToken)
+        })
+
+        describe('when waitReAuth=true', () => {
+          it('should wait for login complete', async () => {
+            const authToken = {
+              scheme: 'none'
+            }
+
+            const onCompleteObservers = []
+            const protocol = {
+              initialize: jest.fn(observer => observer.onComplete({})),
+              logoff: jest.fn(() => undefined),
+              logon: jest.fn(({ onComplete }) => onCompleteObservers.push(onComplete)),
+              initialized: true,
+              supportsReAuth: true
+            }
+
+            const protocolSupplier = () => protocol
+            const connection = spyOnConnectionChannel({ protocolSupplier })
+
+            const connectionPromise = connection.connect('userAgent', authToken, true)
+
+            const isPending = await Promise.race([connectionPromise, Promise.resolve(true)])
+            expect(isPending).toEqual(true)
+            expect(onCompleteObservers.length).toEqual(1)
+
+            expect(protocol.initialize).not.toHaveBeenCalled()
+            expect(protocol.logoff).toHaveBeenCalled()
+            expect(protocol.logon).toHaveBeenCalledWith(expect.objectContaining({
+              authToken,
+              flush: true
+            }))
+
+            expect(connection.authToken).toEqual(authToken)
+
+            onCompleteObservers.forEach(onComplete => onComplete({}))
+            await expect(connectionPromise).resolves.toBe(connection)
+          })
+
+          it('should notify logoff errors', async () => {
+            const authToken = {
+              scheme: 'none'
+            }
+
+            const onLogoffErrors = []
+            const protocol = {
+              initialize: jest.fn(observer => observer.onComplete({})),
+              logoff: jest.fn(({ onError }) => onLogoffErrors.push(onError)),
+              logon: jest.fn(() => undefined),
+              initialized: true,
+              supportsReAuth: true
+            }
+
+            const protocolSupplier = () => protocol
+            const connection = spyOnConnectionChannel({ protocolSupplier })
+
+            const connectionPromise = connection.connect('userAgent', authToken, true)
+
+            const isPending = await Promise.race([connectionPromise, Promise.resolve(true)])
+            expect(isPending).toEqual(true)
+            expect(onLogoffErrors.length).toEqual(1)
+
+            expect(protocol.initialize).not.toHaveBeenCalled()
+            expect(protocol.logoff).toHaveBeenCalled()
+            expect(protocol.logon).toHaveBeenCalledWith(expect.objectContaining({
+              authToken,
+              flush: true
+            }))
+
+            const expectedError = newError('something wrong is not right.')
+            onLogoffErrors.forEach(onError => onError(expectedError))
+            await expect(connectionPromise).rejects.toBe(expectedError)
+          })
+
+          it('should notify logon errors', async () => {
+            const authToken = {
+              scheme: 'none'
+            }
+
+            const onLoginErrors = []
+            const protocol = {
+              initialize: jest.fn(observer => observer.onComplete({})),
+              logoff: jest.fn(() => undefined),
+              logon: jest.fn(({ onError }) => onLoginErrors.push(onError)),
+              initialized: true,
+              supportsReAuth: true
+            }
+
+            const protocolSupplier = () => protocol
+            const connection = spyOnConnectionChannel({ protocolSupplier })
+
+            const connectionPromise = connection.connect('userAgent', authToken, true)
+
+            const isPending = await Promise.race([connectionPromise, Promise.resolve(true)])
+            expect(isPending).toEqual(true)
+            expect(onLoginErrors.length).toEqual(1)
+
+            expect(protocol.initialize).not.toHaveBeenCalled()
+            expect(protocol.logoff).toHaveBeenCalled()
+            expect(protocol.logon).toHaveBeenCalledWith(expect.objectContaining({
+              authToken,
+              flush: true
+            }))
+
+            const expectedError = newError('something wrong is not right.')
+            onLoginErrors.forEach(onError => onError(expectedError))
+            await expect(connectionPromise).rejects.toBe(expectedError)
+          })
+        })
+      })
+
+      describe('when protocol does not support re-auth', () => {
+        it('should throw connection does not support re-auth', async () => {
+          const authToken = {
+            scheme: 'none'
+          }
+          const protocol = {
+            initialize: jest.fn(observer => observer.onComplete({})),
+            logoff: jest.fn(() => undefined),
+            logon: jest.fn(() => undefined),
+            initialized: true,
+            supportsReAuth: false
+          }
+
+          const protocolSupplier = () => protocol
+          const connection = spyOnConnectionChannel({ protocolSupplier })
+
+          await expect(connection.connect('userAgent', authToken)).rejects.toThrow(
+            newError('Connection does not support re-auth')
+          )
+
+          expect(protocol.initialize).not.toHaveBeenCalled()
+          expect(protocol.logoff).not.toHaveBeenCalled()
+          expect(protocol.logon).not.toHaveBeenCalled()
+          expect(connection.authToken).toEqual(null)
+        })
+      })
+    })
   })
 
   describe('._handleFatalError()', () => {

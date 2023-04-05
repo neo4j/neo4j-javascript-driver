@@ -26,14 +26,19 @@ import {
 import { internal, error } from '../../core/index.ts'
 
 const {
-  constants: { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V4_4 }
+  constants: {
+    BOLT_PROTOCOL_V3,
+    BOLT_PROTOCOL_V4_0,
+    BOLT_PROTOCOL_V4_4,
+    BOLT_PROTOCOL_V5_1
+  }
 } = internal
 
 const { SERVICE_UNAVAILABLE } = error
 
 export default class DirectConnectionProvider extends PooledConnectionProvider {
-  constructor ({ id, config, log, address, userAgent, authToken }) {
-    super({ id, config, log, userAgent, authToken })
+  constructor ({ id, config, log, address, userAgent, authTokenManager, newPool }) {
+    super({ id, config, log, userAgent, authTokenManager, newPool })
 
     this._address = address
   }
@@ -42,27 +47,33 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  acquireConnection ({ accessMode, database, bookmarks } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, auth, forceReAuth } = {}) {
     const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
       errorCode: SERVICE_UNAVAILABLE,
-      handleAuthorizationExpired: (error, address) =>
-        this._handleAuthorizationExpired(error, address, database)
+      handleAuthorizationExpired: (error, address, conn) =>
+        this._handleAuthorizationExpired(error, address, conn, database)
     })
 
-    return this._connectionPool
-      .acquire(this._address)
-      .then(
-        connection =>
-          new DelegateConnection(connection, databaseSpecificErrorHandler)
-      )
+    const connection = await this._connectionPool.acquire({ auth, forceReAuth }, this._address)
+
+    if (auth) {
+      await this._verifyStickyConnection({
+        auth,
+        connection,
+        address: this._address
+      })
+      return connection
+    }
+
+    return new DelegateConnection(connection, databaseSpecificErrorHandler)
   }
 
-  _handleAuthorizationExpired (error, address, database) {
+  _handleAuthorizationExpired (error, address, connection, database) {
     this._log.warn(
       `Direct driver ${this._id} will close connection to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
-    this._connectionPool.purge(address).catch(() => {})
-    return error
+
+    return super._handleAuthorizationExpired(error, address, connection)
   }
 
   async _hasProtocolVersion (versionPredicate) {
@@ -109,6 +120,19 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
     return await this._hasProtocolVersion(
       version => version >= BOLT_PROTOCOL_V4_4
     )
+  }
+
+  async supportsSessionAuth () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V5_1
+    )
+  }
+
+  async verifyAuthentication ({ auth }) {
+    return this._verifyAuthentication({
+      auth,
+      getAddress: () => this._address
+    })
   }
 
   async verifyConnectivityAndGetServerInfo () {

@@ -223,6 +223,44 @@ function isString (str: any): str is string {
   return Object.prototype.toString.call(str) === '[object String]'
 }
 
+/**
+ * Verifies if object are the equals
+ * @param {unknown} a
+ * @param {unknown} b
+ * @returns {boolean}
+ */
+function equals (a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true
+  }
+
+  if (a === null || b === null) {
+    return false
+  }
+
+  if (typeof a === 'object' && typeof b === 'object') {
+    const keysA = Object.keys(a)
+    const keysB = Object.keys(b)
+
+    if (keysA.length !== keysB.length) {
+      return false
+    }
+
+    type AObjectKey = keyof typeof a
+    type BObjectKey = keyof typeof b
+
+    for (const key of keysA) {
+      if (!equals(a[key as AObjectKey], b[key as BObjectKey])) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  return false
+}
+
 export {
   isEmptyObjectOrNull,
   isObject,
@@ -233,6 +271,7 @@ export {
   assertNumberOrInteger,
   assertValidDate,
   validateQueryAndParameters,
+  equals,
   ENCRYPTION_ON,
   ENCRYPTION_OFF
 }

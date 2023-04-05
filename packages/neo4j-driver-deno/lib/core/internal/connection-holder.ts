@@ -24,6 +24,7 @@ import Connection from '../connection.ts'
 import { ACCESS_MODE_WRITE } from './constants.ts'
 import { Bookmarks } from './bookmarks.ts'
 import ConnectionProvider from '../connection-provider.ts'
+import { AuthToken } from '../types.ts'
 
 /**
  * @private
@@ -85,6 +86,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private readonly _impersonatedUser?: string
   private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
   private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
+  private readonly _auth?: AuthToken
+  private _closed: boolean
 
   /**
    * @constructor
@@ -96,6 +99,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @property {string?} params.impersonatedUser - the user which will be impersonated
    * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
    * @property {function():Promise<Bookmarks>} params.getConnectionAcquistionBookmarks - called for getting Bookmarks for acquiring connections
+   * @property {AuthToken} params.auth - the target auth for the to-be-acquired connection
    */
   constructor ({
     mode = ACCESS_MODE_WRITE,
@@ -104,7 +108,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
     connectionProvider,
     impersonatedUser,
     onDatabaseNameResolved,
-    getConnectionAcquistionBookmarks
+    getConnectionAcquistionBookmarks,
+    auth
   }: {
     mode?: string
     database?: string
@@ -113,8 +118,10 @@ class ConnectionHolder implements ConnectionHolderInterface {
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
     getConnectionAcquistionBookmarks?: () => Promise<Bookmarks>
+    auth?: AuthToken
   } = {}) {
     this._mode = mode
+    this._closed = false
     this._database = database != null ? assertString(database, 'database') : ''
     this._bookmarks = bookmarks ?? Bookmarks.empty()
     this._connectionProvider = connectionProvider
@@ -122,6 +129,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
+    this._auth = auth
     this._getConnectionAcquistionBookmarks = getConnectionAcquistionBookmarks ?? (() => Promise.resolve(Bookmarks.empty()))
   }
 
@@ -166,7 +174,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
       database: this._database,
       bookmarks: await this._getBookmarks(),
       impersonatedUser: this._impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved
+      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      auth: this._auth
     })
   }
 
@@ -192,6 +201,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   }
 
   close (hasTx?: boolean): Promise<null | Connection> {
+    this._closed = true
     if (this._referenceCount === 0) {
       return this._connectionPromise
     }

@@ -8,36 +8,24 @@ export function isFrontendError (error) {
   return error.message === 'TestKit FrontendError'
 }
 
-export function NewDriver (neo4j, context, data, wire) {
+export function NewDriver ({ neo4j }, context, data, wire) {
   const {
     uri,
-    authorizationToken: { data: authToken },
+    authorizationToken,
+    authTokenManagerId,
     userAgent,
     resolverRegistered
   } = data
-  let parsedAuthToken = authToken
-  switch (authToken.scheme) {
-    case 'basic':
-      parsedAuthToken = neo4j.auth.basic(
-        authToken.principal,
-        authToken.credentials,
-        authToken.realm
-      )
-      break
-    case 'kerberos':
-      parsedAuthToken = neo4j.auth.kerberos(authToken.credentials)
-      break
-    case 'bearer':
-      parsedAuthToken = neo4j.auth.bearer(authToken.credentials)
-      break
-    default:
-      parsedAuthToken = neo4j.auth.custom(
-        authToken.principal,
-        authToken.credentials,
-        authToken.realm,
-        authToken.scheme,
-        authToken.parameters
-      )
+
+  let parsedAuthToken = null
+
+  if (authorizationToken != null && authTokenManagerId != null) {
+    throw new Error('Can not set authorizationToken and authTokenManagerId')
+  } else if (authorizationToken) {
+    const { data: authToken } = authorizationToken
+    parsedAuthToken = context.binder.parseAuthToken(authToken)
+  } else {
+    parsedAuthToken = context.getAuthTokenManager(authTokenManagerId)
   }
 
   const resolver = resolverRegistered
@@ -112,7 +100,7 @@ export function DriverClose (_, context, data, wire) {
     .catch(err => wire.writeError(err))
 }
 
-export function NewSession (neo4j, context, data, wire) {
+export function NewSession ({ neo4j }, context, data, wire) {
   let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
   switch (accessMode) {
     case 'r':
@@ -140,6 +128,10 @@ export function NewSession (neo4j, context, data, wire) {
       disabledCategories: data.notificationsDisabledCategories
     }
   }
+  const auth = data.authorizationToken != null
+    ? context.binder.parseAuthToken(data.authorizationToken.data)
+    : undefined
+
   const driver = context.getDriver(driverId)
   const session = driver.session({
     defaultAccessMode: accessMode,
@@ -148,7 +140,8 @@ export function NewSession (neo4j, context, data, wire) {
     fetchSize,
     impersonatedUser,
     bookmarkManager,
-    notificationFilter
+    notificationFilter,
+    auth
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))
@@ -403,6 +396,18 @@ export function VerifyConnectivity (_, context, { driverId }, wire) {
     .catch(error => wire.writeError(error))
 }
 
+export function VerifyAuthentication (_, context, { driverId, authorizationToken }, wire) {
+  const auth = authorizationToken != null && authorizationToken.data != null
+    ? context.binder.parseAuthToken(authorizationToken.data)
+    : undefined
+
+  const driver = context.getDriver(driverId)
+  return driver
+    .verifyAuthentication({ auth })
+    .then(authenticated => wire.writeResponse(responses.DriverIsAuthenticated({ id: driverId, authenticated })))
+    .catch(error => wire.writeError(error))
+}
+
 export function GetServerInfo (_, context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
   return driver
@@ -421,6 +426,16 @@ export function CheckMultiDBSupport (_, context, { driverId }, wire) {
     .catch(error => wire.writeError(error))
 }
 
+export function CheckSessionAuthSupport (_, context, { driverId }, wire) {
+  const driver = context.getDriver(driverId)
+  return driver
+    .supportsSessionAuth()
+    .then(available =>
+      wire.writeResponse(responses.SessionAuthSupport({ id: driverId, available }))
+    )
+    .catch(error => wire.writeError(error))
+}
+
 export function ResolverResolutionCompleted (
   _,
   context,
@@ -432,7 +447,7 @@ export function ResolverResolutionCompleted (
 }
 
 export function NewBookmarkManager (
-  neo4j,
+  { neo4j },
   context,
   {
     initialBookmarks,
@@ -506,6 +521,62 @@ export function BookmarksConsumerCompleted (
   notifyBookmarksRequest.resolve()
 }
 
+export function NewAuthTokenManager (_, context, _data, wire) {
+  const id = context.addAuthTokenManager((authTokenManagerId) => {
+    return {
+      getToken: () => new Promise((resolve, reject) => {
+        const id = context.addAuthTokenManagerGetAuthRequest(resolve, reject)
+        wire.writeResponse(responses.AuthTokenManagerGetAuthRequest({ id, authTokenManagerId }))
+      }),
+      onTokenExpired: (auth) => {
+        const id = context.addAuthTokenManagerOnAuthExpiredRequest()
+        wire.writeResponse(responses.AuthTokenManagerOnAuthExpiredRequest({ id, authTokenManagerId, auth }))
+      }
+    }
+  })
+
+  wire.writeResponse(responses.AuthTokenManager({ id }))
+}
+
+export function AuthTokenManagerClose (_, context, { id }, wire) {
+  context.removeAuthTokenManager(id)
+  wire.writeResponse(responses.AuthTokenManager({ id }))
+}
+
+export function AuthTokenManagerGetAuthCompleted (_, context, { requestId, auth }) {
+  const request = context.getAuthTokenManagerGetAuthRequest(requestId)
+  request.resolve(auth.data)
+  context.removeAuthTokenManagerGetAuthRequest(requestId)
+}
+
+export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId }) {
+  context.removeAuthTokenManagerOnAuthExpiredRequest(requestId)
+}
+
+export function NewExpirationBasedAuthTokenManager ({ neo4j }, context, _, wire) {
+  const id = context.addAuthTokenManager((expirationBasedAuthTokenManagerId) => {
+    return neo4j.expirationBasedAuthTokenManager({
+      tokenProvider: () => new Promise((resolve, reject) => {
+        const id = context.addExpirationBasedAuthTokenProviderRequest(resolve, reject)
+        wire.writeResponse(responses.ExpirationBasedAuthTokenProviderRequest({ id, expirationBasedAuthTokenManagerId }))
+      })
+    })
+  })
+
+  wire.writeResponse(responses.ExpirationBasedAuthTokenManager({ id }))
+}
+
+export function ExpirationBasedAuthTokenProviderCompleted (_, context, { requestId, auth }) {
+  const request = context.getExpirationBasedAuthTokenProviderRequest(requestId)
+  request.resolve({
+    expiration: auth.data.expiresInMs != null
+      ? new Date(new Date().getTime() + auth.data.expiresInMs)
+      : undefined,
+    token: context.binder.parseAuthToken(auth.data.auth.data)
+  })
+  context.removeExpirationBasedAuthTokenProviderRequest(requestId)
+}
+
 export function GetRoutingTable (_, context, { driverId, database }, wire) {
   const driver = context.getDriver(driverId)
   const routingTable =
@@ -549,7 +620,7 @@ export function ForcedRoutingTableUpdate (_, context, { driverId, database, book
   }
 }
 
-export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config }, wire) {
+export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, config }, wire) {
   const driver = context.getDriver(driverId)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
@@ -600,4 +671,20 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
       wire.writeResponse(responses.EagerResult(eagerResult, { binder: context.binder }))
     })
     .catch(e => wire.writeError(e))
+}
+
+export function FakeTimeInstall ({ mock }, context, _data, wire) {
+  context.clock = new mock.FakeTime()
+  wire.writeResponse(responses.FakeTimeAck())
+}
+
+export function FakeTimeTick (_, context, { incrementMs }, wire) {
+  context.clock.tick(incrementMs)
+  wire.writeResponse(responses.FakeTimeAck())
+}
+
+export function FakeTimeUninstall (_, context, _data, wire) {
+  context.clock.restore()
+  delete context.clock
+  wire.writeResponse(responses.FakeTimeAck())
 }

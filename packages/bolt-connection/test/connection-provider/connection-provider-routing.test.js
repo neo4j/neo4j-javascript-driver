@@ -24,13 +24,17 @@ import {
   Integer,
   int,
   internal,
-  ServerInfo
+  ServerInfo,
+  staticAuthTokenManager,
+  expirationBasedAuthTokenManager
 } from 'neo4j-driver-core'
 import { RoutingTable } from '../../src/rediscovery/'
 import { Pool } from '../../src/pool'
 import SimpleHostNameResolver from '../../src/channel/browser/browser-host-name-resolver'
 import RoutingConnectionProvider from '../../src/connection-provider/connection-provider-routing'
 import { DelegateConnection, Connection } from '../../src/connection'
+import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
+import { functional } from '../../src/lang'
 
 const {
   serverAddress: { ServerAddress },
@@ -48,7 +52,8 @@ describe.each([
   4.2,
   4.3,
   4.4,
-  5.0
+  5.0,
+  5.1
 ])('#unit RoutingConnectionProvider (PROTOCOL_VERSION=%d)', (PROTOCOL_VERSION) => {
   const server0 = ServerAddress.fromUrl('server0')
   const server1 = ServerAddress.fromUrl('server1')
@@ -129,9 +134,9 @@ describe.each([
   it('purges connections when address is forgotten', () => {
     const pool = newPool()
 
-    pool.acquire(server1)
-    pool.acquire(server3)
-    pool.acquire(server5)
+    pool.acquire({}, server1)
+    pool.acquire({}, server3)
+    pool.acquire({}, server5)
     expectPoolToContain(pool, [server1, server3, server5])
 
     const connectionProvider = newRoutingConnectionProvider(
@@ -1434,10 +1439,11 @@ describe.each([
       })
   }, 10000)
 
-  it.each(usersDataSet)('should purge connections for address when AuthorizationExpired happens [user=%s]', async (user) => {
+  it.each(usersDataSet)('should close connection and erase authToken for connection with address when AuthorizationExpired happens [user=%s]', async (user) => {
     const pool = newPool()
 
     jest.spyOn(pool, 'purge')
+    jest.spyOn(pool, 'apply')
 
     const connectionProvider = newRoutingConnectionProvider(
       [
@@ -1468,11 +1474,78 @@ describe.each([
       impersonatedUser: user
     })
 
+    jest.spyOn(server2Connection, 'close')
+    jest.spyOn(server3Connection, 'close')
+
     server3Connection.handleAndTransformError(error, server3)
     server2Connection.handleAndTransformError(error, server2)
 
-    expect(pool.purge).toHaveBeenCalledWith(server3)
-    expect(pool.purge).toHaveBeenCalledWith(server2)
+    expect(server2Connection.close).toHaveBeenCalled()
+    expect(server3Connection.close).toHaveBeenCalled()
+
+    expect(pool.purge).not.toHaveBeenCalledWith(server3)
+    expect(pool.purge).not.toHaveBeenCalledWith(server2)
+
+    expect(pool.apply).toHaveBeenCalledTimes(2)
+
+    const [[
+      calledAddress1, appliedFunction1
+    ],
+    [
+      calledAddress2, appliedFunction2
+    ]] = pool.apply.mock.calls
+
+    expect(calledAddress1).toBe(server3)
+    let fakeConn = { authToken: 'some token' }
+    appliedFunction1(fakeConn)
+    expect(fakeConn.authToken).toBe(null)
+    pool.apply(server3, conn => expect(conn.authToken).toBe(null))
+
+    expect(calledAddress2).toBe(server2)
+    fakeConn = { authToken: 'some token' }
+    appliedFunction2(fakeConn)
+    expect(fakeConn.authToken).toBe(null)
+    pool.apply(server2, conn => expect(conn.authToken).toBe(null))
+  })
+
+  it.each(usersDataSet)('should call authenticationAuthProvider.handleError when AuthorizationExpired happens [user=%s]', async (user) => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+
+    const handleError = jest.spyOn(connectionProvider._authenticationProvider, 'handleError')
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.AuthorizationExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null,
+      impersonatedUser: user
+    })
+
+    server3Connection.handleAndTransformError(error, server3)
+    server2Connection.handleAndTransformError(error, server2)
+
+    expect(handleError).toBeCalledWith({ connection: server3Connection, code: 'Neo.ClientError.Security.AuthorizationExpired' })
+    expect(handleError).toBeCalledWith({ connection: server2Connection, code: 'Neo.ClientError.Security.AuthorizationExpired' })
   })
 
   it.each(usersDataSet)('should purge not change error when AuthorizationExpired happens [user=%s]', async (user) => {
@@ -1511,10 +1584,11 @@ describe.each([
     expect(error).toBe(expectedError)
   })
 
-  it.each(usersDataSet)('should purge connections for address when TokenExpired happens [user=%s]', async (user) => {
+  it.each(usersDataSet)('should not purge connections for address when TokenExpired happens [user=%s]', async (user) => {
     const pool = newPool()
 
     jest.spyOn(pool, 'purge')
+    jest.spyOn(pool, 'apply')
 
     const connectionProvider = newRoutingConnectionProvider(
       [
@@ -1548,8 +1622,51 @@ describe.each([
     server3Connection.handleAndTransformError(error, server3)
     server2Connection.handleAndTransformError(error, server2)
 
-    expect(pool.purge).toHaveBeenCalledWith(server3)
-    expect(pool.purge).toHaveBeenCalledWith(server2)
+    expect(pool.purge).not.toHaveBeenCalledWith(server3)
+    expect(pool.purge).not.toHaveBeenCalledWith(server2)
+    expect(pool.apply).toHaveBeenCalledTimes(0)
+    pool.apply(server2, conn => expect(conn.authToken).toBeDefined())
+    pool.apply(server3, conn => expect(conn.authToken).toBeDefined())
+  })
+
+  it.each(usersDataSet)('should call authenticationAuthProvider.handleError when TokenExpired happens [user=%s]', async (user) => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+
+    const handleError = jest.spyOn(connectionProvider._authenticationProvider, 'handleError')
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null,
+      impersonatedUser: user
+    })
+
+    server3Connection.handleAndTransformError(error, server3)
+    server2Connection.handleAndTransformError(error, server2)
+
+    expect(handleError).toBeCalledWith({ connection: server3Connection, code: 'Neo.ClientError.Security.TokenExpired' })
+    expect(handleError).toBeCalledWith({ connection: server2Connection, code: 'Neo.ClientError.Security.TokenExpired' })
   })
 
   it.each(usersDataSet)('should not change error when TokenExpired happens [user=%s]', async (user) => {
@@ -1586,6 +1703,84 @@ describe.each([
     )
 
     expect(error).toBe(expectedError)
+  })
+
+  it.each(usersDataSet)('should change error to retriable when error when TokenExpired happens and staticAuthTokenManager is not being used [user=%s]', async (user) => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+    connectionProvider._authTokenManager = expirationBasedAuthTokenManager({ tokenProvider: () => null })
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const error1 = server3Connection.handleAndTransformError(error, server3)
+    const error2 = server2Connection.handleAndTransformError(error, server2)
+
+    expect(error1.retriable).toBe(true)
+    expect(error2.retriable).toBe(true)
+  })
+
+  it.each(usersDataSet)('should not change error to retriable when error when TokenExpired happens and staticAuthTokenManager is being used [user=%s]', async (user) => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+    connectionProvider._authTokenManager = staticAuthTokenManager({ authToken: null })
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const error1 = server3Connection.handleAndTransformError(error, server3)
+    const error2 = server2Connection.handleAndTransformError(error, server2)
+
+    expect(error1.retriable).toBe(false)
+    expect(error2.retriable).toBe(false)
   })
 
   it.each(usersDataSet)('should use resolved seed router after accepting table with no writers [user=%s]', (user, done) => {
@@ -1710,7 +1905,7 @@ describe.each([
           expect(capturedError.code).toBe(SERVICE_UNAVAILABLE)
           expect(capturedError.message).toBe(
             'Server at server-non-existing-seed-router:7687 can\'t ' +
-             'perform routing. Make sure you are connecting to a causal cluster'
+            'perform routing. Make sure you are connecting to a causal cluster'
           )
           // Error should be the cause of the given capturedError
           expect(capturedError).toEqual(newError(capturedError.message, capturedError.code, error))
@@ -1784,7 +1979,7 @@ describe.each([
       expect(conn2.address).toBe(serverA)
     }, 10000)
 
-    it.each(usersDataSet)('should purge connections for address when AuthorizationExpired happens [user=%s]', async (user) => {
+    it.each(usersDataSet)('should not purge connections for address when AuthorizationExpired happens [user=%s]', async (user) => {
       const pool = newPool()
 
       jest.spyOn(pool, 'purge')
@@ -1822,11 +2017,11 @@ describe.each([
       serverAConnection.handleAndTransformError(error, serverA)
       server2Connection.handleAndTransformError(error, server2)
 
-      expect(pool.purge).toHaveBeenCalledWith(serverA)
-      expect(pool.purge).toHaveBeenCalledWith(server2)
+      expect(pool.purge).not.toHaveBeenCalledWith(serverA)
+      expect(pool.purge).not.toHaveBeenCalledWith(server2)
     })
 
-    it.each(usersDataSet)('should purge not change error when AuthorizationExpired happens [user=%s]', async (user) => {
+    it.each(usersDataSet)('should not purge change error when AuthorizationExpired happens [user=%s]', async (user) => {
       const pool = newPool()
 
       const connectionProvider = newRoutingConnectionProvider(
@@ -1861,7 +2056,7 @@ describe.each([
       expect(error).toBe(expectedError)
     })
 
-    it.each(usersDataSet)('should purge connections for address when TokenExpired happens [user=%s]', async (user) => {
+    it.each(usersDataSet)('should not purge connections for address when TokenExpired happens [user=%s]', async (user) => {
       const pool = newPool()
 
       jest.spyOn(pool, 'purge')
@@ -1899,8 +2094,8 @@ describe.each([
       serverAConnection.handleAndTransformError(error, serverA)
       server2Connection.handleAndTransformError(error, server2)
 
-      expect(pool.purge).toHaveBeenCalledWith(serverA)
-      expect(pool.purge).toHaveBeenCalledWith(server2)
+      expect(pool.purge).not.toHaveBeenCalledWith(serverA)
+      expect(pool.purge).not.toHaveBeenCalledWith(server2)
     })
 
     it.each(usersDataSet)('should not change error when TokenExpired happens [user=%s]', async (user) => {
@@ -2589,7 +2784,7 @@ describe.each([
 
         const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
         const address = targetServers[0]
-        expect(acquireSpy).toHaveBeenCalledWith(address)
+        expect(acquireSpy).toHaveBeenCalledWith({}, address)
 
         const connections = seenConnectionsPerAddress.get(address)
 
@@ -2608,7 +2803,7 @@ describe.each([
 
         const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
         const address = targetServers[0]
-        expect(acquireSpy).toHaveBeenCalledWith(address)
+        expect(acquireSpy).toHaveBeenCalledWith({}, address)
 
         const connections = seenConnectionsPerAddress.get(address)
 
@@ -2628,7 +2823,7 @@ describe.each([
 
         const targetServers = accessMode === WRITE ? routingTable.readers : routingTable.writers
         for (const address of targetServers) {
-          expect(acquireSpy).not.toHaveBeenCalledWith(address)
+          expect(acquireSpy).not.toHaveBeenCalledWith({}, address)
           expect(seenConnectionsPerAddress.get(address)).toBeUndefined()
         }
       })
@@ -2711,7 +2906,7 @@ describe.each([
           } finally {
             const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
             for (const address of targetServers) {
-              expect(acquireSpy).toHaveBeenCalledWith(address)
+              expect(acquireSpy).toHaveBeenCalledWith({}, address)
 
               const connections = seenConnectionsPerAddress.get(address)
 
@@ -2792,7 +2987,7 @@ describe.each([
         })
       })
 
-      function setup ({ resetAndFlush, releaseMock, newConnection } = { }) {
+      function setup ({ resetAndFlush, releaseMock, newConnection } = {}) {
         const routingTable = newRoutingTable(
           database || null,
           [server1, server2],
@@ -2934,6 +3129,567 @@ describe.each([
     })
   })
 
+  describe('constructor', () => {
+    describe('newPool', () => {
+      describe('param.create', () => {
+        it('should create connection', async () => {
+          const { create, createChannelConnectionHook, provider } = setup()
+
+          const connection = await create({}, server0, undefined)
+
+          expect(createChannelConnectionHook).toHaveBeenCalledWith(server0)
+          expect(provider._openConnections[connection.id]).toBe(connection)
+          await expect(createChannelConnectionHook.mock.results[0].value).resolves.toBe(connection)
+        })
+
+        it('should register the release function into the connection', async () => {
+          const { create } = setup()
+          const releaseResult = { property: 'some property' }
+          const release = jest.fn(() => releaseResult)
+
+          const connection = await create({}, server0, release)
+
+          const released = connection._release()
+
+          expect(released).toBe(releaseResult)
+          expect(release).toHaveBeenCalledWith(server0, connection)
+        })
+
+        it.each([
+          null,
+          undefined,
+          { scheme: 'bearer', credentials: 'token01' }
+        ])('should authenticate connection (auth = %o)', async (auth) => {
+          const { create, authenticationProviderHook } = setup()
+
+          const connection = await create({ auth }, server0)
+
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
+            connection,
+            auth
+          })
+        })
+
+        it('should handle create connection failures', async () => {
+          const error = newError('some error')
+          const createConnection = jest.fn(() => Promise.reject(error))
+          const { create, authenticationProviderHook, provider } = setup({ createConnection })
+          const openConnections = { ...provider._openConnections }
+
+          await expect(create({}, server0)).rejects.toThrow(error)
+
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+          expect(provider._openConnections).toEqual(openConnections)
+        })
+
+        it.each([
+          null,
+          undefined,
+          { scheme: 'bearer', credentials: 'token01' }
+        ])('should handle authentication failures (auth = %o)', async (auth) => {
+          const error = newError('some error')
+          const authenticationProvider = jest.fn(() => Promise.reject(error))
+          const { create, authenticationProviderHook, createChannelConnectionHook, provider } = setup({ authenticationProvider })
+          const openConnections = { ...provider._openConnections }
+
+          await expect(create({ auth }, server0)).rejects.toThrow(error)
+
+          const connection = await createChannelConnectionHook.mock.results[0].value
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({ auth, connection })
+          expect(provider._openConnections).toEqual(openConnections)
+          expect(connection._closed).toBe(true)
+        })
+      })
+
+      describe('param.destroy', () => {
+        it('should close connection and unregister it', async () => {
+          const { create, destroy, provider } = setup()
+          const openConnections = { ...provider._openConnections }
+          const connection = await create({}, server0, undefined)
+
+          await destroy(connection)
+
+          expect(connection._closed).toBe(true)
+          expect(provider._openConnections).toEqual(openConnections)
+        })
+      })
+
+      describe('param.validateOnAcquire', () => {
+        it.each([
+          null,
+          undefined,
+          { scheme: 'bearer', credentials: 'token01' }
+        ])('should return true when connection is open and within the lifetime and authentication succeed (auth=%o)', async (auth) => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+
+          const { validateOnAcquire, authenticationProviderHook } = setup()
+
+          await expect(validateOnAcquire({ auth }, connection)).resolves.toBe(true)
+
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
+            connection, auth
+          })
+        })
+
+        it.each([
+          null,
+          undefined,
+          { scheme: 'bearer', credentials: 'token01' }
+        ])('should return true when connection is open and within the lifetime and authentication fails (auth=%o)', async (auth) => {
+          const connection = new FakeConnection(server0)
+          const error = newError('failed')
+          const authenticationProvider = jest.fn(() => Promise.reject(error))
+          connection.creationTimestamp = Date.now()
+
+          const { validateOnAcquire, authenticationProviderHook, log } = setup({ authenticationProvider })
+
+          await expect(validateOnAcquire({ auth }, connection)).resolves.toBe(false)
+
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
+            connection, auth
+          })
+
+          expect(log.debug).toHaveBeenCalledWith(
+            `The connection ${connection.id} is not valid because of an error ${error.code} '${error.message}'`
+          )
+        })
+
+        it.each([
+          true,
+          false
+        ])('should call authenticationProvider.authenticate with skipReAuth=%s', async (skipReAuth) => {
+          const connection = new FakeConnection(server0)
+          const auth = {}
+          connection.creationTimestamp = Date.now()
+
+          const { validateOnAcquire, authenticationProviderHook } = setup()
+
+          await expect(validateOnAcquire({ auth, skipReAuth }, connection)).resolves.toBe(true)
+
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
+            connection, auth, skipReAuth
+          })
+        })
+
+        it('should return false when connection is closed and within the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+          await connection.close()
+
+          const { validateOnAcquire, authenticationProviderHook } = setup()
+
+          await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+        })
+
+        it('should return false when connection is open and out of the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now() - 4000
+
+          const { validateOnAcquire, authenticationProviderHook } = setup({ maxConnectionLifetime: 3000 })
+
+          await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+        })
+
+        it('should return false when connection is closed and out of the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          await connection.close()
+          connection.creationTimestamp = Date.now() - 4000
+
+          const { validateOnAcquire, authenticationProviderHook } = setup({ maxConnectionLifetime: 3000 })
+
+          await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+        })
+      })
+
+      describe('param.validateOnRelease', () => {
+        it('should return true when connection is open and within the lifetime', () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+
+          const { validateOnRelease } = setup()
+
+          expect(validateOnRelease(connection)).toBe(true)
+        })
+
+        it('should return false when connection is closed and within the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+          await connection.close()
+
+          const { validateOnRelease } = setup()
+
+          expect(validateOnRelease(connection)).toBe(false)
+        })
+
+        it('should return false when connection is open and out of the lifetime', () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now() - 4000
+
+          const { validateOnRelease } = setup({ maxConnectionLifetime: 3000 })
+
+          expect(validateOnRelease(connection)).toBe(false)
+        })
+
+        it('should return false when connection is closed and out of the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          await connection.close()
+          connection.creationTimestamp = Date.now() - 4000
+
+          const { validateOnRelease } = setup({ maxConnectionLifetime: 3000 })
+
+          expect(validateOnRelease(connection)).toBe(false)
+        })
+
+        it('should return false when connection is sticky', async () => {
+          const connection = new FakeConnection(server0)
+          connection._sticky = true
+
+          const { validateOnRelease } = setup()
+
+          expect(validateOnRelease(connection)).toBe(false)
+        })
+      })
+
+      function setup ({ createConnection, authenticationProvider, maxConnectionLifetime } = {}) {
+        const newPool = jest.fn((...args) => new Pool(...args))
+        const log = new Logger('debug', () => undefined)
+        jest.spyOn(log, 'debug')
+        const createChannelConnectionHook = createConnection || jest.fn(async (address) => new FakeConnection(address))
+        const authenticationProviderHook = new AuthenticationProvider({})
+        jest.spyOn(authenticationProviderHook, 'authenticate')
+          .mockImplementation(authenticationProvider || jest.fn(({ connection }) => Promise.resolve(connection)))
+        const provider = new RoutingConnectionProvider({
+          newPool,
+          config: {
+            maxConnectionLifetime: maxConnectionLifetime || 1000
+          },
+          address: server01,
+          log
+        })
+        provider._createChannelConnection = createChannelConnectionHook
+        provider._authenticationProvider = authenticationProviderHook
+        return {
+          provider,
+          ...newPool.mock.calls[0][0],
+          createChannelConnectionHook,
+          authenticationProviderHook,
+          log
+        }
+      }
+    })
+  })
+
+  describe('user-switching', () => {
+    describe('when does not support re-auth', () => {
+      describe.each([
+        ['new connection', { other: 'auth' }, { other: 'auth' }, true],
+        ['old connection', { some: 'auth' }, { other: 'token' }, false]
+      ])('%s', (_, connAuth, acquireAuth, isStickyConn) => {
+        it('should raise and error when try switch user on acquire', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newRoutingConnectionProvider([
+            newRoutingTable(
+              null,
+              [server1, server2],
+              [server3, server2],
+              [server2, server4]
+            )
+          ],
+          pool
+          )
+          const auth = acquireAuth
+
+          const error = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: '',
+              auth
+            })
+            .catch(functional.identity)
+
+          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server3)
+          expect(connection._release).toHaveBeenCalled()
+          expect(connection._sticky).toEqual(isStickyConn)
+        })
+
+        it('should raise and error when try switch user on acquire [expired rt]', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newRoutingConnectionProvider([
+            newRoutingTable(
+              'dba',
+              [server1, server2],
+              [server3, server2],
+              [server2, server4],
+              int(0) // expired
+            )
+          ],
+          pool,
+          {
+            dba: newRoutingTable(
+              'dba',
+              [server1, server2],
+              [server3, server2],
+              [server2, server4]
+            )
+          }
+          )
+          connectionProvider._useSeedRouter = false
+
+          const auth = acquireAuth
+
+          const error = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: 'dba',
+              auth
+            })
+            .catch(functional.identity)
+
+          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server1)
+          expect(connection._release).toHaveBeenCalled()
+          expect(connection._sticky).toEqual(isStickyConn)
+        })
+
+        it('should raise and error when try switch user on acquire [expired rt and userSeedRouter]', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+            server0,
+            [server0],
+            [
+              newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4],
+                int(0) // expired
+              )
+            ],
+            {
+              dba: newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4]
+              )
+            },
+            pool
+          )
+
+          const auth = acquireAuth
+
+          const error = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: 'dba',
+              auth
+            })
+            .catch(functional.identity)
+
+          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
+          expect(connection._release).toHaveBeenCalled()
+          expect(connection._sticky).toEqual(isStickyConn)
+        })
+
+        it('should raise and error when try switch user on acquire [firstCall and userSeedRouter]', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+            server0,
+            [server0],
+            [],
+            {},
+            pool
+          )
+
+          const auth = acquireAuth
+
+          const error = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: 'dba',
+              auth
+            })
+            .catch(functional.identity)
+
+          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
+          expect(connection._release).toHaveBeenCalled()
+          expect(connection._sticky).toEqual(isStickyConn)
+        })
+      })
+    })
+
+    describe('when does it support re-auth', () => {
+      const connAuth = { myAuth: 'auth' }
+      const acquireAuth = connAuth
+
+      it('should return connection when try switch user on acquire', async () => {
+        const address = ServerAddress.fromUrl('localhost:123')
+        const pool = newPool()
+        const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+        jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+        const connectionProvider = newRoutingConnectionProvider([
+          newRoutingTable(
+            null,
+            [server1, server2],
+            [server3, server2],
+            [server2, server4]
+          )
+        ],
+        pool
+        )
+        const auth = acquireAuth
+
+        const acquiredConnection = await connectionProvider
+          .acquireConnection({
+            accessMode: 'READ',
+            database: '',
+            auth
+          })
+
+        expect(acquiredConnection).toBe(connection)
+        expect(acquiredConnection._sticky).toEqual(false)
+      })
+
+      it('should return connection when try switch user on acquire [expired rt]', async () => {
+        const address = ServerAddress.fromUrl('localhost:123')
+        const pool = newPool()
+        const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+        jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+        const connectionProvider = newRoutingConnectionProvider([
+          newRoutingTable(
+            'dba',
+            [server1, server2],
+            [server3, server2],
+            [server2, server4],
+            int(0) // expired
+          )
+        ],
+        pool,
+        {
+          dba: {
+            [server1.asHostPort()]: newRoutingTable(
+              'dba',
+              [server1, server2],
+              [server3, server2],
+              [server2, server4]
+            )
+          }
+        }
+        )
+        connectionProvider._useSeedRouter = false
+
+        const auth = acquireAuth
+
+        const acquiredConnection = await connectionProvider
+          .acquireConnection({
+            accessMode: 'READ',
+            database: 'dba',
+            auth
+          })
+
+        expect(acquiredConnection).toBe(connection)
+        expect(acquiredConnection._sticky).toEqual(false)
+      })
+
+      it('should return connection when try switch user on acquire [expired rt and userSeedRouter]', async () => {
+        const address = ServerAddress.fromUrl('localhost:123')
+        const pool = newPool()
+        const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+        jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+        const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+          server0,
+          [server0],
+          [
+            newRoutingTable(
+              'dba',
+              [server1, server2],
+              [server3, server2],
+              [server2, server4],
+              int(0) // expired
+            )
+          ],
+          {
+            dba: {
+              [server0.asHostPort()]: newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4]
+              )
+            }
+          },
+          pool
+        )
+
+        const auth = acquireAuth
+
+        const acquiredConnection = await connectionProvider
+          .acquireConnection({
+            accessMode: 'READ',
+            database: 'dba',
+            auth
+          })
+
+        expect(acquiredConnection).toBe(connection)
+        expect(acquiredConnection._sticky).toEqual(false)
+      })
+
+      it('should not delegated connection when try switch user on acquire [firstCall and userSeedRouter]', async () => {
+        const address = ServerAddress.fromUrl('localhost:123')
+        const pool = newPool()
+        const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+        jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+        const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+          server0,
+          [server0],
+          [],
+          {
+            dba: {
+              [server0.asHostPort()]: newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4]
+              )
+            }
+          },
+          pool
+        )
+
+        const auth = acquireAuth
+
+        const acquiredConnection = await connectionProvider
+          .acquireConnection({
+            accessMode: 'READ',
+            database: 'dba',
+            auth
+          })
+
+        expect(acquiredConnection).toBe(connection)
+        expect(acquiredConnection._sticky).toEqual(false)
+      })
+    })
+  })
+
   function newPool ({ create, config } = {}) {
     const _create = (address, release) => {
       if (create) {
@@ -2943,11 +3699,14 @@ describe.each([
           return Promise.reject(e)
         }
       }
-      return Promise.resolve(new FakeConnection(address, release, 'version', PROTOCOL_VERSION))
+      return Promise.resolve(new FakeConnection(address, release, 'version', PROTOCOL_VERSION, undefined, {
+        scheme: 'bearer',
+        credentials: 'token'
+      }))
     }
     return new Pool({
       config,
-      create: (address, release) => _create(address, release)
+      create: (_, address, release) => _create(address, release)
     })
   }
 
@@ -3093,7 +3852,7 @@ function expectPoolToNotContain (pool, addresses) {
 }
 
 class FakeConnection extends Connection {
-  constructor (address, release, version, protocolVersion, server) {
+  constructor (address, release, version, protocolVersion, server, authToken, { supportsReAuth } = {}) {
     super(null)
 
     this._address = address
@@ -3103,6 +3862,22 @@ class FakeConnection extends Connection {
     this._release = jest.fn(() => release(address, this))
     this.resetAndFlush = jest.fn(() => Promise.resolve())
     this._server = server
+    this._authToken = authToken
+    this._id = 1
+    this._closed = false
+    this._supportsReAuth = supportsReAuth || false
+  }
+
+  get id () {
+    return this._id
+  }
+
+  get authToken () {
+    return this._authToken
+  }
+
+  set authToken (authToken) {
+    this._authToken = authToken
   }
 
   get address () {
@@ -3117,6 +3892,18 @@ class FakeConnection extends Connection {
     return this._server
   }
 
+  get supportsReAuth () {
+    return this._supportsReAuth
+  }
+
+  async close () {
+    this._closed = true
+  }
+
+  isOpen () {
+    return !this._closed
+  }
+
   protocol () {
     return {
       version: this._protocolVersion,
@@ -3127,7 +3914,7 @@ class FakeConnection extends Connection {
 
 class FakeRediscovery {
   constructor (routerToRoutingTable, error) {
-    this._routerToRoutingTable = routerToRoutingTable
+    this._routerToRoutingTable = routerToRoutingTable || {}
     this._error = error
   }
 

@@ -39,6 +39,18 @@ export default class Connection {
     throw new Error('not implemented')
   }
 
+  get authToken () {
+    throw new Error('not implemented')
+  }
+
+  set authToken (value) {
+    throw new Error('not implemented')
+  }
+
+  get supportsReAuth () {
+    throw new Error('not implemented')
+  }
+
   /**
    * @returns {boolean} whether this connection is in a working condition
    */
@@ -124,7 +136,7 @@ export default class Connection {
    */
   handleAndTransformError (error, address) {
     if (this._errorHandler) {
-      return this._errorHandler.handleAndTransformError(error, address)
+      return this._errorHandler.handleAndTransformError(error, address, this)
     }
 
     return error

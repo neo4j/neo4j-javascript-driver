@@ -12,6 +12,10 @@ export default class Context {
     this._bookmarkSupplierRequests = {}
     this._notifyBookmarksRequests = {}
     this._bookmarksManagers = {}
+    this._authTokenManagers = {}
+    this._authTokenManagerGetAuthRequests = {}
+    this._authTokenManagerOnAuthExpiredRequests = {}
+    this._expirationBasedAuthTokenProviderRequests = {}
     this._binder = binder
     this._environmentLogLevel = environmentLogLevel
   }
@@ -159,6 +163,54 @@ export default class Context {
 
   removeBookmarkManager (id) {
     delete this._bookmarksManagers[id]
+  }
+
+  addAuthTokenManager (authTokenManagersFactory) {
+    this._id++
+    this._authTokenManagers[this._id] = authTokenManagersFactory(this._id)
+    return this._id
+  }
+
+  getAuthTokenManager (id) {
+    return this._authTokenManagers[id]
+  }
+
+  removeAuthTokenManager (id) {
+    delete this._authTokenManagers[id]
+  }
+
+  addAuthTokenManagerGetAuthRequest (resolve, reject) {
+    return this._add(this._authTokenManagerGetAuthRequests, {
+      resolve, reject
+    })
+  }
+
+  getAuthTokenManagerGetAuthRequest (id) {
+    return this._authTokenManagerGetAuthRequests[id]
+  }
+
+  removeAuthTokenManagerGetAuthRequest (id) {
+    delete this._authTokenManagerGetAuthRequests[id]
+  }
+
+  addAuthTokenManagerOnAuthExpiredRequest (request) {
+    return this._add(this._authTokenManagerOnAuthExpiredRequests, request)
+  }
+
+  removeAuthTokenManagerOnAuthExpiredRequest (id) {
+    delete this._authTokenManagerOnAuthExpiredRequests[id]
+  }
+
+  addExpirationBasedAuthTokenProviderRequest (resolve, reject) {
+    return this._add(this._expirationBasedAuthTokenProviderRequests, { resolve, reject })
+  }
+
+  getExpirationBasedAuthTokenProviderRequest (id) {
+    return this._expirationBasedAuthTokenProviderRequests[id]
+  }
+
+  removeExpirationBasedAuthTokenProviderRequest (id) {
+    delete this._expirationBasedAuthTokenProviderRequests[id]
   }
 
   _add (map, object) {

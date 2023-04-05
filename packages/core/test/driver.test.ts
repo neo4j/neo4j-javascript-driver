@@ -82,6 +82,26 @@ describe('Driver', () => {
       expect(createSession).toHaveBeenCalledWith(expectedSessionParams())
     })
 
+    it('should create the session with auth', () => {
+      const auth = {
+        scheme: 'basic',
+        principal: 'the imposter',
+        credentials: 'super safe password'
+      }
+
+      const session = driver?.session({ auth })
+
+      expect(session).not.toBeUndefined()
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ auth }))
+    })
+
+    it('should create the session without auth', () => {
+      const session = driver?.session()
+
+      expect(session).not.toBeUndefined()
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams())
+    })
+
     it.each([
       [undefined, Bookmarks.empty()],
       [null, Bookmarks.empty()],
@@ -241,6 +261,23 @@ describe('Driver', () => {
     )
 
     const promise: Promise<boolean> | undefined = driver?.supportsUserImpersonation()
+
+    expect(promise).toBe(expectedPromise)
+
+    promise?.catch(_ => 'Do nothing').finally(() => {})
+  })
+
+  it.each([
+    ['Promise.resolve(true)', Promise.resolve(true)],
+    ['Promise.resolve(false)', Promise.resolve(false)],
+    [
+      "Promise.reject(newError('something went wrong'))",
+      Promise.reject(newError('something went wrong'))
+    ]
+  ])('.supportsSessionAuth() => %s', (_, expectedPromise) => {
+    connectionProvider.supportsSessionAuth = jest.fn(() => expectedPromise)
+
+    const promise: Promise<boolean> | undefined = driver?.supportsSessionAuth()
 
     expect(promise).toBe(expectedPromise)
 

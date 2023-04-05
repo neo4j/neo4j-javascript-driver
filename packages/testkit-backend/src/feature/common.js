@@ -1,9 +1,12 @@
 
 const features = [
+  'Backend:MockTime',
   'Feature:Auth:Custom',
   'Feature:Auth:Kerberos',
   'Feature:Auth:Bearer',
+  'Feature:Auth:Managed',
   'Feature:API:BookmarkManager',
+  'Feature:API:Session:AuthConfig',
   'Feature:API:SSLConfig',
   'Feature:API:SSLSchemes',
   'Feature:API:Type.Temporal',
@@ -23,8 +26,10 @@ const features = [
   'Feature:API:Driver.ExecuteQuery',
   'Feature:API:Driver:NotificationsConfig',
   'Feature:API:Driver:GetServerInfo',
+  'Feature:API:Driver.VerifyAuthentication',
   'Feature:API:Driver.VerifyConnectivity',
   'Feature:API:Session:NotificationsConfig',
+  'Optimization:AuthPipelining',
   'Optimization:EagerTransactionBegin',
   'Optimization:ImplicitDefaultArguments',
   'Optimization:MinimalBookmarksSet',

@@ -19,12 +19,21 @@
 
 import { createChannelConnection, ConnectionErrorHandler } from '../connection/index.js'
 import Pool, { PoolConfig } from '../pool/index.js'
-import { error, ConnectionProvider, ServerInfo } from '../../core/index.ts'
+import { error, ConnectionProvider, ServerInfo, newError, isStaticAuthTokenManger } from '../../core/index.ts'
+import AuthenticationProvider from './authentication-provider.js'
+import { object } from '../lang/index.js'
 
 const { SERVICE_UNAVAILABLE } = error
+const AUTHENTICATION_ERRORS = [
+  'Neo.ClientError.Security.CredentialsExpired',
+  'Neo.ClientError.Security.Forbidden',
+  'Neo.ClientError.Security.TokenExpired',
+  'Neo.ClientError.Security.Unauthorized'
+]
+
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
-    { id, config, log, userAgent, authToken },
+    { id, config, log, userAgent, authTokenManager, newPool = (...args) => new Pool(...args) },
     createChannelConnectionHook = null
   ) {
     super()
@@ -32,8 +41,8 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._id = id
     this._config = config
     this._log = log
-    this._userAgent = userAgent
-    this._authToken = authToken
+    this._authTokenManager = authTokenManager
+    this._authenticationProvider = new AuthenticationProvider({ authTokenManager, userAgent })
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
@@ -44,10 +53,11 @@ export default class PooledConnectionProvider extends ConnectionProvider {
           this._log
         )
       })
-    this._connectionPool = new Pool({
+    this._connectionPool = newPool({
       create: this._createConnection.bind(this),
       destroy: this._destroyConnection.bind(this),
-      validate: this._validateConnection.bind(this),
+      validateOnAcquire: this._validateConnectionOnAcquire.bind(this),
+      validateOnRelease: this._validateConnectionOnRelease.bind(this),
       installIdleObserver: PooledConnectionProvider._installIdleObserverOnConnection.bind(
         this
       ),
@@ -57,6 +67,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       config: PoolConfig.fromDriverConfig(config),
       log: this._log
     })
+    this._userAgent = userAgent
     this._openConnections = {}
   }
 
@@ -69,14 +80,13 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    * @return {Promise<Connection>} promise resolved with a new connection or rejected when failed to connect.
    * @access private
    */
-  _createConnection (address, release) {
+  _createConnection ({ auth }, address, release) {
     return this._createChannelConnection(address).then(connection => {
       connection._release = () => {
         return release(address, connection)
       }
       this._openConnections[connection.id] = connection
-      return connection
-        .connect(this._userAgent, this._authToken)
+      return this._authenticationProvider.authenticate({ connection, auth })
         .catch(error => {
           // let's destroy this connection
           this._destroyConnection(connection)
@@ -84,6 +94,26 @@ export default class PooledConnectionProvider extends ConnectionProvider {
           throw error
         })
     })
+  }
+
+  async _validateConnectionOnAcquire ({ auth, skipReAuth }, conn) {
+    if (!this._validateConnection(conn)) {
+      return false
+    }
+
+    try {
+      await this._authenticationProvider.authenticate({ connection: conn, auth, skipReAuth })
+      return true
+    } catch (error) {
+      this._log.debug(
+        `The connection ${conn.id} is not valid because of an error ${error.code} '${error.message}'`
+      )
+      return false
+    }
+  }
+
+  _validateConnectionOnRelease (conn) {
+    return conn._sticky !== true && this._validateConnection(conn)
   }
 
   /**
@@ -98,7 +128,11 @@ export default class PooledConnectionProvider extends ConnectionProvider {
 
     const maxConnectionLifetime = this._config.maxConnectionLifetime
     const lifetime = Date.now() - conn.creationTimestamp
-    return lifetime <= maxConnectionLifetime
+    if (lifetime > maxConnectionLifetime) {
+      return false
+    }
+
+    return true
   }
 
   /**
@@ -118,7 +152,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    * @return {Promise<ServerInfo>} the server info
    */
   async _verifyConnectivityAndGetServerVersion ({ address }) {
-    const connection = await this._connectionPool.acquire(address)
+    const connection = await this._connectionPool.acquire({}, address)
     const serverInfo = new ServerInfo(connection.server, connection.protocol().version)
     try {
       if (!connection.protocol().isLastMessageLogon()) {
@@ -128,6 +162,47 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       await connection._release()
     }
     return serverInfo
+  }
+
+  async _verifyAuthentication ({ getAddress, auth }) {
+    const connectionsToRelease = []
+    try {
+      const address = await getAddress()
+      const connection = await this._connectionPool.acquire({ auth, skipReAuth: true }, address)
+      connectionsToRelease.push(connection)
+
+      const lastMessageIsNotLogin = !connection.protocol().isLastMessageLogon()
+
+      if (!connection.supportsReAuth) {
+        throw newError('Driver is connected to a database that does not support user switch.')
+      }
+      if (lastMessageIsNotLogin && connection.supportsReAuth) {
+        await this._authenticationProvider.authenticate({ connection, auth, waitReAuth: true, forceReAuth: true })
+      } else if (lastMessageIsNotLogin && !connection.supportsReAuth) {
+        const stickyConnection = await this._connectionPool.acquire({ auth }, address, { requireNew: true })
+        stickyConnection._sticky = true
+        connectionsToRelease.push(stickyConnection)
+      }
+      return true
+    } catch (error) {
+      if (AUTHENTICATION_ERRORS.includes(error.code)) {
+        return false
+      }
+      throw error
+    } finally {
+      await Promise.all(connectionsToRelease.map(conn => conn._release()))
+    }
+  }
+
+  async _verifyStickyConnection ({ auth, connection, address }) {
+    const connectionWithSameCredentials = object.equals(auth, connection.authToken)
+    const shouldCreateStickyConnection = !connectionWithSameCredentials
+    connection._sticky = connectionWithSameCredentials && !connection.supportsReAuth
+
+    if (shouldCreateStickyConnection || connection._sticky) {
+      await connection._release()
+      throw newError('Driver is connected to a database that does not support user switch.')
+    }
   }
 
   async close () {
@@ -145,5 +220,23 @@ export default class PooledConnectionProvider extends ConnectionProvider {
 
   static _removeIdleObserverOnConnection (conn) {
     conn._updateCurrentObserver()
+  }
+
+  _handleAuthorizationExpired (error, address, connection) {
+    this._authenticationProvider.handleError({ connection, code: error.code })
+
+    if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {
+      this._connectionPool.apply(address, (conn) => { conn.authToken = null })
+    }
+
+    if (connection) {
+      connection.close().catch(() => undefined)
+    }
+
+    if (error.code === 'Neo.ClientError.Security.TokenExpired' && !isStaticAuthTokenManger(this._authTokenManager)) {
+      error.retriable = true
+    }
+
+    return error
   }
 }

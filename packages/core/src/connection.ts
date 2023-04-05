@@ -38,6 +38,13 @@ class Connection {
   }
 
   /**
+   * @property {object} authToken The auth registered in the connection
+   */
+  get authToken (): any {
+    return {}
+  }
+
+  /**
    * @property {ServerAddress} the server address this connection is opened against
    */
   get address (): ServerAddress | undefined {
@@ -49,6 +56,13 @@ class Connection {
    */
   get version (): any {
     return undefined
+  }
+
+  /**
+   * @property {boolean} supportsReAuth Indicates the connection supports re-auth
+   */
+  get supportsReAuth (): boolean {
+    return false
   }
 
   /**

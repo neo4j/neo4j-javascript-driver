@@ -124,7 +124,7 @@ export default class ChannelConnection extends Connection {
     protocolSupplier
   ) {
     super(errorHandler)
-
+    this._authToken = null
     this._reseting = false
     this._resetObservers = []
     this._id = idGenerator++
@@ -156,6 +156,18 @@ export default class ChannelConnection extends Connection {
     }
   }
 
+  get authToken () {
+    return this._authToken
+  }
+
+  set authToken (value) {
+    this._authToken = value
+  }
+
+  get supportsReAuth () {
+    return this._protocol.supportsReAuth
+  }
+
   get id () {
     return this._id
   }
@@ -174,8 +186,36 @@ export default class ChannelConnection extends Connection {
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
-  connect (userAgent, authToken) {
-    return this._initialize(userAgent, authToken)
+  async connect (userAgent, authToken, waitReAuth) {
+    if (this._protocol.initialized && !this._protocol.supportsReAuth) {
+      throw newError('Connection does not support re-auth')
+    }
+
+    this._authToken = authToken
+
+    if (!this._protocol.initialized) {
+      return await this._initialize(userAgent, authToken)
+    }
+
+    if (waitReAuth) {
+      return await new Promise((resolve, reject) => {
+        this._protocol.logoff({
+          onError: reject
+        })
+
+        this._protocol.logon({
+          authToken,
+          onError: reject,
+          onComplete: () => resolve(this),
+          flush: true
+        })
+      })
+    }
+
+    this._protocol.logoff()
+    this._protocol.logon({ authToken, flush: true })
+
+    return this
   }
 
   /**

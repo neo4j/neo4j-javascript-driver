@@ -77,6 +77,10 @@ export function MultiDBSupport ({ id, available }) {
   return response('MultiDBSupport', { id, available })
 }
 
+export function SessionAuthSupport ({ id, available }) {
+  return response('SessionAuthSupport', { id, available })
+}
+
 export function RoutingTable ({ routingTable }) {
   const serverAddressToString = serverAddress => serverAddress.asHostPort()
   return response('RoutingTable', {
@@ -99,6 +103,34 @@ export function EagerResult ({ keys, records, summary }, { binder }) {
   })
 }
 
+export function AuthTokenManager ({ id }) {
+  return response('AuthTokenManager', { id })
+}
+
+export function AuthTokenManagerGetAuthRequest ({ id, authTokenManagerId }) {
+  return response('AuthTokenManagerGetAuthRequest', { id, authTokenManagerId })
+}
+
+export function AuthorizationToken (data) {
+  return response('AuthorizationToken', data)
+}
+
+export function AuthTokenManagerOnAuthExpiredRequest ({ id, authTokenManagerId, auth }) {
+  return response('AuthTokenManagerOnAuthExpiredRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth) })
+}
+
+export function ExpirationBasedAuthTokenManager ({ id }) {
+  return response('ExpirationBasedAuthTokenManager', { id })
+}
+
+export function ExpirationBasedAuthTokenProviderRequest ({ id, expirationBasedAuthTokenManagerId }) {
+  return response('ExpirationBasedAuthTokenProviderRequest', { id, expirationBasedAuthTokenManagerId })
+}
+
+export function DriverIsAuthenticated ({ id, authenticated }) {
+  return response('DriverIsAuthenticated', { id, authenticated })
+}
+
 // Testkit controller messages
 export function RunTest () {
   return response('RunTest', null)
@@ -114,6 +146,10 @@ export function SkipTest ({ reason }) {
 
 export function FeatureList ({ features }) {
   return response('FeatureList', { features })
+}
+
+export function FakeTimeAck () {
+  return response('FakeTimeAck', {})
 }
 
 function response (name, data) {

@@ -21,9 +21,10 @@
 import Connection from './connection'
 import { bookmarks } from './internal'
 import { ServerInfo } from './result-summary'
+import { AuthToken } from './types'
 
 /**
- * Inteface define a common way to acquire a connection
+ * Interface define a common way to acquire a connection
  *
  * @private
  */
@@ -51,6 +52,7 @@ class ConnectionProvider {
     bookmarks: bookmarks.Bookmarks
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
+    auth?: AuthToken
   }): Promise<Connection> {
     throw Error('Not implemented')
   }
@@ -86,6 +88,16 @@ class ConnectionProvider {
   }
 
   /**
+   * This method checks whether the driver session re-auth functionality
+   * by checking protocol handshake result
+   *
+   * @returns {Promise<boolean>}
+   */
+  supportsSessionAuth (): Promise<boolean> {
+    throw Error('Not implemented')
+  }
+
+  /**
    * This method verifies the connectivity of the database by trying to acquire a connection
    * for each server available in the cluster.
    *
@@ -96,6 +108,22 @@ class ConnectionProvider {
    * @returns {Promise<ServerInfo>} promise resolved with server info or rejected with error.
    */
   verifyConnectivityAndGetServerInfo (param?: { database?: string, accessMode?: string }): Promise<ServerInfo> {
+    throw Error('Not implemented')
+  }
+
+  /**
+   * This method verifies the authorization credentials work by trying to acquire a connection
+   * to one of the servers with the given credentials.
+   *
+   * @param {object} param - object parameter
+   * @property {AuthToken} param.auth - the target auth for the to-be-acquired connection
+   * @property {string} param.database - the target database for the to-be-acquired connection
+   * @property {string} param.accessMode - the access mode for the to-be-acquired connection
+   *
+   * @returns {Promise<boolean>} promise resolved with true if succeed, false if failed with
+   *  authentication issue and rejected with error if non-authentication error happens.
+   */
+  verifyAuthentication (param?: { auth?: AuthToken, database?: string, accessMode?: string }): Promise<boolean> {
     throw Error('Not implemented')
   }
 
