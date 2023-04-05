@@ -396,9 +396,9 @@ export function VerifyConnectivity (_, context, { driverId }, wire) {
     .catch(error => wire.writeError(error))
 }
 
-export function VerifyAuthentication (_, context, { driverId, authToken }, wire) {
-  const auth = authToken != null && authToken.data != null
-    ? context.binder.parseAuthToken(authToken.data)
+export function VerifyAuthentication (_, context, { driverId, authorizationToken }, wire) {
+  const auth = authorizationToken != null && authorizationToken.data != null
+    ? context.binder.parseAuthToken(authorizationToken.data)
     : undefined
 
   const driver = context.getDriver(driverId)
