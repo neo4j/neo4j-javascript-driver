@@ -17,4 +17,4 @@
  * limitations under the License.
  */
 
-export * from './bolt-agent'
+export * from './deno/index.ts'

@@ -20,89 +20,86 @@ import VERSION from './version'
 import { logging } from './logging'
 
 import {
-  Neo4jError,
-  isRetriableError,
-  error,
-  Integer,
-  inSafeRange,
-  int,
-  isInt,
-  toNumber,
-  toString,
-  internal,
-  isPoint,
-  Point,
+  auth,
+  BookmarkManager,
+  bookmarkManager,
+  BookmarkManagerConfig,
+  Connection,
+  ConnectionProvider,
   Date,
   DateTime,
+  Driver,
+  driver as coreDriver,
   Duration,
+  EagerResult,
+  error,
+  inSafeRange,
+  int,
+  Integer,
+  internal,
   isDate,
   isDateTime,
   isDuration,
+  isInt,
   isLocalDateTime,
   isLocalTime,
   isNode,
   isPath,
   isPathSegment,
+  isPoint,
   isRelationship,
+  isRetriableError,
   isTime,
   isUnboundRelationship,
   LocalDateTime,
   LocalTime,
-  Time,
-  Node,
-  Path,
-  PathSegment,
-  Relationship,
-  UnboundRelationship,
-  Record,
-  ResultSummary,
-  Result,
-  EagerResult,
-  ConnectionProvider,
-  Driver,
-  QueryResult,
-  ResultObserver,
-  Plan,
-  ProfiledPlan,
-  QueryStatistics,
-  Notification,
-  NotificationPosition,
-  Session,
-  Transaction,
   ManagedTransaction,
-  TransactionPromise,
-  ServerInfo,
-  Connection,
-  driver as coreDriver,
-  types as coreTypes,
-  auth,
-  BookmarkManager,
-  bookmarkManager,
-  BookmarkManagerConfig,
-  SessionConfig,
-  QueryConfig,
-  RoutingControl,
-  routing,
-  resultTransformers,
-  ResultTransformer,
+  Neo4jError,
+  Node,
+  Notification,
   notificationCategory,
-  notificationSeverityLevel,
-  NotificationSeverityLevel,
   NotificationCategory,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   expirationBasedAuthTokenManager,
   AuthTokenAndExpiration,
   staticAuthTokenManager
+  NotificationFilterMinimumSeverityLevel,
+  notificationFilterMinimumSeverityLevel,
+  NotificationPosition,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  Path,
+  PathSegment,
+  Plan,
+  Point,
+  ProfiledPlan,
+  QueryConfig,
+  QueryResult,
+  QueryStatistics,
+  Record,
+  Relationship,
+  Result,
+  ResultObserver,
+  ResultSummary,
+  ResultTransformer,
+  resultTransformers,
+  routing,
+  RoutingControl,
+  ServerInfo,
+  Session,
+  SessionConfig,
+  Time,
+  toNumber,
+  toString,
+  Transaction,
+  TransactionPromise,
+  types as coreTypes,
+  UnboundRelationship
 } from 'neo4j-driver-core'
-import {
-  DirectConnectionProvider,
-  RoutingConnectionProvider
-} from 'neo4j-driver-bolt-connection'
+import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -335,8 +332,7 @@ function driver (
   const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
-  config.userAgent = config.userAgent ?? BOLT_AGENT
-  config.boltAgent = BOLT_AGENT
+  config.boltAgent = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
   const meta = {
@@ -406,8 +402,6 @@ async function hasReachableServer (url: string, config?: Pick<Config, 'logging'>
     await nonLoggedDriver.close()
   }
 }
-
-const BOLT_AGENT = internal.boltAgent.BoltAgent.fromVersion('neo4j-javascript/' + VERSION)
 
 /**
  * Object containing constructors for all neo4j types.

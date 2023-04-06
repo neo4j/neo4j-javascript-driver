@@ -57,7 +57,7 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
    * @param {function(onComplete)} args.onComplete On complete callback
    * @returns {LoginObserver} The Login observer
    */
-  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
+  initialize ({ userAgent, boltAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const state = {}
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
@@ -71,7 +71,7 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
     assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(
-      RequestMessage.hello5x1(userAgent, this._serversideRouting),
+      RequestMessage.hello5x1(userAgent === '' || userAgent == null ? boltAgent : userAgent, this._serversideRouting),
       observer,
       false
     )

@@ -90,10 +90,11 @@ export default class Connection {
   /**
    * Connect to the target address, negotiate Bolt protocol and send initialization message.
    * @param {string} userAgent the user agent for this driver.
+   * @param {string} boltAgent the bolt agent for this driver.
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
-  connect (userAgent, authToken) {
+  connect (userAgent, boltAgent, authToken) {
     throw new Error('not implemented')
   }
 

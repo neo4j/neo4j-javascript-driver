@@ -200,7 +200,11 @@ export default class RequestMessage {
    * @return {RequestMessage} new HELLO message.
    */
   static hello5x3 (userAgent, boltAgent, notificationFilter = null, routing = null) {
-    const metadata = { user_agent: userAgent, bolt_agent: boltAgent }
+    const metadata = { bolt_agent: boltAgent }
+
+    if (userAgent) {
+      metadata.user_agent = userAgent
+    }
 
     if (notificationFilter) {
       if (notificationFilter.minimumSeverityLevel) {

@@ -16,10 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import BoltProtocolV44 from './bolt-protocol-v4x4.js'
+import BoltProtocolV5x2 from './bolt-protocol-v5x2.js'
 
-import { assertNotificationFilterIsEmpty } from './bolt-protocol-util.js'
-import transformersFactories from './bolt-protocol-v5x0.transformer.js'
+import transformersFactories from './bolt-protocol-v5x3.transformer.js'
 import Transformer from './transformer.js'
 import RequestMessage from './request-message.js'
 import { LoginObserver } from './stream-observers.js'
@@ -27,12 +26,12 @@ import { LoginObserver } from './stream-observers.js'
 import { internal } from '../../core/index.ts'
 
 const {
-  constants: { BOLT_PROTOCOL_V5_0 }
+  constants: { BOLT_PROTOCOL_V5_3 }
 } = internal
 
-export default class BoltProtocol extends BoltProtocolV44 {
+export default class BoltProtocol extends BoltProtocolV5x2 {
   get version () {
-    return BOLT_PROTOCOL_V5_0
+    return BOLT_PROTOCOL_V5_3
   }
 
   get transformer () {
@@ -48,26 +47,32 @@ export default class BoltProtocol extends BoltProtocolV44 {
    * @param {Object} args The params
    * @param {string} args.userAgent The user agent
    * @param {any} args.authToken The auth token
-   * @param {NotificationFilter} args.notificationFilter The notification filter.
+   * @param {NotificationFilter} args.notificationFilter The notification filters.
    * @param {function(error)} args.onError On error callback
-   * @param {function(onComplte)} args.onComplete On complete callback
+   * @param {function(onComplete)} args.onComplete On complete callback
    * @returns {LoginObserver} The Login observer
    */
   initialize ({ userAgent, boltAgent, authToken, notificationFilter, onError, onComplete } = {}) {
+    const state = {}
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
-      onCompleted: metadata => this._onLoginCompleted(metadata, authToken, onComplete)
+      onCompleted: metadata => {
+        state.metadata = metadata
+        return this._onLoginCompleted(metadata)
+      }
     })
 
-    // passing notification filter on this protocol version throws an error
-    assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
-
     this.write(
-      RequestMessage.hello(userAgent === '' || userAgent == null ? boltAgent : userAgent, authToken, this._serversideRouting),
+      RequestMessage.hello5x3(userAgent, boltAgent, notificationFilter, this._serversideRouting),
       observer,
-      true
+      false
     )
 
-    return observer
+    return this.logon({
+      authToken,
+      onComplete: metadata => onComplete({ ...metadata, ...state.metadata }),
+      onError,
+      flush: true
+    })
   }
 }

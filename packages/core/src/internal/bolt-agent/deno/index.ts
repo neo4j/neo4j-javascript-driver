@@ -17,4 +17,4 @@
  * limitations under the License.
  */
 
-export * from './BoltAgent'
+export * from './bolt-agent'

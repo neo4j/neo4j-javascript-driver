@@ -17,4 +17,8 @@
  * limitations under the License.
  */
 
-export * from './bolt-agent'
+import v5x2 from './bolt-protocol-v5x2.transformer.js'
+
+export default {
+  ...v5x2
+}

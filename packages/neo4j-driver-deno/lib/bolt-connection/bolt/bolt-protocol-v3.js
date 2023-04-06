@@ -69,7 +69,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     return metadata
   }
 
-  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
+  initialize ({ userAgent, boltAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, authToken, onComplete)
@@ -78,7 +78,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     // passing notification filter on this protocol version throws an error
     assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
-    this.write(RequestMessage.hello(userAgent, authToken), observer, true)
+    this.write(RequestMessage.hello(userAgent === '' || userAgent == null ? boltAgent : userAgent, authToken), observer, true)
 
     return observer
   }

@@ -67,11 +67,19 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     config,
     log,
     userAgent,
+<<<<<<< HEAD
     authTokenManager,
     routingTablePurgeDelay,
     newPool
   }) {
     super({ id, config, log, userAgent, authTokenManager, newPool }, address => {
+=======
+    boltAgent,
+    authToken,
+    routingTablePurgeDelay
+  }) {
+    super({ id, config, log, userAgent, boltAgent, authToken }, address => {
+>>>>>>> 0b8c1b40 (Fix useragent string on metadata object in 5.3)
       return createChannelConnection(
         address,
         this._config,

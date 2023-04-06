@@ -17,4 +17,4 @@
  * limitations under the License.
  */
 
-export * from './node/index'
+export * from './node'

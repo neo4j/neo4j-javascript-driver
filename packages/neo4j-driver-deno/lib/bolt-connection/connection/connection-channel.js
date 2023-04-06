@@ -227,6 +227,7 @@ export default class ChannelConnection extends Connection {
   /**
    * Perform protocol-specific initialization which includes authentication.
    * @param {string} userAgent the user agent for this driver.
+   * @param {string} boltAgent the bolt agent for this driver.
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if initialization is successful. Rejected promise otherwise.
    */
@@ -235,8 +236,8 @@ export default class ChannelConnection extends Connection {
     return new Promise((resolve, reject) => {
       this._protocol.initialize({
         userAgent,
-        authToken,
         boltAgent,
+        authToken,
         notificationFilter: this._notificationFilter,
         onError: err => reject(err),
         onComplete: metadata => {

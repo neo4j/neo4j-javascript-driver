@@ -298,7 +298,7 @@ function driver (url, authToken, config = {}) {
 
   const authTokenManager = createAuthManager(authToken)
 
-  config.boltAgent = BOLT_AGENT
+  config.boltAgent = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
   const meta = {
@@ -363,8 +363,6 @@ async function hasReachableServer (url, config) {
     await nonLoggedDriver.close()
   }
 }
-
-const BOLT_AGENT = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
 
 /**
  * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
