@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import VERSION from './version.ts'
-import {logging} from './logging.ts'
+import { logging } from './logging.ts'
 
 import {
   auth,
@@ -62,13 +62,10 @@ import {
   NotificationFilter,
   NotificationFilterDisabledCategory,
   notificationFilterDisabledCategory,
-<<<<<<< HEAD
-  notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   expirationBasedAuthTokenManager,
   AuthTokenAndExpiration,
-  staticAuthTokenManager
-=======
+  staticAuthTokenManager,
   NotificationFilterMinimumSeverityLevel,
   notificationFilterMinimumSeverityLevel,
   NotificationPosition,
@@ -101,10 +98,9 @@ import {
   TransactionPromise,
   types as coreTypes,
   UnboundRelationship
->>>>>>> 0b8c1b40 (Fix useragent string on metadata object in 5.3)
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
-import {DirectConnectionProvider, RoutingConnectionProvider} from './bolt-connection/index.js'
+import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config

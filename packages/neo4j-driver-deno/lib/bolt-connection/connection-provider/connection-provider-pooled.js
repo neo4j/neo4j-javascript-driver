@@ -33,11 +33,7 @@ const AUTHENTICATION_ERRORS = [
 
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
-<<<<<<< HEAD
     { id, config, log, userAgent, boltAgent, authTokenManager, newPool = (...args) => new Pool(...args) },
-=======
-    { id, config, log, userAgent, boltAgent, authToken },
->>>>>>> 0b8c1b40 (Fix useragent string on metadata object in 5.3)
     createChannelConnectionHook = null
   ) {
     super()
@@ -45,14 +41,10 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._id = id
     this._config = config
     this._log = log
-<<<<<<< HEAD
     this._authTokenManager = authTokenManager
     this._authenticationProvider = new AuthenticationProvider({ authTokenManager, userAgent, boltAgent })
-=======
     this._userAgent = userAgent
     this._boltAgent = boltAgent
-    this._authToken = authToken
->>>>>>> 0b8c1b40 (Fix useragent string on metadata object in 5.3)
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
@@ -95,12 +87,8 @@ export default class PooledConnectionProvider extends ConnectionProvider {
         return release(address, connection)
       }
       this._openConnections[connection.id] = connection
-<<<<<<< HEAD
+
       return this._authenticationProvider.authenticate({ connection, auth })
-=======
-      return connection
-        .connect(this._userAgent, this._boltAgent, this._authToken)
->>>>>>> 0b8c1b40 (Fix useragent string on metadata object in 5.3)
         .catch(error => {
           // let's destroy this connection
           this._destroyConnection(connection)

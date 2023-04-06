@@ -92,9 +92,10 @@ export default class Connection {
    * @param {string} userAgent the user agent for this driver.
    * @param {string} boltAgent the bolt agent for this driver.
    * @param {Object} authToken the object containing auth information.
+   * @param {boolean} shouldWaitReAuth whether ot not the connection will wait for re-authentication to happen
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
-  connect (userAgent, boltAgent, authToken) {
+  connect (userAgent, boltAgent, authToken, shouldWaitReAuth) {
     throw new Error('not implemented')
   }
 

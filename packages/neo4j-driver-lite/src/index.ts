@@ -65,7 +65,7 @@ import {
   AuthTokenManager,
   expirationBasedAuthTokenManager,
   AuthTokenAndExpiration,
-  staticAuthTokenManager
+  staticAuthTokenManager,
   NotificationFilterMinimumSeverityLevel,
   notificationFilterMinimumSeverityLevel,
   NotificationPosition,

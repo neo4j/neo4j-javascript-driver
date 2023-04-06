@@ -84,7 +84,7 @@ export default class DelegateConnection extends Connection {
   }
 
   connect (userAgent, boltAgent, authToken, waitReAuth) {
-    return this._delegate.connect(userAgent, authToken, boltAgent, waitReAuth)
+    return this._delegate.connect(userAgent, boltAgent, authToken, waitReAuth)
   }
 
   write (message, observer, flush) {

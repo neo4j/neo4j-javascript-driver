@@ -83,13 +83,8 @@ export default class DelegateConnection extends Connection {
     return this._delegate.protocol()
   }
 
-<<<<<<< HEAD
-  connect (userAgent, authToken, waitReAuth) {
-    return this._delegate.connect(userAgent, authToken, waitReAuth)
-=======
-  connect (userAgent, boltAgent, authToken) {
-    return this._delegate.connect(userAgent, boltAgent, authToken)
->>>>>>> 0b8c1b40 (Fix useragent string on metadata object in 5.3)
+  connect (userAgent, boltAgent, authToken, waitReAuth) {
+    return this._delegate.connect(userAgent, boltAgent, authToken, waitReAuth)
   }
 
   write (message, observer, flush) {

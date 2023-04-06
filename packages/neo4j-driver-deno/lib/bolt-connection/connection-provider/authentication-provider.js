@@ -47,7 +47,7 @@ export default class AuthenticationProvider {
     const authToken = await this._authTokenManager.getToken()
 
     if (!object.equals(authToken, connection.authToken)) {
-      return await connection.connect(this._userAgent, authToken)
+      return await connection.connect(this._userAgent, this._boltAgent, authToken, false)
     }
 
     return connection
