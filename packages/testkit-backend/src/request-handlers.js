@@ -633,10 +633,10 @@ export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, co
     if ('routing' in config && config.routing != null) {
       switch (config.routing) {
         case 'w':
-          configuration.routing = neo4j.routing.WRITERS
+          configuration.routing = neo4j.routing.WRITE
           break
         case 'r':
-          configuration.routing = neo4j.routing.READERS
+          configuration.routing = neo4j.routing.READ
           break
         default:
           wire.writeBackendError('Unknown routing: ' + config.routing)

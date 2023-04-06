@@ -408,8 +408,8 @@ describe('index', () => {
 
   it('should export routing', () => {
     expect(neo4j.routing).toBeDefined()
-    expect(neo4j.routing.WRITERS).toBeDefined()
-    expect(neo4j.routing.READERS).toBeDefined()
+    expect(neo4j.routing.WRITE).toBeDefined()
+    expect(neo4j.routing.READ).toBeDefined()
   })
 
   it('should export notificationSeverityLevel', () => {

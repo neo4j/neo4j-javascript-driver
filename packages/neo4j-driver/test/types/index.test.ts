@@ -90,10 +90,10 @@ const driver4: Driver = driver(
 const readMode1: string = session.READ
 const writeMode1: string = session.WRITE
 
-const writersString: string = routing.WRITERS
-const readersString: string = routing.READERS
-const writersRoutingControl: RoutingControl = routing.WRITERS
-const readersRoutingControl: RoutingControl = routing.READERS
+const writersString: string = routing.WRITE
+const readersString: string = routing.READ
+const writersRoutingControl: RoutingControl = routing.WRITE
+const readersRoutingControl: RoutingControl = routing.READ
 
 const serviceUnavailable1: string = error.SERVICE_UNAVAILABLE
 const sessionExpired1: string = error.SESSION_EXPIRED

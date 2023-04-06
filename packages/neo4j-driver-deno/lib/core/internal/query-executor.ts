@@ -28,7 +28,7 @@ type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkMa
 type TransactionFunction<T> = (transactionWork: (tx: ManagedTransaction) => Promise<T>) => Promise<T>
 
 interface ExecutionConfig<T> {
-  routing: 'WRITERS' | 'READERS'
+  routing: 'WRITE' | 'READ'
   database?: string
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
@@ -47,7 +47,7 @@ export default class QueryExecutor {
       impersonatedUser: config.impersonatedUser
     })
     try {
-      const executeInTransaction: TransactionFunction<T> = config.routing === 'READERS'
+      const executeInTransaction: TransactionFunction<T> = config.routing === 'READ'
         ? session.executeRead.bind(session)
         : session.executeWrite.bind(session)
 
