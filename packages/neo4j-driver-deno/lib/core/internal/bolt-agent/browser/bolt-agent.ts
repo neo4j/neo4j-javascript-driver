@@ -16,8 +16,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-export function fromVersion (version: string): string {
-  window.navagator
+/* eslint-disable */
+// @ts-ignore: browser code so must be skipped by ts
+export function fromVersion (version: string, windowProvider = () => window): string {
+  // @ts-ignore: browser code so must be skipped by ts
+  const APP_VERSION = windowProvider().navigator.appVersion
 
-  return `neo4j-javascript/${version} (browser)}`
+  //APP_VERSION looks like 5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36
+  const OS = APP_VERSION.split("(")[1].split(")")[0];
+
+  return `neo4j-javascript/${version} (${OS})`
 }
+/* eslint-enable */

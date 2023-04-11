@@ -26,7 +26,7 @@ export function fromVersion (version: string): string {
   //@ts-ignore
   const NODE_V8_VERSION = Deno.version.v8
   //@ts-ignore
-  const OS_NAME_VERSION = `${Deno.build.os} ${Deno.osRelease}`
+  const OS_NAME_VERSION = `${Deno.build.os} ${Deno.osRelease()}`
 
   return `neo4j-javascript/${version} (${OS_NAME_VERSION}; ${HOST_ARCH}) ${DENO_VERSION} (v8 ${NODE_V8_VERSION})`
 }
