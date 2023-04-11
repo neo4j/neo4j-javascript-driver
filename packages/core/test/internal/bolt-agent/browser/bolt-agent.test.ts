@@ -16,28 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { boltAgent as BoltAgent } from '../../../../src/internal'
-import os from 'os'
+import { fromVersion } from '../../../../src/internal/bolt-agent/browser'
 
 describe('#unit boltAgent', () => {
   // This test is very fragile but the exact look of this string should not change without PM approval
   it('should return the correct bolt agent for specified version', () => {
     const version = '5.3'
-    const boltAgent = BoltAgent.fromVersion(version)
+    const windowProvider = (): any => {
+      return {
+        navigator: {
+          appVersion: '5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
+        }
+      }
+    }
 
-    const HOST_ARCH = process.config.variables.host_arch
-    const NODE_VERSION = 'Node/' + process.versions.node
-    const NODE_V8_VERSION = process.versions.v8
-
-    const osName = os.platform()
+    const boltAgent = fromVersion(version, windowProvider)
 
     expect(boltAgent.length === 0).toBeFalsy()
-    expect(boltAgent).toContain(`neo4j-javascript/${version}`)
-    expect(boltAgent).toContain(`${HOST_ARCH}`)
-    expect(boltAgent).toContain(`${NODE_VERSION}`)
-    expect(boltAgent).toContain(`${NODE_V8_VERSION}`)
-    expect(boltAgent).toContain(`${osName}`)
-
-    expect(boltAgent).toEqual(`neo4j-javascript/${version} (${osName} ${os.release()}; ${HOST_ARCH}) ${NODE_VERSION} (v8 ${NODE_V8_VERSION})`)
+    expect(boltAgent).toEqual(`neo4j-javascript/${version} (Macintosh; Intel Mac OS X 10_15_7)`)
   })
 })
