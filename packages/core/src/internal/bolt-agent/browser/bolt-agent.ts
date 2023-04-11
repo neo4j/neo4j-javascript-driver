@@ -22,8 +22,8 @@ export function fromVersion (version: string): string {
   const APP_VERSION = window.navigator.appVersion
 
   //APP_VERSION looks like 5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36
-  const OS = APP_VERSION.split(" ")[0];
+  const OS = APP_VERSION.split("(")[1].split(")")[0];
 
-  return `neo4j-javascript/${version} ${OS} `
+  return `neo4j-javascript/${version} (${OS})`
 }
 /* eslint-enable */
