@@ -22,23 +22,7 @@ export function fromVersion (version: string): string {
   const HOST_ARCH = process.config.variables.host_arch
   const NODE_VERSION = 'Node/' + process.versions.node
   const NODE_V8_VERSION = process.versions.v8
+  const OS_NAME_VERSION = `${os.platform()} ${os.release()}`
 
-  const osName = mapOs(os.platform())
-
-  return `neo4j-javascript/${version} (${osName} ${os.release()}; ${HOST_ARCH}) ${NODE_VERSION} (v8 ${NODE_V8_VERSION})`
-}
-
-export function mapOs (osType: string): string {
-  let osName
-  if (osType === 'darwin') {
-    osName = 'MacOS'
-  } else if (osType === 'win32') {
-    osName = 'Windows'
-  } else if (osType === 'linux') {
-    osName = 'Linux'
-  } else {
-    osName = osType
-  }
-
-  return osName
+  return `neo4j-javascript/${version} (${OS_NAME_VERSION}; ${HOST_ARCH}) ${NODE_VERSION} (v8 ${NODE_V8_VERSION})`
 }

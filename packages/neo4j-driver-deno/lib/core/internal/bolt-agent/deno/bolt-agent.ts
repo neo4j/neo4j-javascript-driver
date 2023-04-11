@@ -16,6 +16,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 export function fromVersion (version: string): string {
-  return `neo4j-javascript/${version} (browser)`
+  const HOST_ARCH = Deno.build.arch
+  const DENO_VERSION = 'Deno/' + Deno.version.deno
+  const NODE_V8_VERSION = Deno.version.v8
+  const OS_NAME_VERSION = `${Deno.build.os} ${Deno.osRelease}`
+
+  return `neo4j-javascript/${version} (${OS_NAME_VERSION}; ${HOST_ARCH}) ${DENO_VERSION} (v8 ${NODE_V8_VERSION})`
 }

@@ -132,8 +132,6 @@ async function copyAndTransform(inDir: string, outDir: string) {
       // Special fix for core/internal/bolt-agent/index.js
       // Replace the "node boltAgent" with the "deno boltAgent", since Deno supports different APIs
       if(inPath.endsWith("bolt-agent/index.ts")){
-        console.log(inPath)
-        console.log(contents)
         contents = contents.replace(
             `export * from './node/index.ts'`,
             `export * from './deno/index.ts'`,
@@ -143,8 +141,6 @@ async function copyAndTransform(inDir: string, outDir: string) {
       // Special fix for bolt-connection/channel/index.js and core/internal/bolt-agent/index.js
       // Replace the "node channel" with the "deno channel", since Deno supports different APIs
       if (inPath.endsWith("channel/index.js")) {
-        console.log(inPath)
-        console.log(contents)
         contents = contents.replace(
           `export * from './node/index.js'`,
           `export * from './deno/index.js'`,

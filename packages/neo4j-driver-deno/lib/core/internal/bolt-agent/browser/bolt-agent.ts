@@ -17,5 +17,7 @@
 * limitations under the License.
 */
 export function fromVersion (version: string): string {
+  window.navagator
+
   return `neo4j-javascript/${version} (browser)}`
 }
