@@ -36,7 +36,7 @@ RUN update-ca-certificates
 # Creating an user for building the driver and running the tests
 RUN useradd -m driver && echo "driver:driver" | chpasswd && adduser driver sudo
 VOLUME /driver
-RUN chown -Rh driver:driver /driver
+RUN chown -Rh driver:driver /home/driver
 USER driver
 WORKDIR /home/driver
 CMD /bin/bash
