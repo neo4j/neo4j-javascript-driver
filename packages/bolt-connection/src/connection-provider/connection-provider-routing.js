@@ -28,6 +28,7 @@ import {
   ConnectionErrorHandler,
   DelegateConnection
 } from '../connection'
+import HomeDBCache from './home-db-cache/home-db-cache'
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const {
@@ -69,7 +70,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     userAgent,
     authTokenManager,
     routingTablePurgeDelay,
-    newPool
+    newPool,
+    homeDbCache
   }) {
     super({ id, config, log, userAgent, authTokenManager, newPool }, address => {
       return createChannelConnection(
@@ -96,6 +98,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         ? int(routingTablePurgeDelay)
         : DEFAULT_ROUTING_TABLE_PURGE_DELAY
     )
+    this._homeDbCache = new HomeDBCache({ maxHomeDatabaseDelay: this._config.maxHomeDatabaseDelay }) // set cache here
   }
 
   _createConnectionErrorHandler () {
@@ -139,6 +142,11 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth } = {}) {
     let name
     let address
+
+    if (database == null) {
+      database = this._homeDbCache.get({ impersonatedUser, auth })
+    }
+
     const context = { database: database || DEFAULT_DB_NAME }
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
@@ -157,6 +165,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       auth,
       onDatabaseNameResolved: (databaseName) => {
         context.database = context.database || databaseName
+        this._homeDbCache.set({ impersonatedUser, auth, databaseName })
         if (onDatabaseNameResolved) {
           onDatabaseNameResolved(databaseName)
         }
@@ -202,6 +211,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       )
       throw transformed
     }
+  }
+
+  forceHomeDbResolution () {
+    this._homeDbCache.clearCache()
   }
 
   async _hasProtocolVersion (versionPredicate) {

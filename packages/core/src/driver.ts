@@ -108,6 +108,8 @@ interface DriverConfig {
   fetchSize?: number
   logging?: LoggingConfig
   notificationFilter?: NotificationFilter
+  maxHomeDatabaseDelay?: number
+
 }
 
 /**
@@ -476,6 +478,16 @@ class Driver {
   }
 
   /**
+   * Cause the home db cache to be cleared and force a trip to the server for an up to date home db
+   *
+   * Note that this function call will slow down home db resolution for the next call as nothing will be cashed.
+   */
+  forceHomeDbResolution (): void {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.forceHomeDbResolution()
+  }
+
+  /**
    * Executes a query in a retriable context and returns a {@link EagerResult}.
    *
    * This method is a shortcut for a {@link Session#executeRead} and {@link Session#executeWrite}.
@@ -717,6 +729,23 @@ class Driver {
    */
   _getTrust (): TrustStrategy | undefined {
     return this._config.trust
+  }
+
+  /**
+   * Defines an upper bound for how long in milliseconds a resolved home database can be cached.
+   *
+   * Set this value to 0 to prohibit any caching.
+   * This likely incurs a significant performance penalty (driver and server side).
+   * Set this value to Number.MAX_SAFE_INTEGER to allow the driver to cache resolutions forever.
+   *
+   * Note that in future driver/protcol versions, this setting might have no effect.
+   *
+   * See also `Driver.forceHomeDatabaseResolution()`.
+   *
+   * Default: 5_000 (5 seconds)
+   */
+  _getMaxHomeDatabaseDelay (): number | undefined {
+    return this._config.maxHomeDatabaseDelay
   }
 
   /**
