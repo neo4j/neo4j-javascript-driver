@@ -2771,7 +2771,7 @@ describe.each([
 
       const onDatabaseNameResolvedUnCalled = jest.fn()
 
-      // aquire connection again and that should hit the cache meaning onDatabaseNameResoloved will not be hit as it is retrieved from the cache
+      // Acquire connection again and that should hit the cache meaning onDatabaseNameResoloved will not be hit as it is retrieved from the cache
       await connectionProvider.acquireConnection({ accessMode: READ, impersonatedUser: user, onDatabaseNameResolvedUnCalled })
       expect(onDatabaseNameResolvedUnCalled).not.toHaveBeenCalled()
     })
