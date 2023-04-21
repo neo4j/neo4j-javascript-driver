@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import HomeDBCache from '../../../src/connection-provider/home-db-cache/home-db-cache'
-
+// Test null auth and impersonation
 describe('Home DB Cache', () => {
   it('should set a db name and return it within the cache timeout', async () => {
     const cache = new HomeDBCache({ maxHomeDatabaseDelay: 100000 })
@@ -85,5 +85,24 @@ describe('Home DB Cache', () => {
       expect(returnedDbName).toEqual(null)
       done()
     }, 5)
+  })
+
+  it('should return correct db for correct users', () => {
+    const cache = new HomeDBCache({ maxHomeDatabaseDelay: 100000 })
+
+    const impersonatedUser = { username: 'name' }
+    const auth = { token: 'token' }
+    const dbName = 'testDb'
+
+    cache.set({ impersonatedUser: impersonatedUser, auth: auth, databaseName: dbName })
+    const returnedDbName = cache.get({ impersonatedUser: impersonatedUser, auth: auth })
+    expect(returnedDbName).toEqual(dbName)
+
+    const impersonatedUser2 = { username: 'name' }
+    const dbName2 = 'testDb'
+
+    cache.set({ impersonatedUser: impersonatedUser2, auth: auth, databaseName: dbName2 })
+    const returnedDbName2 = cache.get({ impersonatedUser: impersonatedUser2, auth: auth })
+    expect(returnedDbName2).toEqual(dbName2)
   })
 })

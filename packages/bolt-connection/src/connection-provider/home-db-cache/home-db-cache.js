@@ -24,14 +24,27 @@ export default class HomeDBCache {
   }
 
   set ({ impersonatedUser, auth, databaseName }) {
+    if (databaseName == null) {
+      return null
+    }
+
     if (this._maxHomeDatabaseDelay > 0) {
-      const key = impersonatedUser || auth
+      let key = impersonatedUser || auth
+
+      if (key == null) {
+        key = 'null' // This is for when auth is turned off basically
+      }
+
       this._cache.set(key, { databaseName: databaseName, insertTime: Date.now() })
     }
   }
 
   get ({ impersonatedUser, auth }) {
-    const key = impersonatedUser || auth
+    let key = impersonatedUser || auth
+    if (key == null) {
+      key = 'null' // This is for when auth is turned off basically
+    }
+
     const dbAndCreatedTime = this._cache.get(key)
 
     if (dbAndCreatedTime == null) {
