@@ -10,7 +10,7 @@
     "test": "jest",
     "test::watch": "jest --watch",
     "test::unit": "npm run test",
-    "test::deno": "deno test --allow-sys ./test/deno/",
+    "test::deno": "deno test --allow-all ./test/deno/",
     "predocs": "npm run build && npm run build::es6",
     "docs": "esdoc -c esdoc.json",
     "prepare": "npm run build",

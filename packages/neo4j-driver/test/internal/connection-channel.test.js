@@ -104,7 +104,7 @@ describe('#integration ChannelConnection', () => {
     }
 
     connection
-      .connect('mydriver/0.0.0', basicAuthToken())
+      .connect('mydriver/0.0.0', 'mydriver/0.0.0 some system info', basicAuthToken())
       .then(() => {
         connection
           .protocol()
@@ -177,7 +177,7 @@ describe('#integration ChannelConnection', () => {
     connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection
-      .connect('mydriver/0.0.0', basicAuthToken())
+      .connect('mydriver/0.0.0', 'mydriver/0.0.0 some system info', basicAuthToken())
       .then(initializedConnection => {
         expect(initializedConnection).toBe(connection)
         done()
@@ -189,7 +189,7 @@ describe('#integration ChannelConnection', () => {
     connection = await createConnection(`bolt://${sharedNeo4j.hostname}`) // wrong port
 
     connection
-      .connect('mydriver/0.0.0', basicWrongAuthToken())
+      .connect('mydriver/0.0.0', 'mydriver/0.0.0 some system info', basicWrongAuthToken())
       .then(() => done.fail('Should not initialize'))
       .catch(error => {
         expect(error).toBeDefined()
@@ -200,7 +200,7 @@ describe('#integration ChannelConnection', () => {
   it('should have server version after connection initialization completed', async done => {
     connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
     connection
-      .connect('mydriver/0.0.0', basicAuthToken())
+      .connect('mydriver/0.0.0', 'mydriver/0.0.0 some system info', basicAuthToken())
       .then(initializedConnection => {
         expect(initializedConnection).toBe(connection)
         const serverVersion = ServerVersion.fromString(connection.version)
@@ -214,7 +214,7 @@ describe('#integration ChannelConnection', () => {
     connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection
-      .connect('mydriver/0.0.0', basicWrongAuthToken())
+      .connect('mydriver/0.0.0', 'mydriver/0.0.0 some system info', basicWrongAuthToken())
       .then(() => done.fail('Should not connect'))
       .catch(initialError => {
         expect(initialError).toBeDefined()
@@ -274,7 +274,7 @@ describe('#integration ChannelConnection', () => {
     connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection
-      .connect('my-driver/1.2.3', basicAuthToken())
+      .connect('my-driver/1.2.3', 'mydriver/0.0.0 some system info', basicAuthToken())
       .then(() => {
         connection
           .resetAndFlush()
@@ -297,7 +297,7 @@ describe('#integration ChannelConnection', () => {
   it('should fail to reset and flush when FAILURE received', async done => {
     createConnection(`bolt://${sharedNeo4j.hostname}`)
       .then(connection => {
-        connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
+        connection.connect('my-driver/1.2.3', 'mydriver/0.0.0 some system info', basicAuthToken()).then(() => {
           connection
             .resetAndFlush()
             .then(() => done.fail('Should fail'))
@@ -325,7 +325,7 @@ describe('#integration ChannelConnection', () => {
     connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection
-      .connect('my-driver/1.2.3', basicAuthToken())
+      .connect('my-driver/1.2.3', 'mydriver/0.0.0 some system info', basicAuthToken())
       .then(() => {
         connection
           .resetAndFlush()
@@ -353,7 +353,7 @@ describe('#integration ChannelConnection', () => {
     createConnection(`bolt://${sharedNeo4j.hostname}`)
       .then(connection => {
         connection
-          .connect('my-driver/1.2.3', basicAuthToken())
+          .connect('my-driver/1.2.3', 'mydriver/0.0.0 some system info', basicAuthToken())
           .then(() => {
             connection.protocol()._responseHandler._currentFailure = newError(
               'Hello'
@@ -419,7 +419,7 @@ describe('#integration ChannelConnection', () => {
     connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
     recordWrittenMessages(connection._protocol, messages)
 
-    await connection.connect('mydriver/0.0.0', basicAuthToken())
+    await connection.connect('mydriver/0.0.0', 'mydriver/0.0.0 some system info', basicAuthToken())
 
     expect(connection.isOpen()).toBeTruthy()
     await connection.close()
@@ -436,7 +436,7 @@ describe('#integration ChannelConnection', () => {
   it('should not prepare broken connection to close', async () => {
     connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
-    await connection.connect('my-connection/9.9.9', basicAuthToken())
+    await connection.connect('my-connection/9.9.9', 'mydriver/0.0.0 some system info', basicAuthToken())
     expect(connection._protocol).toBeDefined()
     expect(connection._protocol).not.toBeNull()
 

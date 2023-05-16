@@ -21,6 +21,7 @@ import AuthenticationProvider from '../../src/connection-provider/authentication
 
 describe('AuthenticationProvider', () => {
   const USER_AGENT = 'javascript-driver/5.5.0'
+  const BOLT_AGENT = 'javascript-driver/5.5.0 some information about system'
 
   describe('.authenticate()', () => {
     describe('when called without an auth', () => {
@@ -69,7 +70,7 @@ describe('AuthenticationProvider', () => {
 
             await authenticationProvider.authenticate({ connection })
 
-            expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, authToken)
+            expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, authToken, false)
           })
 
           it('should throw errors happened during token refresh', async () => {
@@ -201,7 +202,7 @@ describe('AuthenticationProvider', () => {
 
             await authenticationProvider.authenticate({ connection })
 
-            expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, authToken)
+            expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, authToken, false)
           })
 
           it('should throw errors happened during token refresh', async () => {
@@ -330,7 +331,7 @@ describe('AuthenticationProvider', () => {
 
             await authenticationProvider.authenticate({ connection })
 
-            expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, authToken)
+            expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, authToken, false)
           })
 
           it('should throw errors happened during connection.connect', async () => {
@@ -405,7 +406,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth })
 
-          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth, false)
+          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth, false)
         })
 
         it('should return the connection', async () => {
@@ -451,7 +452,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth })
 
-          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, auth)
+          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth)
         })
 
         it('should not call connection connect with the supplied auth and skipReAuth=true', async () => {
@@ -462,7 +463,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth, skipReAuth: true })
 
-          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, auth)
+          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth)
         })
 
         if (supportsReAuth) {
@@ -474,7 +475,7 @@ describe('AuthenticationProvider', () => {
 
             await authenticationProvider.authenticate({ connection, auth, forceReAuth: true })
 
-            expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth, false)
+            expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth, false)
           })
         } else {
           it('should not call connection connect with the supplied auth if forceReAuth=true', async () => {
@@ -485,7 +486,7 @@ describe('AuthenticationProvider', () => {
 
             await authenticationProvider.authenticate({ connection, auth, forceReAuth: true })
 
-            expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, auth)
+            expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth)
           })
         }
 
@@ -519,7 +520,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth })
 
-          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth, false)
+          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth, false)
         })
 
         it('should return the connection', async () => {
@@ -569,7 +570,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth, waitReAuth })
 
-          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth, expectedWaitForReAuth)
+          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth, expectedWaitForReAuth)
         })
 
         it('should not call connect when skipReAuth=true', async () => {
@@ -593,7 +594,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth })
 
-          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, auth)
+          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth)
         })
 
         it('should not call connection connect with the supplied auth and forceReAuth=true', async () => {
@@ -604,7 +605,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth, forceReAuth: true })
 
-          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, auth)
+          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, BOLT_AGENT, auth)
         })
 
         it('should return the connection', async () => {
@@ -787,7 +788,8 @@ describe('AuthenticationProvider', () => {
     const authTokenManager = expirationBasedAuthTokenManager({ tokenProvider: authTokenProvider })
     const provider = new AuthenticationProvider({
       authTokenManager,
-      userAgent: USER_AGENT
+      userAgent: USER_AGENT,
+      boltAgent: BOLT_AGENT
     })
 
     if (mocks) {
