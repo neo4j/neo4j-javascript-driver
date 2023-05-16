@@ -295,7 +295,12 @@ describe('#unit BoltProtocolV5x2', () => {
     expect(protocol.flushes).toEqual([false, true])
   })
 
-  it('should set userAgent to bolt agent when userAgent is null', () => {
+  it.each([
+    'javascript-driver/5.5.0',
+    '',
+    undefined,
+    null
+  ])('should always use the user agent set by the user', (userAgent) => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV5x2(recorder, null, false)
     utils.spyProtocolWrite(protocol)
@@ -303,11 +308,11 @@ describe('#unit BoltProtocolV5x2', () => {
     const clientName = 'js-driver/1.2.3'
     const authToken = { username: 'neo4j', password: 'secret' }
 
-    const observer = protocol.initialize({ userAgent: null, boltAgent: clientName, authToken })
+    const observer = protocol.initialize({ userAgent, boltAgent: clientName, authToken })
 
     protocol.verifyMessageCount(2)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello5x1(clientName)
+      RequestMessage.hello5x1(userAgent)
     )
     expect(protocol.messages[1]).toBeMessage(
       RequestMessage.logon(authToken)

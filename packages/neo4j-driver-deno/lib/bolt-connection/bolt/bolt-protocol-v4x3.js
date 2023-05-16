@@ -104,7 +104,7 @@ export default class BoltProtocol extends BoltProtocolV42 {
     assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
     this.write(
-      RequestMessage.hello(userAgent === '' || userAgent == null ? boltAgent : userAgent, authToken, this._serversideRouting, ['utc']),
+      RequestMessage.hello(userAgent, authToken, this._serversideRouting, ['utc']),
       observer,
       true
     )

@@ -57,6 +57,29 @@ describe('#unit BoltProtocolV4x0', () => {
     expect.extend(utils.matchers)
   })
 
+  it.each([
+    'javascript-driver/5.5.0',
+    '',
+    undefined,
+    null
+  ])('should always use the user agent set by the user', (userAgent) => {
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV4x0(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
+
+    const clientName = 'js-driver/1.2.3'
+    const authToken = { username: 'neo4j', password: 'secret' }
+
+    const observer = protocol.initialize({ userAgent, boltAgent: clientName, authToken })
+
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.hello(userAgent, authToken)
+    )
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
+  })
+
   it('should run a query', () => {
     const database = 'testdb'
     const bookmarks = new Bookmarks([

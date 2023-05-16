@@ -184,7 +184,7 @@ export default class BoltProtocol {
     // passing notification filter on this protocol version throws an error
     assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
-    this.write(RequestMessage.init(userAgent === '' || userAgent == null ? boltAgent : userAgent, authToken), observer, true)
+    this.write(RequestMessage.init(userAgent, authToken), observer, true)
 
     return observer
   }
