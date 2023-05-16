@@ -38,7 +38,7 @@ Deno.test('Test full bolt agent', () => {
     //@ts-ignore
     const NODE_V8_VERSION = Deno.version.v8
     //@ts-ignore
-    const OS_NAME_VERSION = `${Deno.build.os} ${Deno.osRelease()}`
+    const OS_NAME_VERSION = `${Deno.build.os} ${Deno.osRelease ? Deno.osRelease() : ''}`.trim()
 
     const boltAgentExpected = `neo4j-javascript/5.3 (${OS_NAME_VERSION}; ${HOST_ARCH}) ${DENO_VERSION} (v8 ${NODE_V8_VERSION})`
 

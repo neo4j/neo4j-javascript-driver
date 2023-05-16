@@ -128,7 +128,7 @@ describe('#unit DelegateConnection', () => {
     const spy = spyOn(delegate, 'connect')
     const connection = new DelegateConnection(delegate, null)
 
-    connection.connect('neo4j/js-driver', {})
+    connection.connect('neo4j/js-driver', 'mydriver/0.0.0 some system info', {})
 
     expect(spy).toHaveBeenCalledTimes(1)
   })
