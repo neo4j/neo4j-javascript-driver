@@ -16,13 +16,49 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import * as os from 'os'
+import { platform, release } from 'os'
+import { BoltAgent } from '../../../types'
 
-export function fromVersion (version: string): string {
-  const HOST_ARCH = process.config.variables.host_arch
-  const NODE_VERSION = 'Node/' + process.versions.node
-  const NODE_V8_VERSION = process.versions.v8
-  const OS_NAME_VERSION = `${os.platform()} ${os.release()}`
-
-  return `neo4j-javascript/${version} (${OS_NAME_VERSION}; ${HOST_ARCH}) ${NODE_VERSION} (v8 ${NODE_V8_VERSION})`
+interface SystemInfo {
+  hostArch: string
+  nodeVersion: string
+  v8Version: string
+  platform: NodeJS.Platform
+  release: string
 }
+
+/**
+ * Constructs a BoltAgent structure from a given product version.
+ *
+ * @param {string} version The product version
+ * @param {function():SystemInfo} getSystemInfo Parameter used of inject system information and mock calls to the APIs.
+ * @returns {BoltAgent} The bolt agent
+ */
+export function fromVersion (
+  version: string,
+  getSystemInfo: () => SystemInfo = () => ({
+    hostArch: process.config.variables.host_arch,
+    nodeVersion: process.versions.node,
+    v8Version: process.versions.v8,
+    get platform () {
+      return platform()
+    },
+    get release () {
+      return release()
+    }
+  })
+): BoltAgent {
+  const systemInfo = getSystemInfo()
+  const HOST_ARCH = systemInfo.hostArch
+  const NODE_VERSION = 'Node/' + systemInfo.nodeVersion
+  const NODE_V8_VERSION = systemInfo.v8Version
+  const OS_NAME_VERSION = `${systemInfo.platform} ${systemInfo.release}`
+
+  return {
+    product: `neo4j-javascript/${version}`,
+    platform: `${OS_NAME_VERSION}; ${HOST_ARCH}`,
+    languageDetails: `${NODE_VERSION} (v8 ${NODE_V8_VERSION})`
+  }
+}
+
+export type { SystemInfo }

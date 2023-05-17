@@ -17,14 +17,35 @@
 * limitations under the License.
 */
 /* eslint-disable */
-// @ts-ignore: browser code so must be skipped by ts
-export function fromVersion (version: string, windowProvider = () => window): string {
-  // @ts-ignore: browser code so must be skipped by ts
-  const APP_VERSION = windowProvider().navigator.appVersion
+
+import { BoltAgent } from "../../../types";
+
+interface SystemInfo {
+  appVersion: string
+}
+
+/**
+ * Constructs a BoltAgent structure from a given product version.
+ * 
+ * @param {string} version The product version
+ * @param {function():SystemInfo} getSystemInfo Parameter used of inject system information and mock calls to the APIs.
+ * @returns {BoltAgent} The bolt agent 
+ */
+export function fromVersion (
+  version: string, 
+  getSystemInfo: () => SystemInfo = () => ({ 
+    // @ts-ignore: browser code so must be skipped by ts
+    get appVersion(): window.navigator.appVersion 
+  })
+): BoltAgent {
+  const systemInfo = getSystemInfo()
 
   //APP_VERSION looks like 5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36
-  const OS = APP_VERSION.split("(")[1].split(")")[0];
+  const OS = systemInfo.appVersion.split("(")[1].split(")")[0];
 
-  return `neo4j-javascript/${version} (${OS})`
+  return {
+    product: `neo4j-javascript/${version}`,
+    platform: OS
+  }
 }
 /* eslint-enable */

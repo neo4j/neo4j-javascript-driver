@@ -24,6 +24,13 @@ const isDir = (path: string) => {
   }
 };
 
+const addExtIfNeeded = (path: string, ext: string): string => {
+  if (path.endsWith(ext)) {
+    return path;
+  }
+  return `${path}${ext}`
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Parse arguments
 const parsedArgs = parse(Deno.args, {
@@ -86,7 +93,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
           (_x, origPath) => {
             const newPath = isDir(`${inDir}/${origPath}`)
               ? `${origPath}/index.ts`
-              : `${origPath}.ts`;
+              : addExtIfNeeded(origPath, '.ts');
             return ` from '${newPath}'`;
           },
         );
@@ -109,7 +116,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
           (_x, origPath) => {
             const newPath = isDir(`${inDir}/${origPath}`)
               ? `${origPath}/index.js`
-              : `${origPath}.js`;
+              : addExtIfNeeded(origPath, '.js');
             return ` from '${newPath}'`;
           },
         );
