@@ -268,7 +268,11 @@ describe('#unit BoltProtocolV5x3', () => {
     utils.spyProtocolWrite(protocol)
 
     const clientName = 'js-driver/1.2.3'
-    const boltAgent = 'js-driver/1.2.3 (bolt agent)'
+    const boltAgent = {
+      product: 'neo4j-javascript/5.6',
+      platform: 'netbsd 1.1.1; Some arch',
+      languageDetails: 'Node/16.0.1 (v8 1.7.0)'
+    }
     const authToken = { username: 'neo4j', password: 'secret' }
 
     const observer = protocol.initialize({ userAgent: clientName, boltAgent: boltAgent, authToken })
@@ -306,14 +310,18 @@ describe('#unit BoltProtocolV5x3', () => {
     const protocol = new BoltProtocolV5x3(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
-    const clientName = 'js-driver/1.2.3'
+    const boltAgent = {
+      product: 'neo4j-javascript/5.6',
+      platform: 'netbsd 1.1.1; Some arch',
+      languageDetails: 'Node/16.0.1 (v8 1.7.0)'
+    }
     const authToken = { username: 'neo4j', password: 'secret' }
 
-    const observer = protocol.initialize({ userAgent, boltAgent: clientName, authToken })
+    const observer = protocol.initialize({ userAgent, boltAgent, authToken })
 
     protocol.verifyMessageCount(2)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello5x3(userAgent, clientName)
+      RequestMessage.hello5x3(userAgent, boltAgent)
     )
     expect(protocol.messages[1]).toBeMessage(
       RequestMessage.logon(authToken)

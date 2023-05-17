@@ -17,17 +17,49 @@
 * limitations under the License.
 */
 
-/* eslint-disable */
-export function fromVersion (version: string): string {
-  //@ts-ignore
-  const HOST_ARCH = Deno.build.arch
-  //@ts-ignore
-  const DENO_VERSION = `Deno/${Deno.version.deno}`
-  //@ts-ignore
-  const NODE_V8_VERSION = Deno.version.v8
-  //@ts-ignore
-  const OS_NAME_VERSION = `${Deno.build.os} ${Deno.osRelease ? Deno.osRelease() : ''}`.trim()
+import { BoltAgent } from '../../../types.ts'
 
-  return `neo4j-javascript/${version} (${OS_NAME_VERSION}; ${HOST_ARCH}) ${DENO_VERSION} (v8 ${NODE_V8_VERSION})`
+export interface SystemInfo {
+  hostArch: string
+  denoVersion: string
+  v8Version: string
+  osVersion: string
+  osRelease: string
+}
+
+/**
+ * Constructs a BoltAgent structure from a given product version.
+ *
+ * @param {string} version The product version
+ * @param {function():SystemInfo} getSystemInfo Parameter used of inject system information and mock calls to the APIs.
+ * @returns {BoltAgent} The bolt agent
+ */
+/* eslint-disable */
+export function fromVersion (
+  version: string, 
+  getSystemInfo: () => SystemInfo = () => ({
+    //@ts-ignore
+    hostArch: Deno.build.arch,
+    //@ts-ignore
+    denoVersion: Deno.version.deno,
+    //@ts-ignore:
+    v8Version: Deno.version.v8,
+    //@ts-ignore
+    osVersion: Deno.build.os,
+    get osRelease() {
+      //@ts-ignore
+      return Deno.osRelease ? Deno.osRelease() : ''
+    }
+  })
+): BoltAgent {
+  const systemInfo = getSystemInfo()
+  const DENO_VERSION = `Deno/${systemInfo.denoVersion}`
+  const OS_NAME_VERSION = `${systemInfo.osVersion} ${systemInfo.osRelease}`.trim()
+
+  return  {
+    product: `neo4j-javascript/${version}`,
+    platform: `${OS_NAME_VERSION}; ${systemInfo.hostArch}`,
+    languageDetails: `${DENO_VERSION} (v8 ${systemInfo.v8Version})`
+  }
 }
 /* eslint-enable */

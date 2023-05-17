@@ -200,10 +200,19 @@ export default class RequestMessage {
    * @return {RequestMessage} new HELLO message.
    */
   static hello5x3 (userAgent, boltAgent, notificationFilter = null, routing = null) {
-    const metadata = { bolt_agent: boltAgent }
+    const metadata = { }
 
     if (userAgent) {
       metadata.user_agent = userAgent
+    }
+
+    if (boltAgent) {
+      metadata.bolt_agent = {
+        product: boltAgent.product,
+        platform: boltAgent.platform,
+        language: boltAgent.language,
+        language_details: boltAgent.languageDetails
+      }
     }
 
     if (notificationFilter) {

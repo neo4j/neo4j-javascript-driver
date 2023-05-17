@@ -17,27 +17,42 @@
  * limitations under the License.
  */
 import { boltAgent as BoltAgent } from '../../../../src/internal'
-import os from 'os'
+import { SystemInfo } from '../../../../src/internal/bolt-agent'
+import { platform, release } from 'os'
 
 describe('#unit boltAgent', () => {
-  // This test is very fragile but the exact look of this string should not change without PM approval
+  // This test is very fragile but the exact look of this struct should not change without PM approval
   it('should return the correct bolt agent for specified version', () => {
     const version = '5.3'
-    const boltAgent = BoltAgent.fromVersion(version)
-
     const HOST_ARCH = process.config.variables.host_arch
     const NODE_VERSION = 'Node/' + process.versions.node
     const NODE_V8_VERSION = process.versions.v8
 
-    const osName = os.platform()
+    const boltAgent = BoltAgent.fromVersion(version)
 
-    expect(boltAgent.length === 0).toBeFalsy()
-    expect(boltAgent).toContain(`neo4j-javascript/${version}`)
-    expect(boltAgent).toContain(`${HOST_ARCH}`)
-    expect(boltAgent).toContain(`${NODE_VERSION}`)
-    expect(boltAgent).toContain(`${NODE_V8_VERSION}`)
-    expect(boltAgent).toContain(`${osName}`)
+    expect(boltAgent).toEqual({
+      product: `neo4j-javascript/${version}`,
+      platform: `${platform()} ${release()}; ${HOST_ARCH}`,
+      languageDetails: `${NODE_VERSION} (v8 ${NODE_V8_VERSION})`
+    })
+  })
 
-    expect(boltAgent).toEqual(`neo4j-javascript/${version} (${osName} ${os.release()}; ${HOST_ARCH}) ${NODE_VERSION} (v8 ${NODE_V8_VERSION})`)
+  it('should return the correct bolt agent for mocked values', () => {
+    const version = '5.6'
+    const systemInfo: SystemInfo = {
+      hostArch: 'Some arch',
+      nodeVersion: '16.0.1',
+      v8Version: '1.7.0',
+      platform: 'netbsd',
+      release: '1.1.1'
+    }
+
+    const boltAgent = BoltAgent.fromVersion(version, () => systemInfo)
+
+    expect(boltAgent).toEqual({
+      product: 'neo4j-javascript/5.6',
+      platform: 'netbsd 1.1.1; Some arch',
+      languageDetails: 'Node/16.0.1 (v8 1.7.0)'
+    })
   })
 })

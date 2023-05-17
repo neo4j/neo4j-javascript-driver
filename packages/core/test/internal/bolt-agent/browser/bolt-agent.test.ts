@@ -22,17 +22,17 @@ describe('#unit boltAgent', () => {
   // This test is very fragile but the exact look of this string should not change without PM approval
   it('should return the correct bolt agent for specified version', () => {
     const version = '5.3'
-    const windowProvider = (): any => {
+    const getSystemInfo = (): any => {
       return {
-        navigator: {
-          appVersion: '5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
-        }
+        appVersion: '5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'
       }
     }
 
-    const boltAgent = fromVersion(version, windowProvider)
+    const boltAgent = fromVersion(version, getSystemInfo)
 
-    expect(boltAgent.length === 0).toBeFalsy()
-    expect(boltAgent).toEqual(`neo4j-javascript/${version} (Macintosh; Intel Mac OS X 10_15_7)`)
+    expect(boltAgent).toEqual({
+      product: 'neo4j-javascript/5.3',
+      platform: 'Macintosh; Intel Mac OS X 10_15_7'
+    })
   })
 })

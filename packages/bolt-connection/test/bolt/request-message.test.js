@@ -531,22 +531,125 @@ describe('#unit RequestMessage', () => {
         )
       })
     })
-
-    function notificationFilterFixtures () {
-      return notificationFilterBehaviour.notificationFilterFixture()
-        .map(notificationFilter => {
-          const expectedNotificationFilter = {}
-          if (notificationFilter) {
-            if (notificationFilter.minimumSeverityLevel) {
-              expectedNotificationFilter.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
-            }
-
-            if (notificationFilter.disabledCategories) {
-              expectedNotificationFilter.notifications_disabled_categories = notificationFilter.disabledCategories
-            }
-          }
-          return [notificationFilter, expectedNotificationFilter]
-        })
-    }
   })
+
+  describe('Bolt5.3', () => {
+    it('should create HELLO with NodeJS Bolt Agent', () => {
+      const userAgent = 'my-driver/1.0.2'
+      const boltAgent = {
+        product: 'neo4j-javascript/5.6',
+        platform: 'netbsd 1.1.1; Some arch',
+        languageDetails: 'Node/16.0.1 (v8 1.7.0)'
+      }
+
+      const expectedFields = {
+        user_agent: userAgent,
+        bolt_agent: {
+          product: 'neo4j-javascript/5.6',
+          platform: 'netbsd 1.1.1; Some arch',
+          language_details: 'Node/16.0.1 (v8 1.7.0)'
+        }
+      }
+
+      const message = RequestMessage.hello5x3(userAgent, boltAgent)
+
+      expect(message.signature).toEqual(0x01)
+      expect(message.fields).toEqual([
+        expectedFields
+      ])
+      expect(message.toString()).toEqual(
+        `HELLO ${json.stringify(expectedFields)}`
+      )
+    })
+
+    it('should create HELLO with Browser Bolt Agent', () => {
+      const userAgent = 'my-driver/1.0.2'
+
+      const boltAgent = {
+        product: 'neo4j-javascript/5.3',
+        platform: 'Macintosh; Intel Mac OS X 10_15_7'
+      }
+
+      const expectedFields = {
+        user_agent: userAgent,
+        bolt_agent: {
+          product: 'neo4j-javascript/5.3',
+          platform: 'Macintosh; Intel Mac OS X 10_15_7'
+        }
+      }
+
+      const message = RequestMessage.hello5x3(userAgent, boltAgent)
+
+      expect(message.signature).toEqual(0x01)
+      expect(message.fields).toEqual([
+        expectedFields
+      ])
+      expect(message.toString()).toEqual(
+        `HELLO ${json.stringify(expectedFields)}`
+      )
+    })
+
+    it('should create HELLO with Deno Bolt Agent', () => {
+      const userAgent = 'my-driver/1.0.2'
+
+      const boltAgent = {
+        product: 'neo4j-javascript/5.3',
+        platform: 'macos 14.1; myArch',
+        languageDetails: 'Deno/1.19.1 (v8 8.1.39)'
+      }
+
+      const expectedFields = {
+        user_agent: userAgent,
+        bolt_agent: {
+          product: 'neo4j-javascript/5.3',
+          platform: 'macos 14.1; myArch',
+          language_details: 'Deno/1.19.1 (v8 8.1.39)'
+        }
+      }
+
+      const message = RequestMessage.hello5x3(userAgent, boltAgent)
+
+      expect(message.signature).toEqual(0x01)
+      expect(message.fields).toEqual([
+        expectedFields
+      ])
+      expect(message.toString()).toEqual(
+        `HELLO ${json.stringify(expectedFields)}`
+      )
+    })
+
+    it.each(
+      notificationFilterFixtures()
+    )('should create HELLO message where notificationFilters=%o', (notificationFilter, expectedNotificationFilter) => {
+      const userAgent = 'my-driver/1.0.2'
+      const message = RequestMessage.hello5x3(userAgent, undefined, notificationFilter)
+
+      const expectedFields = { user_agent: userAgent, ...expectedNotificationFilter }
+
+      expect(message.signature).toEqual(0x01)
+      expect(message.fields).toEqual([
+        expectedFields
+      ])
+      expect(message.toString()).toEqual(
+        `HELLO ${json.stringify(expectedFields)}`
+      )
+    })
+  })
+
+  function notificationFilterFixtures () {
+    return notificationFilterBehaviour.notificationFilterFixture()
+      .map(notificationFilter => {
+        const expectedNotificationFilter = {}
+        if (notificationFilter) {
+          if (notificationFilter.minimumSeverityLevel) {
+            expectedNotificationFilter.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
+          }
+
+          if (notificationFilter.disabledCategories) {
+            expectedNotificationFilter.notifications_disabled_categories = notificationFilter.disabledCategories
+          }
+        }
+        return [notificationFilter, expectedNotificationFilter]
+      })
+  }
 })

@@ -18,16 +18,9 @@
  */
 /* eslint-disable */
 //@ts-ignore
-import { fromVersion } from '../../../../../src/internal/bolt-agent/deno/bolt-agent.ts'
+import { fromVersion, SystemInfo } from '../../../../../src/internal/bolt-agent/deno/bolt-agent.ts'
 //@ts-ignore
-import { assertMatch, assertEquals } from "https://deno.land/std@0.182.0/testing/asserts.ts";
-
-//@ts-ignore
-Deno.test('Test Contains deno and javascript', () => {
-    const boltAgent = fromVersion("5.3")
-    assertMatch(boltAgent, new RegExp("^neo4j-javascript/5.3"))
-    assertMatch(boltAgent, new RegExp("Deno/"))
-});
+import { assertEquals } from "https://deno.land/std@0.182.0/testing/asserts.ts";
 
 //@ts-ignore
 Deno.test('Test full bolt agent', () => {
@@ -40,8 +33,30 @@ Deno.test('Test full bolt agent', () => {
     //@ts-ignore
     const OS_NAME_VERSION = `${Deno.build.os} ${Deno.osRelease ? Deno.osRelease() : ''}`.trim()
 
-    const boltAgentExpected = `neo4j-javascript/5.3 (${OS_NAME_VERSION}; ${HOST_ARCH}) ${DENO_VERSION} (v8 ${NODE_V8_VERSION})`
+    const boltAgent = fromVersion('5.3')
 
-    assertEquals(fromVersion("5.3"), boltAgentExpected)
+    assertEquals(boltAgent, {
+        product: 'neo4j-javascript/5.3',
+        platform: `${OS_NAME_VERSION}; ${HOST_ARCH}`,
+        languageDetails: `${DENO_VERSION} (v8 ${NODE_V8_VERSION})` 
+    })
+});
+
+// @ts-ignore
+Deno.test('Test full bolt agent for mocked values', () => {
+    const systemInfo: SystemInfo = {
+        hostArch: 'myArch',
+        denoVersion: '1.19.1',
+        v8Version: '8.1.39',
+        osVersion: 'macos',
+        osRelease: '14.1'
+    }
+    const boltAgent = fromVersion('5.3', () => systemInfo)
+
+    assertEquals(boltAgent, {
+        product: 'neo4j-javascript/5.3',
+        platform: 'macos 14.1; myArch',
+        languageDetails: `Deno/1.19.1 (v8 8.1.39)` 
+    })
 });
 /* eslint-enable */
