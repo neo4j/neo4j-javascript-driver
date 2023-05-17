@@ -295,6 +295,44 @@ describe('#unit BoltProtocolV5x1', () => {
     expect(protocol.flushes).toEqual([false, true])
   })
 
+  it.each([
+    'javascript-driver/5.5.0',
+    '',
+    undefined,
+    null
+  ])('should always use the user agent set by the user', (userAgent) => {
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV5x1(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
+
+    const clientName = 'js-driver/1.2.3'
+    const authToken = { username: 'neo4j', password: 'secret' }
+
+    const observer = protocol.initialize({ userAgent, boltAgent: clientName, authToken })
+
+    protocol.verifyMessageCount(2)
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.hello5x1(userAgent)
+    )
+    expect(protocol.messages[1]).toBeMessage(
+      RequestMessage.logon(authToken)
+    )
+
+    expect(protocol.observers.length).toBe(2)
+
+    // hello observer
+    const helloObserver = protocol.observers[0]
+    expect(helloObserver).toBeInstanceOf(LoginObserver)
+    expect(helloObserver).not.toBe(observer)
+
+    // login observer
+    const loginObserver = protocol.observers[1]
+    expect(loginObserver).toBeInstanceOf(LoginObserver)
+    expect(loginObserver).toBe(observer)
+
+    expect(protocol.flushes).toEqual([false, true])
+  })
+
   it.each(
     [true, false]
   )('should logon to the server [flush=%s]', (flush) => {

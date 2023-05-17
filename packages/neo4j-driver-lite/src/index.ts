@@ -117,6 +117,8 @@ const {
   urlUtil
 } = internal
 
+const USER_AGENT = 'neo4j-javascript/' + VERSION
+
 function isAuthTokenManager (value: unknown): value is AuthTokenManager {
   if (typeof value === 'object' &&
     value != null &&
@@ -332,6 +334,7 @@ function driver (
   const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
+  config.userAgent = config.userAgent ?? USER_AGENT
   config.boltAgent = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 

@@ -18,6 +18,7 @@
  */
 
 import BoltProtocolV4x2 from '../../src/bolt/bolt-protocol-v4x2'
+import RequestMessage from '../../src/bolt/request-message'
 import utils from '../test-utils'
 import {
   Date,
@@ -45,6 +46,33 @@ const {
 } = internal
 
 describe('#unit BoltProtocolV4x2', () => {
+  beforeEach(() => {
+    expect.extend(utils.matchers)
+  })
+
+  it.each([
+    'javascript-driver/5.5.0',
+    '',
+    undefined,
+    null
+  ])('should always use the user agent set by the user', (userAgent) => {
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV4x2(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
+
+    const clientName = 'js-driver/1.2.3'
+    const authToken = { username: 'neo4j', password: 'secret' }
+
+    const observer = protocol.initialize({ userAgent, boltAgent: clientName, authToken })
+
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.hello(userAgent, authToken)
+    )
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
+  })
+
   describe('Bolt v4.4', () => {
     /**
      * @param {string} impersonatedUser The impersonated user.

@@ -69,7 +69,7 @@ export default class BoltProtocol extends BoltProtocolV5x1 {
 
     this.write(
       // if useragent is null then for all versions before 5.3 it should be bolt agent by default
-      RequestMessage.hello5x2(userAgent === '' || userAgent == null ? boltAgent : userAgent, notificationFilter, this._serversideRouting),
+      RequestMessage.hello5x2(userAgent, notificationFilter, this._serversideRouting),
       observer,
       false
     )
