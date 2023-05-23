@@ -440,10 +440,10 @@ The Neo4j type system uses 64-bit signed integer values. The range of values is 
 
 However, JavaScript can only safely represent integers between `Number.MIN_SAFE_INTEGER` `-(2`<sup>`53`</sup>`- 1)` and `Number.MAX_SAFE_INTEGER` `(2`<sup>`53`</sup>`- 1)`.
 
-In order to support the full Neo4j type system, the driver will not automatically convert to javascript integers.
+In order to support the full Neo4j type system, the driver will not automatically convert to JavaScript integers.
 Any time the driver receives an integer value from Neo4j, it will be represented with an internal integer type by the driver.
 
-_**Any javascript number value passed as a parameter will be recognized as `Float` type.**_
+_**Any JavaScript number value passed as a parameter will be recognized as `Float` type.**_
 
 #### Writing integers
 
@@ -518,7 +518,7 @@ See files under `examples/` on how to use.
 
 Tests **require** latest [Testkit 4.3](https://github.com/neo4j-drivers/testkit/tree/4.3), Python3 and Docker.
 
-Testkit is needed to be cloned and configured to run against the Javascript Lite Driver. Use the following steps to configure Testkit.
+Testkit is needed to be cloned and configured to run against the JavaScript Lite Driver. Use the following steps to configure Testkit.
 
 1. Clone the Testkit repository
 
