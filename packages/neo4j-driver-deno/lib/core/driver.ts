@@ -268,7 +268,11 @@ class SessionConfig {
      *
      *
      * Disabling notifications can be done by defining the minimum severity level to 'OFF'.
-     * Default values can be use by omitting the configuration.
+     * At driver level, when omitted, uses the server's default.
+     * At session level, when omitted, defaults to what filters have been configured at driver level.
+     *
+     * Disabling categories or severities allows the server to skip analysis for those, which can speed up query
+     * execution.
      *
      * @example
      * // enabling warning notification, but disabling `HINT` and `DEPRECATION` notifications.
