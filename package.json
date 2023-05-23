@@ -44,6 +44,7 @@
     "build::notci": "lerna bootstrap",
     "docs": "lerna run docs --stream --concurrency 1",
     "test::unit": "lerna run test::unit --stream",
+    "test::deno": "lerna run test::deno --stream",
     "test::integration": "lerna run test::integration --stream",
     "test::browser": "lerna run test::browser --stream",
     "test::stress": "lerna run test::stress  --stream",

@@ -14,3 +14,6 @@ if __name__ == "__main__":
 
     run_in_driver_repo(["npm", "run", "lint"])
     run_in_driver_repo(["npm", "run", "test::unit", "--", ignore])
+
+    if is_deno():
+        run_in_driver_repo(["npm" "run", "test::deno"])
