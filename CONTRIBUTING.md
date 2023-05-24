@@ -48,6 +48,28 @@ We can't guarantee that we'll accept pull requests and may ask you to make some 
 Occasionally, we might also have logistical, commercial, or legal reasons why we can't accept your work but we'll try to find an alternative way for you to contribute in that case.
 Remember that many community members have become regular contributors and some are now even Neo employees!
 
+## Specifically for this project:
+
+All code in `packages/neo4j-driver-deno/lib` folder. Don't change it, this files should be update by running `npm run build::deno`.
+
+Setting up the development environment:
+
+* Install Node 12+
+* Install Deno 1.19+
+* Install Dependencies and Building
+```bash
+$ npm run ci
+$ npm run build
+```
+
+After commit your changes, update the `neo4j-driver-deno` and commit the changes to the project:
+
+```bash
+$ npm run build::deno
+```
+
+The build/testing pipelines will fail if the `neo4j-driver-deno` is not in sync with `neo4j-driver-lite`, `neo4j-driver-core` and `neo4j-driver-bolt-connection` source.
+
 ## Got an idea for a new project?
 
 If you have an idea for a new tool or library, start by talking to other people in the community.

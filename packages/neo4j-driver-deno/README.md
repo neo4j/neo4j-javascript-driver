@@ -58,37 +58,3 @@ quickly spin one up.
 For using system certificates, the `DENO_TLS_CA_STORE` should be set to `"system"`.
 `TRUST_ALL_CERTIFICATES` should be handle by `--unsafely-ignore-certificate-errors` and not by driver configuration. See, https://deno.com/blog/v1.13#disable-tls-verification;
 
-## Tests
-
-Tests **require** latest [Testkit 5.0](https://github.com/neo4j-drivers/testkit/tree/5.0), Python3 and Docker.
-
-Testkit is needed to be cloned and configured to run against the Javascript Lite Driver. Use the following steps to configure Testkit.
-
-1. Clone the Testkit repository
-
-```
-git clone https://github.com/neo4j-drivers/testkit.git
-```
-
-2. Under the Testkit folder, install the requirements.
-
-```
-pip3 install -r requirements.txt
-```
-
-3. Define some enviroment variables to configure Testkit
-
-```
-export TEST_DRIVER_NAME=javascript
-export TEST_DRIVER_REPO=<path for the root folder of driver repository>
-export TEST_DRIVER_DENO=1
-```
-
-To run test against against some Neo4j version:
-
-```
-python3 main.py
-```
-
-More details about how to use Teskit could be found on [its repository](https://github.com/neo4j-drivers/testkit/tree/5.0)
-
