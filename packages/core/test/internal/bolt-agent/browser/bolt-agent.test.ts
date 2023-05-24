@@ -35,4 +35,33 @@ describe('#unit boltAgent', () => {
       platform: 'Macintosh; Intel Mac OS X 10_15_7'
     })
   })
+
+  it('should handle null appVersion', () => {
+    const version = '5.3'
+    const getSystemInfo = (): any => {
+      return {
+        appVersion: null
+      }
+    }
+
+    const boltAgent = fromVersion(version, getSystemInfo)
+
+    expect(boltAgent).toEqual({
+      product: 'neo4j-javascript/5.3'
+    })
+  })
+
+  it('should handle undefined appVersion', () => {
+    const version = '5.3'
+    const getSystemInfo = (): any => {
+      return {
+      }
+    }
+
+    const boltAgent = fromVersion(version, getSystemInfo)
+
+    expect(boltAgent).toEqual({
+      product: 'neo4j-javascript/5.3'
+    })
+  })
 })
