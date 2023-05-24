@@ -21,7 +21,7 @@
 import { BoltAgent } from "../../../types";
 
 interface SystemInfo {
-  appVersion?: string
+  userAgent?: string
 }
 
 /**
@@ -34,20 +34,23 @@ interface SystemInfo {
 export function fromVersion (
   version: string, 
   getSystemInfo: () => SystemInfo = () => ({ 
-    get appVersion()  {
+    get userAgent()  {
       // @ts-ignore: browser code so must be skipped by ts
-      return window.navigator.appVersion
+      return window.navigator.userAgent
     } 
   })
 ): BoltAgent {
   const systemInfo = getSystemInfo()
 
-  //APP_VERSION looks like 5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36
-  const OS = systemInfo.appVersion != null ? systemInfo.appVersion.split("(")[1].split(")")[0] : undefined
+  //USER_AGENT looks like 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
+  
+  const platform = systemInfo.userAgent != null ? systemInfo.userAgent.split("(")[1].split(")")[0] : undefined
+  const languageDetails = systemInfo.userAgent || undefined
 
   return {
     product: `neo4j-javascript/${version}`,
-    platform: OS
+    platform,
+    languageDetails
   }
 }
 /* eslint-enable */
