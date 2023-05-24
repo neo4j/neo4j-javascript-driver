@@ -73,10 +73,11 @@
     "rollup": "^2.77.4-1",
     "rollup-plugin-polyfill-node": "^0.11.0",
     "semver": "^7.3.8",
+    "source-map": "0.7.4",
     "tmp": "0.2.1",
     "typescript": "^4.9.5",
     "vinyl-buffer": "^1.0.1",
-    "webpack": "^5.75.0"
+    "webpack": "^5.83.1"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "5.0.0-dev",
