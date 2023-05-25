@@ -48,7 +48,7 @@ describe('ChannelConnection', () => {
         const protocolSupplier = () => protocol
         const connection = spyOnConnectionChannel({ channel, protocolSupplier })
 
-        await connection.connect('userAgent', {})
+        await connection.connect('userAgent', 'boltAgent', {})
 
         expect(channel.setupReceiveTimeout).toHaveBeenCalledWith(expected)
       }
@@ -79,7 +79,7 @@ describe('ChannelConnection', () => {
         const protocolSupplier = () => protocol
         const connection = spyOnConnectionChannel({ channel, protocolSupplier })
 
-        await connection.connect('userAgent', {})
+        await connection.connect('userAgent', 'boltAgent', {})
 
         expect(channel.setupReceiveTimeout).not.toHaveBeenCalled()
       }
@@ -114,7 +114,7 @@ describe('ChannelConnection', () => {
           address
         })
 
-        await connection.connect('userAgent', {})
+        await connection.connect('userAgent', 'boltAgent', {})
         expect(loggerFunction).toHaveBeenCalledWith(
           'info',
           `Connection [${
@@ -142,7 +142,7 @@ describe('ChannelConnection', () => {
         const protocolSupplier = () => protocol
         const connection = spyOnConnectionChannel({ channel, protocolSupplier, notificationFilter })
 
-        await connection.connect('userAgent', {})
+        await connection.connect('userAgent', 'boltAgent', {})
 
         const call = protocol.initialize.mock.calls[0][0]
 
@@ -159,7 +159,7 @@ describe('ChannelConnection', () => {
       const protocolSupplier = () => protocol
       const connection = spyOnConnectionChannel({ protocolSupplier })
 
-      await connection.connect('userAgent', authToken)
+      await connection.connect('userAgent', 'boltAgent', authToken)
 
       expect(connection.authToken).toEqual(authToken)
     })
@@ -181,7 +181,7 @@ describe('ChannelConnection', () => {
           const protocolSupplier = () => protocol
           const connection = spyOnConnectionChannel({ protocolSupplier })
 
-          await connection.connect('userAgent', authToken)
+          await connection.connect('userAgent', 'boltAgent', authToken)
 
           expect(protocol.initialize).not.toHaveBeenCalled()
           expect(protocol.logoff).toHaveBeenCalledWith()
@@ -207,7 +207,7 @@ describe('ChannelConnection', () => {
             const protocolSupplier = () => protocol
             const connection = spyOnConnectionChannel({ protocolSupplier })
 
-            const connectionPromise = connection.connect('userAgent', authToken, true)
+            const connectionPromise = connection.connect('userAgent', 'boltAgent', authToken, true)
 
             const isPending = await Promise.race([connectionPromise, Promise.resolve(true)])
             expect(isPending).toEqual(true)
@@ -243,7 +243,7 @@ describe('ChannelConnection', () => {
             const protocolSupplier = () => protocol
             const connection = spyOnConnectionChannel({ protocolSupplier })
 
-            const connectionPromise = connection.connect('userAgent', authToken, true)
+            const connectionPromise = connection.connect('userAgent', 'boltAgent', authToken, true)
 
             const isPending = await Promise.race([connectionPromise, Promise.resolve(true)])
             expect(isPending).toEqual(true)
@@ -278,7 +278,7 @@ describe('ChannelConnection', () => {
             const protocolSupplier = () => protocol
             const connection = spyOnConnectionChannel({ protocolSupplier })
 
-            const connectionPromise = connection.connect('userAgent', authToken, true)
+            const connectionPromise = connection.connect('userAgent', 'boltAgent', authToken, true)
 
             const isPending = await Promise.race([connectionPromise, Promise.resolve(true)])
             expect(isPending).toEqual(true)
@@ -314,7 +314,7 @@ describe('ChannelConnection', () => {
           const protocolSupplier = () => protocol
           const connection = spyOnConnectionChannel({ protocolSupplier })
 
-          await expect(connection.connect('userAgent', authToken)).rejects.toThrow(
+          await expect(connection.connect('userAgent', 'boltAgent', authToken)).rejects.toThrow(
             newError('Connection does not support re-auth')
           )
 

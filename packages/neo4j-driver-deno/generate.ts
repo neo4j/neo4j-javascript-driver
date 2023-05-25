@@ -24,6 +24,13 @@ const isDir = (path: string) => {
   }
 };
 
+const addExtIfNeeded = (path: string, ext: string): string => {
+  if (path.endsWith(ext)) {
+    return path;
+  }
+  return `${path}${ext}`
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Parse arguments
 const parsedArgs = parse(Deno.args, {
@@ -86,7 +93,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
           (_x, origPath) => {
             const newPath = isDir(`${inDir}/${origPath}`)
               ? `${origPath}/index.ts`
-              : `${origPath}.ts`;
+              : addExtIfNeeded(origPath, '.ts');
             return ` from '${newPath}'`;
           },
         );
@@ -109,7 +116,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
           (_x, origPath) => {
             const newPath = isDir(`${inDir}/${origPath}`)
               ? `${origPath}/index.js`
-              : `${origPath}.js`;
+              : addExtIfNeeded(origPath, '.js');
             return ` from '${newPath}'`;
           },
         );
@@ -129,7 +136,16 @@ async function copyAndTransform(inDir: string, outDir: string) {
         }
       }
 
-      // Special fix for bolt-connection/channel/index.js
+      // Special fix for core/internal/bolt-agent/index.js
+      // Replace the "node boltAgent" with the "deno boltAgent", since Deno supports different APIs
+      if(inPath.endsWith("bolt-agent/index.ts")){
+        contents = contents.replace(
+            `export * from './node/index.ts'`,
+            `export * from './deno/index.ts'`,
+        );
+      }
+
+      // Special fix for bolt-connection/channel/index.js and core/internal/bolt-agent/index.js
       // Replace the "node channel" with the "deno channel", since Deno supports different APIs
       if (inPath.endsWith("channel/index.js")) {
         contents = contents.replace(
@@ -137,7 +153,6 @@ async function copyAndTransform(inDir: string, outDir: string) {
           `export * from './deno/index.js'`,
         );
       }
-      
     }
 
     await Deno.writeTextFile(outPath, contents);

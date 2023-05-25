@@ -73,7 +73,7 @@ export default class BoltProtocol extends BoltProtocolV4 {
     return this._transformer
   }
 
-  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
+  initialize ({ userAgent, boltAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, authToken, onComplete)

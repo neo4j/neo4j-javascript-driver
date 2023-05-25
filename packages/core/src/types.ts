@@ -49,6 +49,13 @@ export interface AuthToken {
   parameters?: Parameters
 }
 
+export interface BoltAgent {
+  product?: string
+  platform?: string
+  language?: string
+  languageDetails?: string
+}
+
 export interface Config {
   encrypted?: boolean | EncryptionLevel
   trust?: TrustStrategy
@@ -65,6 +72,10 @@ export interface Config {
   logging?: LoggingConfig
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
+}
+
+export interface InternalConfig extends Config {
+  boltAgent?: BoltAgent
 }
 
 /**

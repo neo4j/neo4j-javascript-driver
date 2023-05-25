@@ -10,6 +10,7 @@
     "test": "jest",
     "test::watch": "jest --watch",
     "test::unit": "npm run test",
+    "test::deno": "deno test --allow-all ./test/deno/",
     "predocs": "npm run build && npm run build::es6",
     "docs": "esdoc -c esdoc.json",
     "prepare": "npm run build",
@@ -23,6 +24,9 @@
     "neo4j",
     "driver"
   ],
+  "browser": {
+    "./lib/internal/bolt-agent/index.js": "./lib/internal/bolt-agent/browser/index.js"
+  },
   "author": "Neo4j",
   "license": "Apache-2.0",
   "bugs": {

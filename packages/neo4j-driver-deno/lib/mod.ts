@@ -20,93 +20,91 @@ import VERSION from './version.ts'
 import { logging } from './logging.ts'
 
 import {
-  Neo4jError,
-  isRetriableError,
-  error,
-  Integer,
-  inSafeRange,
-  int,
-  isInt,
-  toNumber,
-  toString,
-  internal,
-  isPoint,
-  Point,
+  auth,
+  BookmarkManager,
+  bookmarkManager,
+  BookmarkManagerConfig,
+  Connection,
+  ConnectionProvider,
   Date,
   DateTime,
+  Driver,
+  driver as coreDriver,
   Duration,
+  EagerResult,
+  error,
+  inSafeRange,
+  int,
+  Integer,
+  internal,
   isDate,
   isDateTime,
   isDuration,
+  isInt,
   isLocalDateTime,
   isLocalTime,
   isNode,
   isPath,
   isPathSegment,
+  isPoint,
   isRelationship,
+  isRetriableError,
   isTime,
   isUnboundRelationship,
   LocalDateTime,
   LocalTime,
-  Time,
-  Node,
-  Path,
-  PathSegment,
-  Relationship,
-  UnboundRelationship,
-  Record,
-  ResultSummary,
-  Result,
-  EagerResult,
-  ConnectionProvider,
-  Driver,
-  QueryResult,
-  ResultObserver,
-  Plan,
-  ProfiledPlan,
-  QueryStatistics,
-  Notification,
-  NotificationPosition,
-  Session,
-  Transaction,
   ManagedTransaction,
-  TransactionPromise,
-  ServerInfo,
-  Connection,
-  driver as coreDriver,
-  types as coreTypes,
-  auth,
-  BookmarkManager,
-  bookmarkManager,
-  BookmarkManagerConfig,
-  SessionConfig,
-  QueryConfig,
-  RoutingControl,
-  routing,
-  resultTransformers,
-  ResultTransformer,
+  Neo4jError,
+  Node,
+  Notification,
   notificationCategory,
-  notificationSeverityLevel,
-  NotificationSeverityLevel,
   NotificationCategory,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   expirationBasedAuthTokenManager,
   AuthTokenAndExpiration,
-  staticAuthTokenManager
+  staticAuthTokenManager,
+  NotificationFilterMinimumSeverityLevel,
+  notificationFilterMinimumSeverityLevel,
+  NotificationPosition,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  Path,
+  PathSegment,
+  Plan,
+  Point,
+  ProfiledPlan,
+  QueryConfig,
+  QueryResult,
+  QueryStatistics,
+  Record,
+  Relationship,
+  Result,
+  ResultObserver,
+  ResultSummary,
+  ResultTransformer,
+  resultTransformers,
+  routing,
+  RoutingControl,
+  ServerInfo,
+  Session,
+  SessionConfig,
+  Time,
+  toNumber,
+  toString,
+  Transaction,
+  TransactionPromise,
+  types as coreTypes,
+  UnboundRelationship
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
-import {
-  DirectConnectionProvider,
-  RoutingConnectionProvider
-} from './bolt-connection/index.js'
+import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
+type InternalConfig = coreTypes.InternalConfig
 type TrustStrategy = coreTypes.TrustStrategy
 type EncryptionLevel = coreTypes.EncryptionLevel
 type SessionMode = coreTypes.SessionMode
@@ -120,6 +118,8 @@ const {
   serverAddress: { ServerAddress },
   urlUtil
 } = internal
+
+const USER_AGENT = 'neo4j-javascript/' + VERSION
 
 function isAuthTokenManager (value: unknown): value is AuthTokenManager {
   if (typeof value === 'object' &&
@@ -289,6 +289,9 @@ function driver (
   assertString(url, 'Bolt URL')
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
 
+  // enabling set boltAgent
+  const _config = config as unknown as InternalConfig
+
   // Determine entryption/trust options from the URL.
   let routing = false
   let encrypted = false
@@ -324,19 +327,21 @@ function driver (
   // Encryption enabled on URL, propagate trust to the config.
   if (encrypted) {
     // Check for configuration conflict between URL and config.
-    if ('encrypted' in config || 'trust' in config) {
+    if ('encrypted' in _config || 'trust' in _config) {
       throw new Error(
         'Encryption/trust can only be configured either through URL or config, not both'
       )
     }
-    config.encrypted = ENCRYPTION_ON
-    config.trust = trust
+    _config.encrypted = ENCRYPTION_ON
+    _config.trust = trust
   }
 
   const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
-  config.userAgent = config.userAgent ?? USER_AGENT
+  _config.userAgent = _config.userAgent ?? USER_AGENT
+  _config.boltAgent = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
+
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
   const meta = {
@@ -345,13 +350,13 @@ function driver (
     routing
   }
 
-  return new Driver(meta, config, createConnectionProviderFunction())
+  return new Driver(meta, _config, createConnectionProviderFunction())
 
   function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
     if (routing) {
       return (
         id: number,
-        config: Config,
+        config: InternalConfig,
         log: Logger,
         hostNameResolver: ConfiguredCustomResolver
       ): ConnectionProvider =>
@@ -363,6 +368,7 @@ function driver (
           authTokenManager,
           address,
           userAgent: config.userAgent,
+          boltAgent: config.boltAgent,
           routingContext: parsedUrl.query
         })
     } else {
@@ -372,14 +378,15 @@ function driver (
         )
       }
 
-      return (id: number, config: Config, log: Logger): ConnectionProvider =>
+      return (id: number, config: InternalConfig, log: Logger): ConnectionProvider =>
         new DirectConnectionProvider({
           id,
           config,
           log,
           authTokenManager,
           address,
-          userAgent: config.userAgent
+          userAgent: config.userAgent,
+          boltAgent: config.boltAgent
         })
     }
   }
@@ -404,8 +411,6 @@ async function hasReachableServer (url: string, config?: Pick<Config, 'logging'>
     await nonLoggedDriver.close()
   }
 }
-
-const USER_AGENT: string = 'neo4j-javascript/' + VERSION
 
 /**
  * Object containing constructors for all neo4j types.

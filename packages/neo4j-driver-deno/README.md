@@ -48,8 +48,11 @@ await session.close();
 await driver.close();
 ```
 
-You can use `deno run --allow-net ...` or `deno repl` to run this example. If
-you don't have a running Neo4j instance, you can use
+You can use `deno run --allow-net --allow-sys...` or `deno repl` to run this example. 
+
+For Deno versions bellow `1.27.1`, you should use the flag `--allow-env` instead of `--allow-sys`.
+
+If you don't have a running Neo4j instance, you can use
 `docker run --rm -p 7687:7687 -e NEO4J_AUTH=neo4j/driverdemo neo4j:4.4` to
 quickly spin one up.
 

@@ -53,7 +53,7 @@ export default class BoltProtocol extends BoltProtocolV44 {
    * @param {function(onComplte)} args.onComplete On complete callback
    * @returns {LoginObserver} The Login observer
    */
-  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
+  initialize ({ userAgent, boltAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, authToken, onComplete)

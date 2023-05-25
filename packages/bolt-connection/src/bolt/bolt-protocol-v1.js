@@ -175,7 +175,7 @@ export default class BoltProtocol {
    * @param {function()} param.onComplete the callback to invoke on completion.
    * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  initialize ({ userAgent, authToken, notificationFilter, onError, onComplete } = {}) {
+  initialize ({ userAgent, boltAgent, authToken, notificationFilter, onError, onComplete } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
