@@ -122,7 +122,7 @@ declare const auth: {
 
 declare function driver (
   url: string,
-  authToken?: AuthToken,
+  authToken?: AuthToken | AuthTokenManager,
   config?: Config
 ): Driver
 
