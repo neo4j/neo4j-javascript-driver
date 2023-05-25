@@ -23,7 +23,7 @@ interface SystemInfo {
   hostArch: string
   nodeVersion: string
   v8Version: string
-  platform: NodeJS.Platform
+  platform: string
   release: string
 }
 

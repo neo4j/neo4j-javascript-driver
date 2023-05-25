@@ -104,6 +104,7 @@ import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-conn
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
+type InternalConfig = coreTypes.InternalConfig
 type TrustStrategy = coreTypes.TrustStrategy
 type EncryptionLevel = coreTypes.EncryptionLevel
 type SessionMode = coreTypes.SessionMode
@@ -288,6 +289,9 @@ function driver (
   assertString(url, 'Bolt URL')
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
 
+  // enabling set boltAgent
+  const _config = config as unknown as InternalConfig
+
   // Determine entryption/trust options from the URL.
   let routing = false
   let encrypted = false
@@ -323,20 +327,21 @@ function driver (
   // Encryption enabled on URL, propagate trust to the config.
   if (encrypted) {
     // Check for configuration conflict between URL and config.
-    if ('encrypted' in config || 'trust' in config) {
+    if ('encrypted' in _config || 'trust' in _config) {
       throw new Error(
         'Encryption/trust can only be configured either through URL or config, not both'
       )
     }
-    config.encrypted = ENCRYPTION_ON
-    config.trust = trust
+    _config.encrypted = ENCRYPTION_ON
+    _config.trust = trust
   }
 
   const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
-  config.userAgent = config.userAgent ?? USER_AGENT
-  config.boltAgent = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
+  _config.userAgent = _config.userAgent ?? USER_AGENT
+  _config.boltAgent = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
+
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
   const meta = {
@@ -345,13 +350,13 @@ function driver (
     routing
   }
 
-  return new Driver(meta, config, createConnectionProviderFunction())
+  return new Driver(meta, _config, createConnectionProviderFunction())
 
   function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
     if (routing) {
       return (
         id: number,
-        config: Config,
+        config: InternalConfig,
         log: Logger,
         hostNameResolver: ConfiguredCustomResolver
       ): ConnectionProvider =>
@@ -373,7 +378,7 @@ function driver (
         )
       }
 
-      return (id: number, config: Config, log: Logger): ConnectionProvider =>
+      return (id: number, config: InternalConfig, log: Logger): ConnectionProvider =>
         new DirectConnectionProvider({
           id,
           config,
