@@ -166,10 +166,10 @@ export default class WebSocketChannel {
    */
   close () {
     return new Promise((resolve, reject) => {
+      this._clearConnectionTimeout()
       if (this._ws && this._ws.readyState !== WS_CLOSED) {
         this._open = false
         this.stopReceiveTimeout()
-        this._clearConnectionTimeout()
         this._ws.onclose = () => resolve()
         this._ws.close()
       } else {
