@@ -23,10 +23,9 @@ class BrowserEnvironment extends NodeEnvironment {
   async setup () {
     await super.setup()
     this.global.WebSocket = WebSocket
-    this.global.window = {
-      navigator: {
-        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
-      }
+    this.global.window = globalThis
+    this.global.window.navigator = {
+      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
     }
   }
 
