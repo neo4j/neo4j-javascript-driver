@@ -44,7 +44,8 @@ import {
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel,
   NotificationFilterDisabledCategory,
-  notificationFilterDisabledCategory
+  notificationFilterDisabledCategory,
+  expirationBasedAuthTokenManager
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -86,6 +87,14 @@ const driver4: Driver = driver(
     resolver: async address => await Promise.resolve([address1, address2])
   }
 )
+
+const driver5: Driver = driver('bolt://localhost:7687', expirationBasedAuthTokenManager({
+  tokenProvider: async () => {
+    return {
+      token: auth.basic('neo4j', 'password')
+    }
+  }
+}))
 
 const readMode1: string = session.READ
 const writeMode1: string = session.WRITE
