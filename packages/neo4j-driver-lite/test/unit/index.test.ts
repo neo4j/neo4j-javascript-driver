@@ -257,7 +257,8 @@ describe('index', () => {
         verifyConnectivityAndGetServerInfo: async () => new ServerInfo({}),
         getNegotiatedProtocolVersion: async () => 5.0,
         verifyAuthentication: async () => true,
-        supportsSessionAuth: async () => true
+        supportsSessionAuth: async () => true,
+        forceHomeDbResolution: () => {}
       }
     })
     expect(session).toBeDefined()
