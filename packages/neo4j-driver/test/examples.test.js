@@ -828,8 +828,8 @@ describe('#integration examples', () => {
 
     const people = await result.toPromise()
     expect(people).toEqual([
-      Notification.createNext('Infinity Gauntlet'),
       Notification.createNext('Mjölnir'),
+      Notification.createNext('Infinity Gauntlet'),
       Notification.createComplete()
     ])
   }, 60000)
