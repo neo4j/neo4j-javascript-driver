@@ -84,6 +84,7 @@ describe('#integration ChannelConnection', () => {
       .then(connection => {
         connection.protocol().initialize({
           userAgent: 'mydriver/0.0.0',
+          boltAgent: BOLT_AGENT,
           authToken: basicAuthToken(),
           onComplete: metadata => {
             expect(metadata).not.toBeNull()
@@ -251,7 +252,7 @@ describe('#integration ChannelConnection', () => {
   it('should not queue INIT observer when broken', done => {
     testQueueingOfObserversWithBrokenConnection(
       connection =>
-        connection.protocol().initialize({ userAgent: 'Hello', authToken: {} }),
+        connection.protocol().initialize({ userAgent: 'Hello', boltAgent: BOLT_AGENT, authToken: {} }),
       done
     )
   })
