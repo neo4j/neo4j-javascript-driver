@@ -805,8 +805,8 @@ describe('#integration examples', () => {
     const tempSession = driver.session()
     try {
       await tempSession.run(
-        "UNWIND [{ id: 0, title: 'Infinity Gauntlet'} , { id: 1, title: 'Mjölnir' }] AS item " +
-        "CREATE (:Product {id: item.id, title: item.title})'"
+        "UNWIND ['Infinity Gauntlet', 'Mjölnir'] AS item " +
+        'CREATE (:Product {id: 0, title: item})'
       )
     } finally {
       await tempSession.close()
@@ -827,8 +827,15 @@ describe('#integration examples', () => {
     // end::rx-transaction-function[]
 
     const people = await result.toPromise()
+    expect(titles.length).toEqual(3)
     expect(people).toContain(
       Notification.createNext('Infinity Gauntlet')
+    )
+    expect(people).toContain(
+      Notification.createNext('Mjölnir')
+    )
+    expect(people).toContain(
+      Notification.createComplete()
     )
   }, 60000)
 
