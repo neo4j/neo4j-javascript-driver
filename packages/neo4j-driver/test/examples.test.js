@@ -827,7 +827,7 @@ describe('#integration examples', () => {
     // end::rx-transaction-function[]
 
     const people = await result.toPromise()
-    expect(titles.length).toEqual(3)
+    expect(people.length).toEqual(3)
     expect(people).toContain(
       Notification.createNext('Infinity Gauntlet')
     )
