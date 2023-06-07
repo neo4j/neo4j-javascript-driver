@@ -183,7 +183,7 @@ export default class ChannelConnection extends Connection {
   /**
    * Send initialization message.
    * @param {string} userAgent the user agent for this driver.
-   * @param {string} boltAgent the bolt agent for this driver.
+   * @param {Object} boltAgent the bolt agent for this driver.
    * @param {Object} authToken the object containing auth information.
    * @param {boolean} waitReAuth whether ot not the connection will wait for re-authentication to happen
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
