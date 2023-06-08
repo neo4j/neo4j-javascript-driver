@@ -89,6 +89,7 @@ import auth from './auth.ts'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager.ts'
 import AuthTokenManager, { expirationBasedAuthTokenManager, staticAuthTokenManager, isStaticAuthTokenManger, AuthTokenAndExpiration } from './auth-token-manager.ts'
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver.ts'
+import { Config } from './types.ts'
 import * as types from './types.ts'
 import * as json from './json.ts'
 import resultTransformers, { ResultTransformer } from './result-transformers.ts'
@@ -254,6 +255,7 @@ export type {
   BookmarkManagerConfig,
   AuthTokenManager,
   AuthTokenAndExpiration,
+  Config,
   SessionConfig,
   QueryConfig,
   RoutingControl,
