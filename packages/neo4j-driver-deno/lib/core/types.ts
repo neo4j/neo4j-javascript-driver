@@ -164,7 +164,7 @@ export class Config {
 
     /**
      * The maximum amount of time to wait to acquire a connection from the pool (to either create a new
-     * connection or borrow an existing one.
+     * connection or borrow an existing one).
      *
      * **Default**: ```60000 // 1 minute```
      *
@@ -177,7 +177,7 @@ export class Config {
      * {@link Session#executeRead} and {@link Session#executeWrite} functions.
      *
      * These functions will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient
-     * errors with exponential backoff using initial delay of 1 second.
+     * errors with exponential backoff using an initial delay of 1 second.
      *
      * **Default**: ```30000, // 30 seconds```
      *
@@ -206,7 +206,7 @@ export class Config {
      *
      * **Warning:** {@link ResultSummary} It is not always safe to enable this setting when JavaScript applications are not the only ones
      * interacting with the database. Stored numbers might in such case be not representable by native
-     * `Number` type and thus driver will return lossy values. This might also happen when data was
+     * `Number` type and thus the driver will return lossy values. This might also happen when data was
      * initially imported using neo4j import tool and contained numbers larger than
      * `Number.MAX_SAFE_INTEGER`. Driver will then return positive infinity, which is lossy.
      *
