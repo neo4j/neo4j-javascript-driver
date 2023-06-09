@@ -66,4 +66,14 @@ describe('#unit boltAgent', () => {
       product: 'neo4j-javascript/5.3'
     })
   })
+
+  it('should handle navigator object does not exist in the default getSystemInfo', () => {
+    const version = '5.3'
+
+    const boltAgent = fromVersion(version)
+
+    expect(boltAgent).toEqual({
+      product: 'neo4j-javascript/5.3'
+    })
+  })
 })
