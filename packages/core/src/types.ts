@@ -223,8 +223,8 @@ export class Config {
      * Make this driver always return native Javascript `BigInt` for integer values,
      * instead of the dedicated {@link Integer} class or `Number`.
      *
-     * **Warning:** `BigInt` doesn't implement the method `toJSON`. In manner of serialize it as `json`,
-     * this's needed to add a custom implementation of the `toJSON` on the
+     * **Warning:** `BigInt` doesn't implement the method `toJSON`. To serialize it as `json`,
+     * it's needed to add a custom implementation of the `toJSON` on the
      * `BigInt.prototype`. See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json.
      *
      * **Default**: ```false // for backwards compatibility```
