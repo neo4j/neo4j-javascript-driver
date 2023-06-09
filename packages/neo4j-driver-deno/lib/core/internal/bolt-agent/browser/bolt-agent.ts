@@ -35,8 +35,12 @@ export function fromVersion (
   version: string, 
   getSystemInfo: () => SystemInfo = () => ({ 
     get userAgent()  {
+      // this should be defined as an `var` since we need to get information
+      // came from the global scope which not always will be defined
+      // and we don't want to override the information
+      var navigator
       // @ts-ignore: browser code so must be skipped by ts
-      return window.navigator.userAgent
+      return navigator?.userAgent
     } 
   })
 ): BoltAgent {
