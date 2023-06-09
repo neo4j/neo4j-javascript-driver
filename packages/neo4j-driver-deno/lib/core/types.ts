@@ -156,7 +156,7 @@ export class Config {
      * etc. can also limit maximum connection lifetime). No maximum lifetime limit is imposed by default. Zero
      * and negative values result in lifetime not being checked.
      *
-     * **Default**: ```60 * 60 * 1000 // 1 hour```
+     * **Default**: ```60 * 60 * 1000``` (1 hour)
      *
      * @type {number|undefined}
      */
@@ -166,7 +166,7 @@ export class Config {
      * The maximum amount of time to wait to acquire a connection from the pool (to either create a new
      * connection or borrow an existing one).
      *
-     * **Default**: ```60000 // 1 minute```
+     * **Default**: ```60000``` (1 minute)
      *
      * @type {number|undefined}
      */
@@ -179,7 +179,7 @@ export class Config {
      * These functions will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient
      * errors with exponential backoff using an initial delay of 1 second.
      *
-     * **Default**: ```30000, // 30 seconds```
+     * **Default**: ```30000``` (30 seconds)
      *
      * @type {number|undefined}
      */
@@ -192,7 +192,7 @@ export class Config {
      * Connection establishment will be then bound by the timeout configured
      * on the operating system level.
      *
-     * **Default**: ```30000, // 30 seconds```
+     * **Default**: ```30000``` (30 seconds)
      *
      * @type {number|undefined}
      */
@@ -223,11 +223,11 @@ export class Config {
      * Make this driver always return native Javascript `BigInt` for integer values,
      * instead of the dedicated {@link Integer} class or `Number`.
      *
-     * **Warning:** `BigInt` doesn't implement the method `toJSON`. In manner of serialize it as `json`,
-     * this's needed to add a custom implementation of the `toJSON` on the
+     * **Warning:** `BigInt` doesn't implement the method `toJSON`. To serialize it as `json`,
+     * it's needed to add a custom implementation of the `toJSON` on the
      * `BigInt.prototype`. See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json.
      *
-     * **Default**: ```false // for backwards compatibility```
+     * **Default**: ```false``` (for backwards compatibility)
      *
      * @type {boolean|undefined}
      */
