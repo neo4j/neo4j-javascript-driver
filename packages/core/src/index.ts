@@ -89,6 +89,7 @@ import auth from './auth'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager'
 import AuthTokenManager, { expirationBasedAuthTokenManager, staticAuthTokenManager, isStaticAuthTokenManger, AuthTokenAndExpiration } from './auth-token-manager'
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver'
+import { Config } from './types'
 import * as types from './types'
 import * as json from './json'
 import resultTransformers, { ResultTransformer } from './result-transformers'
@@ -254,6 +255,7 @@ export type {
   BookmarkManagerConfig,
   AuthTokenManager,
   AuthTokenAndExpiration,
+  Config,
   SessionConfig,
   QueryConfig,
   RoutingControl,
