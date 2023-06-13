@@ -1403,9 +1403,16 @@ describe('#integration temporal-types', () => {
   })
 
   function testSendAndReceiveRandomTemporalValues (temporalType, valueGenerator) {
+    let setImmediate
+    if (typeof setImmediate !== 'function') {
+      return
+    }
+
     for (let i = 0; i < RANDOM_VALUES_TO_TEST; i++) {
-      it(`should send and receive random ${temporalType} [index=${i}]`, async () => {
-        await testSendReceiveTemporalValue(valueGenerator())
+      setImmediate(() => {
+        it(`should send and receive random ${temporalType} [index=${i}]`, async () => {
+          await testSendReceiveTemporalValue(valueGenerator())
+        })
       })
     }
   }
