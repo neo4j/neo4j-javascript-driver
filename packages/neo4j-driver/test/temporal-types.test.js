@@ -26,7 +26,7 @@ const {
   temporalUtil: { timeZoneOffsetInSeconds, totalNanoseconds }
 } = internal
 
-const RANDOM_VALUES_TO_TEST = 2000
+const RANDOM_VALUES_TO_TEST = 500
 const MIN_TEMPORAL_ARRAY_LENGTH = 20
 const MAX_TEMPORAL_ARRAY_LENGTH = 1000
 /**
@@ -1403,16 +1403,9 @@ describe('#integration temporal-types', () => {
   })
 
   function testSendAndReceiveRandomTemporalValues (temporalType, valueGenerator) {
-    let setImmediate
-    if (typeof setImmediate !== 'function') {
-      return
-    }
-
     for (let i = 0; i < RANDOM_VALUES_TO_TEST; i++) {
-      setImmediate(() => {
-        it(`should send and receive random ${temporalType} [index=${i}]`, async () => {
-          await testSendReceiveTemporalValue(valueGenerator())
-        })
+      it(`should send and receive random ${temporalType} [index=${i}]`, async () => {
+        await testSendReceiveTemporalValue(valueGenerator())
       })
     }
   }
