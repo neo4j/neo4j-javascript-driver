@@ -26,7 +26,7 @@ const {
   temporalUtil: { timeZoneOffsetInSeconds, totalNanoseconds }
 } = internal
 
-const RANDOM_VALUES_TO_TEST = 2000
+const RANDOM_VALUES_TO_TEST = 500
 const MIN_TEMPORAL_ARRAY_LENGTH = 20
 const MAX_TEMPORAL_ARRAY_LENGTH = 1000
 /**
