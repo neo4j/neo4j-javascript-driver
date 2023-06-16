@@ -1035,6 +1035,13 @@ describe('#unit BoltProtocolV4x4', () => {
             1655212878, 183_000_000, 'Australia/Eucla'
           ]),
           new DateTime(2022, 6, 14, 22, 6, 18, 183_000_000, 8 * 60 * 60 + 45 * 60, 'Australia/Eucla')
+        ],
+        [
+          'DateTimeWithZoneId / Midnight',
+          new structure.Structure(0x69, [
+            1685397950, 183_000_000, 'Europe/Berlin'
+          ]),
+          new DateTime(2023, 5, 30, 0, 5, 50, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
         ]
       ])('should unpack temporal types (%s)', (_, struct, object) => {
         const packable = protocol.packable(struct)

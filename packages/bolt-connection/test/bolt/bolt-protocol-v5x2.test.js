@@ -1084,6 +1084,13 @@ describe('#unit BoltProtocolV5x2', () => {
           1592231400, 183_000_000, 'Pacific/Honolulu'
         ]),
         new DateTime(2020, 6, 15, 4, 30, 0, 183_000_000, -10 * 60 * 60, 'Pacific/Honolulu')
+      ],
+      [
+        'DateTimeWithZoneId / Midnight',
+        new structure.Structure(0x69, [
+          1685397950, 183_000_000, 'Europe/Berlin'
+        ]),
+        new DateTime(2023, 5, 30, 0, 5, 50, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
       ]
     ])('should unpack spatial types and temporal types (%s)', (_, struct, object) => {
       const buffer = alloc(256)
