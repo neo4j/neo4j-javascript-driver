@@ -185,6 +185,8 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
         currentValue.value.toUpperCase() === 'B'
           ? year => year.subtract(1).negate() // 1BC equals to year 0 in astronomical year numbering
           : identity
+    } else if (currentValue.type === 'hour') {
+      obj.hour = int(currentValue.value).modulo(24)
     } else if (currentValue.type !== 'literal') {
       obj[currentValue.type] = int(currentValue.value)
     }
