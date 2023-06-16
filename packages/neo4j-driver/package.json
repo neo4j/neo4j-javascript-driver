@@ -80,7 +80,7 @@
     "webpack": "^5.83.1"
   },
   "dependencies": {
-    "neo4j-driver-bolt-connection": "5.0.0-dev",
+    "neo4j-driver-bolt-connection": "5.9.0",
     "neo4j-driver-core": "5.0.0-dev",
     "rxjs": "^7.8.0"
   }
