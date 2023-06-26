@@ -1,4 +1,4 @@
-# Neo4j Deno Driver for JavaScript (Experimental)
+# Neo4j Driver for Deno (Experimental)
 
 > :warning: **This is a experimental library.**
 
