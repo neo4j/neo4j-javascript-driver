@@ -614,7 +614,7 @@ class Driver {
    *
    * @param {Object} param - The object parameter
    * @param {string} param.database - The target database to verify connectivity for.
-   * @returns {Promise<void>} promise resolved with void or rejected with error.
+   * @returns {Promise<ServerInfo>} promise resolved with the ServerInfo or rejected with error.
    */
   getServerInfo ({ database = '' }: { database?: string } = {}): Promise<ServerInfo> {
     const connectionProvider = this._getOrCreateConnectionProvider()
