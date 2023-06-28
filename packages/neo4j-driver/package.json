@@ -45,7 +45,7 @@
     "esdoc-importpath-plugin": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
     "fancy-log": "^2.0.0",
-    "fs-extra": "^10.1.0",
+    "fs-extra": "^11.1.1",
     "gulp": "^4.0.2",
     "gulp-batch": "^1.0.5",
     "gulp-decompress": "^3.0.0",
@@ -69,19 +69,19 @@
     "karma-typescript": "^5.5.3",
     "karma-typescript-es6-transform": "^5.5.3",
     "lolex": "^6.0.0",
-    "minimist": "^1.2.7",
+    "minimist": "^1.2.8",
     "rollup": "^2.77.4-1",
     "rollup-plugin-polyfill-node": "^0.11.0",
-    "semver": "^7.3.8",
+    "semver": "^7.5.3",
     "source-map": "0.7.4",
     "tmp": "0.2.1",
     "typescript": "^4.9.5",
     "vinyl-buffer": "^1.0.1",
-    "webpack": "^5.83.1"
+    "webpack": "^5.88.0"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "5.0.0-dev",
     "neo4j-driver-core": "5.0.0-dev",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.1"
   }
 }

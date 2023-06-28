@@ -38,7 +38,7 @@
     "esdoc": "^1.1.0",
     "esdoc-importpath-plugin": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
-    "fast-check": "^3.5.0",
+    "fast-check": "^3.10.0",
     "jest": "^27.5.1",
     "source-map": "0.7.4",
     "ts-jest": "^27.1.4",
