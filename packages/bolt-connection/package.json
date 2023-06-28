@@ -32,7 +32,7 @@
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "devDependencies": {
     "@types/jest": "^27.4.1",
-    "fast-check": "^3.5.0",
+    "fast-check": "^3.10.0",
     "jest": "^27.5.1",
     "lolex": "^6.0.0",
     "ts-jest": "^27.1.4",
