@@ -20,6 +20,7 @@
 import * as util from './util'
 import { newError } from '../error'
 import Integer, { int } from '../integer'
+import { Logger } from './logger'
 
 /**
  * Internal holder of the transaction configuration.
@@ -35,9 +36,9 @@ export class TxConfig {
    * @constructor
    * @param {Object} config the raw configuration object.
    */
-  constructor (config: any) {
+  constructor (config: any, log?: Logger) {
     assertValidConfig(config)
-    this.timeout = extractTimeout(config)
+    this.timeout = extractTimeout(config, log)
     this.metadata = extractMetadata(config)
   }
 
@@ -63,9 +64,13 @@ const EMPTY_CONFIG = new TxConfig({})
 /**
  * @return {Integer|null}
  */
-function extractTimeout (config: any): Integer | null {
+function extractTimeout (config: any, log?: Logger): Integer | null {
   if (util.isObject(config) && config.timeout != null) {
     util.assertNumberOrInteger(config.timeout, 'Transaction timeout')
+    if (isTimeoutFloat(config) && log?.isInfoEnabled() === true) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      log?.info(`Transaction timeout expected to be an integer, got: ${config.timeout}. The value will be round up.`)
+    }
     const timeout = int(config.timeout, { ceilFloat: true })
     if (timeout.isNegative()) {
       throw newError('Transaction timeout should not be negative')
@@ -73,6 +78,10 @@ function extractTimeout (config: any): Integer | null {
     return timeout
   }
   return null
+}
+
+function isTimeoutFloat (config: any): boolean {
+  return typeof config.timeout === 'number' && !Number.isInteger(config.timeout)
 }
 
 /**

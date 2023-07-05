@@ -625,6 +625,8 @@ describe('Driver', () => {
       mode: 'WRITE',
       reactive: false,
       impersonatedUser: undefined,
+      // @ts-expect-error
+      log: driver?._log,
       ...extra
     }
   }
