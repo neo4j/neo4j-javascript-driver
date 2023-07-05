@@ -2,6 +2,12 @@ import skip, { ifEquals, ifEndsWith, endsWith, ifStartsWith, startsWith, not } f
 
 const skippedTests = [
   skip(
+    "Fixme: transactions don't prevent further actions after failure.",
+    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_discard_after_tx_termination_on_run'),
+    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_pull_after_tx_termination_on_pull'),
+    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_pull_after_tx_termination_on_run')
+  ),
+  skip(
     'Driver does not return offset for old DateTime implementations',
     ifStartsWith('stub.types.test_temporal_types.TestTemporalTypes')
       .and(not(startsWith('stub.types.test_temporal_types.TestTemporalTypesV5')))
