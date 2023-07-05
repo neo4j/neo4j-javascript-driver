@@ -72,9 +72,11 @@ class Driver extends CoreDriver {
         reactive: false,
         fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize),
         bookmarkManager,
-        notificationFilter
+        notificationFilter,
+        log: this._log
       }),
-      config: this._config
+      config: this._config,
+      log: this._log
     })
   }
 }

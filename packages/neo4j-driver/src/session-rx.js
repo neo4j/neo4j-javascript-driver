@@ -41,9 +41,10 @@ export default class RxSession {
    * @param {Object} param - Object parameter
    * @param {Session} param.session - The underlying session instance to relay requests
    */
-  constructor ({ session, config } = {}) {
+  constructor ({ session, config, log } = {}) {
     this._session = session
     this._retryLogic = _createRetryLogic(config)
+    this._log = log
   }
 
   /**
@@ -200,7 +201,7 @@ export default class RxSession {
   _beginTransaction (accessMode, transactionConfig) {
     let txConfig = TxConfig.empty()
     if (transactionConfig) {
-      txConfig = new TxConfig(transactionConfig)
+      txConfig = new TxConfig(transactionConfig, this._log)
     }
 
     return new Observable(observer => {

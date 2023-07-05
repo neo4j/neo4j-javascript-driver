@@ -19,7 +19,7 @@
 
 import { Notification, throwError } from 'rxjs'
 import { map, materialize, toArray, concatWith } from 'rxjs/operators'
-import neo4j from '../../src'
+import neo4j, { ResultSummary, int } from '../../src'
 import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 import {
@@ -31,7 +31,7 @@ import {
 } from 'neo4j-driver-core'
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
-const { bookmarks } = internal
+const { bookmarks, logger } = internal
 
 describe('#integration rx-session', () => {
   let driver
@@ -439,6 +439,111 @@ describe('#unit rx-session', () => {
         const session = newSession(bookmarks)
         expect(session.lastBookmarks()).toBe(bookmarks.values())
       })
+    })
+  })
+
+  describe('.run()', () => {
+    it('should redirect run to the underline session', () => {
+      const capture = []
+      const _session = {
+        run: (...args) => {
+          capture.push(args)
+          const summary = new ResultSummary(args[0], args[1], {}, 5.3)
+          return {
+            async * [Symbol.asyncIterator] () {
+              return summary
+            },
+            async summary () {
+              return summary
+            }
+          }
+        }
+      }
+      const session = new RxSession({ session: _session })
+      const query = 'the query'
+      const params = {}
+      const txConfig = { timeout: 1000 }
+
+      session.run(query, params, txConfig).records().subscribe()
+
+      expect(capture).toEqual([[query, params, txConfig]])
+    })
+  })
+
+  describe('._beginTransaction()', () => {
+    it('should round up sub milliseconds transaction timeouts', () => {
+      const capture = []
+      const _session = {
+        _beginTransaction: async (...args) => {
+          capture.push(args)
+          return {}
+        }
+      }
+
+      const session = new RxSession({
+        session: _session
+      })
+
+      const accessMode = 'READ'
+      const timeout = 0.2
+
+      session._beginTransaction(accessMode, { timeout })
+        .subscribe()
+
+      expect(capture[0][1].timeout).toEqual(int(1))
+    })
+
+    it('should log a warning for timeout configurations with sub milliseconds', () => {
+      const capture = []
+      const loggerFunction = (...args) => capture.push(args)
+      const log = new logger.Logger('debug', loggerFunction)
+
+      const _session = {
+        _beginTransaction: async (...args) => {
+          return {}
+        }
+      }
+
+      const session = new RxSession({
+        session: _session,
+        log
+      })
+
+      const accessMode = 'READ'
+      const timeout = 0.2
+
+      session._beginTransaction(accessMode, { timeout })
+        .subscribe()
+
+      expect(capture[0]).toEqual([
+        'info',
+        `Transaction timeout expected to be an integer, got: ${timeout}. The value will be round up.`
+      ])
+    })
+
+    it('should not log a warning for timeout configurations without sub milliseconds', () => {
+      const capture = []
+      const loggerFunction = (...args) => capture.push(args)
+      const log = new logger.Logger('debug', loggerFunction)
+
+      const _session = {
+        _beginTransaction: async (...args) => {
+          return {}
+        }
+      }
+
+      const session = new RxSession({
+        session: _session,
+        log
+      })
+
+      const accessMode = 'READ'
+      const timeout = 1
+
+      session._beginTransaction(accessMode, { timeout })
+        .subscribe()
+
+      expect(capture.length).toEqual(0)
     })
   })
 
