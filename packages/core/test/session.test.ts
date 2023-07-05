@@ -16,13 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction, BookmarkManager, bookmarkManager, NotificationFilter } from '../src'
+import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction, BookmarkManager, bookmarkManager, NotificationFilter, int } from '../src'
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import ManagedTransaction from '../src/transaction-managed'
 import { AuthToken } from '../src/types'
 import FakeConnection from './utils/connection.fake'
 import { validNotificationFilters } from './utils/notification-filters.fixtures'
+import fc from 'fast-check'
 
 describe('session', () => {
   const systemBookmarks = ['sys:bm01', 'sys:bm02']
@@ -474,6 +475,28 @@ describe('session', () => {
         expect.objectContaining({ auth })
       )
     })
+
+    it('should round up sub milliseconds transaction timeouts', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.float({ min: 0, noNaN: true }),
+          async (timeout: number) => {
+            const connection = mockBeginWithSuccess(newFakeConnection())
+
+            const { session } = setupSession({
+              connection,
+              beginTx: false,
+              database: 'neo4j'
+            })
+
+            await session.beginTransaction({ timeout })
+
+            expect(connection.seenBeginTransaction[0][0].txConfig.timeout)
+              .toEqual(int(Math.ceil(timeout)))
+          }
+        )
+      )
+    })
   })
 
   describe('.commit()', () => {
@@ -587,6 +610,29 @@ describe('session', () => {
 
       expect(status.functionCalled).toEqual(true)
       expect(run).toHaveBeenCalledWith(query, params)
+    })
+
+    it('should round up sub milliseconds transaction timeouts', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.float({ min: 0, noNaN: true }),
+          async (timeout: number) => {
+            const connection = mockBeginWithSuccess(newFakeConnection())
+            const session = newSessionWithConnection(connection, false, FETCH_ALL)
+            // @ts-expect-error
+            jest.spyOn(Transaction.prototype, 'run').mockImplementation(async () => await Promise.resolve())
+            const query = 'RETURN $a'
+            const params = { a: 1 }
+
+            await execute(session)(async (tx: ManagedTransaction) => {
+              await tx.run(query, params)
+            }, { timeout })
+
+            expect(connection.seenBeginTransaction[0][0].txConfig.timeout)
+              .toEqual(int(Math.ceil(timeout)))
+          }
+        )
+      )
     })
   })
 
@@ -893,7 +939,7 @@ describe('session', () => {
       })
 
       await session.run('query')
-      
+
       expect(connectionProvider.acquireConnection).toBeCalledWith(
         expect.objectContaining({ auth })
       )
@@ -916,6 +962,28 @@ describe('session', () => {
 
       expect(connectionProvider.acquireConnection).not.toBeCalledWith(
         expect.objectContaining({ auth })
+      )
+    })
+
+    it('should round up sub milliseconds transaction timeouts', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.float({ min: 0, noNaN: true }),
+          async (timeout: number) => {
+            const connection = newFakeConnection()
+
+            const { session } = setupSession({
+              connection,
+              beginTx: false,
+              database: 'neo4j'
+            })
+
+            await session.run('query', {}, { timeout })
+
+            expect(connection.seenProtocolOptions[0].txConfig.timeout)
+              .toEqual(int(Math.ceil(timeout)))
+          }
+        )
       )
     })
   })

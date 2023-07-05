@@ -66,7 +66,7 @@ const EMPTY_CONFIG = new TxConfig({})
 function extractTimeout (config: any): Integer | null {
   if (util.isObject(config) && config.timeout != null) {
     util.assertNumberOrInteger(config.timeout, 'Transaction timeout')
-    const timeout = int(config.timeout)
+    const timeout = int(config.timeout, { ceilFloat: true })
     if (timeout.isNegative()) {
       throw newError('Transaction timeout should not be negative')
     }
