@@ -7,9 +7,8 @@ const skippedTests = [
     ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_pull_after_tx_termination_on_pull'),
     ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_pull_after_tx_termination_on_run'),
     ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_run_after_tx_termination_on_run'),
-    ifEquals('stub.configuration_hints.test_connection_recv_timeout_seconds.TestDirectConnectionRecvTimeout.test_timeout_unmanaged_tx_should_fail_subsequent_usage_after_timeout'),
-    ifEquals('neo4j.test_tx_run_.TestTxRun.test_consume_after_commit'),
-    ifEquals('neo4j.test_tx_run_.TestTxRun.test_tx_configuration')
+    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_run_after_tx_termination_on_pull'),
+    ifEquals('stub.configuration_hints.test_connection_recv_timeout_seconds.TestDirectConnectionRecvTimeout.test_timeout_unmanaged_tx_should_fail_subsequent_usage_after_timeout')
   ),
   skip(
     'Driver does not return offset for old DateTime implementations',
