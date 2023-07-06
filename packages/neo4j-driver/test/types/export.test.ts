@@ -20,7 +20,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { Bookmarks } from 'neo4j-driver-core/types/internal/bookmarks'
-import { ConnectionProvider } from 'neo4j-driver-core'
+import { ConnectionProvider, internal } from 'neo4j-driver-core'
 import driver, {
   DateTime,
   RxSession,
@@ -30,6 +30,12 @@ import driver, {
   Record,
   types
 } from '../../'
+
+const {
+  logger: {
+    Logger
+  }
+} = internal
 
 const dateTime = DateTime.fromStandardDate(new Date())
 const dateTime2 = new DateTime(2, 2, 2, 2, 2, 3, 4, 6, null)
@@ -63,7 +69,9 @@ const session = new Session({
   database: 'default',
   config: {},
   reactive: false,
-  fetchSize: 100
+  fetchSize: 100,
+  log: new Logger('debug', () => {})
+
 })
 
 const dummy: any = null
