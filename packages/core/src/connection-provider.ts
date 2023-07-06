@@ -128,6 +128,15 @@ class ConnectionProvider {
   }
 
   /**
+   * Cause the home db cache to be cleared and force a trip to the server for an up to date home db
+   *
+   * Note that this function call will slow down home db resolution for the next call as nothing will be cashed.
+   */
+  forceHomeDbResolution (): void {
+    throw Error('Not Implemented')
+  }
+
+  /**
    * Returns the protocol version negotiated via handshake.
    *
    * Note that this function call _always_ causes a round-trip to the server.
