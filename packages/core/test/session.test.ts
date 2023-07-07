@@ -499,7 +499,7 @@ describe('session', () => {
       )
     })
 
-    it('should log a warning for timeout configurations with sub milliseconds', async () => {
+    it('should log when a timeout is configured with sub milliseconds', async () => {
       return await fc.assert(
         fc.asyncProperty(
           fc

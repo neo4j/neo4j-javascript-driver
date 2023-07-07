@@ -443,7 +443,7 @@ describe('#unit rx-session', () => {
   })
 
   describe('.run()', () => {
-    it('should redirect run to the underline session', () => {
+    it('should redirect run to the underlying session', () => {
       const capture = []
       const _session = {
         run: (...args) => {
