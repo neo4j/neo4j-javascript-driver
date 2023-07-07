@@ -517,7 +517,7 @@ describe('#unit rx-session', () => {
 
       expect(capture[0]).toEqual([
         'info',
-        `Transaction timeout expected to be an integer, got: ${timeout}. The value will be round up.`
+        `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
       ])
     })
 
