@@ -542,7 +542,7 @@ describe('session', () => {
 
             expect(loggerFunction).not.toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
+              expect.any(String)
             )
           }
         )
@@ -741,7 +741,7 @@ describe('session', () => {
 
             expect(loggerFunction).not.toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
+              expect.any(String)
             )
           }
         )
@@ -1143,7 +1143,7 @@ describe('session', () => {
 
             expect(loggerFunction).not.toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
+              expect.any(String)
             )
           }
         )
