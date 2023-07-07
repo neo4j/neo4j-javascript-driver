@@ -518,7 +518,7 @@ describe('session', () => {
 
             expect(loggerFunction).toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be round up.`
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
             )
           }
         )
@@ -542,7 +542,7 @@ describe('session', () => {
 
             expect(loggerFunction).not.toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be round up.`
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
             )
           }
         )
@@ -711,7 +711,7 @@ describe('session', () => {
 
             expect(loggerFunction).toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be round up.`
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
             )
           }
         )
@@ -741,7 +741,7 @@ describe('session', () => {
 
             expect(loggerFunction).not.toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be round up.`
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
             )
           }
         )
@@ -1119,7 +1119,7 @@ describe('session', () => {
 
             expect(loggerFunction).toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be round up.`
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
             )
           }
         )
@@ -1143,7 +1143,7 @@ describe('session', () => {
 
             expect(loggerFunction).not.toBeCalledWith(
               'info',
-              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be round up.`
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
             )
           }
         )
