@@ -69,7 +69,7 @@ function extractTimeout (config: any, log?: Logger): Integer | null {
     util.assertNumberOrInteger(config.timeout, 'Transaction timeout')
     if (isTimeoutFloat(config) && log?.isInfoEnabled() === true) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      log?.info(`Transaction timeout expected to be an integer, got: ${config.timeout}. The value will be round up.`)
+      log?.info(`Transaction timeout expected to be an integer, got: ${config.timeout}. The value will be rounded up.`)
     }
     const timeout = int(config.timeout, { ceilFloat: true })
     if (timeout.isNegative()) {
