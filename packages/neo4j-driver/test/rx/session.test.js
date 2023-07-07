@@ -462,7 +462,7 @@ describe('#unit rx-session', () => {
       const session = new RxSession({ session: _session })
       const query = 'the query'
       const params = {}
-      const txConfig = { timeout: 1000 }
+      const txConfig = { timeout: 1000.120 }
 
       session.run(query, params, txConfig).records().subscribe()
 
