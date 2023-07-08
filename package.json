@@ -4,7 +4,7 @@
   "type": "module",
   "devDependencies": {
     "husky": "^7.0.4",
-    "lerna": "^4.0.0",
+    "lerna": "^7.1.1",
     "lint-staged": "^12.3.7",
     "standard": "^16.0.4",
     "ts-standard": "^11.0.0",
