@@ -174,6 +174,18 @@ describe('#unit driver', () => {
         expect(session._session._bookmarkManager).toEqual(configuredBookmarkManager)
       })
     })
+
+    it('should redirect logger to session', () => {
+      driver = neo4j.driver(
+        `neo4j+ssc://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
+
+      const session = driver.rxSession()
+
+      expect(session._log).toBe(driver._log)
+      expect(session._session._log).toBe(driver._log)
+    })
   })
 })
 

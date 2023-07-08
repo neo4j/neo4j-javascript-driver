@@ -59,6 +59,12 @@ import neo4j, {
   isUnboundRelationship
 } from '../../'
 
+import { internal } from 'neo4j-driver-core'
+
+const {
+  logger: { Logger }
+} = internal
+
 describe('index', () => {
   it('should export an instanciable Result', () => {
     const result: Result = new Result(
@@ -248,6 +254,7 @@ describe('index', () => {
       fetchSize: 123,
       mode: 'READ',
       reactive: false,
+      log: new Logger('info', () => {}),
       connectionProvider: {
         acquireConnection: async () => { throw Error('something wrong') },
         close: async () => {},

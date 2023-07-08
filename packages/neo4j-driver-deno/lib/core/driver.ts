@@ -98,6 +98,7 @@ type CreateSession = (args: {
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
   auth?: AuthToken
+  log: Logger
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -827,7 +828,8 @@ class Driver {
       fetchSize,
       bookmarkManager,
       notificationFilter,
-      auth
+      auth,
+      log: this._log
     })
   }
 

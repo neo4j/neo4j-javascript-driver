@@ -16,13 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction, BookmarkManager, bookmarkManager, NotificationFilter } from '../src'
+import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction, BookmarkManager, bookmarkManager, NotificationFilter, int } from '../src'
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
+import { Logger } from '../src/internal/logger'
 import ManagedTransaction from '../src/transaction-managed'
-import { AuthToken } from '../src/types'
+import { AuthToken, LoggerFunction } from '../src/types'
 import FakeConnection from './utils/connection.fake'
 import { validNotificationFilters } from './utils/notification-filters.fixtures'
+import fc from 'fast-check'
 
 describe('session', () => {
   const systemBookmarks = ['sys:bm01', 'sys:bm02']
@@ -474,6 +476,78 @@ describe('session', () => {
         expect.objectContaining({ auth })
       )
     })
+
+    it('should round up sub milliseconds transaction timeouts', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.float({ min: 0, noNaN: true }),
+          async (timeout: number) => {
+            const connection = mockBeginWithSuccess(newFakeConnection())
+
+            const { session } = setupSession({
+              connection,
+              beginTx: false,
+              database: 'neo4j'
+            })
+
+            await session.beginTransaction({ timeout })
+
+            expect(connection.seenBeginTransaction[0][0].txConfig.timeout)
+              .toEqual(int(Math.ceil(timeout)))
+          }
+        )
+      )
+    })
+
+    it('should log when a timeout is configured with sub milliseconds', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc
+            .float({ min: 0, noNaN: true })
+            .filter((timeout: number) => !Number.isInteger(timeout)),
+          async (timeout: number) => {
+            const connection = mockBeginWithSuccess(newFakeConnection())
+
+            const { session, loggerFunction } = setupSession({
+              connection,
+              beginTx: false,
+              database: 'neo4j'
+            })
+
+            await session.beginTransaction({ timeout })
+
+            expect(loggerFunction).toBeCalledWith(
+              'info',
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
+            )
+          }
+        )
+      )
+    })
+
+    it('should not log a warning for timeout configurations without sub milliseconds', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.nat(),
+          async (timeout: number) => {
+            const connection = mockBeginWithSuccess(newFakeConnection())
+
+            const { session, loggerFunction } = setupSession({
+              connection,
+              beginTx: false,
+              database: 'neo4j'
+            })
+
+            await session.beginTransaction({ timeout })
+
+            expect(loggerFunction).not.toBeCalledWith(
+              'info',
+              expect.any(String)
+            )
+          }
+        )
+      )
+    })
   })
 
   describe('.commit()', () => {
@@ -587,6 +661,91 @@ describe('session', () => {
 
       expect(status.functionCalled).toEqual(true)
       expect(run).toHaveBeenCalledWith(query, params)
+    })
+
+    it('should round up sub milliseconds transaction timeouts', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.float({ min: 0, noNaN: true }),
+          async (timeout: number) => {
+            const connection = mockBeginWithSuccess(newFakeConnection())
+            const session = newSessionWithConnection(connection, false, FETCH_ALL)
+            // @ts-expect-error
+            jest.spyOn(Transaction.prototype, 'run').mockImplementation(async () => await Promise.resolve())
+            const query = 'RETURN $a'
+            const params = { a: 1 }
+
+            await execute(session)(async (tx: ManagedTransaction) => {
+              await tx.run(query, params)
+            }, { timeout })
+
+            expect(connection.seenBeginTransaction[0][0].txConfig.timeout)
+              .toEqual(int(Math.ceil(timeout)))
+          }
+        )
+      )
+    })
+
+    it('should log a warning for timeout configurations with sub milliseconds', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc
+            .float({ min: 0, noNaN: true })
+            .filter((timeout: number) => !Number.isInteger(timeout)),
+          async (timeout: number) => {
+            const connection = mockBeginWithSuccess(newFakeConnection())
+            const { session, loggerFunction } = setupSession({
+              connection,
+              beginTx: false,
+              fetchSize: FETCH_ALL
+            })
+
+            // @ts-expect-error
+            jest.spyOn(Transaction.prototype, 'run').mockImplementation(async () => await Promise.resolve())
+            const query = 'RETURN $a'
+            const params = { a: 1 }
+
+            await execute(session)(async (tx: ManagedTransaction) => {
+              await tx.run(query, params)
+            }, { timeout })
+
+            expect(loggerFunction).toBeCalledWith(
+              'info',
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
+            )
+          }
+        )
+      )
+    })
+
+    it('should not log a warning for timeout configurations without sub milliseconds', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.nat(),
+          async (timeout: number) => {
+            const connection = mockBeginWithSuccess(newFakeConnection())
+            const { session, loggerFunction } = setupSession({
+              connection,
+              beginTx: false,
+              fetchSize: FETCH_ALL
+            })
+
+            // @ts-expect-error
+            jest.spyOn(Transaction.prototype, 'run').mockImplementation(async () => await Promise.resolve())
+            const query = 'RETURN $a'
+            const params = { a: 1 }
+
+            await execute(session)(async (tx: ManagedTransaction) => {
+              await tx.run(query, params)
+            }, { timeout })
+
+            expect(loggerFunction).not.toBeCalledWith(
+              'info',
+              expect.any(String)
+            )
+          }
+        )
+      )
     })
   })
 
@@ -893,7 +1052,7 @@ describe('session', () => {
       })
 
       await session.run('query')
-      
+
       expect(connectionProvider.acquireConnection).toBeCalledWith(
         expect.objectContaining({ auth })
       )
@@ -916,6 +1075,78 @@ describe('session', () => {
 
       expect(connectionProvider.acquireConnection).not.toBeCalledWith(
         expect.objectContaining({ auth })
+      )
+    })
+
+    it('should round up sub milliseconds transaction timeouts', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.float({ min: 0, noNaN: true }),
+          async (timeout: number) => {
+            const connection = newFakeConnection()
+
+            const { session } = setupSession({
+              connection,
+              beginTx: false,
+              database: 'neo4j'
+            })
+
+            await session.run('query', {}, { timeout })
+
+            expect(connection.seenProtocolOptions[0].txConfig.timeout)
+              .toEqual(int(Math.ceil(timeout)))
+          }
+        )
+      )
+    })
+
+    it('should log a warning for timeout configurations with sub milliseconds', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc
+            .float({ min: 0, noNaN: true })
+            .filter((timeout: number) => !Number.isInteger(timeout)),
+          async (timeout: number) => {
+            const connection = newFakeConnection()
+
+            const { session, loggerFunction } = setupSession({
+              connection,
+              beginTx: false,
+              database: 'neo4j'
+            })
+
+            await session.run('query', {}, { timeout })
+
+            expect(loggerFunction).toBeCalledWith(
+              'info',
+              `Transaction timeout expected to be an integer, got: ${timeout}. The value will be rounded up.`
+            )
+          }
+        )
+      )
+    })
+
+    it('should not log a warning for timeout configurations without sub milliseconds', async () => {
+      return await fc.assert(
+        fc.asyncProperty(
+          fc.nat(),
+          async (timeout: number) => {
+            const connection = newFakeConnection()
+
+            const { session, loggerFunction } = setupSession({
+              connection,
+              beginTx: false,
+              database: 'neo4j'
+            })
+
+            await session.run('query', {}, { timeout })
+
+            expect(loggerFunction).not.toBeCalledWith(
+              'info',
+              expect.any(String)
+            )
+          }
+        )
       )
     })
   })
@@ -981,8 +1212,10 @@ function setupSession ({
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
   auth?: AuthToken
-}): { session: Session, connectionProvider: ConnectionProvider } {
+}): { session: Session, connectionProvider: ConnectionProvider, loggerFunction: LoggerFunction } {
   const connectionProvider = new ConnectionProvider()
+  const loggerFunction = jest.fn()
+  const log = new Logger('debug', loggerFunction)
   connectionProvider.acquireConnection = jest.fn(async () => await Promise.resolve(connection))
   connectionProvider.close = async () => await Promise.resolve()
 
@@ -996,13 +1229,14 @@ function setupSession ({
     bookmarks: lastBookmarks,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    log
   })
 
   if (beginTx) {
     session.beginTransaction().catch(e => { }) // force session to acquire new connection
   }
-  return { session, connectionProvider }
+  return { session, connectionProvider, loggerFunction }
 }
 
 function newFakeConnection (): FakeConnection {

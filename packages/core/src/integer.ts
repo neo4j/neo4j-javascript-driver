@@ -908,14 +908,18 @@ class Integer {
    * @param {!Integer|number|string|bigint|!{low: number, high: number}} val Value
    * @param {Object} [opts={}] Configuration options
    * @param {boolean} [opts.strictStringValidation=false] Enable strict validation generated Integer.
+   * @param {boolean} [opts.ceilFloat=false] Enable round up float to the nearest Integer.
    * @returns {!Integer}
    * @expose
    */
-  static fromValue (val: Integerable, opts: { strictStringValidation?: boolean} = {}): Integer {
+  static fromValue (val: Integerable, opts: { strictStringValidation?: boolean, ceilFloat?: boolean } = {}): Integer {
     if (val /* is compatible */ instanceof Integer) {
       return val
     }
     if (typeof val === 'number') {
+      if (opts.ceilFloat === true) {
+        val = Math.ceil(val)
+      }
       return Integer.fromNumber(val)
     }
     if (typeof val === 'string') {
@@ -1066,6 +1070,7 @@ const TWO_PWR_24 = Integer.fromInt(TWO_PWR_24_DBL)
  * @param {Mixed} value - The value to use.
  * @param {Object} [opts={}] Configuration options
  * @param {boolean} [opts.strictStringValidation=false] Enable strict validation generated Integer.
+ * @param {boolean} [opts.ceilFloat=false] Enable round up float to the nearest Integer.
  * @return {Integer} - An object of type Integer.
  */
 const int = Integer.fromValue

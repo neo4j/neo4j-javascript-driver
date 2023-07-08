@@ -38,6 +38,7 @@ import ManagedTransaction from './transaction-managed'
 import BookmarkManager from './bookmark-manager'
 import { Dict } from './record'
 import NotificationFilter from './notification-filter'
+import { Logger } from './internal/logger'
 
 type ConnectionConsumer = (connection: Connection | null) => any | undefined | Promise<any> | Promise<undefined>
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
@@ -74,6 +75,7 @@ class Session {
   private readonly _results: Result[]
   private readonly _bookmarkManager?: BookmarkManager
   private readonly _notificationFilter?: NotificationFilter
+  private readonly _log?: Logger
   /**
    * @constructor
    * @protected
@@ -100,7 +102,8 @@ class Session {
     impersonatedUser,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    log
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -113,6 +116,7 @@ class Session {
     bookmarkManager?: BookmarkManager
     notificationFilter?: NotificationFilter
     auth?: AuthToken
+    log: Logger
   }) {
     this._mode = mode
     this._database = database
@@ -153,6 +157,7 @@ class Session {
     this._results = []
     this._bookmarkManager = bookmarkManager
     this._notificationFilter = notificationFilter
+    this._log = log
   }
 
   /**
@@ -176,7 +181,7 @@ class Session {
       parameters
     )
     const autoCommitTxConfig = (transactionConfig != null)
-      ? new TxConfig(transactionConfig)
+      ? new TxConfig(transactionConfig, this._log)
       : TxConfig.empty()
 
     const result = this._run(validatedQuery, params, async connection => {
@@ -279,7 +284,7 @@ class Session {
 
     let txConfig = TxConfig.empty()
     if (arg != null) {
-      txConfig = new TxConfig(arg)
+      txConfig = new TxConfig(arg, this._log)
     }
 
     return this._beginTransaction(this._mode, txConfig)
@@ -385,7 +390,7 @@ class Session {
     transactionWork: TransactionWork<T>,
     transactionConfig?: TransactionConfig
   ): Promise<T> {
-    const config = new TxConfig(transactionConfig)
+    const config = new TxConfig(transactionConfig, this._log)
     return this._runTransaction(ACCESS_MODE_READ, config, transactionWork)
   }
 
@@ -410,7 +415,7 @@ class Session {
     transactionWork: TransactionWork<T>,
     transactionConfig?: TransactionConfig
   ): Promise<T> {
-    const config = new TxConfig(transactionConfig)
+    const config = new TxConfig(transactionConfig, this._log)
     return this._runTransaction(ACCESS_MODE_WRITE, config, transactionWork)
   }
 
@@ -443,7 +448,7 @@ class Session {
     transactionWork: ManagedTransactionWork<T>,
     transactionConfig?: TransactionConfig
   ): Promise<T> {
-    const config = new TxConfig(transactionConfig)
+    const config = new TxConfig(transactionConfig, this._log)
     return this._executeInTransaction(ACCESS_MODE_READ, config, transactionWork)
   }
 
@@ -465,7 +470,7 @@ class Session {
     transactionWork: ManagedTransactionWork<T>,
     transactionConfig?: TransactionConfig
   ): Promise<T> {
-    const config = new TxConfig(transactionConfig)
+    const config = new TxConfig(transactionConfig, this._log)
     return this._executeInTransaction(ACCESS_MODE_WRITE, config, transactionWork)
   }
 
