@@ -8,6 +8,8 @@ const skippedTests = [
     ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_pull_after_tx_termination_on_run'),
     ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_run_after_tx_termination_on_run'),
     ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_run_after_tx_termination_on_pull'),
+    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_rollback_message_after_tx_termination'),
+    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_commit_after_tx_termination'),
     ifEquals('stub.configuration_hints.test_connection_recv_timeout_seconds.TestDirectConnectionRecvTimeout.test_timeout_unmanaged_tx_should_fail_subsequent_usage_after_timeout')
   ),
   skip(
