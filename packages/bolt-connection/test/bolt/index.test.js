@@ -115,7 +115,7 @@ describe('#unit Bolt', () => {
       channel.onmessage(packedHandshakeMessage(httpMagicNumber))
     })
 
-    it('should log error if the server responds with http server', async () => {
+    it('should log error if the server responds with http payload', async () => {
       const { channel, handshakePromise, log } = subject()
       const httpMagicNumber = 1213486160
       const logErrorSpy = jest.spyOn(log, 'error')
@@ -126,7 +126,7 @@ describe('#unit Bolt', () => {
       expect(logErrorSpy).toHaveBeenCalledWith('Handshake failed since server responded with HTTP.')
     })
 
-    it('should not log error if the server responds valid protocol version', async () => {
+    it('should not log error if the server responds with a valid protocol version', async () => {
       const { channel, handshakePromise, log } = subject()
       const expectedProtocolVersion = 4.3
       const logErrorSpy = jest.spyOn(log, 'error')
