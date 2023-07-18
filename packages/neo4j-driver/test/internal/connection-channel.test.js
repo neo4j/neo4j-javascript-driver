@@ -133,7 +133,7 @@ describe('#integration ChannelConnection', () => {
   it('should provide error message when connecting to http-port', async done => {
     await createConnection(`bolt://${sharedNeo4j.hostname}:7474`, {
       encrypted: false
-    })
+    }, null, new Logger('error', () => {}))
       .then(done.fail.bind(done))
       .catch(error => {
         expect(error).toBeDefined()
