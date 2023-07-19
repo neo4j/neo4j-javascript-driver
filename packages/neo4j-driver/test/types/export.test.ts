@@ -62,6 +62,10 @@ const driverConfiguration0 = driver.driver('driver', undefined, {
 
 const driverConfiguration1 = driver.driver('driver', undefined, {})
 
+const driverConfiguration2 = driver.driver('driver', undefined, {
+  logging: driver.logging.console('debug')
+})
+
 const session = new Session({
   mode: 'READ',
   connectionProvider: new ConnectionProvider(),

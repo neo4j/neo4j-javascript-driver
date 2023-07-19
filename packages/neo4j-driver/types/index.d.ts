@@ -86,7 +86,8 @@ import {
   notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   AuthTokenAndExpiration,
-  expirationBasedAuthTokenManager
+  expirationBasedAuthTokenManager,
+  types as coreTypes
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -118,6 +119,18 @@ declare const auth: {
     scheme: string,
     parameters?: Parameters
   ) => AuthToken
+}
+
+/**
+ * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
+ * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to `console.log` with
+ * timestamp, level and message. It takes an optional `level` parameter which represents the maximum log level to be logged. Default value is 'info'.
+ */
+declare const logging: {
+  console: (level: coreTypes.LogLevel) => {
+    level: coreTypes.LogLevel
+    logger: (level: coreTypes.LogLevel, message: string) => void
+  }
 }
 
 declare function driver (
@@ -269,6 +282,7 @@ declare const forExport: {
   notificationFilterDisabledCategory: typeof notificationFilterDisabledCategory
   notificationFilterMinimumSeverityLevel: typeof notificationFilterMinimumSeverityLevel
   expirationBasedAuthTokenManager: typeof expirationBasedAuthTokenManager
+  logging: typeof logging
 }
 
 export {
@@ -343,7 +357,8 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  expirationBasedAuthTokenManager
+  expirationBasedAuthTokenManager,
+  logging
 }
 
 export type {
