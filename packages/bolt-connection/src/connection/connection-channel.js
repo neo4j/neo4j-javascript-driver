@@ -53,7 +53,7 @@ export function createChannelConnection (
 
   const channel = createChannel(channelConfig)
 
-  return Bolt.handshake(channel)
+  return Bolt.handshake(channel, log)
     .then(({ protocolVersion: version, consumeRemainingBuffer }) => {
       const chunker = new Chunker(channel)
       const dechunker = new Dechunker()

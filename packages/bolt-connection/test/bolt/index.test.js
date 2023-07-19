@@ -74,7 +74,7 @@ describe('#unit Bolt', () => {
       channel.onmessage(packedHandshakeMessage(expectedProtocolVersion))
     })
 
-    it('should handle a successful handshake with reaining buffer', done => {
+    it('should handle a successful handshake with remaining buffer', done => {
       const { channel, handshakePromise } = subject()
       const expectedProtocolVersion = 4.3
       const expectedExtraBuffer = createExtraBuffer()
@@ -114,6 +114,29 @@ describe('#unit Bolt', () => {
 
       channel.onmessage(packedHandshakeMessage(httpMagicNumber))
     })
+
+    it('should log error if the server responds with http payload', async () => {
+      const { channel, handshakePromise, log } = subject()
+      const httpMagicNumber = 1213486160
+      const logErrorSpy = jest.spyOn(log, 'error')
+
+      channel.onmessage(packedHandshakeMessage(httpMagicNumber))
+
+      await expect(handshakePromise).rejects.toThrow()
+      expect(logErrorSpy).toHaveBeenCalledWith('Handshake failed since server responded with HTTP.')
+    })
+
+    it('should not log error if the server responds with a valid protocol version', async () => {
+      const { channel, handshakePromise, log } = subject()
+      const expectedProtocolVersion = 4.3
+      const logErrorSpy = jest.spyOn(log, 'error')
+
+      channel.onmessage(packedHandshakeMessage(expectedProtocolVersion))
+
+      await expect(handshakePromise).resolves.not.toThrow()
+      expect(logErrorSpy).not.toBeCalled()
+    })
+
     it('should handle a failed handshake', done => {
       const { channel, handshakePromise } = subject()
       const expectedError = new Error('Something got wrong')
@@ -143,9 +166,11 @@ describe('#unit Bolt', () => {
     })
 
     function subject ({ channel = new DummyChannel() } = {}) {
+      const log = new Logger('debug', () => {})
       return {
+        log,
         channel,
-        handshakePromise: Bolt.handshake(channel)
+        handshakePromise: Bolt.handshake(channel, log)
       }
     }
 

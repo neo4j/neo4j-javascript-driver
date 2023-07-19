@@ -54,7 +54,7 @@ function createHandshakeMessage (versions) {
   return handshakeBuffer
 }
 
-function parseNegotiatedResponse (buffer) {
+function parseNegotiatedResponse (buffer, log) {
   const h = [
     buffer.readUInt8(),
     buffer.readUInt8(),
@@ -62,6 +62,8 @@ function parseNegotiatedResponse (buffer) {
     buffer.readUInt8()
   ]
   if (h[0] === 0x48 && h[1] === 0x54 && h[2] === 0x54 && h[3] === 0x50) {
+    log.error('Handshake failed since server responded with HTTP.')
+
     throw newError(
       'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
         '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
@@ -97,9 +99,10 @@ function newHandshakeBuffer () {
  * Shake hands using the channel and return the protocol version
  *
  * @param {Channel} channel the channel use to shake hands
+ * @param {Logger} log the log object
  * @returns {Promise<HandshakeResult>} Promise of protocol version and consumeRemainingBuffer
  */
-export default function handshake (channel) {
+export default function handshake (channel, log) {
   return new Promise((resolve, reject) => {
     const handshakeErrorHandler = error => {
       reject(error)
@@ -113,7 +116,7 @@ export default function handshake (channel) {
     channel.onmessage = buffer => {
       try {
         // read the response buffer and initialize the protocol
-        const protocolVersion = parseNegotiatedResponse(buffer)
+        const protocolVersion = parseNegotiatedResponse(buffer, log)
 
         resolve({
           protocolVersion,
