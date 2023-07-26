@@ -86,7 +86,7 @@ interface ResultObserver<R extends RecordShape = RecordShape> {
   onCompleted?: (summary: ResultSummary) => void
 
   /**
-   * Called when some error occurs during the result process or query execution
+   * Called when some error occurs during the result processing or query execution
    * @param {Error} error The error ocurred
    */
   onError?: (error: Error) => void
