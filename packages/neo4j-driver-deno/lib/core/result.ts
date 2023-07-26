@@ -20,7 +20,7 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 
 import ResultSummary from './result-summary.ts'
-import Record, { Dict } from './record.ts'
+import Record, { RecordShape } from './record.ts'
 import { Query, PeekableAsyncIterator } from './types.ts'
 import { observer, util, connectionHolder } from './internal/index.ts'
 import { newError, PROTOCOL_ERROR } from './error.ts'
@@ -56,8 +56,8 @@ const DEFAULT_ON_KEYS = (keys: string[]): void => {}
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
  */
-interface QueryResult<RecordShape extends Dict = Dict> {
-  records: Array<Record<RecordShape>>
+interface QueryResult<R extends RecordShape = RecordShape> {
+  records: Array<Record<R>>
   summary: ResultSummary
 }
 
@@ -65,7 +65,7 @@ interface QueryResult<RecordShape extends Dict = Dict> {
  * Interface to observe updates on the Result which is being produced.
  *
  */
-interface ResultObserver<RecordShape extends Dict =Dict> {
+interface ResultObserver<R extends RecordShape = RecordShape> {
   /**
    * Receive the keys present on the record whenever this information is available
    *
@@ -77,7 +77,7 @@ interface ResultObserver<RecordShape extends Dict =Dict> {
    * Receive the each record present on the {@link @Result}
    * @param {Record} record The {@link Record} produced
    */
-  onNext?: (record: Record<RecordShape>) => void
+  onNext?: (record: Record<R>) => void
 
   /**
    * Called when the result is fully received
@@ -86,7 +86,7 @@ interface ResultObserver<RecordShape extends Dict =Dict> {
   onCompleted?: (summary: ResultSummary) => void
 
   /**
-   * Called when some error occurs during the result proccess or query execution
+   * Called when some error occurs during the result process or query execution
    * @param {Error} error The error ocurred
    */
   onError?: (error: Error) => void
@@ -111,7 +111,7 @@ interface QueuedResultObserver extends ResultObserver {
  * Alternatively can be consumed lazily using {@link Result#subscribe} function.
  * @access public
  */
-class Result<RecordShape extends Dict = Dict> implements Promise<QueryResult<RecordShape>> {
+class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult<R>> {
   private readonly _stack: string | null
   private readonly _streamObserverPromise: Promise<observer.ResultStreamObserver>
   private _p: Promise<QueryResult> | null
@@ -212,12 +212,12 @@ class Result<RecordShape extends Dict = Dict> implements Promise<QueryResult<Rec
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise (): Promise<QueryResult<RecordShape>> {
+  private _getOrCreatePromise (): Promise<QueryResult<R>> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
-        const records: Record[] = []
+        const records: Array<Record<R>> = []
         const observer = {
-          onNext: (record: Record) => {
+          onNext: (record: Record<R>) => {
             records.push(record)
           },
           onCompleted: (summary: ResultSummary) => {
@@ -240,9 +240,9 @@ class Result<RecordShape extends Dict = Dict> implements Promise<QueryResult<Rec
    * *Should not be combined with {@link Result#subscribe} or ${@link Result#then} functions.*
    *
    * @public
-   * @returns {PeekableAsyncIterator<Record<RecordShape>, ResultSummary>} The async iterator for the Results
+   * @returns {PeekableAsyncIterator<Record<R>, ResultSummary>} The async iterator for the Results
    */
-  [Symbol.asyncIterator] (): PeekableAsyncIterator<Record<RecordShape>, ResultSummary> {
+  [Symbol.asyncIterator] (): PeekableAsyncIterator<Record<R>, ResultSummary> {
     if (!this.isOpen()) {
       const error = newError('Result is already consumed')
       return {
@@ -345,9 +345,9 @@ class Result<RecordShape extends Dict = Dict> implements Promise<QueryResult<Rec
    * @param {function(error: {message:string, code:string})} onRejected - function to be called upon errors.
    * @return {Promise} promise.
    */
-  then<TResult1 = QueryResult<RecordShape>, TResult2 = never>(
+  then<TResult1 = QueryResult<R>, TResult2 = never>(
     onFulfilled?:
-    | ((value: QueryResult<RecordShape>) => TResult1 | PromiseLike<TResult1>)
+    | ((value: QueryResult<R>) => TResult1 | PromiseLike<TResult1>)
     | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
@@ -364,7 +364,7 @@ class Result<RecordShape extends Dict = Dict> implements Promise<QueryResult<Rec
    */
   catch <TResult = never>(
     onRejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
-  ): Promise<QueryResult<RecordShape> | TResult> {
+  ): Promise<QueryResult<R> | TResult> {
     return this._getOrCreatePromise().catch(onRejected)
   }
 
@@ -376,7 +376,7 @@ class Result<RecordShape extends Dict = Dict> implements Promise<QueryResult<Rec
    * @return {Promise} promise.
    */
   [Symbol.toStringTag]: string
-  finally (onfinally?: (() => void) | null): Promise<QueryResult<RecordShape>> {
+  finally (onfinally?: (() => void) | null): Promise<QueryResult<R>> {
     return this._getOrCreatePromise().finally(onfinally)
   }
 
@@ -391,7 +391,7 @@ class Result<RecordShape extends Dict = Dict> implements Promise<QueryResult<Rec
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return {void}
    */
-  subscribe (observer: ResultObserver<RecordShape>): void {
+  subscribe (observer: ResultObserver<R>): void {
     this._subscribe(observer)
       .catch(() => {})
   }

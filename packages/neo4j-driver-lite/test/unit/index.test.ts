@@ -56,7 +56,8 @@ import neo4j, {
   isRelationship,
   isPath,
   isPathSegment,
-  isUnboundRelationship
+  isUnboundRelationship,
+  RecordShape
 } from '../../'
 
 import { internal } from 'neo4j-driver-core'
@@ -452,5 +453,15 @@ describe('index', () => {
     expect(neo4j.notificationFilterDisabledCategory.PERFORMANCE).toBeDefined()
     expect(neo4j.notificationFilterDisabledCategory.DEPRECATION).toBeDefined()
     expect(neo4j.notificationFilterDisabledCategory.GENERIC).toBeDefined()
+  })
+
+  it('should export RecordShape', () => {
+    // just checking if record shape is exported correctly
+    const shape: RecordShape = {
+      a: 1234,
+      2: '2'
+    }
+
+    expect(shape).toBeDefined()
   })
 })

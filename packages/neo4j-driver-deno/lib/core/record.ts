@@ -19,27 +19,27 @@
 
 import { newError } from './error.ts'
 
-type Dict<Key extends PropertyKey = PropertyKey, Value = any> = {
+type RecordShape<Key extends PropertyKey = PropertyKey, Value = any> = {
   [K in Key]: Value
 }
 
 type Visitor<
-  Entries extends Dict = Dict,
+  Entries extends RecordShape = RecordShape,
   Key extends keyof Entries = keyof Entries
 > = MapVisitor<void, Entries, Key>
 
 type MapVisitor<
   ReturnType,
-  Entries extends Dict = Dict,
+  Entries extends RecordShape = RecordShape,
   Key extends keyof Entries = keyof Entries
 > = (value: Entries[Key], key: Key, record: Record<Entries>) => ReturnType
 
 function generateFieldLookup<
-  Entries extends Dict = Dict,
+  Entries extends RecordShape = RecordShape,
   Key extends keyof Entries = keyof Entries,
-  FieldLookup extends Dict<string, number> = Dict<string, number>
+  FieldLookup extends RecordShape<string, number> = RecordShape<string, number>
 > (keys: Key[]): FieldLookup {
-  const lookup: Dict<string, number> = {}
+  const lookup: RecordShape<string, number> = {}
   keys.forEach((name, idx) => {
     lookup[name as string] = idx
   })
@@ -66,9 +66,9 @@ function generateFieldLookup<
  * @access public
  */
 class Record<
-  Entries extends Dict = Dict,
+  Entries extends RecordShape = RecordShape,
   Key extends keyof Entries = keyof Entries,
-  FieldLookup extends Dict<keyof Entries, number> = Dict<keyof Entries, number>
+  FieldLookup extends RecordShape<keyof Entries, number> = RecordShape<keyof Entries, number>
 > {
   keys: Key[]
   length: number
@@ -240,4 +240,4 @@ class Record<
 }
 
 export default Record
-export type { Dict }
+export type { RecordShape }

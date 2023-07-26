@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 
-import Record, { Dict } from './record.ts'
+import Record, { RecordShape } from './record.ts'
 import ResultSummary from './result-summary.ts'
 
 /**
  * Represents the fully streamed result
  */
-export default class EagerResult<Entries extends Dict = Dict> {
+export default class EagerResult<Entries extends RecordShape = RecordShape> {
   keys: string[]
   records: Array<Record<Entries>>
   summary: ResultSummary

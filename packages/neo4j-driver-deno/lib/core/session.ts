@@ -36,7 +36,7 @@ import { NumberOrInteger } from './graph-types.ts'
 import TransactionPromise from './transaction-promise.ts'
 import ManagedTransaction from './transaction-managed.ts'
 import BookmarkManager from './bookmark-manager.ts'
-import { Dict } from './record.ts'
+import { RecordShape } from './record.ts'
 import NotificationFilter from './notification-filter.ts'
 import { Logger } from './internal/logger.ts'
 
@@ -171,11 +171,11 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
    * @return {Result} New Result.
    */
-  run<RecordShape extends Dict = Dict> (
+  run<R extends RecordShape = RecordShape> (
     query: Query,
     parameters?: any,
     transactionConfig?: TransactionConfig
-  ): Result<RecordShape> {
+  ): Result<R> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters

@@ -25,7 +25,7 @@ import QueryExecutor from '../src/internal/query-executor'
 import { ConfiguredCustomResolver } from '../src/internal/resolver'
 import { LogLevel } from '../src/types'
 import resultTransformers from '../src/result-transformers'
-import Record, { Dict } from '../src/record'
+import Record, { RecordShape } from '../src/record'
 import { validNotificationFilters } from './utils/notification-filters.fixtures'
 
 describe('Driver', () => {
@@ -543,7 +543,7 @@ describe('Driver', () => {
         await expect(output).rejects.toThrow(expectedError)
       })
 
-      function extendsDefaultWith<T = EagerResult<Dict>> (config: QueryConfig<T>) {
+      function extendsDefaultWith<T = EagerResult<RecordShape>> (config: QueryConfig<T>) {
         return () => {
           const defaultConfig = {
             resultTransformer: resultTransformers.eagerResultTransformer(),
