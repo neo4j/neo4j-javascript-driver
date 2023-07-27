@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 
-import Record, { Dict } from './record.ts'
+import Record, { RecordShape } from './record.ts'
 import Result from './result.ts'
 import EagerResult from './result-eager.ts'
 import ResultSummary from './result-summary.ts'
 import { newError } from './error.ts'
 
-async function createEagerResultFromResult<Entries extends Dict> (result: Result): Promise<EagerResult<Entries>> {
+async function createEagerResultFromResult<Entries extends RecordShape> (result: Result): Promise<EagerResult<Entries>> {
   const { summary, records } = await result
   const keys = await result.keys()
   return new EagerResult<Entries>(keys, records, summary)
@@ -59,7 +59,7 @@ class ResultTransformers {
    *
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
    */
-  eagerResultTransformer<Entries extends Dict = Dict>(): ResultTransformer<EagerResult<Entries>> {
+  eagerResultTransformer<Entries extends RecordShape = RecordShape>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
   }
 

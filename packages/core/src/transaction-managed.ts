@@ -20,9 +20,9 @@
 import Result from './result'
 import Transaction from './transaction'
 import { Query } from './types'
-import { Dict } from './record'
+import { RecordShape } from './record'
 
-type Run = (query: Query, parameters?: any) => Result
+type Run<R extends RecordShape = RecordShape> = (query: Query, parameters?: any) => Result<R>
 
 /**
  * Represents a transaction that is managed by the transaction executor.
@@ -61,7 +61,7 @@ class ManagedTransaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run<RecordShape extends Dict =Dict> (query: Query, parameters?: any): Result<RecordShape> {
+  run<R extends RecordShape = RecordShape> (query: Query, parameters?: any): Result<R> {
     return this._run(query, parameters)
   }
 }

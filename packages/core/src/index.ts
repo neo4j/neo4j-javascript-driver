@@ -54,7 +54,7 @@ import {
   PathSegment,
   isPathSegment
 } from './graph-types'
-import Record from './record'
+import Record, { RecordShape } from './record'
 import { isPoint, Point } from './spatial-types'
 import ResultSummary, {
   queryType,
@@ -259,6 +259,7 @@ export type {
   SessionConfig,
   QueryConfig,
   RoutingControl,
+  RecordShape,
   ResultTransformer,
   NotificationCategory,
   NotificationSeverityLevel,

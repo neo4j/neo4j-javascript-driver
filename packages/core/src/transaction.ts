@@ -37,7 +37,7 @@ import {
 import { newError } from './error'
 import Result from './result'
 import { Query } from './types'
-import { Dict } from './record'
+import { RecordShape } from './record'
 import NotificationFilter from './notification-filter'
 
 /**
@@ -183,7 +183,7 @@ class Transaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run<RecordShape extends Dict = Dict> (query: Query, parameters?: any): Result<RecordShape> {
+  run<R extends RecordShape = RecordShape> (query: Query, parameters?: any): Result<R> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters

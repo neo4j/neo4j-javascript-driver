@@ -23,6 +23,7 @@ import { Bookmarks } from 'neo4j-driver-core/types/internal/bookmarks'
 import { ConnectionProvider, internal } from 'neo4j-driver-core'
 import driver, {
   DateTime,
+  RecordShape,
   RxSession,
   RxTransaction,
   RxResult,
@@ -136,3 +137,8 @@ const instanceOfDriverRxSession: boolean = dummy instanceof driver.RxSession
 const instanceOfDriverRxTransaction: boolean = dummy instanceof driver.RxTransaction
 const instanceOfDriverRxManagedTransaction: boolean = dummy instanceof driver.RxManagedTransaction
 const instanceOfDriverRxResult: boolean = dummy instanceof driver.RxResult
+
+const recordShape: RecordShape = {
+  a: 1234,
+  2: 'abc'
+}
