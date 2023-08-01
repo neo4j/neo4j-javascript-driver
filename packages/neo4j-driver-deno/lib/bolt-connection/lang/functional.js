@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import { json } from '../../core/index.ts'
+
 /**
  * Identity function.
  *
@@ -40,7 +42,7 @@ export function reuseOngoingRequest (func, thisArg = null) {
   const ongoingRequests = new Map()
 
   return function (...args) {
-    const key = JSON.stringify(args)
+    const key = json.stringify(args)
     if (ongoingRequests.has(key)) {
       return ongoingRequests.get(key)
     }
