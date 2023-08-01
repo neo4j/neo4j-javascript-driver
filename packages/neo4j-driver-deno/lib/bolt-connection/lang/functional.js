@@ -28,3 +28,29 @@
 export function identity (x) {
   return x
 }
+
+/**
+ * Makes the function able to share ongoing requests
+ *
+ * @param {function(...args): Promise} func The function to be decorated
+ * @param {any} thisArg The `this` which should be used in the function call
+ * @return {function(...args): Promise} The decorated function
+ */
+export function reuseOnGoingRequest (func, thisArg = null) {
+  const map = new Map()
+
+  return function (...args) {
+    const key = JSON.stringify(args)
+    if (map.has(key)) {
+      return map.get(key)
+    }
+
+    const promise = func.apply(thisArg, args)
+
+    map.set(key, promise)
+
+    return promise.finally(() => {
+      map.delete(key)
+    })
+  }
+}
