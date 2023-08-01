@@ -36,21 +36,21 @@ export function identity (x) {
  * @param {any} thisArg The `this` which should be used in the function call
  * @return {function(...args): Promise} The decorated function
  */
-export function reuseOnGoingRequest (func, thisArg = null) {
-  const map = new Map()
+export function reuseOngoingRequest (func, thisArg = null) {
+  const ongoingRequests = new Map()
 
   return function (...args) {
     const key = JSON.stringify(args)
-    if (map.has(key)) {
-      return map.get(key)
+    if (ongoingRequests.has(key)) {
+      return ongoingRequests.get(key)
     }
 
     const promise = func.apply(thisArg, args)
 
-    map.set(key, promise)
+    ongoingRequests.set(key, promise)
 
     return promise.finally(() => {
-      map.delete(key)
+      ongoingRequests.delete(key)
     })
   }
 }

@@ -99,7 +99,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         : DEFAULT_ROUTING_TABLE_PURGE_DELAY
     )
 
-    this._refreshRoutingTable = functional.reuseOnGoingRequest(this._refreshRoutingTable, this)
+    this._refreshRoutingTable = functional.reuseOngoingRequest(this._refreshRoutingTable, this)
   }
 
   _createConnectionErrorHandler () {

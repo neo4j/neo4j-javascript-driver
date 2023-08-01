@@ -1,4 +1,4 @@
-import { reuseOnGoingRequest } from '../../src/lang/functional.js'
+import { reuseOngoingRequest } from '../../src/lang/functional.js'
 
 describe('functional', () => {
   describe('reuseOnGoingRequest', () => {
@@ -6,7 +6,7 @@ describe('functional', () => {
       const expectedParams = ['a', 1, { a: 'a' }]
       const func = jest.fn(() => Promise.resolve())
 
-      const decoratedFunction = reuseOnGoingRequest(func)
+      const decoratedFunction = reuseOngoingRequest(func)
       await decoratedFunction(...expectedParams)
 
       expect(func).toHaveBeenCalledWith(...expectedParams)
@@ -19,7 +19,7 @@ describe('functional', () => {
         return thisArg
       })
 
-      const decoratedFunction = reuseOnGoingRequest(func, thisArg)
+      const decoratedFunction = reuseOngoingRequest(func, thisArg)
       const receivedThis = await decoratedFunction(...expectedParams)
 
       expect(receivedThis).toBe(thisArg)
@@ -29,7 +29,7 @@ describe('functional', () => {
       const expectedResult = { a: 'abc' }
       const func = jest.fn(() => Promise.resolve(expectedResult))
 
-      const decoratedFunction = reuseOnGoingRequest(func)
+      const decoratedFunction = reuseOngoingRequest(func)
       const result = await decoratedFunction()
 
       expect(result).toBe(expectedResult)
@@ -39,7 +39,7 @@ describe('functional', () => {
       const error = new Error('Ops, I did it!')
       const func = jest.fn(() => Promise.reject(error))
 
-      const decoratedFunction = reuseOnGoingRequest(func)
+      const decoratedFunction = reuseOngoingRequest(func)
       const promise = decoratedFunction()
       expect(promise).rejects.toThrow(error)
     })
@@ -49,7 +49,7 @@ describe('functional', () => {
       const expectedResult = { a: 'abc' }
       const { promises, func } = mockPromiseFunction()
 
-      const decoratedFunction = reuseOnGoingRequest(func)
+      const decoratedFunction = reuseOngoingRequest(func)
 
       const resultPromises = [
         decoratedFunction(...expectedParams),
@@ -74,7 +74,7 @@ describe('functional', () => {
       const expectedResult2 = { k: 'bbk' }
       const { promises, func } = mockPromiseFunction()
 
-      const decoratedFunction = reuseOnGoingRequest(func)
+      const decoratedFunction = reuseOngoingRequest(func)
 
       const resultPromises = [
         decoratedFunction(...expectedParams1),
@@ -101,7 +101,7 @@ describe('functional', () => {
       const expectedResult2 = { k: 'bbk' }
       const { promises, func } = mockPromiseFunction()
 
-      const decoratedFunction = reuseOnGoingRequest(func)
+      const decoratedFunction = reuseOngoingRequest(func)
 
       const resultPromises = [
         decoratedFunction(...expectedParams)
@@ -132,7 +132,7 @@ describe('functional', () => {
       const expectedResult2 = { k: 'bbk' }
       const { promises, func } = mockPromiseFunction()
 
-      const decoratedFunction = reuseOnGoingRequest(func)
+      const decoratedFunction = reuseOngoingRequest(func)
 
       const resultPromises = [
         decoratedFunction(...expectedParams)
