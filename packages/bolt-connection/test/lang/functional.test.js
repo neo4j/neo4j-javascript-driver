@@ -16,7 +16,7 @@ describe('functional', () => {
       const expectedParams = ['a', 1, { a: 'a' }]
       const thisArg = { t: 'his' }
       const func = jest.fn(async function () {
-        return thisArg
+        return this
       })
 
       const decoratedFunction = reuseOngoingRequest(func, thisArg)
@@ -25,7 +25,7 @@ describe('functional', () => {
       expect(receivedThis).toBe(thisArg)
     })
 
-    it('should values return by the supplied function', async () => {
+    it('should return values returned by the supplied function', async () => {
       const expectedResult = { a: 'abc' }
       const func = jest.fn(() => Promise.resolve(expectedResult))
 
@@ -36,7 +36,7 @@ describe('functional', () => {
     })
 
     it('should throw value thrown by supplied function', async () => {
-      const error = new Error('Ops, I did it!')
+      const error = new Error('Oops, I did it again!')
       const func = jest.fn(() => Promise.reject(error))
 
       const decoratedFunction = reuseOngoingRequest(func)
