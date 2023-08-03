@@ -129,12 +129,6 @@ const skippedTests = [
     ifEndsWith('test_should_pass_bookmark_from_tx_to_tx_using_tx_run')
   ),
   skip(
-    'Driver resolves the address during the record fetch',
-    ifEndsWith(
-      'test_should_use_resolver_during_rediscovery_when_existing_routers_fail'
-    )
-  ),
-  skip(
     'Needs to implement "domain_name_resolver_fn"',
     ifEndsWith(
       'test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure'
