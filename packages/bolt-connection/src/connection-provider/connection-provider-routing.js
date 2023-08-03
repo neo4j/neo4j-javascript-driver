@@ -28,6 +28,7 @@ import {
   ConnectionErrorHandler,
   DelegateConnection
 } from '../connection'
+import { functional } from '../lang'
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const {
@@ -97,6 +98,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         ? int(routingTablePurgeDelay)
         : DEFAULT_ROUTING_TABLE_PURGE_DELAY
     )
+
+    this._refreshRoutingTable = functional.reuseOngoingRequest(this._refreshRoutingTable, this)
   }
 
   _createConnectionErrorHandler () {
@@ -357,10 +360,14 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._log.info(
       `Routing table is stale for database: "${database}" and access mode: "${accessMode}": ${currentRoutingTable}`
     )
-    return this._refreshRoutingTable(currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved, auth)
+    return this._refreshRoutingTable(currentRoutingTable, bookmarks, impersonatedUser, auth)
+      .then(newRoutingTable => {
+        onDatabaseNameResolved(newRoutingTable.database)
+        return newRoutingTable
+      })
   }
 
-  _refreshRoutingTable (currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved, auth) {
+  _refreshRoutingTable (currentRoutingTable, bookmarks, impersonatedUser, auth) {
     const knownRouters = currentRoutingTable.routers
 
     if (this._useSeedRouter) {
@@ -369,7 +376,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         currentRoutingTable,
         bookmarks,
         impersonatedUser,
-        onDatabaseNameResolved,
         auth
       )
     }
@@ -378,7 +384,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       currentRoutingTable,
       bookmarks,
       impersonatedUser,
-      onDatabaseNameResolved,
       auth
     )
   }
@@ -388,7 +393,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     currentRoutingTable,
     bookmarks,
     impersonatedUser,
-    onDatabaseNameResolved,
     auth
   ) {
     // we start with seed router, no routers were probed before
@@ -420,7 +424,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return await this._applyRoutingTableIfPossible(
       currentRoutingTable,
       newRoutingTable,
-      onDatabaseNameResolved,
       error
     )
   }
@@ -430,7 +433,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     currentRoutingTable,
     bookmarks,
     impersonatedUser,
-    onDatabaseNameResolved,
     auth
   ) {
     let [newRoutingTable, error] = await this._fetchRoutingTableUsingKnownRouters(
@@ -456,7 +458,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return await this._applyRoutingTableIfPossible(
       currentRoutingTable,
       newRoutingTable,
-      onDatabaseNameResolved,
       error
     )
   }
@@ -630,7 +631,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return [null, error]
   }
 
-  async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable, onDatabaseNameResolved, error) {
+  async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable, error) {
     if (!newRoutingTable) {
       // none of routing servers returned valid routing table, throw exception
       throw newError(
@@ -646,20 +647,18 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       this._useSeedRouter = true
     }
 
-    await this._updateRoutingTable(newRoutingTable, onDatabaseNameResolved)
+    await this._updateRoutingTable(newRoutingTable)
 
     return newRoutingTable
   }
 
-  async _updateRoutingTable (newRoutingTable, onDatabaseNameResolved) {
+  async _updateRoutingTable (newRoutingTable) {
     // close old connections to servers not present in the new routing table
     await this._connectionPool.keepAll(newRoutingTable.allServers())
     this._routingTableRegistry.removeExpired()
     this._routingTableRegistry.register(
       newRoutingTable
     )
-
-    onDatabaseNameResolved(newRoutingTable.database)
 
     this._log.info(`Updated routing table ${newRoutingTable}`)
   }

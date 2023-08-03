@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import { json } from '../../core/index.ts'
+
 /**
  * Identity function.
  *
@@ -27,4 +29,30 @@
  */
 export function identity (x) {
   return x
+}
+
+/**
+ * Makes the function able to share ongoing requests
+ *
+ * @param {function(...args): Promise} func The function to be decorated
+ * @param {any} thisArg The `this` which should be used in the function call
+ * @return {function(...args): Promise} The decorated function
+ */
+export function reuseOngoingRequest (func, thisArg = null) {
+  const ongoingRequests = new Map()
+
+  return function (...args) {
+    const key = json.stringify(args)
+    if (ongoingRequests.has(key)) {
+      return ongoingRequests.get(key)
+    }
+
+    const promise = func.apply(thisArg, args)
+
+    ongoingRequests.set(key, promise)
+
+    return promise.finally(() => {
+      ongoingRequests.delete(key)
+    })
+  }
 }
