@@ -21,11 +21,16 @@ import Neo4jContainer from './neo4j-container'
 
 const env = global.__karma__ ? global.__karma__.config.env : process.env
 
+console.error(env)
 const username = env.TEST_NEO4J_USER || 'neo4j'
 const password = env.TEST_NEO4J_PASS || 'password'
 const hostname = env.TEST_NEO4J_HOST || 'localhost'
 const scheme = env.TEST_NEO4J_SCHEME || 'bolt'
 const version = env.TEST_NEO4J_VERSION || '5.8'
+const testcontainersDisabled = env.TEST_CONTAINERS_DISABLED !== undefined
+  ? env.TEST_CONTAINERS_DISABLED.toUpperCase() === 'TRUE'
+  : false
+
 const cluster =
   env.TEST_NEO4J_IS_CLUSTER !== undefined
     ? env.TEST_NEO4J_IS_CLUSTER === '1'
@@ -42,7 +47,8 @@ const neo4jContainer = new Neo4jContainer({
   password,
   containerLogs: false,
   version,
-  edition
+  edition,
+  disabled: testcontainersDisabled
 })
 
 async function start () {
