@@ -21,7 +21,6 @@ import Neo4jContainer from './neo4j-container'
 
 const env = global.__karma__ ? global.__karma__.config.env : process.env
 
-console.error(env)
 const username = env.TEST_NEO4J_USER || 'neo4j'
 const password = env.TEST_NEO4J_PASS || 'password'
 const hostname = env.TEST_NEO4J_HOST || 'localhost'
