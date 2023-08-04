@@ -9,6 +9,7 @@ from common import (
 
 if __name__ == "__main__":
     os.environ["TEST_NEO4J_IPV6_ENABLED"] = "False"
+    os.environ["TEST_CONTAINERS_DISABLED"] = "True"
 
     if is_lite():
         ignore = "--ignore=neo4j-driver"
@@ -18,6 +19,8 @@ if __name__ == "__main__":
     if is_deno():
         pass
     elif is_browser():
-        run_in_driver_repo(["npm", "run", "test::browser", "--", ignore])
+        run_in_driver_repo(["npm", "run", "test::browser",
+                           "--", ignore], env=os.environ)
     else:
-        run_in_driver_repo(["npm", "run", "test::integration", "--", ignore])
+        run_in_driver_repo(
+            ["npm", "run", "test::integration", "--", ignore], env=os.environ)
