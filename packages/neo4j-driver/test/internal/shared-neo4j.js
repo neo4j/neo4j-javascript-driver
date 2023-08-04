@@ -26,6 +26,8 @@ const password = env.TEST_NEO4J_PASS || 'password'
 const hostname = env.TEST_NEO4J_HOST || 'localhost'
 const scheme = env.TEST_NEO4J_SCHEME || 'bolt'
 const version = env.TEST_NEO4J_VERSION || '5.8'
+const httpPort = env.TEST_NEO4J_HTTP_PORT || 7474
+const boltPort = env.TEST_NEO4J_BOLT_PORT || 7687
 const testcontainersDisabled = env.TEST_CONTAINERS_DISABLED !== undefined
   ? env.TEST_CONTAINERS_DISABLED.toUpperCase() === 'TRUE'
   : false
@@ -52,6 +54,8 @@ const neo4jContainer = new Neo4jContainer({
 
 async function start () {
   await neo4jContainer.start()
+  env.TEST_NEO4J_BOLT_PORT = neo4jContainer.getBoltPort(boltPort)
+  env.TEST_NEO4J_HTTP_PORT = neo4jContainer.getHttpPort(httpPort)
 }
 
 async function stop () {
@@ -119,7 +123,10 @@ export default {
     return `${hostname}:${neo4jContainer.getHttpPort()}`
   },
   get boltPort () {
-    return neo4jContainer.getBoltPort()
+    return neo4jContainer.getBoltPort(boltPort)
+  },
+  get httpPort () {
+    return neo4jContainer.getHttpPort(httpPort)
   },
   isTestContainer: true,
   ipv6Enabled: ipv6Enabled,

@@ -22,8 +22,9 @@ export default class Neo4jContainer {
 
     const tag = this._edition != null ? `${this._version}-${this._edition}` : this._version
 
-    const { GenericContainer, Wait } = require('testcontainers')
-    const { DockerImageName } = require('testcontainers/dist/docker-image-name')
+    // Browser does not support testcontainers
+    const path = globalThis.Window ? './browser/testcontainer' : './node/testcontainer'
+    const { GenericContainer, DockerImageName, Wait } = require(path)
 
     let container = new GenericContainer(new DockerImageName(null, 'neo4j', tag).toString())
       .withEnv('NEO4J_AUTH', `${this._user}/${this._password}`)
@@ -47,16 +48,16 @@ export default class Neo4jContainer {
     }
   }
 
-  getBoltPort () {
-    return this.getMappedPort(7687)
+  getBoltPort (defaultPort = 7687) {
+    return this.getMappedPort(7687, defaultPort)
   }
 
-  getHttpPort () {
-    return this.getMappedPort(7474)
+  getHttpPort (defaultPort = 7474) {
+    return this.getMappedPort(7474, defaultPort)
   }
 
-  getMappedPort (port) {
-    return this._container != null ? this._container.getMappedPort(port) : port
+  getMappedPort (port, defaultPort) {
+    return this._container != null ? this._container.getMappedPort(port) : defaultPort
   }
 
   async stop () {

@@ -54,7 +54,7 @@ module.exports = function (config) {
     concurrency: 1,
     browserNoActivityTimeout: 30 * 60 * 1000,
     client: {
-      env: process.env
+      env: { ...process.env, TEST_CONTAINERS_DISABLED: 'TRUE' }
     }
   })
 }

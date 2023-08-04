@@ -68,7 +68,7 @@ module.exports = function (config) {
       }
     },
     client: {
-      env: process.env
+      env: { ...process.env, TEST_CONTAINERS_DISABLED: 'TRUE' }
     }
   })
 }
