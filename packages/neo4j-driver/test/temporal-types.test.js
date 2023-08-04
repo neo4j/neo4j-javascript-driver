@@ -54,11 +54,11 @@ describe('#integration temporal-types', () => {
 
   beforeAll(() => {
     driver = neo4j.driver(
-      `${sharedNeo4j.scheme}://${sharedNeo4j.hostname}`,
+      `${sharedNeo4j.scheme}://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     driverWithNativeNumbers = neo4j.driver(
-      `${sharedNeo4j.scheme}://${sharedNeo4j.hostname}`,
+      `${sharedNeo4j.scheme}://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken,
       { disableLosslessIntegers: true }
     )

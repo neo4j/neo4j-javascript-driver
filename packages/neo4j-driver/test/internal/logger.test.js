@@ -83,7 +83,7 @@ describe('#integration Logger', () => {
     const logged = []
     const config = memorizingLoggerConfig(logged)
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken,
       config
     )
@@ -116,7 +116,7 @@ describe('#integration Logger', () => {
     console.log = message => logged.push(message)
 
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken,
       {
         logging: neo4j.logging.console('debug')
@@ -153,7 +153,7 @@ describe('#integration Logger', () => {
     console.log = message => logged.push(message)
 
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken,
       {
         logging: neo4j.logging.console()

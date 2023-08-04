@@ -26,7 +26,7 @@ describe('#integration result stream', () => {
 
   beforeEach(async () => {
     driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     session = driver.session()

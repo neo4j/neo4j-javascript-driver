@@ -139,7 +139,8 @@ gulp.task('test-nodejs-stub', () => {
   return runJasmineTests('#stub*')
 })
 
-gulp.task('test-nodejs-integration', () => {
+gulp.task('test-nodejs-integration', async () => {
+  await sharedNeo4j.start()
   return runJasmineTests('#integration*')
 })
 
@@ -190,13 +191,11 @@ gulp.task('set', function () {
 })
 
 gulp.task('start-neo4j', function (done) {
-  sharedNeo4j.start()
-  done()
+  sharedNeo4j.start().then(done)
 })
 
 gulp.task('stop-neo4j', function (done) {
-  sharedNeo4j.stop()
-  done()
+  sharedNeo4j.stop().then(done)
 })
 
 gulp.task('run-stress-tests', function () {
@@ -242,7 +241,7 @@ gulp.task('test-browser', gulp.series('browser', 'run-browser-test'))
 
 gulp.task(
   'test',
-  gulp.series('run-ts-declaration-tests', 'test-nodejs', 'test-browser')
+  gulp.series('run-ts-declaration-tests', 'start-neo4j', 'test-nodejs', 'test-browser', 'stop-neo4j')
 )
 
 gulp.task('default', gulp.series('test'))

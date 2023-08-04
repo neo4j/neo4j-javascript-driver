@@ -41,7 +41,7 @@ describe('Package', function () {
     }
 
     driver = neo4j.driver(
-      'bolt://localhost',
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password)
     )
     const session = driver.session()
