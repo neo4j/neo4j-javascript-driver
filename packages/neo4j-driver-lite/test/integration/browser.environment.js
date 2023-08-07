@@ -18,6 +18,7 @@
  */
 const NodeEnvironment = require('jest-environment-node')
 const WebSocket = require('isomorphic-ws')
+const Config = require('./config')
 
 class BrowserEnvironment extends NodeEnvironment {
   async setup () {
@@ -27,9 +28,14 @@ class BrowserEnvironment extends NodeEnvironment {
     this.global.window.navigator = {
       userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
     }
+    await Config.default.startNeo4j()
+    this.global.process.env = process.env
+    this.global.process.env.TEST_CONTAINERS_DISABLED = 'TRUE'
   }
 
   async teardown () {
+    await Config.default.stopNeo4j()
+    this.global.process.env.TEST_CONTAINERS_DISABLED = 'FALSE'
     await super.teardown()
   }
 }
