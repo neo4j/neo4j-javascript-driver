@@ -8,9 +8,11 @@ export default class Neo4jContainer {
     this._edition = edition
     this._container = null
     this._disabled = disabled || false
+    this._usages = 0
   }
 
   async start () {
+    this._usages++
     if (this._disabled) {
       return
     }
@@ -61,7 +63,13 @@ export default class Neo4jContainer {
   }
 
   async stop () {
-    await this._container.stop()
-    this._container = undefined
+    this._usages--
+    if (this._usages <= 0) {
+      this._usages = 0
+      if (this._container != null) {
+        await this._container.stop()
+      }
+      this._container = undefined
+    }
   }
 }
