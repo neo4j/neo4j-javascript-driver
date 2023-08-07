@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 module.exports = function (config) {
+  process.env.TEST_CONTAINERS_DISABLED = 'TRUE'
   config.set({
     basePath: '../../',
     karmaTypescriptConfig: {
@@ -54,7 +55,7 @@ module.exports = function (config) {
     concurrency: 1,
     browserNoActivityTimeout: 30 * 60 * 1000,
     client: {
-      env: { ...process.env, TEST_CONTAINERS_DISABLED: 'TRUE' }
+      env: process.env
     }
   })
 }

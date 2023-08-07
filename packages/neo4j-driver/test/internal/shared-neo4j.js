@@ -28,6 +28,7 @@ const scheme = env.TEST_NEO4J_SCHEME || 'bolt'
 const version = env.TEST_NEO4J_VERSION || '5.8'
 const httpPort = env.TEST_NEO4J_HTTP_PORT || 7474
 const boltPort = env.TEST_NEO4J_BOLT_PORT || 7687
+
 const testcontainersDisabled = env.TEST_CONTAINERS_DISABLED !== undefined
   ? env.TEST_CONTAINERS_DISABLED.toUpperCase() === 'TRUE'
   : false
@@ -54,8 +55,10 @@ const neo4jContainer = new Neo4jContainer({
 
 async function start () {
   await neo4jContainer.start()
-  env.TEST_NEO4J_BOLT_PORT = neo4jContainer.getBoltPort(boltPort)
-  env.TEST_NEO4J_HTTP_PORT = neo4jContainer.getHttpPort(httpPort)
+  if (global.process) {
+    global.process.env.TEST_NEO4J_BOLT_PORT = neo4jContainer.getBoltPort(boltPort)
+    global.process.env.TEST_NEO4J_HTTP_PORT = neo4jContainer.getHttpPort(httpPort)
+  }
 }
 
 async function stop () {
@@ -117,10 +120,10 @@ export default {
   getEdition: getEdition,
   hostname: hostname,
   get hostnameWithBoltPort () {
-    return `${hostname}:${neo4jContainer.getBoltPort()}`
+    return `${hostname}:${neo4jContainer.getBoltPort(boltPort)}`
   },
   get hostnameWithHttpPort () {
-    return `${hostname}:${neo4jContainer.getHttpPort()}`
+    return `${hostname}:${neo4jContainer.getHttpPort(httpPort)}`
   },
   get boltPort () {
     return neo4jContainer.getBoltPort(boltPort)
