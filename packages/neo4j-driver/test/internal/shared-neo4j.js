@@ -107,6 +107,16 @@ const debugLogging = {
   logger: (level, message) => console.warn(`${level}: ${message}`)
 }
 
+if (global.beforeAll) {
+  beforeAll(async () => {
+    await neo4jContainer.start()
+  })
+
+  afterAll(async () => {
+    await neo4jContainer.stop()
+  })
+}
+
 export default {
   start: start,
   stop: stop,
