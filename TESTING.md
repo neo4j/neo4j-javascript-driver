@@ -66,43 +66,22 @@ More details about how to use Testkit could be found on [its repository](https:/
 
 ## Testing (Legacy)
 
-Tests **require** latest [Boltkit](https://github.com/neo4j-contrib/boltkit) and [Firefox](https://www.mozilla.org/firefox/) to be installed in the system.
-
-Boltkit is needed to start, stop and configure local test database. Boltkit can be installed with the following command:
-
-```
-pip3 install --upgrade boltkit
-```
+Tests **require** [Docker](https://www.docker.com/) and [Firefox](https://www.mozilla.org/firefox/) to be installed in the system.
 
 To run tests against "default" Neo4j version:
 
 ```
-./runTests.sh
+npm test
 ```
 
 To run tests against specified Neo4j version:
 
 ```
-./runTests.sh '-e 4.2.0'
+export TEST_NEO4J_VERSION=5.9 npm test
 ```
 
-Simple `npm test` can also be used if you already have a running version of a compatible Neo4j server.
-
-For development, you can have the build tool rerun the tests each time you change
-the source code:
+If you already have a running version of a compatible Neo4j server, you can run:
 
 ```
-gulp watch-n-test
+export TEST_CONTAINERS_DISABLED=true npm test
 ```
-
-If the `gulp` command line tool is not available, you might need to install this globally:
-
-```
-npm install -g gulp-cli
-```
-
-### Testing on windows
-
-To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.
-The admin right is required to start/stop Neo4j properly as a system service.
-While there is no need to grab admin right if you are running tests against an existing Neo4j server using `npm test`.
