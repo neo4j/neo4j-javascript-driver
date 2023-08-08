@@ -77,11 +77,11 @@ npm test
 To run tests against specified Neo4j version:
 
 ```
-export TEST_NEO4J_VERSION=5.9 npm test
+TEST_NEO4J_VERSION=5.9 npm test
 ```
 
 If you already have a running version of a compatible Neo4j server, you can run:
 
 ```
-export TEST_CONTAINERS_DISABLED=true npm test
+TEST_CONTAINERS_DISABLED=true npm test
 ```
