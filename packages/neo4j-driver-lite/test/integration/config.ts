@@ -45,11 +45,11 @@ export default {
   get testNonClusterSafe () {
     return cluster ? test.skip.bind(test) : test
   },
-  get httpPort () {
-    return neo4jContainer.getHttpPort(httpPort)
+  get httpPort (): string {
+    return neo4jContainer.getHttpPort(httpPort).toString()
   },
-  get boltPort () {
-    return neo4jContainer.getBoltPort(boltPort)
+  get boltPort (): string {
+    return neo4jContainer.getBoltPort(boltPort).toString()
   },
   async startNeo4j () {
     await neo4jContainer.start()
