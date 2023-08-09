@@ -642,8 +642,15 @@ describe('AuthenticationProvider', () => {
         authenticationProvider
       } = createScenario()
 
+      const handleSecurityExceptionSpy = jest.spyOn(authenticationProvider._authTokenManager, 'handleSecurityException')
+
       authenticationProvider.handleError({ code, connection })
 
+      if (code.startsWith('Neo.ClientError.Security.')) {
+        expect(handleSecurityExceptionSpy).toBeCalledWith(connection.authToken, code)
+      } else {
+        expect(handleSecurityExceptionSpy).not.toBeCalled()
+      }
       expect(authTokenProvider).not.toHaveBeenCalled()
     })
 

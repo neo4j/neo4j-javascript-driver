@@ -113,6 +113,28 @@ class AuthTokenManagers {
       'Neo.ClientError.Security.TokenExpired'
     ])
   }
+
+  /**
+   * Creates a {@link AuthTokenManager} for handle {@link AuthToken} and password rotation.
+   *
+   * **Warning**: `tokenProvider` must only ever return auth information belonging to the same identity.
+   * Switching identities using the `AuthTokenManager` is undefined behavior.
+   *
+   * @param param0 - The params
+   * @param {function(): Promise<AuthToken>} param0.tokenProvider - Retrieves a new valid auth token.
+   * Must only ever return auth information belonging to the same identity.
+   * @returns {AuthTokenManager} The basic auth data manager.
+   * @experimental Exposed as preview feature.
+   */
+  basic ({ tokenProvider }: { tokenProvider: () => Promise<AuthToken> }): AuthTokenManager {
+    if (typeof tokenProvider !== 'function') {
+      throw new TypeError(`tokenProvider should be function, but got: ${typeof tokenProvider}`)
+    }
+
+    return new ExpirationBasedAuthTokenManager(async () => {
+      return { token: await tokenProvider() }
+    }, ['Neo.ClientError.Security.Unauthorized'])
+  }
 }
 
 /**

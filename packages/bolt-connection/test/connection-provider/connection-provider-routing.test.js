@@ -1786,6 +1786,47 @@ describe.each([
     expect(error2.retriable).toBe(false)
   })
 
+  it.each(usersDataSet)('should not change error to retriable when error when TokenExpired happens and authTokenManagers.basic is being used [user=%s]', async (user) => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+
+    )
+
+    setupAuthTokenManager(connectionProvider, authTokenManagers.basic({ tokenProvider: () => {} }))
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const error1 = server3Connection.handleAndTransformError(error, server3)
+    const error2 = server2Connection.handleAndTransformError(error, server2)
+
+    expect(error1.retriable).toBe(false)
+    expect(error2.retriable).toBe(false)
+  })
+
   it.each(usersDataSet)('should use resolved seed router after accepting table with no writers [user=%s]', (user, done) => {
     const routingTable1 = newRoutingTable(
       null,

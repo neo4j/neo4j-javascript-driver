@@ -91,8 +91,14 @@ const driver4: Driver = driver(
 const driver5: Driver = driver('bolt://localhost:7687', authTokenManagers.bearer({
   tokenProvider: async () => {
     return {
-      token: auth.basic('neo4j', 'password')
+      token: auth.bearer('bearer token')
     }
+  }
+}))
+
+const driver6: Driver = driver('bolt://localhost:7687', authTokenManagers.basic({
+  tokenProvider: async () => {
+    return auth.basic('neo4j', 'password')
   }
 }))
 

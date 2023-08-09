@@ -246,6 +246,26 @@ it('should not change error to retriable when error when TokenExpired happens an
   expect(error.retriable).toBe(false)
 })
 
+it('should not change error to retriable when error when TokenExpired happens and authTokenManagers.basic is being used', async () => {
+  const address = ServerAddress.fromUrl('localhost:123')
+  const pool = newPool()
+  const connectionProvider = newDirectConnectionProvider(address, pool, authTokenManagers.basic({ tokenProvider: () => null }))
+
+  const conn = await connectionProvider.acquireConnection({
+    accessMode: 'READ',
+    database: ''
+  })
+
+  const expectedError = newError(
+    'Message',
+    'Neo.ClientError.Security.TokenExpired'
+  )
+
+  const error = conn.handleAndTransformError(expectedError, address)
+
+  expect(error.retriable).toBe(false)
+})
+
 describe('constructor', () => {
   describe('newPool', () => {
     const server0 = ServerAddress.fromUrl('localhost:123')
