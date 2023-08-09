@@ -35,11 +35,11 @@ describe('#integration spatial-types', () => {
 
   beforeAll(() => {
     driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     driverWithNativeNumbers = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken,
       { disableLosslessIntegers: true }
     )

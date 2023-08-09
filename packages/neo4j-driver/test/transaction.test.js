@@ -26,7 +26,7 @@ describe('#integration transaction', () => {
 
   beforeEach(async () => {
     driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     session = driver.session()
@@ -306,7 +306,7 @@ describe('#integration transaction', () => {
       .then(result => {
         const sum = result.summary
         expect(sum.server).toBeDefined()
-        expect(sum.server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
+        expect(sum.server.address).toEqual(`${sharedNeo4j.hostnameWithBoltPort}`)
         expect(sum.server.version).toBeUndefined()
         tx.commit().then(done)
       })
@@ -326,7 +326,7 @@ describe('#integration transaction', () => {
         const server = summary.server
 
         expect(server).toBeDefined()
-        expect(server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
+        expect(server.address).toEqual(`${sharedNeo4j.hostnameWithBoltPort}`)
         expect(server.version).toBeUndefined()
         done()
       }

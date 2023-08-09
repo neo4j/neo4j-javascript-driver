@@ -71,7 +71,7 @@ describe('#integration node values', () => {
   it('should support returning nodes ', done => {
     // Given
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     const session = driver.session()
@@ -95,7 +95,7 @@ describe('#integration relationship values', () => {
   it('should support returning relationships', done => {
     // Given
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     const session = driver.session()
@@ -119,7 +119,7 @@ describe('#integration path values', () => {
   it('should support returning paths', done => {
     // Given
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     const session = driver.session()
@@ -177,7 +177,7 @@ describe('#integration byte arrays', () => {
 
   it('should fail to return byte array if server does not support byte arrays', done => {
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     const session = driver.session()
@@ -196,7 +196,7 @@ describe('#integration byte arrays', () => {
 function testValue (actual, expected) {
   return done => {
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     const queryPromise = runReturnQuery(driver, actual, expected)
@@ -211,7 +211,7 @@ function testValue (actual, expected) {
 function testValues (values) {
   return done => {
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     const queriesPromise = values.reduce(

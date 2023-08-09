@@ -154,7 +154,7 @@ describe('#unit ServerVersion', () => {
 describe('#integration ServerVersion', () => {
   it('should fetch version using driver', async () => {
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     const version = await ServerVersion.fromDriver(driver)

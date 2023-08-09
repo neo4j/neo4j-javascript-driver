@@ -139,15 +139,18 @@ gulp.task('test-nodejs-stub', () => {
   return runJasmineTests('#stub*')
 })
 
-gulp.task('test-nodejs-integration', () => {
+gulp.task('test-nodejs-integration', async () => {
+  await sharedNeo4j.start()
   return runJasmineTests('#integration*')
 })
 
-gulp.task('run-browser-test-chrome', function (cb) {
+gulp.task('run-browser-test-chrome', async function (cb) {
+  await sharedNeo4j.start()
   runKarma('chrome', cb)
 })
 
-gulp.task('run-browser-test-firefox', function (cb) {
+gulp.task('run-browser-test-firefox', async function (cb) {
+  await sharedNeo4j.start()
   runKarma('firefox', cb)
 })
 
@@ -190,13 +193,11 @@ gulp.task('set', function () {
 })
 
 gulp.task('start-neo4j', function (done) {
-  sharedNeo4j.start()
-  done()
+  sharedNeo4j.start().then(done).catch(error => done.fail(error))
 })
 
 gulp.task('stop-neo4j', function (done) {
-  sharedNeo4j.stop()
-  done()
+  sharedNeo4j.stop().then(done).catch(error => done.fail(error))
 })
 
 gulp.task('run-stress-tests', function () {
@@ -211,7 +212,8 @@ gulp.task('run-stress-tests', function () {
     .on('end', logActiveNodeHandles)
 })
 
-gulp.task('run-stress-tests-without-jasmine', function () {
+gulp.task('run-stress-tests-without-jasmine', async function () {
+  await sharedNeo4j.start()
   const stresstest = require('./test/stress-test')
   return stresstest()
 })
@@ -238,11 +240,11 @@ gulp.task('run-ts-declaration-tests', function (done) {
 
 gulp.task('all', gulp.series('nodejs', 'browser'))
 
-gulp.task('test-browser', gulp.series('browser', 'run-browser-test'))
+gulp.task('test-browser', gulp.series('start-neo4j', 'browser', 'run-browser-test'))
 
 gulp.task(
   'test',
-  gulp.series('run-ts-declaration-tests', 'test-nodejs', 'test-browser')
+  gulp.series('run-ts-declaration-tests', 'start-neo4j', 'test-nodejs', 'test-browser', 'stop-neo4j')
 )
 
 gulp.task('default', gulp.series('test'))

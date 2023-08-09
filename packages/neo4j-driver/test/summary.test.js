@@ -26,7 +26,7 @@ describe('#integration result summary', () => {
 
     beforeEach(done => {
       driver = neo4j.driver(
-        `bolt://${sharedNeo4j.hostname}`,
+        `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
         sharedNeo4j.authToken
       )
       session = driver.session()
@@ -64,7 +64,7 @@ describe('#integration result summary', () => {
 
     beforeEach(done => {
       driver = neo4j.driver(
-        `bolt://${sharedNeo4j.hostname}`,
+        `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
         sharedNeo4j.authToken,
         {
           disableLosslessIntegers: true

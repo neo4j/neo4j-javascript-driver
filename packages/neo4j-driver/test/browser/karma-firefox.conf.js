@@ -16,7 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 module.exports = function (config) {
+  process.env.TEST_CONTAINERS_DISABLED = 'TRUE'
   config.set({
     basePath: '../../',
     karmaTypescriptConfig: {

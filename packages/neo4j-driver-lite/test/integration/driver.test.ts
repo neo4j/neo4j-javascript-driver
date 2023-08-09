@@ -17,29 +17,31 @@
  * limitations under the License.
  */
 import neo4j, { Driver, QueryResult, int } from '../../'
-import {
-  hostname,
-  password,
-  scheme,
-  username,
-  testNonClusterSafe
-} from './config'
+import Config from './config'
 
 describe('neo4j-driver-lite', () => {
   let driver: Driver
 
+  beforeAll(async () => {
+    await Config.startNeo4j()
+  }, 20000)
+
+  afterAll(async () => {
+    await Config.stopNeo4j()
+  }, 20000)
+
   beforeEach(() => {
     driver = neo4j.driver(
-      `${scheme}://${hostname}`,
-      neo4j.auth.basic(username, password)
+      `${Config.scheme}://${Config.hostname}:${Config.boltPort}`,
+      neo4j.auth.basic(Config.username, Config.password)
     )
   })
 
   afterEach(async () => {
-    await driver.close()
+    await driver?.close()
   })
 
-  testNonClusterSafe('should run a query over a session', async () => {
+  Config.testNonClusterSafe('should run a query over a session', async () => {
     const result: QueryResult = await driver.session().run('RETURN 2')
     expect(result.records.length).toEqual(1)
     expect(result.records[0].length).toEqual(1)
@@ -47,10 +49,10 @@ describe('neo4j-driver-lite', () => {
   })
 
   test('hasReachableServer success', async () => {
-    await expect(neo4j.hasReachableServer(`${scheme}://${hostname}`)).resolves.toBe(true)
+    await expect(neo4j.hasReachableServer(`${Config.scheme}://${Config.hostname}:${Config.boltPort}`)).resolves.toBe(true)
   })
 
   test('hasReachableServer failure', async () => {
-    await expect(neo4j.hasReachableServer(`${scheme}://${hostname}:9999`)).rejects.toBeInstanceOf(Error)
+    await expect(neo4j.hasReachableServer(`${Config.scheme}://${Config.hostname}:12`)).rejects.toBeInstanceOf(Error)
   })
 })

@@ -48,7 +48,7 @@ describe('#integration examples', () => {
 
   const user = sharedNeo4j.username
   const password = sharedNeo4j.password
-  const uri = `bolt://${sharedNeo4j.hostname}:7687`
+  const uri = `bolt://${sharedNeo4j.hostnameWithBoltPort}`
 
   beforeAll(() => {
     driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken)

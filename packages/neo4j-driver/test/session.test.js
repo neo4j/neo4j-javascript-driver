@@ -42,7 +42,7 @@ describe('#integration session', () => {
 
   beforeEach(async () => {
     driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     session = driver.session()
@@ -56,7 +56,7 @@ describe('#integration session', () => {
 
   it('should be possible to close driver after closing session with failed tx ', done => {
     const driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
     const session = driver.session()
@@ -187,7 +187,7 @@ describe('#integration session', () => {
     session.run(query).then(result => {
       const sum = result.summary
       expect(sum.server).toBeDefined()
-      expect(sum.server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
+      expect(sum.server.address).toEqual(`${sharedNeo4j.hostnameWithBoltPort}`)
       expect(sum.server.version).toBeUndefined()
       done()
     })
@@ -1194,7 +1194,7 @@ describe('#integration session', () => {
   function numberOfAcquiredConnectionsFromPool () {
     const pool = driver._connectionProvider._connectionPool
     return pool.activeResourceCount(
-      ServerAddress.fromUrl(`${sharedNeo4j.hostname}:7687`)
+      ServerAddress.fromUrl(`${sharedNeo4j.hostnameWithBoltPort}`)
     )
   }
 
