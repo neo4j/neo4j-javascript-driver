@@ -26,7 +26,7 @@ import {
   internal,
   ServerInfo,
   staticAuthTokenManager,
-  expirationBasedAuthTokenManager
+  authTokenManagers
 } from 'neo4j-driver-core'
 import { RoutingTable } from '../../src/rediscovery/'
 import { Pool } from '../../src/pool'
@@ -1719,7 +1719,7 @@ describe.each([
       pool
     )
 
-    setupAuthTokenManager(connectionProvider, expirationBasedAuthTokenManager({ tokenProvider: () => null }))
+    setupAuthTokenManager(connectionProvider, authTokenManagers.bearer({ tokenProvider: () => null }))
 
     const error = newError(
       'Message',

@@ -77,7 +77,7 @@ export class AuthTokenAndExpiration {
      * The expected expiration date of the auth token.
      *
      * This information will be used for triggering the auth token refresh
-     * in managers created with {@link expirationBasedAuthTokenManager}.
+     * in managers created with {@link authTokenManagers#bearer}.
      *
      * If this value is not defined, the {@link AuthToken} will be considered valid
      * until a `Neo.ClientError.Security.TokenExpired` error happens.
@@ -89,25 +89,39 @@ export class AuthTokenAndExpiration {
 }
 
 /**
- * Creates a {@link AuthTokenManager} for handle {@link AuthToken} which is expires.
- *
- * **Warning**: `tokenProvider` must only ever return auth information belonging to the same identity.
- * Switching identities using the `AuthTokenManager` is undefined behavior.
- *
- * @param {object} param0 - The params
- * @param {function(): Promise<AuthTokenAndExpiration>} param0.tokenProvider - Retrieves a new valid auth token.
- * Must only ever return auth information belonging to the same identity.
- * @returns {AuthTokenManager} The temporal auth data manager.
- * @experimental Exposed as preview feature.
+ * Defines the object which holds the common {@link AuthTokenManager} used in the Driver
  */
-export function expirationBasedAuthTokenManager ({ tokenProvider }: { tokenProvider: () => Promise<AuthTokenAndExpiration> }): AuthTokenManager {
-  if (typeof tokenProvider !== 'function') {
-    throw new TypeError(`tokenProvider should be function, but got: ${typeof tokenProvider}`)
+class AuthTokenManagers {
+  /**
+   * Creates a {@link AuthTokenManager} for handle {@link AuthToken} which is expires.
+   *
+   * **Warning**: `tokenProvider` must only ever return auth information belonging to the same identity.
+   * Switching identities using the `AuthTokenManager` is undefined behavior.
+   *
+   * @param {object} param0 - The params
+   * @param {function(): Promise<AuthTokenAndExpiration>} param0.tokenProvider - Retrieves a new valid auth token.
+   * Must only ever return auth information belonging to the same identity.
+   * @returns {AuthTokenManager} The temporal auth data manager.
+   * @experimental Exposed as preview feature.
+   */
+  bearer ({ tokenProvider }: { tokenProvider: () => Promise<AuthTokenAndExpiration> }): AuthTokenManager {
+    if (typeof tokenProvider !== 'function') {
+      throw new TypeError(`tokenProvider should be function, but got: ${typeof tokenProvider}`)
+    }
+    return new ExpirationBasedAuthTokenManager(tokenProvider, [
+      'Neo.ClientError.Security.Unauthorized',
+      'Neo.ClientError.Security.TokenExpired'
+    ])
   }
-  return new ExpirationBasedAuthTokenManager(tokenProvider, [
-    'Neo.ClientError.Security.Unauthorized',
-    'Neo.ClientError.Security.TokenExpired'
-  ])
+}
+
+/**
+ * Holds the common {@link AuthTokenManagers} used in the Driver
+ */
+export const authTokenManagers: AuthTokenManagers = Object.freeze(new AuthTokenManagers())
+
+export type {
+  AuthTokenManagers
 }
 
 /**

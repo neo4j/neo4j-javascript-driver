@@ -21,6 +21,8 @@ import { logging } from './logging'
 
 import {
   auth,
+  AuthTokenManagers,
+  authTokenManagers,
   BookmarkManager,
   bookmarkManager,
   BookmarkManagerConfig,
@@ -63,7 +65,6 @@ import {
   NotificationFilterDisabledCategory,
   notificationFilterDisabledCategory,
   AuthTokenManager,
-  expirationBasedAuthTokenManager,
   AuthTokenAndExpiration,
   staticAuthTokenManager,
   NotificationFilterMinimumSeverityLevel,
@@ -361,6 +362,7 @@ const graph = {
  * @private
  */
 const forExport = {
+  authTokenManagers,
   driver,
   hasReachableServer,
   int,
@@ -423,11 +425,11 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel,
-  expirationBasedAuthTokenManager
+  notificationFilterMinimumSeverityLevel
 }
 
 export {
+  authTokenManagers,
   driver,
   hasReachableServer,
   int,
@@ -490,13 +492,13 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel,
-  expirationBasedAuthTokenManager
+  notificationFilterMinimumSeverityLevel
 }
 export type {
   QueryResult,
   AuthToken,
   AuthTokenManager,
+  AuthTokenManagers,
   AuthTokenAndExpiration,
   Config,
   EncryptionLevel,

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { expirationBasedAuthTokenManager } from '../../core/index.ts'
+import { staticAuthTokenManager } from '../../core/index.ts'
 import { object } from '../lang/index.js'
 
 /**
@@ -25,9 +25,7 @@ import { object } from '../lang/index.js'
  */
 export default class AuthenticationProvider {
   constructor ({ authTokenManager, userAgent, boltAgent }) {
-    this._authTokenManager = authTokenManager || expirationBasedAuthTokenManager({
-      tokenProvider: () => {}
-    })
+    this._authTokenManager = authTokenManager || staticAuthTokenManager({})
     this._userAgent = userAgent
     this._boltAgent = boltAgent
   }

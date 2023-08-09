@@ -18,6 +18,8 @@
  */
 
 import {
+  authTokenManagers,
+  AuthTokenManagers,
   Neo4jError,
   isRetriableError,
   error,
@@ -87,7 +89,6 @@ import {
   notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   AuthTokenAndExpiration,
-  expirationBasedAuthTokenManager,
   types as coreTypes
 } from 'neo4j-driver-core'
 import {
@@ -211,6 +212,7 @@ declare const graph: {
 */
 
 declare const forExport: {
+  authTokenManagers: typeof authTokenManagers
   driver: typeof driver
   hasReachableServer: typeof hasReachableServer
   int: typeof int
@@ -282,11 +284,11 @@ declare const forExport: {
   notificationSeverityLevel: typeof notificationSeverityLevel
   notificationFilterDisabledCategory: typeof notificationFilterDisabledCategory
   notificationFilterMinimumSeverityLevel: typeof notificationFilterMinimumSeverityLevel
-  expirationBasedAuthTokenManager: typeof expirationBasedAuthTokenManager
   logging: typeof logging
 }
 
 export {
+  authTokenManagers,
   driver,
   hasReachableServer,
   int,
@@ -358,11 +360,11 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  expirationBasedAuthTokenManager,
   logging
 }
 
 export type {
+  AuthTokenManagers,
   BookmarkManager,
   BookmarkManagerConfig,
   SessionConfig,

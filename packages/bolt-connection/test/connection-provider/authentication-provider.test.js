@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expirationBasedAuthTokenManager } from 'neo4j-driver-core'
+import { authTokenManagers } from 'neo4j-driver-core'
 import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
 
 describe('AuthenticationProvider', () => {
@@ -785,7 +785,7 @@ describe('AuthenticationProvider', () => {
   })
 
   function createAuthenticationProvider (authTokenProvider, mocks) {
-    const authTokenManager = expirationBasedAuthTokenManager({ tokenProvider: authTokenProvider })
+    const authTokenManager = authTokenManagers.bearer({ tokenProvider: authTokenProvider })
     const provider = new AuthenticationProvider({
       authTokenManager,
       userAgent: USER_AGENT,

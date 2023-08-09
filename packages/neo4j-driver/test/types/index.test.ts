@@ -45,7 +45,7 @@ import {
   NotificationFilterMinimumSeverityLevel,
   NotificationFilterDisabledCategory,
   notificationFilterDisabledCategory,
-  expirationBasedAuthTokenManager
+  authTokenManagers
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -88,7 +88,7 @@ const driver4: Driver = driver(
   }
 )
 
-const driver5: Driver = driver('bolt://localhost:7687', expirationBasedAuthTokenManager({
+const driver5: Driver = driver('bolt://localhost:7687', authTokenManagers.bearer({
   tokenProvider: async () => {
     return {
       token: auth.basic('neo4j', 'password')

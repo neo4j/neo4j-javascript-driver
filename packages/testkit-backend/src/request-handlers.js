@@ -562,7 +562,7 @@ export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId 
 
 export function NewExpirationBasedAuthTokenManager ({ neo4j }, context, _, wire) {
   const id = context.addAuthTokenManager((expirationBasedAuthTokenManagerId) => {
-    return neo4j.expirationBasedAuthTokenManager({
+    return neo4j.authTokenManagers.bearer({
       tokenProvider: () => new Promise((resolve, reject) => {
         const id = context.addExpirationBasedAuthTokenProviderRequest(resolve, reject)
         wire.writeResponse(responses.ExpirationBasedAuthTokenProviderRequest({ id, expirationBasedAuthTokenManagerId }))
