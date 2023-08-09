@@ -21,7 +21,7 @@ import auth from './auth'
 import { AuthToken } from './types'
 import { util } from './internal'
 
-type SecurityErrorCode = `Neo.ClientError.Security.${string}`
+export type SecurityErrorCode = `Neo.ClientError.Security.${string}`
 
 /**
  * Interface for the piece of software responsible for keeping track of current active {@link AuthToken} across the driver.
