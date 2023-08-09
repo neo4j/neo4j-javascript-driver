@@ -528,9 +528,16 @@ export function NewAuthTokenManager (_, context, _data, wire) {
         const id = context.addAuthTokenManagerGetAuthRequest(resolve, reject)
         wire.writeResponse(responses.AuthTokenManagerGetAuthRequest({ id, authTokenManagerId }))
       }),
-      onTokenExpired: (auth) => {
-        const id = context.addAuthTokenManagerOnAuthExpiredRequest()
-        wire.writeResponse(responses.AuthTokenManagerOnAuthExpiredRequest({ id, authTokenManagerId, auth }))
+      handleSecurityException: (auth, code) => {
+        if ([
+          'Neo.ClientError.Security.Unauthorized',
+          'Neo.ClientError.Security.TokenExpired'
+        ].includes(code)) {
+          const id = context.addAuthTokenManagerOnAuthExpiredRequest()
+          wire.writeResponse(responses.AuthTokenManagerOnAuthExpiredRequest({ id, authTokenManagerId, auth }))
+          return true
+        }
+        return false
       }
     }
   })

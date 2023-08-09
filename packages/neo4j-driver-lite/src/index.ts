@@ -125,11 +125,11 @@ function isAuthTokenManager (value: unknown): value is AuthTokenManager {
   if (typeof value === 'object' &&
     value != null &&
     'getToken' in value &&
-    'onTokenExpired' in value) {
+    'handleSecurityException' in value) {
     const manager = value as AuthTokenManager
 
     return typeof manager.getToken === 'function' &&
-      typeof manager.onTokenExpired === 'function'
+      typeof manager.handleSecurityException === 'function'
   }
 
   return false

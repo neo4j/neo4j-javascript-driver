@@ -87,7 +87,7 @@ import Session, { TransactionConfig } from './session'
 import Driver, * as driver from './driver'
 import auth from './auth'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager'
-import AuthTokenManager, { expirationBasedAuthTokenManager, staticAuthTokenManager, isStaticAuthTokenManger, AuthTokenAndExpiration } from './auth-token-manager'
+import AuthTokenManager, { expirationBasedAuthTokenManager, staticAuthTokenManager, AuthTokenAndExpiration } from './auth-token-manager'
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver'
 import { Config } from './types'
 import * as types from './types'
@@ -235,7 +235,6 @@ export {
   bookmarkManager,
   expirationBasedAuthTokenManager,
   staticAuthTokenManager,
-  isStaticAuthTokenManger,
   routing,
   resultTransformers,
   notificationCategory,

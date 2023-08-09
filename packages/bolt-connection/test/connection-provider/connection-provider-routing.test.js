@@ -1718,7 +1718,8 @@ describe.each([
       ],
       pool
     )
-    connectionProvider._authTokenManager = expirationBasedAuthTokenManager({ tokenProvider: () => null })
+
+    setupAuthTokenManager(connectionProvider, expirationBasedAuthTokenManager({ tokenProvider: () => null }))
 
     const error = newError(
       'Message',
@@ -1756,8 +1757,10 @@ describe.each([
         )
       ],
       pool
+
     )
-    connectionProvider._authTokenManager = staticAuthTokenManager({ authToken: null })
+
+    setupAuthTokenManager(connectionProvider, staticAuthTokenManager({ authToken: null }))
 
     const error = newError(
       'Message',
@@ -3943,4 +3946,8 @@ class FakeDnsResolver {
   resolve (seedRouter) {
     return Promise.resolve(this._addresses ? this._addresses : [seedRouter])
   }
+}
+
+function setupAuthTokenManager (provider, authTokenManager) {
+  provider._authenticationProvider._authTokenManager = authTokenManager
 }

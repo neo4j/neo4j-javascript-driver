@@ -99,9 +99,9 @@ function isAuthTokenManager (value) {
   return typeof value === 'object' &&
     value != null &&
     'getToken' in value &&
-    'onTokenExpired' in value &&
+    'handleSecurityException' in value &&
     typeof value.getToken === 'function' &&
-    typeof value.onTokenExpired === 'function'
+    typeof value.handleSecurityException === 'function'
 }
 
 function createAuthManager (authTokenOrManager) {

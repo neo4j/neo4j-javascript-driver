@@ -87,7 +87,7 @@ import Session, { TransactionConfig } from './session.ts'
 import Driver, * as driver from './driver.ts'
 import auth from './auth.ts'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager.ts'
-import AuthTokenManager, { expirationBasedAuthTokenManager, staticAuthTokenManager, isStaticAuthTokenManger, AuthTokenAndExpiration } from './auth-token-manager.ts'
+import AuthTokenManager, { expirationBasedAuthTokenManager, staticAuthTokenManager, AuthTokenAndExpiration } from './auth-token-manager.ts'
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver.ts'
 import { Config } from './types.ts'
 import * as types from './types.ts'
@@ -235,7 +235,6 @@ export {
   bookmarkManager,
   expirationBasedAuthTokenManager,
   staticAuthTokenManager,
-  isStaticAuthTokenManger,
   routing,
   resultTransformers,
   notificationCategory,

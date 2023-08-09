@@ -21,6 +21,8 @@ import auth from './auth.ts'
 import { AuthToken } from './types.ts'
 import { util } from './internal/index.ts'
 
+type SecurityErrorCode = `Neo.ClientError.Security.${string}`
+
 /**
  * Interface for the piece of software responsible for keeping track of current active {@link AuthToken} across the driver.
  * @interface
@@ -41,12 +43,13 @@ export default class AuthTokenManager {
   }
 
   /**
-   * Called to notify a token expiration.
+   * Handles an error notification emitted by the server if a security error happened.
    *
    * @param {AuthToken} token The expired token.
-   * @return {void}
+   * @param {`Neo.ClientError.Security.${string}`} securityErrorCode the security error code returned by the server
+   * @return {boolean} whether the exception was handled by the manager, so the driver knows if it can be retried..
    */
-  onTokenExpired (token: AuthToken): void {
+  handleSecurityException (token: AuthToken, securityErrorCode: SecurityErrorCode): boolean {
     throw new Error('Not implemented')
   }
 }
@@ -101,7 +104,10 @@ export function expirationBasedAuthTokenManager ({ tokenProvider }: { tokenProvi
   if (typeof tokenProvider !== 'function') {
     throw new TypeError(`tokenProvider should be function, but got: ${typeof tokenProvider}`)
   }
-  return new ExpirationBasedAuthTokenManager(tokenProvider)
+  return new ExpirationBasedAuthTokenManager(tokenProvider, [
+    'Neo.ClientError.Security.Unauthorized',
+    'Neo.ClientError.Security.TokenExpired'
+  ])
 }
 
 /**
@@ -114,18 +120,6 @@ export function expirationBasedAuthTokenManager ({ tokenProvider }: { tokenProvi
  */
 export function staticAuthTokenManager ({ authToken }: { authToken: AuthToken }): AuthTokenManager {
   return new StaticAuthTokenManager(authToken)
-}
-
-/**
- * Checks if the manager is a StaticAuthTokenManager
- *
- * @private
- * @experimental
- * @param {AuthTokenManager} manager The auth token manager to be checked.
- * @returns {boolean} Manager is StaticAuthTokenManager
- */
-export function isStaticAuthTokenManger (manager: AuthTokenManager): manager is StaticAuthTokenManager {
-  return manager instanceof StaticAuthTokenManager
 }
 
 interface TokenRefreshObserver {
@@ -154,6 +148,7 @@ class TokenRefreshObservable implements TokenRefreshObserver {
 class ExpirationBasedAuthTokenManager implements AuthTokenManager {
   constructor (
     private readonly _tokenProvider: () => Promise<AuthTokenAndExpiration>,
+    private readonly _handledSecurityCodes: SecurityErrorCode[],
     private _currentAuthData?: AuthTokenAndExpiration,
     private _refreshObservable?: TokenRefreshObservable) {
 
@@ -171,10 +166,14 @@ class ExpirationBasedAuthTokenManager implements AuthTokenManager {
     return this._currentAuthData?.token as AuthToken
   }
 
-  onTokenExpired (token: AuthToken): void {
-    if (util.equals(token, this._currentAuthData?.token)) {
-      this._scheduleRefreshAuthToken()
+  handleSecurityException (token: AuthToken, securityErrorCode: SecurityErrorCode): boolean {
+    if (this._handledSecurityCodes.includes(securityErrorCode)) {
+      if (util.equals(token, this._currentAuthData?.token)) {
+        this._scheduleRefreshAuthToken()
+      }
+      return true
     }
+    return false
   }
 
   private _scheduleRefreshAuthToken (observer?: TokenRefreshObserver): void {
@@ -221,7 +220,7 @@ class StaticAuthTokenManager implements AuthTokenManager {
     return this._authToken
   }
 
-  onTokenExpired (_: AuthToken): void {
-    // nothing to do here
+  handleSecurityException (_: AuthToken, __: SecurityErrorCode): boolean {
+    return false
   }
 }

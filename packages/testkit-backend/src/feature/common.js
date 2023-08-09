@@ -27,6 +27,7 @@ const features = [
   'Feature:API:Driver.ExecuteQuery',
   'Feature:API:Driver:NotificationsConfig',
   'Feature:API:Driver:GetServerInfo',
+  'Feature:API:Driver.SupportsSessionAuth',
   'Feature:API:Driver.VerifyAuthentication',
   'Feature:API:Driver.VerifyConnectivity',
   'Feature:API:Session:NotificationsConfig',

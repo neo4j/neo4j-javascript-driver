@@ -56,12 +56,10 @@ export default class AuthenticationProvider {
   handleError ({ connection, code }) {
     if (
       connection &&
-      [
-        'Neo.ClientError.Security.Unauthorized',
-        'Neo.ClientError.Security.TokenExpired'
-      ].includes(code)
+      code.startsWith('Neo.ClientError.Security.')
     ) {
-      this._authTokenManager.onTokenExpired(connection.authToken)
+      return this._authTokenManager.handleSecurityException(connection.authToken, code)
     }
+    return false
   }
 }
