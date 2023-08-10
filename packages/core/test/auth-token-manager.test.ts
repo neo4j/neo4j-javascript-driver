@@ -256,42 +256,106 @@ describe('authTokenManagers', () => {
     })
 
     describe('.getToken()', () => {
-      let bearer: AuthTokenManager
-      let tokenProvider: jest.Mock<Promise<AuthTokenAndExpiration>>
-      let authToken: AuthToken
+      describe('when token has no expiration', () => {
+        let bearer: AuthTokenManager
+        let tokenProvider: jest.Mock<Promise<AuthTokenAndExpiration>>
+        let authToken: AuthToken
 
-      beforeEach(async () => {
-        authToken = auth.bearer('bearer my_bear')
-        tokenProvider = jest.fn(async () => ({ token: authToken }))
-        bearer = authTokenManagers.bearer({ tokenProvider })
+        beforeEach(async () => {
+          authToken = auth.bearer('bearer my_bear')
+          tokenProvider = jest.fn(async () => ({ token: authToken }))
+          bearer = authTokenManagers.bearer({ tokenProvider })
+        })
+
+        it('should call tokenProvider once and return the provided token many times', async () => {
+          await expect(bearer.getToken()).resolves.toBe(authToken)
+
+          expect(tokenProvider).toHaveBeenCalledTimes(1)
+
+          await expect(bearer.getToken()).resolves.toBe(authToken)
+          await expect(bearer.getToken()).resolves.toBe(authToken)
+
+          expect(tokenProvider).toHaveBeenCalledTimes(1)
+        })
+
+        it.each(BEARER_HANDLED_ERROR_CODES)('should reflect the authToken refreshed by handleSecurityException(authToken, "%s")', async (code: SecurityErrorCode) => {
+          const newAuthToken = auth.bearer('bearer another_bear')
+          await expect(bearer.getToken()).resolves.toBe(authToken)
+
+          expect(tokenProvider).toHaveBeenCalledTimes(1)
+
+          tokenProvider.mockReturnValueOnce(Promise.resolve({ token: newAuthToken }))
+
+          bearer.handleSecurityException(authToken, code)
+          expect(tokenProvider).toHaveBeenCalledTimes(2)
+
+          await expect(bearer.getToken()).resolves.toBe(newAuthToken)
+          await expect(bearer.getToken()).resolves.toBe(newAuthToken)
+
+          expect(tokenProvider).toHaveBeenCalledTimes(2)
+        })
       })
 
-      it('should call tokenProvider once and return the provided token many times', async () => {
-        await expect(bearer.getToken()).resolves.toBe(authToken)
+      describe('when token has expiration', () => {
+        let bearer: AuthTokenManager
+        let tokenProvider: jest.Mock<Promise<AuthTokenAndExpiration>>
+        let authToken: AuthToken
 
-        expect(tokenProvider).toHaveBeenCalledTimes(1)
+        beforeEach(() => {
+          jest.useFakeTimers()
+          authToken = auth.bearer('bearer my_bearer')
+          tokenProvider = jest.fn(async () => ({
+            token: authToken,
+            expiration: expirationIn({ milliseconds: 2000 })
+          }))
+          bearer = authTokenManagers.bearer({ tokenProvider })
+        })
 
-        await expect(bearer.getToken()).resolves.toBe(authToken)
-        await expect(bearer.getToken()).resolves.toBe(authToken)
+        afterEach(() => {
+          jest.useRealTimers()
+        })
 
-        expect(tokenProvider).toHaveBeenCalledTimes(1)
-      })
+        it('should call tokenProvider if the existing token is expired', async () => {
+          await expect(bearer.getToken()).resolves.toBe(authToken)
+          expect(tokenProvider).toHaveBeenCalledTimes(1)
 
-      it.each(BEARER_HANDLED_ERROR_CODES)('should reflect the authToken refreshed by handleSecurityException(authToken, "%s")', async (code: SecurityErrorCode) => {
-        const newAuthToken = auth.bearer('bearer another_bear')
-        await expect(bearer.getToken()).resolves.toBe(authToken)
+          await expect(bearer.getToken()).resolves.toBe(authToken)
+          expect(tokenProvider).toHaveBeenCalledTimes(1)
 
-        expect(tokenProvider).toHaveBeenCalledTimes(1)
+          // the time passed, the token changed
+          jest.advanceTimersByTime(2001)
+          const newAuthToken = auth.bearer('bearer the_other_bear')
+          tokenProvider.mockReturnValueOnce(Promise.resolve({
+            token: newAuthToken,
+            expiration: expirationIn({ milliseconds: 2000 })
+          }))
 
-        tokenProvider.mockReturnValueOnce(Promise.resolve({ token: newAuthToken }))
+          await expect(bearer.getToken()).resolves.toBe(newAuthToken)
+          expect(tokenProvider).toHaveBeenCalledTimes(2)
 
-        bearer.handleSecurityException(authToken, code)
-        expect(tokenProvider).toHaveBeenCalledTimes(2)
+          await expect(bearer.getToken()).resolves.toBe(newAuthToken)
+          expect(tokenProvider).toHaveBeenCalledTimes(2)
+        })
 
-        await expect(bearer.getToken()).resolves.toBe(newAuthToken)
-        await expect(bearer.getToken()).resolves.toBe(newAuthToken)
+        it.each(BEARER_HANDLED_ERROR_CODES)('should reflect the authToken refreshed by handleSecurityException(authToken, "%s")', async (code: SecurityErrorCode) => {
+          const newAuthToken = auth.bearer('bearer another_bear')
+          await expect(bearer.getToken()).resolves.toBe(authToken)
 
-        expect(tokenProvider).toHaveBeenCalledTimes(2)
+          expect(tokenProvider).toHaveBeenCalledTimes(1)
+
+          tokenProvider.mockReturnValueOnce(Promise.resolve({
+            token: newAuthToken,
+            expiration: expirationIn({ milliseconds: 2000 })
+          }))
+
+          bearer.handleSecurityException(authToken, code)
+          expect(tokenProvider).toHaveBeenCalledTimes(2)
+
+          await expect(bearer.getToken()).resolves.toBe(newAuthToken)
+          await expect(bearer.getToken()).resolves.toBe(newAuthToken)
+
+          expect(tokenProvider).toHaveBeenCalledTimes(2)
+        })
       })
     })
   })
@@ -299,4 +363,8 @@ describe('authTokenManagers', () => {
 
 async function triggerEventLoop (): Promise<unknown> {
   return await new Promise(resolve => setTimeout(resolve, 0))
+}
+
+function expirationIn ({ milliseconds }: { milliseconds: number}): Date {
+  return new Date(Date.now() + milliseconds)
 }
