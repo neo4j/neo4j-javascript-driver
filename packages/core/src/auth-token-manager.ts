@@ -120,7 +120,7 @@ class AuthTokenManagers {
    * **Warning**: `tokenProvider` must only ever return auth information belonging to the same identity.
    * Switching identities using the `AuthTokenManager` is undefined behavior.
    *
-   * @param param0 - The params
+   * @param {object} param0 - The params
    * @param {function(): Promise<AuthToken>} param0.tokenProvider - Retrieves a new valid auth token.
    * Must only ever return auth information belonging to the same identity.
    * @returns {AuthTokenManager} The basic auth data manager.
@@ -139,8 +139,16 @@ class AuthTokenManagers {
 
 /**
  * Holds the common {@link AuthTokenManagers} used in the Driver
+ *
+ * @experimental Exposed as preview feature.
  */
-export const authTokenManagers: AuthTokenManagers = Object.freeze(new AuthTokenManagers())
+const authTokenManagers: AuthTokenManagers = new AuthTokenManagers()
+
+Object.freeze(authTokenManagers)
+
+export {
+  authTokenManagers
+}
 
 export type {
   AuthTokenManagers
