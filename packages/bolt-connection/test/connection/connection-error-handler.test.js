@@ -79,35 +79,7 @@ describe('#unit ConnectionErrorHandler', () => {
     ])
   })
 
-  it('should handle and transform authorization expired error', () => {
-    const errors = []
-    const addresses = []
-    const transformedError = newError('Message', 'Code')
-    const handler = ConnectionErrorHandler.create({
-      errorCode: SERVICE_UNAVAILABLE,
-      handleAuthorizationExpired: (error, address) => {
-        errors.push(error)
-        addresses.push(address)
-        return transformedError
-      }
-    })
-
-    const error1 = newError(
-      'C',
-      'Neo.ClientError.Security.AuthorizationExpired'
-    )
-
-    const errorTransformed1 = handler.handleAndTransformError(
-      error1,
-      ServerAddress.fromUrl('localhost:0')
-    )
-
-    expect(errorTransformed1).toEqual(transformedError)
-
-    expect(addresses).toEqual([ServerAddress.fromUrl('localhost:0')])
-  })
-
-  it('should return original erro if authorization expired handler is not informed', () => {
+  it('should return original error if authorization expired handler is not informed', () => {
     const errors = []
     const addresses = []
     const transformedError = newError('Message', 'Code')
@@ -140,13 +112,18 @@ describe('#unit ConnectionErrorHandler', () => {
     expect(addresses).toEqual([])
   })
 
-  it('should handle and transform token expired error', () => {
+  it.each([
+    'Neo.ClientError.Security.TokenExpired',
+    'Neo.ClientError.Security.AuthorizationExpired',
+    'Neo.ClientError.Security.Unauthorized',
+    'Neo.ClientError.Security.MadeUp'
+  ])('should handle and transform "%s"', (code) => {
     const errors = []
     const addresses = []
     const transformedError = newError('Message', 'Code')
     const handler = ConnectionErrorHandler.create({
       errorCode: SERVICE_UNAVAILABLE,
-      handleAuthorizationExpired: (error, address) => {
+      handleSecurityError: (error, address) => {
         errors.push(error)
         addresses.push(address)
         return transformedError
@@ -155,7 +132,7 @@ describe('#unit ConnectionErrorHandler', () => {
 
     const error1 = newError(
       'C',
-      'Neo.ClientError.Security.TokenExpired'
+      code
     )
 
     const errorTransformed1 = handler.handleAndTransformError(
@@ -168,7 +145,12 @@ describe('#unit ConnectionErrorHandler', () => {
     expect(addresses).toEqual([ServerAddress.fromUrl('localhost:0')])
   })
 
-  it('should return original erro if token expired handler is not informed', () => {
+  it.each([
+    'Neo.ClientError.Security.TokenExpired',
+    'Neo.ClientError.Security.AuthorizationExpired',
+    'Neo.ClientError.Security.Unauthorized',
+    'Neo.ClientError.Security.MadeUp'
+  ])('should return original error code equals "%s" if security error handler is not informed', (code) => {
     const errors = []
     const addresses = []
     const transformedError = newError('Message', 'Code')
@@ -188,7 +170,7 @@ describe('#unit ConnectionErrorHandler', () => {
 
     const error1 = newError(
       'C',
-      'Neo.ClientError.Security.TokenExpired'
+      code
     )
 
     const errorTransformed1 = handler.handleAndTransformError(

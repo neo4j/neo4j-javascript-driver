@@ -26,25 +26,25 @@ export default class ConnectionErrorHandler {
     errorCode,
     handleUnavailability,
     handleWriteFailure,
-    handleAuthorizationExpired
+    handleSecurityError
   ) {
     this._errorCode = errorCode
     this._handleUnavailability = handleUnavailability || noOpHandler
     this._handleWriteFailure = handleWriteFailure || noOpHandler
-    this._handleAuthorizationExpired = handleAuthorizationExpired || noOpHandler
+    this._handleSecurityError = handleSecurityError || noOpHandler
   }
 
   static create ({
     errorCode,
     handleUnavailability,
     handleWriteFailure,
-    handleAuthorizationExpired
+    handleSecurityError
   }) {
     return new ConnectionErrorHandler(
       errorCode,
       handleUnavailability,
       handleWriteFailure,
-      handleAuthorizationExpired
+      handleSecurityError
     )
   }
 
@@ -63,8 +63,8 @@ export default class ConnectionErrorHandler {
    * @return {Neo4jError} new error that should be propagated to the user.
    */
   handleAndTransformError (error, address, connection) {
-    if (isAutorizationExpiredError(error)) {
-      return this._handleAuthorizationExpired(error, address, connection)
+    if (isSecurityError(error)) {
+      return this._handleSecurityError(error, address, connection)
     }
     if (isAvailabilityError(error)) {
       return this._handleUnavailability(error, address, connection)
@@ -76,11 +76,10 @@ export default class ConnectionErrorHandler {
   }
 }
 
-function isAutorizationExpiredError (error) {
-  return error && (
-    error.code === 'Neo.ClientError.Security.AuthorizationExpired' ||
-      error.code === 'Neo.ClientError.Security.TokenExpired'
-  )
+function isSecurityError (error) {
+  return error != null &&
+    error.code != null &&
+    error.code.startsWith('Neo.ClientError.Security.')
 }
 
 function isAvailabilityError (error) {
