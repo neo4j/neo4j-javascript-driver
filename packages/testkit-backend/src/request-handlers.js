@@ -560,28 +560,47 @@ export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId 
   context.removeAuthTokenManagerOnAuthExpiredRequest(requestId)
 }
 
-export function NewExpirationBasedAuthTokenManager ({ neo4j }, context, _, wire) {
-  const id = context.addAuthTokenManager((expirationBasedAuthTokenManagerId) => {
+export function NewBearerAuthTokenManager ({ neo4j }, context, _, wire) {
+  const id = context.addAuthTokenManager((bearerAuthTokenManagerId) => {
     return neo4j.authTokenManagers.bearer({
       tokenProvider: () => new Promise((resolve, reject) => {
-        const id = context.addExpirationBasedAuthTokenProviderRequest(resolve, reject)
-        wire.writeResponse(responses.ExpirationBasedAuthTokenProviderRequest({ id, expirationBasedAuthTokenManagerId }))
+        const id = context.addBearerAuthTokenProviderRequest(resolve, reject)
+        wire.writeResponse(responses.BearerAuthTokenProviderRequest({ id, bearerAuthTokenManagerId }))
       })
     })
   })
 
-  wire.writeResponse(responses.ExpirationBasedAuthTokenManager({ id }))
+  wire.writeResponse(responses.BearerAuthTokenManager({ id }))
 }
 
-export function ExpirationBasedAuthTokenProviderCompleted (_, context, { requestId, auth }) {
-  const request = context.getExpirationBasedAuthTokenProviderRequest(requestId)
+export function BearerAuthTokenProviderCompleted (_, context, { requestId, auth }) {
+  const request = context.getBearerAuthTokenProviderRequest(requestId)
   request.resolve({
     expiration: auth.data.expiresInMs != null
       ? new Date(new Date().getTime() + auth.data.expiresInMs)
       : undefined,
     token: context.binder.parseAuthToken(auth.data.auth.data)
   })
-  context.removeExpirationBasedAuthTokenProviderRequest(requestId)
+  context.removeBearerAuthTokenProviderRequest(requestId)
+}
+
+export function NewBasicAuthTokenManager ({ neo4j }, context, _, wire) {
+  const id = context.addAuthTokenManager((basicAuthTokenManagerId) => {
+    return neo4j.authTokenManagers.basic({
+      tokenProvider: () => new Promise((resolve, reject) => {
+        const id = context.addBasicAuthTokenProviderRequest(resolve, reject)
+        wire.writeResponse(responses.BasicAuthTokenProviderRequest({ id, basicAuthTokenManagerId }))
+      })
+    })
+  })
+
+  wire.writeResponse(responses.BasicAuthTokenManager({ id }))
+}
+
+export function BasicAuthTokenProviderCompleted (_, context, { requestId, auth }) {
+  const request = context.getBasicAuthTokenProviderRequest(requestId)
+  request.resolve(context.binder.parseAuthToken(auth.data))
+  context.removeBasicAuthTokenProviderRequest(requestId)
 }
 
 export function GetRoutingTable (_, context, { driverId, database }, wire) {

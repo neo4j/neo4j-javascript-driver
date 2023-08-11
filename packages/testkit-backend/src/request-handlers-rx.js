@@ -29,8 +29,10 @@ export {
   AuthTokenManagerClose,
   AuthTokenManagerGetAuthCompleted,
   AuthTokenManagerOnAuthExpiredCompleted,
-  NewExpirationBasedAuthTokenManager,
-  ExpirationBasedAuthTokenProviderCompleted,
+  NewBearerAuthTokenManager,
+  BearerAuthTokenProviderCompleted,
+  NewBasicAuthTokenManager,
+  BasicAuthTokenProviderCompleted,
   FakeTimeInstall,
   FakeTimeTick,
   FakeTimeUninstall

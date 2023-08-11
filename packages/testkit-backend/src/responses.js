@@ -119,12 +119,20 @@ export function AuthTokenManagerOnAuthExpiredRequest ({ id, authTokenManagerId, 
   return response('AuthTokenManagerOnAuthExpiredRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth) })
 }
 
-export function ExpirationBasedAuthTokenManager ({ id }) {
-  return response('ExpirationBasedAuthTokenManager', { id })
+export function BearerAuthTokenManager ({ id }) {
+  return response('BearerAuthTokenManager', { id })
 }
 
-export function ExpirationBasedAuthTokenProviderRequest ({ id, expirationBasedAuthTokenManagerId }) {
-  return response('ExpirationBasedAuthTokenProviderRequest', { id, expirationBasedAuthTokenManagerId })
+export function BearerAuthTokenProviderRequest ({ id, bearerAuthTokenManagerId }) {
+  return response('BearerAuthTokenProviderRequest', { id, bearerAuthTokenManagerId })
+}
+
+export function BasicAuthTokenManager ({ id }) {
+  return response('BasicAuthTokenManager', { id })
+}
+
+export function BasicAuthTokenProviderRequest ({ id, basicAuthTokenManagerId }) {
+  return response('BasicAuthTokenProviderRequest', { id, basicAuthTokenManagerId })
 }
 
 export function DriverIsAuthenticated ({ id, authenticated }) {

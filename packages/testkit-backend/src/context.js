@@ -15,7 +15,8 @@ export default class Context {
     this._authTokenManagers = {}
     this._authTokenManagerGetAuthRequests = {}
     this._authTokenManagerOnAuthExpiredRequests = {}
-    this._expirationBasedAuthTokenProviderRequests = {}
+    this._bearerAuthTokenProviderRequests = {}
+    this._basicAuthTokenProviderRequests = {}
     this._binder = binder
     this._environmentLogLevel = environmentLogLevel
   }
@@ -201,16 +202,28 @@ export default class Context {
     delete this._authTokenManagerOnAuthExpiredRequests[id]
   }
 
-  addExpirationBasedAuthTokenProviderRequest (resolve, reject) {
-    return this._add(this._expirationBasedAuthTokenProviderRequests, { resolve, reject })
+  addBearerAuthTokenProviderRequest (resolve, reject) {
+    return this._add(this._bearerAuthTokenProviderRequests, { resolve, reject })
   }
 
-  getExpirationBasedAuthTokenProviderRequest (id) {
-    return this._expirationBasedAuthTokenProviderRequests[id]
+  getBearerAuthTokenProviderRequest (id) {
+    return this._bearerAuthTokenProviderRequests[id]
   }
 
-  removeExpirationBasedAuthTokenProviderRequest (id) {
-    delete this._expirationBasedAuthTokenProviderRequests[id]
+  removeBearerAuthTokenProviderRequest (id) {
+    delete this._bearerAuthTokenProviderRequests[id]
+  }
+
+  addBasicAuthTokenProviderRequest (resolve, reject) {
+    return this._add(this._basicAuthTokenProviderRequests, { resolve, reject })
+  }
+
+  getBasicAuthTokenProviderRequest (id) {
+    return this._basicAuthTokenProviderRequests[id]
+  }
+
+  removeBasicAuthTokenProviderRequest (id) {
+    delete this._basicAuthTokenProviderRequests[id]
   }
 
   _add (map, object) {
