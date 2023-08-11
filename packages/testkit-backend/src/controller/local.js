@@ -70,7 +70,8 @@ export default class LocalController extends Controller {
         this._writeResponse(contextId, newResponse('DriverError', {
           id,
           msg: e.message,
-          code: e.code
+          code: e.code,
+          retryable: e.retriable
         }))
       }
       return

@@ -6,6 +6,7 @@ const features = [
   'Feature:Auth:Bearer',
   'Feature:Auth:Managed',
   'Feature:API:BookmarkManager',
+  'Feature:API:RetryableExceptions',
   'Feature:API:Session:AuthConfig',
   'Feature:API:SSLConfig',
   'Feature:API:SSLSchemes',
