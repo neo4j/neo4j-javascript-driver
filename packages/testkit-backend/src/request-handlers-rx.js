@@ -28,7 +28,7 @@ export {
   NewAuthTokenManager,
   AuthTokenManagerClose,
   AuthTokenManagerGetAuthCompleted,
-  AuthTokenManagerOnAuthExpiredCompleted,
+  AuthTokenManagerHandleSecurityExceptionCompleted,
   NewBearerAuthTokenManager,
   BearerAuthTokenProviderCompleted,
   NewBasicAuthTokenManager,

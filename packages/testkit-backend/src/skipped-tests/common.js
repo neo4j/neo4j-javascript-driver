@@ -1,4 +1,4 @@
-import skip, { ifEquals, ifEndsWith, endsWith, ifStartsWith, startsWith, not } from './skip.js'
+import skip, { ifEquals, ifEndsWith, endsWith, ifStartsWith, startsWith, not, or } from './skip.js'
 
 const skippedTests = [
   skip(
@@ -184,6 +184,20 @@ const skippedTests = [
     ifEquals(
       'stub.driver_parameters.test_connection_acquisition_timeout_ms.TestConnectionAcquisitionTimeoutMs.test_does_not_encompass_router_handshake'
     )
+  ),
+  skip(
+    'Backend does not support async AuthTokenManager.handleSecurityException',
+    ifStartsWith('stub.authorization.test_auth_token_manager.TestAuthTokenManager')
+      .and(
+        or(
+          endsWith('test_error_on_pull_using_session_run'),
+          endsWith('test_error_on_begin_using_tx_run'),
+          endsWith('test_error_on_run_using_tx_run'),
+          endsWith('test_error_on_pull_using_tx_run'),
+          endsWith('test_error_on_commit_using_tx_run'),
+          endsWith('test_error_on_rollback_using_tx_run')
+        )
+      )
   )
 ]
 

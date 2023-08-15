@@ -115,8 +115,8 @@ export function AuthorizationToken (data) {
   return response('AuthorizationToken', data)
 }
 
-export function AuthTokenManagerOnAuthExpiredRequest ({ id, authTokenManagerId, auth }) {
-  return response('AuthTokenManagerOnAuthExpiredRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth) })
+export function AuthTokenManagerHandleSecurityExceptionRequest ({ id, authTokenManagerId, auth, code }) {
+  return response('AuthTokenManagerHandleSecurityExceptionRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth), error_code: code })
 }
 
 export function BearerAuthTokenManager ({ id }) {

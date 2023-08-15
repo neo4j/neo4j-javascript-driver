@@ -529,15 +529,16 @@ export function NewAuthTokenManager (_, context, _data, wire) {
         wire.writeResponse(responses.AuthTokenManagerGetAuthRequest({ id, authTokenManagerId }))
       }),
       handleSecurityException: (auth, code) => {
-        if ([
-          'Neo.ClientError.Security.Unauthorized',
-          'Neo.ClientError.Security.TokenExpired'
-        ].includes(code)) {
-          const id = context.addAuthTokenManagerOnAuthExpiredRequest()
-          wire.writeResponse(responses.AuthTokenManagerOnAuthExpiredRequest({ id, authTokenManagerId, auth }))
-          return true
-        }
-        return false
+        // The handle security exception should wait for the response
+        // to return the error as handle.
+        // However, testkit doesn't enable sync communication and
+        // the `handleSecurityException` must be sync since the
+        // part of the code which get called depends on it be sync.
+        // Send the message and return true is a naive implementation
+        // for making some of the tests valid.
+        const id = context.addAuthTokenManagerOnAuthExpiredRequest()
+        wire.writeResponse(responses.AuthTokenManagerHandleSecurityExceptionRequest({ id, authTokenManagerId, auth, code }))
+        return true
       }
     }
   })
@@ -556,7 +557,8 @@ export function AuthTokenManagerGetAuthCompleted (_, context, { requestId, auth 
   context.removeAuthTokenManagerGetAuthRequest(requestId)
 }
 
-export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId }) {
+export function AuthTokenManagerHandleSecurityExceptionCompleted (_, context, { requestId }) {
+  // See NewAuthTokenManager
   context.removeAuthTokenManagerOnAuthExpiredRequest(requestId)
 }
 

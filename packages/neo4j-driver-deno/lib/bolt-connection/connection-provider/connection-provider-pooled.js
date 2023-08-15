@@ -223,7 +223,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     conn._updateCurrentObserver()
   }
 
-  _handleAuthorizationExpired (error, address, connection) {
+  _handleSecurityError (error, address, connection) {
     const handled = this._authenticationProvider.handleError({ connection, code: error.code })
 
     if (handled) {
