@@ -588,6 +588,15 @@ class Session {
   }
 
   /**
+   * Configure the transaction executor to pipeline transaction begin.
+   *
+   * @private
+   */
+  private _setTxExecutorToPipelineBegin (pipelined: boolean): void {
+    this._transactionExecutor.pipelineBegin = pipelined
+  }
+
+  /**
    * @protected
    */
   static _validateSessionMode (rawMode?: SessionMode): SessionMode {

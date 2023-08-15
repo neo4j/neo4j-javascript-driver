@@ -122,354 +122,374 @@ describe('#unit TransactionExecutor', () => {
   }, 60000)
 })
 
-describe('#unit TransactionExecutor', () => {
-  it('should retry when transaction work returns promise rejected with SERVICE_UNAVAILABLE', async () => {
-    await testRetryWhenTransactionWorkReturnsRejectedPromise([
-      SERVICE_UNAVAILABLE
-    ])
-  }, 30000)
+;[true, false].forEach(pipelineBegin => {
+  describe(`#unit TransactionExecutor (pipelineBegin=${pipelineBegin})`, () => {
+    it('should retry when transaction work returns promise rejected with SERVICE_UNAVAILABLE', async () => {
+      await testRetryWhenTransactionWorkReturnsRejectedPromise([
+        SERVICE_UNAVAILABLE
+      ])
+    }, 30000)
 
-  it('should retry when transaction work returns promise rejected with SESSION_EXPIRED', async () => {
-    await testRetryWhenTransactionWorkReturnsRejectedPromise([SESSION_EXPIRED])
-  }, 30000)
+    it('should retry when transaction work returns promise rejected with SESSION_EXPIRED', async () => {
+      await testRetryWhenTransactionWorkReturnsRejectedPromise([SESSION_EXPIRED])
+    }, 30000)
 
-  it('should retry when transaction work returns promise rejected with deadlock error', async () => {
-    await testRetryWhenTransactionWorkReturnsRejectedPromise([
-      TRANSIENT_ERROR_1
-    ])
-  }, 30000)
+    it('should retry when transaction work returns promise rejected with deadlock error', async () => {
+      await testRetryWhenTransactionWorkReturnsRejectedPromise([
+        TRANSIENT_ERROR_1
+      ])
+    }, 30000)
 
-  it('should retry when transaction work returns promise rejected with communication error', async () => {
-    await testRetryWhenTransactionWorkReturnsRejectedPromise([
-      TRANSIENT_ERROR_2
-    ])
-  }, 30000)
+    it('should retry when transaction work returns promise rejected with communication error', async () => {
+      await testRetryWhenTransactionWorkReturnsRejectedPromise([
+        TRANSIENT_ERROR_2
+      ])
+    }, 30000)
 
-  it('should not retry when transaction work returns promise rejected with OOM error', async () => {
-    await testNoRetryOnUnknownError([OOM_ERROR], 1)
-  }, 30000)
+    it('should not retry when transaction work returns promise rejected with OOM error', async () => {
+      await testNoRetryOnUnknownError([OOM_ERROR], 1)
+    }, 30000)
 
-  it('should not retry when transaction work returns promise rejected with unknown error', async () => {
-    await testNoRetryOnUnknownError([UNKNOWN_ERROR], 1)
-  }, 30000)
+    it('should not retry when transaction work returns promise rejected with unknown error', async () => {
+      await testNoRetryOnUnknownError([UNKNOWN_ERROR], 1)
+    }, 30000)
 
-  it('should not retry when transaction work returns promise rejected with transaction termination error', async () => {
-    await testNoRetryOnUnknownError([TX_TERMINATED_ERROR], 1)
-  }, 30000)
+    it('should not retry when transaction work returns promise rejected with transaction termination error', async () => {
+      await testNoRetryOnUnknownError([TX_TERMINATED_ERROR], 1)
+    }, 30000)
 
-  it('should not retry when transaction work returns promise rejected with locks termination error', async () => {
-    await testNoRetryOnUnknownError([LOCKS_TERMINATED_ERROR], 1)
-  }, 30000)
+    it('should not retry when transaction work returns promise rejected with locks termination error', async () => {
+      await testNoRetryOnUnknownError([LOCKS_TERMINATED_ERROR], 1)
+    }, 30000)
 
-  it('should not retry when transaction work returns promise rejected with unknown error type', async () => {
-    class MyTestError extends Error {
-      constructor (message, code) {
-        super(message)
-        this.code = code
+    it('should not retry when transaction work returns promise rejected with unknown error type', async () => {
+      class MyTestError extends Error {
+        constructor (message, code) {
+          super(message)
+          this.code = code
+        }
       }
-    }
 
-    const error = new MyTestError('an unexpected error', 504)
-    const executor = new TransactionExecutor()
-    const realWork = () => Promise.reject(error)
+      const error = new MyTestError('an unexpected error', 504)
+      const executor = new TransactionExecutor()
+      const realWork = () => Promise.reject(error)
 
-    await expectAsync(
-      executor.execute(transactionCreator(), tx => realWork())
-    ).toBeRejectedWith(error)
-  }, 30000)
+      await expectAsync(
+        executor.execute(transactionCreator(), tx => realWork())
+      ).toBeRejectedWith(error)
+    }, 30000)
 
-  it('should retry when given transaction creator throws once', async () => {
-    await testRetryWhenTransactionCreatorFails([SERVICE_UNAVAILABLE])
-  }, 30000)
+    it('should retry when given transaction creator throws once', async () => {
+      await testRetryWhenTransactionCreatorFails([SERVICE_UNAVAILABLE])
+    }, 30000)
 
-  it('should retry when given transaction creator throws many times', async () => {
-    await testRetryWhenTransactionCreatorFails([
-      SERVICE_UNAVAILABLE,
-      SESSION_EXPIRED,
-      TRANSIENT_ERROR_2,
-      SESSION_EXPIRED,
-      SERVICE_UNAVAILABLE,
-      TRANSIENT_ERROR_1,
-      'Neo.ClientError.Security.AuthorizationExpired'
-    ])
-  }, 30000)
+    it('should retry when given transaction creator throws many times', async () => {
+      await testRetryWhenTransactionCreatorFails([
+        SERVICE_UNAVAILABLE,
+        SESSION_EXPIRED,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_1,
+        'Neo.ClientError.Security.AuthorizationExpired'
+      ])
+    }, 30000)
 
-  it('should retry when given transaction creator fail on begin once', async () => {
-    await testRetryWhenTransactionBeginFails([SERVICE_UNAVAILABLE])
-  }, 30000)
+    it('should retry when given transaction creator fail on begin once', async () => {
+      await testRetryWhenTransactionBeginFails([SERVICE_UNAVAILABLE])
+    }, 30000)
 
-  it('should retry when given transaction creator throws on begin many times', async () => {
-    await testRetryWhenTransactionBeginFails([
-      SERVICE_UNAVAILABLE,
-      SESSION_EXPIRED,
-      TRANSIENT_ERROR_2,
-      SESSION_EXPIRED,
-      SERVICE_UNAVAILABLE,
-      TRANSIENT_ERROR_1,
-      'Neo.ClientError.Security.AuthorizationExpired'
-    ])
-  }, 30000)
+    it('should retry when given transaction creator throws on begin many times', async () => {
+      await testRetryWhenTransactionBeginFails([
+        SERVICE_UNAVAILABLE,
+        SESSION_EXPIRED,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_1,
+        'Neo.ClientError.Security.AuthorizationExpired'
+      ])
+    }, 30000)
 
-  it('should retry when given transaction work throws once', async () => {
-    await testRetryWhenTransactionWorkThrows([SERVICE_UNAVAILABLE])
-  }, 30000)
+    it('should retry when given transaction work throws once', async () => {
+      await testRetryWhenTransactionWorkThrows([SERVICE_UNAVAILABLE])
+    }, 30000)
 
-  it('should retry when given transaction work throws many times', async () => {
-    await testRetryWhenTransactionWorkThrows([
-      SERVICE_UNAVAILABLE,
-      TRANSIENT_ERROR_2,
-      TRANSIENT_ERROR_2,
-      SESSION_EXPIRED,
-      'Neo.ClientError.Security.AuthorizationExpired'
-    ])
-  }, 30000)
-
-  it('should retry when given transaction work returns rejected promise many times', async () => {
-    await testRetryWhenTransactionWorkReturnsRejectedPromise([
-      SERVICE_UNAVAILABLE,
-      SERVICE_UNAVAILABLE,
-      TRANSIENT_ERROR_2,
-      SESSION_EXPIRED,
-      TRANSIENT_ERROR_1,
-      SESSION_EXPIRED,
-      'Neo.ClientError.Security.AuthorizationExpired'
-    ])
-  }, 30000)
-
-  it('should retry when transaction commit returns rejected promise once', async () => {
-    await testRetryWhenTransactionCommitReturnsRejectedPromise([
-      TRANSIENT_ERROR_1
-    ])
-  }, 30000)
-
-  it('should retry when transaction commit returns rejected promise multiple times', async () => {
-    await testRetryWhenTransactionCommitReturnsRejectedPromise([
-      TRANSIENT_ERROR_1,
-      TRANSIENT_ERROR_1,
-      SESSION_EXPIRED,
-      SERVICE_UNAVAILABLE,
-      TRANSIENT_ERROR_2,
-      'Neo.ClientError.Security.AuthorizationExpired'
-    ])
-  }, 30000)
-
-  it('should retry when transaction work throws and rollback fails', async () => {
-    await testRetryWhenTransactionWorkThrowsAndRollbackFails(
-      [
+    it('should retry when given transaction work throws many times', async () => {
+      await testRetryWhenTransactionWorkThrows([
         SERVICE_UNAVAILABLE,
         TRANSIENT_ERROR_2,
-        'Neo.ClientError.Security.AuthorizationExpired',
+        TRANSIENT_ERROR_2,
         SESSION_EXPIRED,
-        SESSION_EXPIRED
-      ],
-      [SESSION_EXPIRED, TRANSIENT_ERROR_1]
-    )
-  }, 30000)
+        'Neo.ClientError.Security.AuthorizationExpired'
+      ])
+    }, 30000)
 
-  it('should allow zero max retry time', () => {
-    const executor = new TransactionExecutor(0)
-    expect(executor._maxRetryTimeMs).toEqual(0)
-  }, 30000)
+    it('should retry when given transaction work returns rejected promise many times', async () => {
+      await testRetryWhenTransactionWorkReturnsRejectedPromise([
+        SERVICE_UNAVAILABLE,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED,
+        TRANSIENT_ERROR_1,
+        SESSION_EXPIRED,
+        'Neo.ClientError.Security.AuthorizationExpired'
+      ])
+    }, 30000)
 
-  it('should allow zero initial delay', () => {
-    const executor = new TransactionExecutor(42, 0)
-    expect(executor._initialRetryDelayMs).toEqual(0)
-  }, 30000)
+    it('should retry when transaction commit returns rejected promise once', async () => {
+      await testRetryWhenTransactionCommitReturnsRejectedPromise([
+        TRANSIENT_ERROR_1
+      ])
+    }, 30000)
 
-  it('should disallow zero multiplier', () => {
-    expect(() => new TransactionExecutor(42, 42, 0)).toThrow()
-  }, 30000)
+    it('should retry when transaction commit returns rejected promise multiple times', async () => {
+      await testRetryWhenTransactionCommitReturnsRejectedPromise([
+        TRANSIENT_ERROR_1,
+        TRANSIENT_ERROR_1,
+        SESSION_EXPIRED,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_2,
+        'Neo.ClientError.Security.AuthorizationExpired'
+      ])
+    }, 30000)
 
-  it('should allow zero jitter factor', () => {
-    const executor = new TransactionExecutor(42, 42, 42, 0)
-    expect(executor._jitterFactor).toEqual(0)
-  }, 30000)
+    it('should retry when transaction work throws and rollback fails', async () => {
+      await testRetryWhenTransactionWorkThrowsAndRollbackFails(
+        [
+          SERVICE_UNAVAILABLE,
+          TRANSIENT_ERROR_2,
+          'Neo.ClientError.Security.AuthorizationExpired',
+          SESSION_EXPIRED,
+          SESSION_EXPIRED
+        ],
+        [SESSION_EXPIRED, TRANSIENT_ERROR_1]
+      )
+    }, 30000)
 
-  it('should wrap transaction', async () => {
-    const executor = new TransactionExecutor()
-    const expectedTx = new FakeTransaction()
-    const modifiedTx = {}
-    await executor.execute(() => expectedTx, tx => {
-      expect(tx).toEqual(modifiedTx)
-      return 1
-    }, tx => {
-      expect(tx).toEqual(expectedTx)
-      return modifiedTx
+    it('should allow zero max retry time', () => {
+      const executor = new TransactionExecutor(0)
+      expect(executor._maxRetryTimeMs).toEqual(0)
+    }, 30000)
+
+    it('should allow zero initial delay', () => {
+      const executor = new TransactionExecutor(42, 0)
+      expect(executor._initialRetryDelayMs).toEqual(0)
+    }, 30000)
+
+    it('should disallow zero multiplier', () => {
+      expect(() => new TransactionExecutor(42, 42, 0)).toThrow()
+    }, 30000)
+
+    it('should allow zero jitter factor', () => {
+      const executor = new TransactionExecutor(42, 42, 42, 0)
+      expect(executor._jitterFactor).toEqual(0)
+    }, 30000)
+
+    it('should wrap transaction', async () => {
+      const executor = new TransactionExecutor()
+      const expectedTx = new FakeTransaction()
+      const modifiedTx = {}
+      await executor.execute(() => expectedTx, tx => {
+        expect(tx).toEqual(modifiedTx)
+        return 1
+      }, tx => {
+        expect(tx).toEqual(ResolvedFakeTransaction.fromFakeTransaction(expectedTx))
+        return modifiedTx
+      })
     })
-  })
 
-  it('should wrap transaction when re-try', async () => {
-    const executor = new TransactionExecutor()
-    const expectedTx = new FakeTransaction()
-    const modifiedTx = {}
-    const context = { workCalls: 0 }
+    it('should wrap transaction when re-try', async () => {
+      const executor = new TransactionExecutor()
+      const expectedTx = new FakeTransaction()
+      const modifiedTx = {}
+      const context = { workCalls: 0 }
 
-    await executor.execute(() => expectedTx, tx => {
-      expect(tx).toEqual(modifiedTx)
-      if (context.workCalls++ < 1) {
-        throw newError('something on the way', 'Neo.ClientError.Security.AuthorizationExpired')
+      await executor.execute(() => expectedTx, tx => {
+        expect(tx).toEqual(modifiedTx)
+        if (context.workCalls++ < 1) {
+          throw newError('something on the way', 'Neo.ClientError.Security.AuthorizationExpired')
+        }
+        return 1
+      }, tx => {
+        expect(tx).toEqual(ResolvedFakeTransaction.fromFakeTransaction(expectedTx))
+        return modifiedTx
+      })
+
+      expect(context.workCalls).toEqual(2)
+    })
+
+    async function testRetryWhenTransactionCreatorFails (errorCodes) {
+      const fakeSetTimeout = setTimeoutMock.install()
+      try {
+        const executor = new TransactionExecutor()
+        executor.pipelineBegin = pipelineBegin
+        const transactionCreator = throwingTransactionCreator(
+          errorCodes,
+          new FakeTransaction()
+        )
+        const usedTransactions = []
+
+        const result = await executor.execute(transactionCreator, tx => {
+          expect(tx).toBeDefined()
+          usedTransactions.push(tx)
+          return Promise.resolve(42)
+        })
+
+        expect(usedTransactions.length).toEqual(1)
+        expect(result).toEqual(42)
+        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
+      } finally {
+        fakeSetTimeout.uninstall()
       }
-      return 1
-    }, tx => {
-      expect(tx).toEqual(expectedTx)
-      return modifiedTx
-    })
+    }
 
-    expect(context.workCalls).toEqual(2)
+    async function testRetryWhenTransactionBeginFails (errorCodes) {
+      const fakeSetTimeout = setTimeoutMock.install()
+      try {
+        const executor = new TransactionExecutor()
+        executor.pipelineBegin = pipelineBegin
+        const transactionCreator = throwingTransactionCreatorOnBegin(
+          errorCodes,
+          new FakeTransaction()
+        )
+        const usedTransactions = []
+        const beginTransactions = []
+
+        const result = await executor.execute(transactionCreator, async tx => {
+          expect(tx).toBeDefined()
+          beginTransactions.push(tx)
+
+          if (pipelineBegin) {
+            // forcing await for tx since pipeline doesn't wait for begin return
+            await tx
+          }
+
+          usedTransactions.push(tx)
+          return Promise.resolve(42)
+        })
+
+        expect(beginTransactions.length).toEqual(pipelineBegin ? errorCodes.length + 1 : 1)
+        expect(usedTransactions.length).toEqual(1)
+        expect(result).toEqual(42)
+        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
+      } finally {
+        fakeSetTimeout.uninstall()
+      }
+    }
+
+    async function testRetryWhenTransactionWorkReturnsRejectedPromise (
+      errorCodes
+    ) {
+      const fakeSetTimeout = setTimeoutMock.install()
+      try {
+        const executor = new TransactionExecutor()
+        executor.pipelineBegin = pipelineBegin
+        const usedTransactions = []
+        const realWork = transactionWork(errorCodes, 42)
+
+        const result = await executor.execute(transactionCreator(), tx => {
+          expect(tx).toBeDefined()
+          usedTransactions.push(tx)
+          return realWork()
+        })
+
+        // work should have failed 'failures.length' times and succeeded 1 time
+        expect(usedTransactions.length).toEqual(errorCodes.length + 1)
+        expectAllTransactionsToBeClosed(usedTransactions)
+        expect(result).toEqual(42)
+        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
+      } finally {
+        fakeSetTimeout.uninstall()
+      }
+    }
+
+    async function testRetryWhenTransactionCommitReturnsRejectedPromise (
+      errorCodes
+    ) {
+      const fakeSetTimeout = setTimeoutMock.install()
+      try {
+        const executor = new TransactionExecutor()
+        executor.pipelineBegin = pipelineBegin
+        const usedTransactions = []
+        const realWork = () => Promise.resolve(4242)
+
+        const result = await executor.execute(
+          transactionCreator(errorCodes),
+          tx => {
+            expect(tx).toBeDefined()
+            usedTransactions.push(tx)
+            return realWork()
+          }
+        )
+
+        // work should have failed 'failures.length' times and succeeded 1 time
+        expect(usedTransactions.length).toEqual(errorCodes.length + 1)
+        expectAllTransactionsToBeClosed(usedTransactions)
+        expect(result).toEqual(4242)
+        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
+      } finally {
+        fakeSetTimeout.uninstall()
+      }
+    }
+
+    async function testRetryWhenTransactionWorkThrows (errorCodes) {
+      const fakeSetTimeout = setTimeoutMock.install()
+      try {
+        const executor = new TransactionExecutor()
+        executor.pipelineBegin = pipelineBegin
+        const usedTransactions = []
+        const realWork = throwingTransactionWork(errorCodes, 42)
+
+        const result = await executor.execute(transactionCreator(), async tx => {
+          expect(tx).toBeDefined()
+          usedTransactions.push(tx)
+          if (pipelineBegin) {
+            await tx
+          }
+          return realWork()
+        })
+
+        // work should have failed 'failures.length' times and succeeded 1 time
+        expect(usedTransactions.length).toEqual(errorCodes.length + 1)
+        expectAllTransactionsToBeClosed(usedTransactions)
+        expect(result).toEqual(42)
+        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
+      } finally {
+        fakeSetTimeout.uninstall()
+      }
+    }
+
+    async function testRetryWhenTransactionWorkThrowsAndRollbackFails (
+      txWorkErrorCodes,
+      rollbackErrorCodes
+    ) {
+      const fakeSetTimeout = setTimeoutMock.install()
+      try {
+        const executor = new TransactionExecutor()
+        executor.pipelineBegin = pipelineBegin
+        const usedTransactions = []
+        const realWork = throwingTransactionWork(txWorkErrorCodes, 424242)
+
+        const result = await executor.execute(
+          transactionCreator([], rollbackErrorCodes),
+          tx => {
+            expect(tx).toBeDefined()
+            usedTransactions.push(tx)
+            return realWork()
+          }
+        )
+
+        // work should have failed 'failures.length' times and succeeded 1 time
+        expect(usedTransactions.length).toEqual(txWorkErrorCodes.length + 1)
+        expectAllTransactionsToBeClosed(usedTransactions)
+        expect(result).toEqual(424242)
+        verifyRetryDelays(fakeSetTimeout, txWorkErrorCodes.length)
+      } finally {
+        fakeSetTimeout.uninstall()
+      }
+    }
   })
-
-  async function testRetryWhenTransactionCreatorFails (errorCodes) {
-    const fakeSetTimeout = setTimeoutMock.install()
-    try {
-      const executor = new TransactionExecutor()
-      const transactionCreator = throwingTransactionCreator(
-        errorCodes,
-        new FakeTransaction()
-      )
-      const usedTransactions = []
-
-      const result = await executor.execute(transactionCreator, tx => {
-        expect(tx).toBeDefined()
-        usedTransactions.push(tx)
-        return Promise.resolve(42)
-      })
-
-      expect(usedTransactions.length).toEqual(1)
-      expect(result).toEqual(42)
-      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-    } finally {
-      fakeSetTimeout.uninstall()
-    }
-  }
-
-  async function testRetryWhenTransactionBeginFails (errorCodes) {
-    const fakeSetTimeout = setTimeoutMock.install()
-    try {
-      const executor = new TransactionExecutor()
-      const transactionCreator = throwingTransactionCreatorOnBegin(
-        errorCodes,
-        new FakeTransaction()
-      )
-      const usedTransactions = []
-
-      const result = await executor.execute(transactionCreator, tx => {
-        expect(tx).toBeDefined()
-        usedTransactions.push(tx)
-        return Promise.resolve(42)
-      })
-
-      expect(usedTransactions.length).toEqual(1)
-      expect(result).toEqual(42)
-      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-    } finally {
-      fakeSetTimeout.uninstall()
-    }
-  }
-
-  async function testRetryWhenTransactionWorkReturnsRejectedPromise (
-    errorCodes
-  ) {
-    const fakeSetTimeout = setTimeoutMock.install()
-    try {
-      const executor = new TransactionExecutor()
-      const usedTransactions = []
-      const realWork = transactionWork(errorCodes, 42)
-
-      const result = await executor.execute(transactionCreator(), tx => {
-        expect(tx).toBeDefined()
-        usedTransactions.push(tx)
-        return realWork()
-      })
-
-      // work should have failed 'failures.length' times and succeeded 1 time
-      expect(usedTransactions.length).toEqual(errorCodes.length + 1)
-      expectAllTransactionsToBeClosed(usedTransactions)
-      expect(result).toEqual(42)
-      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-    } finally {
-      fakeSetTimeout.uninstall()
-    }
-  }
-
-  async function testRetryWhenTransactionCommitReturnsRejectedPromise (
-    errorCodes
-  ) {
-    const fakeSetTimeout = setTimeoutMock.install()
-    try {
-      const executor = new TransactionExecutor()
-      const usedTransactions = []
-      const realWork = () => Promise.resolve(4242)
-
-      const result = await executor.execute(
-        transactionCreator(errorCodes),
-        tx => {
-          expect(tx).toBeDefined()
-          usedTransactions.push(tx)
-          return realWork()
-        }
-      )
-
-      // work should have failed 'failures.length' times and succeeded 1 time
-      expect(usedTransactions.length).toEqual(errorCodes.length + 1)
-      expectAllTransactionsToBeClosed(usedTransactions)
-      expect(result).toEqual(4242)
-      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-    } finally {
-      fakeSetTimeout.uninstall()
-    }
-  }
-
-  async function testRetryWhenTransactionWorkThrows (errorCodes) {
-    const fakeSetTimeout = setTimeoutMock.install()
-    try {
-      const executor = new TransactionExecutor()
-      const usedTransactions = []
-      const realWork = throwingTransactionWork(errorCodes, 42)
-
-      const result = await executor.execute(transactionCreator(), tx => {
-        expect(tx).toBeDefined()
-        usedTransactions.push(tx)
-        return realWork()
-      })
-
-      // work should have failed 'failures.length' times and succeeded 1 time
-      expect(usedTransactions.length).toEqual(errorCodes.length + 1)
-      expectAllTransactionsToBeClosed(usedTransactions)
-      expect(result).toEqual(42)
-      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-    } finally {
-      fakeSetTimeout.uninstall()
-    }
-  }
-
-  async function testRetryWhenTransactionWorkThrowsAndRollbackFails (
-    txWorkErrorCodes,
-    rollbackErrorCodes
-  ) {
-    const fakeSetTimeout = setTimeoutMock.install()
-    try {
-      const executor = new TransactionExecutor()
-      const usedTransactions = []
-      const realWork = throwingTransactionWork(txWorkErrorCodes, 424242)
-
-      const result = await executor.execute(
-        transactionCreator([], rollbackErrorCodes),
-        tx => {
-          expect(tx).toBeDefined()
-          usedTransactions.push(tx)
-          return realWork()
-        }
-      )
-
-      // work should have failed 'failures.length' times and succeeded 1 time
-      expect(usedTransactions.length).toEqual(txWorkErrorCodes.length + 1)
-      expectAllTransactionsToBeClosed(usedTransactions)
-      expect(result).toEqual(424242)
-      verifyRetryDelays(fakeSetTimeout, txWorkErrorCodes.length)
-    } finally {
-      fakeSetTimeout.uninstall()
-    }
-  }
 })
 
 async function testNoRetryOnUnknownError (
@@ -526,11 +546,7 @@ function throwingTransactionCreator (errorCodes, result) {
 function throwingTransactionCreatorOnBegin (errorCodes, result) {
   const remainingErrorCodes = errorCodes.slice().reverse()
   return () => {
-    if (remainingErrorCodes.length === 0) {
-      return Promise.resolve(result)
-    }
-    const errorCode = remainingErrorCodes.pop()
-    return Promise.reject(error(errorCode))
+    return new FakeTransaction(undefined, undefined, remainingErrorCodes.pop())
   }
 }
 
@@ -581,10 +597,56 @@ function expectAllTransactionsToBeClosed (transactions) {
 }
 
 class FakeTransaction {
-  constructor (commitErrorCode, rollbackErrorCode) {
+  constructor (commitErrorCode, rollbackErrorCode, beginErrorCode) {
     this._commitErrorCode = commitErrorCode
     this._rollbackErrorCode = rollbackErrorCode
+    this._beginErrorCode = beginErrorCode
     this._open = true
+  }
+
+  then (onfulfilled, onrejected) {
+    if (this._beginErrorCode) {
+      return Promise.reject(error(this._beginErrorCode)).catch(onrejected)
+    }
+    return Promise.resolve(ResolvedFakeTransaction.fromFakeTransaction(this)).then(onfulfilled)
+  }
+
+  catch (onRejected) {
+    return this.then(null, onRejected)
+  }
+
+  finally (onfinally) {
+    return this.then().finally(onfinally)
+  }
+
+  isOpen () {
+    return this._open
+  }
+
+  commit () {
+    this._open = false
+    if (this._commitErrorCode) {
+      return Promise.reject(error(this._commitErrorCode))
+    }
+    return Promise.resolve()
+  }
+
+  rollback () {
+    this._open = false
+    if (this._rollbackErrorCode) {
+      return Promise.reject(error(this._rollbackErrorCode))
+    }
+    return Promise.resolve()
+  }
+}
+
+class ResolvedFakeTransaction {
+  static fromFakeTransaction (fake) {
+    const tx = new ResolvedFakeTransaction()
+    tx._commitErrorCode = fake._commitErrorCode
+    tx._rollbackErrorCode = fake._rollbackErrorCode
+    tx._open = fake._open
+    return tx
   }
 
   isOpen () {

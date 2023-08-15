@@ -444,7 +444,7 @@ class Driver {
     config: DriverConfig = {},
     createConnectionProvider: CreateConnectionProvider,
     createSession: CreateSession = args => new Session(args),
-    createQueryExecutor: CreateQueryExecutor = createQuery => new QueryExecutor(createQuery)
+    createQueryExecutor: CreateQueryExecutor = createSession => new QueryExecutor(createSession)
   ) {
     sanitizeConfig(config)
 

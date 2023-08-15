@@ -46,6 +46,10 @@ export default class QueryExecutor {
       bookmarkManager: config.bookmarkManager,
       impersonatedUser: config.impersonatedUser
     })
+
+    // @ts-expect-error The method is private for external users
+    session._setTxExecutorToPipelineBegin(true)
+
     try {
       const executeInTransaction: TransactionFunction<T> = config.routing === 'READ'
         ? session.executeRead.bind(session)
