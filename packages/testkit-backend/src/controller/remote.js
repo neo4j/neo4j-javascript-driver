@@ -1,7 +1,7 @@
 import Controller from './interface'
 import { WebSocketServer } from 'ws'
 import { createServer } from 'http'
-import { Server } from 'node-static'
+import { HttpStaticServer } from '../infrastructure'
 
 /**
  * RemoteController handles the requests by sending them a remote client.
@@ -14,7 +14,9 @@ import { Server } from 'node-static'
 export default class RemoteController extends Controller {
   constructor (port) {
     super()
-    this._staticServer = new Server('./public')
+    this._staticServer = new HttpStaticServer({
+      basePath: './public'
+    })
     this._port = port
     this._wss = null
     this._ws = null
