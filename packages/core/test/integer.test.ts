@@ -1327,10 +1327,10 @@ function forEachStaticInSafeRangeScenarios (
     v({ low: 1, high: 0 }, true),
     v(Integer.MAX_VALUE, false),
     v(Integer.MIN_VALUE, false),
-    // eslint-disable-next-line no-loss-of-precision
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
     v(99999191919191919191, false),
     v('99999191919191919191', false),
-    // eslint-disable-next-line no-loss-of-precision
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
     v({ low: 99999999181818811818, high: 191919111111991919 }, false)
   ].forEach(func)
 }

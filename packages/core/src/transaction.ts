@@ -141,7 +141,7 @@ class Transaction {
           this._bookmarks = await getBookmarks()
           return connection.protocol().beginTransaction({
             bookmarks: this._bookmarks,
-            txConfig: txConfig,
+            txConfig,
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
             impersonatedUser: this._impersonatedUser,
@@ -393,10 +393,10 @@ const _states = {
                 txConfig: TxConfig.empty(),
                 beforeError: onError,
                 afterComplete: onComplete,
-                reactive: reactive,
-                fetchSize: fetchSize,
-                highRecordWatermark: highRecordWatermark,
-                lowRecordWatermark: lowRecordWatermark
+                reactive,
+                fetchSize,
+                highRecordWatermark,
+                lowRecordWatermark
               })
             } else {
               throw newError('No connection available')

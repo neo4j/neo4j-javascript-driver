@@ -123,7 +123,7 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
   logoff ({ onComplete, onError, flush } = {}) {
     const observer = new LogoffObserver({
       onCompleted: onComplete,
-      onError: onError
+      onError
     })
 
     this.write(

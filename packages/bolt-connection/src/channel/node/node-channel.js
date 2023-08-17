@@ -206,7 +206,7 @@ function newTlsOptions (hostname, ca = undefined) {
   return {
     rejectUnauthorized: false, // we manually check for this in the connect callback, to give a more helpful error to the user
     servername: hostname, // server name for the SNI (Server Name Indication) TLS extension
-    ca: ca // optional CA useful for TRUST_CUSTOM_CA_SIGNED_CERTIFICATES trust mode
+    ca // optional CA useful for TRUST_CUSTOM_CA_SIGNED_CERTIFICATES trust mode
   }
 }
 

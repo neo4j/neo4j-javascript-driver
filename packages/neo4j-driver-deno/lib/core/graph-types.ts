@@ -461,7 +461,7 @@ function isPath<T extends NumberOrInteger = Integer> (obj: unknown): obj is Path
   return hasIdentifierProperty(obj, PATH_IDENTIFIER_PROPERTY)
 }
 
-function _valueOrGetDefault<T> (value: T|undefined|null, getDefault: () => T): T {
+function _valueOrGetDefault<T> (value: T | undefined | null, getDefault: () => T): T {
   return value === undefined || value === null ? getDefault() : value
 }
 

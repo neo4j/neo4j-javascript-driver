@@ -218,7 +218,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
    */
   private _releaseConnection (hasTx?: boolean): Promise<Connection | null> {
     this._connectionPromise = this._connectionPromise
-      .then((connection?: Connection|null) => {
+      .then((connection?: Connection | null) => {
         if (connection != null) {
           if (connection.isOpen() && (connection.hasOngoingObservableRequests() || hasTx === true)) {
             return connection
@@ -333,7 +333,7 @@ class EmptyConnectionHolder extends ConnectionHolder {
  */
 const EMPTY_CONNECTION_HOLDER: EmptyConnectionHolder = new EmptyConnectionHolder()
 
-// eslint-disable-next-line node/handle-callback-err
+// eslint-disable-next-line n/handle-callback-err
 function ignoreError (error: Error): null {
   return null
 }

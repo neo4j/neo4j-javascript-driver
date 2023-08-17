@@ -731,8 +731,8 @@ describe('#unit Pool', () => {
         // Create a fake connection that makes it possible control when it's connected
         // and released from the outer scope.
         const conn = {
-          server: server,
-          release: release
+          server,
+          release
         }
         const promise = new Promise((resolve, reject) => {
           conn.resolve = resolve
@@ -1204,8 +1204,8 @@ describe('#unit Pool', () => {
       const pool = new Pool({
         create: (_, server, release) =>
           Promise.resolve(new Resource(server, counter++, release)),
-        destroy: destroy,
-        removeIdleObserver: removeIdleObserver,
+        destroy,
+        removeIdleObserver,
         config: new PoolConfig(1, 5000)
       })
 

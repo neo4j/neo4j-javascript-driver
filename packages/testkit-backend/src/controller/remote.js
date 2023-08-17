@@ -118,7 +118,7 @@ export default class RemoteController extends Controller {
   }
 
   _writeBackendError (contextId, msg) {
-    this._writeResponse(contextId, { name: 'BackendError', data: { msg: msg } })
+    this._writeResponse(contextId, { name: 'BackendError', data: { msg } })
   }
 }
 

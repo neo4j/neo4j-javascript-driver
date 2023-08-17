@@ -740,7 +740,7 @@ describe('#integration-rx transaction', () => {
   async function countNodes (id) {
     const session = driver.rxSession()
     return await session
-      .run('MATCH (n:Node {id: $id}) RETURN count(n)', { id: id })
+      .run('MATCH (n:Node {id: $id}) RETURN count(n)', { id })
       .records()
       .pipe(
         map(r => r.get(0).toInt()),

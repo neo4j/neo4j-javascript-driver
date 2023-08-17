@@ -174,7 +174,7 @@ describe('#unit BoltProtocolV1', () => {
     const bookmarks = new Bookmarks('neo4j:bookmark:v1:tx42')
 
     const observer = protocol.beginTransaction({
-      bookmarks: bookmarks,
+      bookmarks,
       txConfig: TxConfig.empty(),
       mode: WRITE
     })

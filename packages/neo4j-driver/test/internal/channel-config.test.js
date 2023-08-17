@@ -40,7 +40,7 @@ describe('#unit ChannelConfig', () => {
   it('should respect given encrypted conf', () => {
     const encrypted = 'ENCRYPTION_ON'
 
-    const config = new ChannelConfig(null, { encrypted: encrypted }, '')
+    const config = new ChannelConfig(null, { encrypted }, '')
 
     expect(config.encrypted).toEqual(encrypted)
   })
@@ -48,7 +48,7 @@ describe('#unit ChannelConfig', () => {
   it('should respect given trust conf', () => {
     const trust = 'TRUST_ALL_CERTIFICATES'
 
-    const config = new ChannelConfig(null, { trust: trust }, '')
+    const config = new ChannelConfig(null, { trust }, '')
 
     expect(config.trust).toEqual(trust)
   })
@@ -58,7 +58,7 @@ describe('#unit ChannelConfig', () => {
 
     const config = new ChannelConfig(
       null,
-      { trustedCertificates: trustedCertificates },
+      { trustedCertificates },
       ''
     )
 

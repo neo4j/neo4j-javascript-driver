@@ -253,7 +253,7 @@ describe('WebSocketChannel', () => {
       const address = ServerAddress.fromUrl('bolt://localhost:8989')
       const config = new ChannelConfig(
         address,
-        { encrypted: encrypted },
+        { encrypted },
         SERVICE_UNAVAILABLE
       )
       const protocolSupplier = () => (scheme != null ? scheme + ':' : scheme)

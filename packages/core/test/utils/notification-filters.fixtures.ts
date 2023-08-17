@@ -18,7 +18,7 @@
  */
 import { NotificationFilter, notificationFilterDisabledCategory, notificationFilterMinimumSeverityLevel } from '../../src'
 
-export function validNotificationFilters (): Array<NotificationFilter|undefined> {
+export function validNotificationFilters (): Array<NotificationFilter | undefined> {
   return [
     undefined,
     {

@@ -93,7 +93,7 @@ function newBuffer (str) {
   if (typeof buffer.Buffer.from === 'function') {
     return buffer.Buffer.from(str, 'utf8')
   } else {
-    // eslint-disable-next-line node/no-deprecated-api
+    // eslint-disable-next-line n/no-deprecated-api
     return new buffer.Buffer(str, 'utf8')
   }
 }

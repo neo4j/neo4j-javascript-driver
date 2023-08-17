@@ -146,10 +146,11 @@ export class CompletedObserver implements ResultStreamObserver {
     // do nothing
   }
 
-  // eslint-disable-next-line node/handle-callback-err
   onError (error: Error): void {
     // nothing to do, already finished
-    throw Error('CompletedObserver not supposed to call onError')
+    // eslint-disable-next-line
+    // @ts-ignore: not available in ES oldest supported version
+    throw new Error('CompletedObserver not supposed to call onError', { cause: error })
   }
 }
 

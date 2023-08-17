@@ -3727,7 +3727,7 @@ describe.each([
       hostNameResolver: new SimpleHostNameResolver(),
       config: {},
       log: Logger.noOp(),
-      routingTablePurgeDelay: routingTablePurgeDelay
+      routingTablePurgeDelay
     })
     connectionProvider._connectionPool = pool
     routingTables.forEach(r => {

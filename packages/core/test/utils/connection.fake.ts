@@ -38,7 +38,7 @@ export default class FakeConnection extends Connection {
   public seenQueries: string[]
   public seenParameters: any[]
   public seenProtocolOptions: any[]
-  private _server: any
+  private readonly _server: any
   public protocolVersion: number | undefined
   public protocolErrorsHandled: number
   public seenProtocolErrors: string[]

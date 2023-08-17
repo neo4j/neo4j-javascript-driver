@@ -772,20 +772,20 @@ describe('#unit url-util', () => {
   it('should parse URLs with port 80', () => {
     ;['http', 'https', 'ws', 'wss', 'bolt', 'neo4j'].forEach(scheme => {
       verifyUrl(`${scheme}://localhost:80`, {
-        scheme: scheme,
+        scheme,
         host: 'localhost',
         port: 80
       })
     })
     ;['localhost', '127.0.0.1', '192.168.10.29'].forEach(host => {
       verifyUrl(`${host}:80`, {
-        host: host,
+        host,
         port: 80
       })
     })
     ;['::1', '1afc:0:a33:85a3::ff2f'].forEach(host => {
       verifyUrl(`[${host}]:80`, {
-        host: host,
+        host,
         port: 80,
         ipv6: true
       })

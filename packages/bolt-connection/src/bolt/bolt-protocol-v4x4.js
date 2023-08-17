@@ -104,8 +104,8 @@ export default class BoltProtocol extends BoltProtocolV43 {
   ) {
     const observer = new ResultStreamObserver({
       server: this._server,
-      reactive: reactive,
-      fetchSize: fetchSize,
+      reactive,
+      fetchSize,
       moreFunction: this._requestMore.bind(this),
       discardFunction: this._requestDiscard.bind(this),
       beforeKeys,

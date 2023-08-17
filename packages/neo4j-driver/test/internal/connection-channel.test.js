@@ -470,7 +470,7 @@ describe('#integration ChannelConnection', () => {
     const channel = new DummyChannel()
     const chunker = new Chunker(channel)
     const packer = new Packer(chunker)
-    packer.packStruct(0x7f, [packer.packable({ code: code, message: message })])
+    packer.packStruct(0x7f, [packer.packable({ code, message })])
     chunker.messageBoundary()
     chunker.flush()
     const data = channel.toBuffer()
@@ -507,7 +507,7 @@ describe('#integration ChannelConnection', () => {
       const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
       connection = await createConnection(
         boltUri,
-        { encrypted: encrypted, connectionTimeout: 1000 },
+        { encrypted, connectionTimeout: 1000 },
         'TestErrorCode'
       )
     } catch (error) {

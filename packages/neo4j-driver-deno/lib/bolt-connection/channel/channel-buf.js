@@ -95,7 +95,7 @@ function newChannelJSBuffer (arg) {
     return buffer.Buffer.alloc(arg)
   } else {
     // fallback to the old, potentially deprecated constructor
-    // eslint-disable-next-line node/no-deprecated-api
+    // eslint-disable-next-line n/no-deprecated-api
     return new buffer.Buffer(arg)
   }
 }

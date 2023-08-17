@@ -179,6 +179,7 @@ class Integer {
     // Do several (6) digits each time through the loop, so as to
     // minimize the calls to the very expensive emulated div.
     const radixToPower = Integer.fromNumber(Math.pow(radix, 6))
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     rem = this
     let result = ''
     while (true) {
@@ -579,6 +580,7 @@ class Integer {
     // the approximate value is less than or equal to the real value so that the
     // remainder never becomes negative.
     res = Integer.ZERO
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     rem = this
     while (rem.greaterThanOrEqual(theDivisor)) {
       // Approximate the result of division. This may be a little greater or
@@ -853,7 +855,7 @@ class Integer {
    * @returns {!Integer} The corresponding Integer value
    * @expose
    */
-  static fromString (str: string, radix?: number, { strictStringValidation }: { strictStringValidation?: boolean} = {}): Integer {
+  static fromString (str: string, radix?: number, { strictStringValidation }: { strictStringValidation?: boolean } = {}): Integer {
     if (str.length === 0) {
       throw newError('number format error: empty string')
     }

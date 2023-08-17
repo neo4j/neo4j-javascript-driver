@@ -388,7 +388,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize
+          fetchSize
         })
 
         streamObserver.pause()
@@ -418,7 +418,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize,
+          fetchSize,
           reactive: true
         })
         streamObserver.pause()
@@ -441,7 +441,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize,
+          fetchSize,
           reactive: true
         })
         streamObserver.pause()
@@ -462,7 +462,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize,
+          fetchSize,
           reactive: false
         })
         streamObserver.pause()
@@ -485,7 +485,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize
+          fetchSize
         })
 
         streamObserver.pause()
@@ -508,7 +508,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize
+          fetchSize
         })
 
         streamObserver.pause()
@@ -541,7 +541,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize
+          fetchSize
         })
 
         streamObserver.pause()
@@ -570,7 +570,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize
+          fetchSize
         })
 
         streamObserver.pause()
@@ -610,7 +610,7 @@ describe('#unit ResultStreamObserver', () => {
         const more = jest.fn()
         const streamObserver = new ResultStreamObserver({
           moreFunction: more,
-          fetchSize: fetchSize
+          fetchSize
         })
 
         streamObserver.pause()
@@ -985,8 +985,8 @@ function newStreamObserver (server) {
 
 function newObserver (onNext = NO_OP, onError = NO_OP, onCompleted = NO_OP) {
   return {
-    onNext: onNext,
-    onError: onError,
-    onCompleted: onCompleted
+    onNext,
+    onError,
+    onCompleted
   }
 }

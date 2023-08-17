@@ -1,4 +1,3 @@
-
 export default class Neo4jContainer {
   constructor ({ user, password, containerLogs, version, edition, disabled }) {
     this._user = user

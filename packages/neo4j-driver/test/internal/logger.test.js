@@ -190,7 +190,7 @@ function memorizingLogger (logged, level = 'debug') {
 function memorizingLoggerConfig (logged, level = 'debug') {
   return {
     logging: {
-      level: level,
+      level,
       logger: (level, message) => logged.push({ level, message })
     }
   }

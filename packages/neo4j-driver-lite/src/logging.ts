@@ -10,7 +10,7 @@ type LogLevel = coreTypes.LogLevel
 export const logging = {
   console: (level: LogLevel) => {
     return {
-      level: level,
+      level,
       logger: (level: LogLevel, message: string) =>
         console.log(`${Date.now()} ${level.toUpperCase()} ${message}`)
         // Note: This 'logging' object is in its own file so we can easily access the global Date object here without conflicting
