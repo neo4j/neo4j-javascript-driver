@@ -48,6 +48,7 @@ export class HttpStaticServer {
 
       fs.readFile(filePath, 'utf-8', (err, message) => {
         if (err) {
+          console.error(`HttpStaticServer: Error reading file ${filePath}`, err)
           writeError(response, 500, '500 Internal Server Error!')
           return
         }
