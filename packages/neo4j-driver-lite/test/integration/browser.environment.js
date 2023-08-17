@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const NodeEnvironment = require('jest-environment-node')
+const { TestEnvironment: NodeEnvironment } = require('jest-environment-node')
 const WebSocket = require('isomorphic-ws')
 const Config = require('./config')
 
