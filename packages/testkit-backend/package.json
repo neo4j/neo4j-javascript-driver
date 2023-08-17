@@ -34,7 +34,6 @@
   "dependencies": {
     "neo4j-driver": "5.0.0-dev",
     "neo4j-driver-lite": "5.0.0-dev",
-    "node-static": "^0.7.11",
     "ws": "^8.11.0"
   },
   "devDependencies": {
