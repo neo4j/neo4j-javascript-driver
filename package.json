@@ -3,9 +3,8 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "@lerna/legacy-package-management": "^7.1.5",
     "husky": "^8.0.3",
-    "lerna": "^7.1.5",
+    "lerna": "^4.0.0",
     "lint-staged": "^14.0.0",
     "standard": "^17.1.0",
     "ts-standard": "^12.0.2",
