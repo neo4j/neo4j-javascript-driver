@@ -21,17 +21,17 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 
 describe('#integration result summary', () => {
-  describe('default driver', () => {
+  describe('default driver', async () => {
     let driver, session
 
-    beforeEach(done => {
+    beforeEach(async () => {
       driver = neo4j.driver(
         `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
         sharedNeo4j.authToken
       )
       session = driver.session()
 
-      session.run('MATCH (n) DETACH DELETE n').then(done)
+      await session.run('MATCH (n) DETACH DELETE n')
     })
 
     afterEach(() => {
@@ -62,7 +62,7 @@ describe('#integration result summary', () => {
   describe('driver with lossless integers disabled', () => {
     let driver, session
 
-    beforeEach(done => {
+    beforeEach(async () => {
       driver = neo4j.driver(
         `bolt://${sharedNeo4j.hostnameWithBoltPort}`,
         sharedNeo4j.authToken,
@@ -72,7 +72,7 @@ describe('#integration result summary', () => {
       )
       session = driver.session()
 
-      session.run('MATCH (n) DETACH DELETE n').then(done)
+      await session.run('MATCH (n) DETACH DELETE n')
     })
 
     afterEach(() => {

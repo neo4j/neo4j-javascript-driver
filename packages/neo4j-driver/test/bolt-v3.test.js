@@ -65,7 +65,7 @@ describe('#integration Bolt V3 API', () => {
     const result = await session.run(
       'CALL dbms.listTransactions()',
       {},
-      { metadata: metadata }
+      { metadata }
     )
     const receivedMetadatas = result.records.map(r => r.get('metaData'))
     expect(receivedMetadatas).toContain(metadata)
@@ -184,7 +184,7 @@ describe('#integration Bolt V3 API', () => {
       c: [1, 2, 3]
     }
 
-    const tx = session.beginTransaction({ metadata: metadata })
+    const tx = session.beginTransaction({ metadata })
 
     // call listTransactions procedure that should list itself with the specified metadata
     const result = await tx.run('CALL dbms.listTransactions()')
@@ -218,7 +218,8 @@ describe('#integration Bolt V3 API', () => {
       if (
         e.code !== 'Neo.ClientError.Transaction.TransactionTimedOut' &&
         e.code !== 'Neo.TransientError.Transaction.LockClientStopped' &&
-        e.code !== 'Neo.ClientError.Transaction.LockClientStopped'
+        e.code !== 'Neo.ClientError.Transaction.LockClientStopped' &&
+        e.code !== 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration'
       ) {
         fail('Expected transaction timeout error but got: ' + e.code)
       }
@@ -461,8 +462,8 @@ describe('#integration Bolt V3 API', () => {
 
     const txFunctionWithMetadata = work =>
       read
-        ? session.readTransaction(work, { metadata: metadata })
-        : session.writeTransaction(work, { metadata: metadata })
+        ? session.readTransaction(work, { metadata })
+        : session.writeTransaction(work, { metadata })
 
     const result = await txFunctionWithMetadata(tx =>
       tx.run('CALL dbms.listTransactions()')
