@@ -132,25 +132,19 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should provide error message when connecting to http-port', async () => {
-    let fail = false
-    try {
-      await createConnection(`bolt://${sharedNeo4j.hostnameWithHttpPort}`, {
-        encrypted: false
-      }, null, new Logger('error', () => {}))
-    } catch (error) {
-      fail = true
-      expect(error).toBeDefined()
-      expect(error).not.toBeNull()
+    const asyncMatchers = expectAsync(createConnection(`bolt://${sharedNeo4j.hostnameWithHttpPort}`, {
+      encrypted: false
+    }, null, new Logger('error', () => {})))
 
-      if (testUtils.isServer()) {
-        // only node gets the pretty error message
-        expect(error.message).toBe(
-          'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
-            '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
-        )
-      }
+    if (testUtils.isServer()) {
+      // only node gets the pretty error message
+      await asyncMatchers.toBeRejectedWith(newError(
+        'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
+        '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
+      ))
+    } else {
+      await asyncMatchers.toBeRejected()
     }
-    expect(fail).toBe(true)
   })
 
   it('should convert failure messages to errors', done => {
