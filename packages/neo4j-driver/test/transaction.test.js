@@ -441,7 +441,7 @@ describe('#integration transaction', () => {
     expect(result).toBeUndefined()
   }, 60000)
 
-  it('should reset transaction', async done => {
+  it('should reset transaction', async () => {
     const session = driver.session({ defaultAccessMode: READ })
     const tx = session.beginTransaction()
     await tx.run('RETURN 1')
@@ -454,7 +454,6 @@ describe('#integration transaction', () => {
         'You cannot run more transactions on a closed session.'
       )
       await closePromise
-      done()
     }
   }, 60000)
 
@@ -469,7 +468,7 @@ describe('#integration transaction', () => {
 
   function testConnectionTimeout (encrypted, done) {
     const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
-    const config = { encrypted: encrypted, connectionTimeout: 1000 }
+    const config = { encrypted, connectionTimeout: 1000 }
 
     const localDriver = neo4j.driver(boltUri, sharedNeo4j.authToken, config)
     const session = localDriver.session()
