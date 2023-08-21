@@ -32,6 +32,7 @@ const features = [
   'Feature:API:Session:NotificationsConfig',
   'Optimization:AuthPipelining',
   'Optimization:EagerTransactionBegin',
+  'Optimization:ExecuteQueryPipelining',
   'Optimization:ImplicitDefaultArguments',
   'Optimization:MinimalBookmarksSet',
   'Optimization:MinimalResets',

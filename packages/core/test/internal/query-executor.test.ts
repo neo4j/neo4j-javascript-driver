@@ -86,6 +86,21 @@ describe('QueryExecutor', () => {
       expect(spyOnExecuteRead).toHaveBeenCalled()
     })
 
+    it('should configure the session with pipeline begin', async () => {
+      const { queryExecutor, sessionsCreated } = createExecutor()
+
+      await queryExecutor.execute(baseConfig, 'query')
+
+      expect(sessionsCreated.length).toBe(1)
+      const [{ spyOnSetTxExecutorToPipelineBegin, spyOnExecuteRead }] = sessionsCreated
+
+      expect(spyOnSetTxExecutorToPipelineBegin).toHaveBeenCalledTimes(1)
+      expect(spyOnSetTxExecutorToPipelineBegin).toHaveBeenCalledWith(true)
+      expect(spyOnExecuteRead.mock.invocationCallOrder[0]).toBeGreaterThan(
+        spyOnSetTxExecutorToPipelineBegin.mock.invocationCallOrder[0]
+      )
+    })
+
     it('should call not call executeWrite', async () => {
       const { queryExecutor, sessionsCreated } = createExecutor()
 
@@ -213,6 +228,21 @@ describe('QueryExecutor', () => {
       expect(spyOnExecuteWrite).toHaveBeenCalled()
     })
 
+    it('should configure the session with pipeline begin', async () => {
+      const { queryExecutor, sessionsCreated } = createExecutor()
+
+      await queryExecutor.execute(baseConfig, 'query')
+
+      expect(sessionsCreated.length).toBe(1)
+      const [{ spyOnSetTxExecutorToPipelineBegin, spyOnExecuteWrite }] = sessionsCreated
+
+      expect(spyOnSetTxExecutorToPipelineBegin).toHaveBeenCalledTimes(1)
+      expect(spyOnSetTxExecutorToPipelineBegin).toHaveBeenCalledWith(true)
+      expect(spyOnExecuteWrite.mock.invocationCallOrder[0]).toBeGreaterThan(
+        spyOnSetTxExecutorToPipelineBegin.mock.invocationCallOrder[0]
+      )
+    })
+
     it('should call not call executeRead', async () => {
       const { queryExecutor, sessionsCreated } = createExecutor()
 
@@ -316,7 +346,7 @@ describe('QueryExecutor', () => {
         spyOnExecuteRead: jest.SpyInstance<any>
         spyOnExecuteWrite: jest.SpyInstance<any>
         spyOnClose: jest.SpyInstance<Promise<void>>
-
+        spyOnSetTxExecutorToPipelineBegin: jest.SpyInstance<void>
       }>
       createSession: jest.Mock<Session, [args: any]>
     } {
@@ -329,7 +359,7 @@ describe('QueryExecutor', () => {
       spyOnExecuteRead: jest.SpyInstance<any>
       spyOnExecuteWrite: jest.SpyInstance<any>
       spyOnClose: jest.SpyInstance<Promise<void>>
-
+      spyOnSetTxExecutorToPipelineBegin: jest.SpyInstance<void>
     }> = []
     const createSession = jest.fn((args) => {
       const session = new Session(args)
@@ -337,7 +367,9 @@ describe('QueryExecutor', () => {
         session,
         spyOnExecuteRead: jest.spyOn(session, 'executeRead'),
         spyOnExecuteWrite: jest.spyOn(session, 'executeWrite'),
-        spyOnClose: jest.spyOn(session, 'close')
+        spyOnClose: jest.spyOn(session, 'close'),
+        // @ts-expect-error
+        spyOnSetTxExecutorToPipelineBegin: jest.spyOn(session, '_setTxExecutorToPipelineBegin')
       }
       sessionsCreated.push(sessionCreated)
       _mockSessionExecuteRead(sessionCreated.spyOnExecuteRead)

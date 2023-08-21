@@ -39,6 +39,7 @@ export class TransactionExecutor {
   private readonly _multiplier: number
   private readonly _jitterFactor: number
   private _inFlightTimeoutIds: Timeout[]
+  public pipelineBegin: boolean
 
   constructor (
     maxRetryTimeMs?: number | null,
@@ -64,6 +65,7 @@ export class TransactionExecutor {
     )
 
     this._inFlightTimeoutIds = []
+    this.pipelineBegin = false
 
     this._verifyAfterConstruction()
   }
@@ -154,7 +156,8 @@ export class TransactionExecutor {
   ): Promise<void> {
     let tx: Transaction
     try {
-      tx = await transactionCreator()
+      const txPromise = transactionCreator()
+      tx = this.pipelineBegin ? txPromise : await txPromise
     } catch (error) {
       // failed to create a transaction
       reject(error)
@@ -192,7 +195,7 @@ export class TransactionExecutor {
 
   _handleTransactionWorkSuccess<T>(
     result: T,
-    tx: Transaction,
+    tx: Transaction | TransactionPromise,
     resolve: Resolve<T>,
     reject: Reject
   ): void {
@@ -215,7 +218,7 @@ export class TransactionExecutor {
     }
   }
 
-  _handleTransactionWorkFailure (error: any, tx: Transaction, reject: Reject): void {
+  _handleTransactionWorkFailure (error: any, tx: Transaction | TransactionPromise, reject: Reject): void {
     if (tx.isOpen()) {
       // transaction work failed and the transaction is still open, roll it back and propagate the failure
       tx.rollback()

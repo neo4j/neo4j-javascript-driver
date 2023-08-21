@@ -20,6 +20,7 @@ import { ConnectionProvider, Session, Connection, TransactionPromise, Transactio
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import { Logger } from '../src/internal/logger'
+import { TransactionExecutor } from '../src/internal/transaction-executor'
 import ManagedTransaction from '../src/transaction-managed'
 import { AuthToken, LoggerFunction } from '../src/types'
 import FakeConnection from './utils/connection.fake'
@@ -1148,6 +1149,25 @@ describe('session', () => {
           }
         )
       )
+    })
+  })
+
+  describe('Pipeline Begin on TxFunc', () => {
+    it('session should not change the default on session creation', () => {
+      const session = newSessionWithConnection(new FakeConnection())
+
+      // @ts-expect-error
+      expect(session._transactionExecutor.pipelineBegin).toEqual(new TransactionExecutor().pipelineBegin)
+    })
+
+    it.each([true, false])('_setTxExecutorToPipelineBegin(%s) => configure executor', (pipelined) => {
+      const session = newSessionWithConnection(new FakeConnection())
+
+      // @ts-expect-error
+      session._setTxExecutorToPipelineBegin(pipelined)
+
+      // @ts-expect-error
+      expect(session._transactionExecutor.pipelineBegin).toEqual(pipelined)
     })
   })
 })
