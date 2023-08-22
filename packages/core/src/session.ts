@@ -528,7 +528,7 @@ class Session {
       this._bookmarkManager?.updateBookmarks(
         previousBookmarks?.values() ?? [],
         newBookmarks?.values() ?? []
-      )
+      ).catch(() => {})
       this._lastBookmarks = newBookmarks
       this._configuredBookmarks = Bookmarks.empty()
     }

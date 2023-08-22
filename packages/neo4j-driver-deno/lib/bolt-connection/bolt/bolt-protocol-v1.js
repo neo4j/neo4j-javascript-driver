@@ -202,7 +202,7 @@ export default class BoltProtocol {
   logoff ({ onComplete, onError, flush } = {}) {
     const observer = new LogoffObserver({
       onCompleted: onComplete,
-      onError: onError
+      onError
     })
 
     // TODO: Verify the Neo4j version in the message
@@ -284,8 +284,8 @@ export default class BoltProtocol {
       'BEGIN',
       bookmarks ? bookmarks.asBeginTransactionParameters() : {},
       {
-        bookmarks: bookmarks,
-        txConfig: txConfig,
+        bookmarks,
+        txConfig,
         database,
         mode,
         impersonatedUser,

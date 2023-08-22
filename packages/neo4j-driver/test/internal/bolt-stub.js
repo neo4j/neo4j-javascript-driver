@@ -93,7 +93,7 @@ class SupportedBoltStub extends UnsupportedBoltStub {
           resolve(
             new StubServer(() => {
               return {
-                exited: exited,
+                exited,
                 code: exitCode
               }
             })
@@ -166,7 +166,7 @@ const supported = supportedStub != null
 const stub = supported ? supportedStub : new UnsupportedBoltStub()
 
 export default {
-  supported: supported,
+  supported,
   start: stub.start.bind(stub),
-  newDriver: newDriver
+  newDriver
 }

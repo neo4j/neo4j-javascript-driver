@@ -1,4 +1,3 @@
-
 const features = [
   'Backend:MockTime',
   'Feature:Auth:Custom',

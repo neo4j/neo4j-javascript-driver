@@ -1,4 +1,3 @@
-
 function asComposablePredicate (predicate) {
   return new Proxy(predicate, {
     get: (target, p) => {

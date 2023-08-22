@@ -221,7 +221,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
             records.push(record)
           },
           onCompleted: (summary: ResultSummary) => {
-            resolve({ records: records, summary: summary })
+            resolve({ records, summary })
           },
           onError: (error: Error) => {
             reject(error)
@@ -591,7 +591,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
           onQueueSizeChanged()
         }
       },
-      dequeue: dequeue,
+      dequeue,
       dequeueUntilDone: async () => {
         while (true) {
           const element = await dequeue()

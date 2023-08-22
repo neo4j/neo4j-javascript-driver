@@ -118,17 +118,17 @@ if (global.beforeAll) {
 }
 
 export default {
-  start: start,
-  stop: stop,
-  restart: restart,
-  username: username,
-  password: password,
-  authToken: authToken,
+  start,
+  stop,
+  restart,
+  username,
+  password,
+  authToken,
   logging: debugLogging,
-  cleanupAndGetProtocolVersion: cleanupAndGetProtocolVersion,
+  cleanupAndGetProtocolVersion,
   cleanupAndGetProtocolVersionAndBookmarks,
-  getEdition: getEdition,
-  hostname: hostname,
+  getEdition,
+  hostname,
   get hostnameWithBoltPort () {
     return `${hostname}:${neo4jContainer.getBoltPort(boltPort)}`
   },
@@ -142,8 +142,8 @@ export default {
     return neo4jContainer.getHttpPort(httpPort)
   },
   isTestContainer: true,
-  ipv6Enabled: ipv6Enabled,
-  edition: edition,
-  scheme: scheme,
-  cluster: cluster
+  ipv6Enabled,
+  edition,
+  scheme,
+  cluster
 }

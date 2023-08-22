@@ -155,6 +155,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
    */
   private _toTransaction (): Transaction {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       ...this,
       run: super.run.bind(this),
       commit: super.commit.bind(this),

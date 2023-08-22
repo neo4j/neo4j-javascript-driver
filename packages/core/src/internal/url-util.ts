@@ -124,7 +124,7 @@ function sanitizeUrl (url: string): { schemeMissing: boolean, url: string } {
     return { schemeMissing: true, url: `none://${url}` }
   }
 
-  return { schemeMissing: false, url: url }
+  return { schemeMissing: false, url }
 }
 
 function extractScheme (scheme?: string): string | null {

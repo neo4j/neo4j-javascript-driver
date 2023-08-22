@@ -200,9 +200,9 @@ function parseServers (rawRoutingTable, routerAddress) {
     })
 
     return {
-      routers: routers,
-      readers: readers,
-      writers: writers
+      routers,
+      readers,
+      writers
     }
   } catch (error) {
     throw newError(

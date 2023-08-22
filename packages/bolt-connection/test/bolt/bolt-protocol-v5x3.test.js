@@ -275,7 +275,7 @@ describe('#unit BoltProtocolV5x3', () => {
     }
     const authToken = { username: 'neo4j', password: 'secret' }
 
-    const observer = protocol.initialize({ userAgent: clientName, boltAgent: boltAgent, authToken })
+    const observer = protocol.initialize({ userAgent: clientName, boltAgent, authToken })
 
     protocol.verifyMessageCount(2)
     expect(protocol.messages[0]).toBeMessage(

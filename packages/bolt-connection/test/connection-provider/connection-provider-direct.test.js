@@ -735,7 +735,7 @@ function newDirectConnectionProvider (address, pool, authTokenManager) {
     id: 0,
     config: {},
     log: Logger.noOp(),
-    address: address,
+    address,
     authTokenManager
   })
   connectionProvider._connectionPool = pool

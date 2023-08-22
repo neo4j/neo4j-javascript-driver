@@ -359,7 +359,7 @@ function determineWebSocketScheme (config, protocolSupplier) {
           ENCRYPTION_OFF +
           '"` in the driver configuration.'
       )
-      return { scheme: null, error: error }
+      return { scheme: null, error }
     }
   }
 

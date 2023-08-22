@@ -34,7 +34,7 @@ const auth = {
         scheme: 'basic',
         principal: username,
         credentials: password,
-        realm: realm
+        realm
       }
     } else {
       return { scheme: 'basic', principal: username, credentials: password }
@@ -66,8 +66,8 @@ const auth = {
     parameters?: object
   ) => {
     const output: any = {
-      scheme: scheme,
-      principal: principal
+      scheme,
+      principal
     }
     if (isNotEmpty(credentials)) {
       output.credentials = credentials
