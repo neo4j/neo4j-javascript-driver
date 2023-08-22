@@ -20,6 +20,7 @@ import { Driver, READ, WRITE } from './driver'
 import VERSION from './version'
 
 import {
+  authTokenManagers,
   Neo4jError,
   isRetryableError,
   error,
@@ -74,7 +75,6 @@ import {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  expirationBasedAuthTokenManager,
   staticAuthTokenManager
 } from 'neo4j-driver-core'
 import {
@@ -99,9 +99,9 @@ function isAuthTokenManager (value) {
   return typeof value === 'object' &&
     value != null &&
     'getToken' in value &&
-    'onTokenExpired' in value &&
+    'handleSecurityException' in value &&
     typeof value.getToken === 'function' &&
-    typeof value.onTokenExpired === 'function'
+    typeof value.handleSecurityException === 'function'
 }
 
 function createAuthManager (authTokenOrManager) {
@@ -332,6 +332,7 @@ const graph = {
  * @private
  */
 const forExport = {
+  authTokenManagers,
   driver,
   hasReachableServer,
   int,
@@ -395,11 +396,11 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel,
-  expirationBasedAuthTokenManager
+  notificationFilterMinimumSeverityLevel
 }
 
 export {
+  authTokenManagers,
   driver,
   hasReachableServer,
   int,
@@ -463,7 +464,6 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel,
-  expirationBasedAuthTokenManager
+  notificationFilterMinimumSeverityLevel
 }
 export default forExport

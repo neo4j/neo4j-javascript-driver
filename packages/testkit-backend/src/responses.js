@@ -115,16 +115,24 @@ export function AuthorizationToken (data) {
   return response('AuthorizationToken', data)
 }
 
-export function AuthTokenManagerOnAuthExpiredRequest ({ id, authTokenManagerId, auth }) {
-  return response('AuthTokenManagerOnAuthExpiredRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth) })
+export function AuthTokenManagerHandleSecurityExceptionRequest ({ id, authTokenManagerId, auth, code }) {
+  return response('AuthTokenManagerHandleSecurityExceptionRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth), error_code: code })
 }
 
-export function ExpirationBasedAuthTokenManager ({ id }) {
-  return response('ExpirationBasedAuthTokenManager', { id })
+export function BearerAuthTokenManager ({ id }) {
+  return response('BearerAuthTokenManager', { id })
 }
 
-export function ExpirationBasedAuthTokenProviderRequest ({ id, expirationBasedAuthTokenManagerId }) {
-  return response('ExpirationBasedAuthTokenProviderRequest', { id, expirationBasedAuthTokenManagerId })
+export function BearerAuthTokenProviderRequest ({ id, bearerAuthTokenManagerId }) {
+  return response('BearerAuthTokenProviderRequest', { id, bearerAuthTokenManagerId })
+}
+
+export function BasicAuthTokenManager ({ id }) {
+  return response('BasicAuthTokenManager', { id })
+}
+
+export function BasicAuthTokenProviderRequest ({ id, basicAuthTokenManagerId }) {
+  return response('BasicAuthTokenProviderRequest', { id, basicAuthTokenManagerId })
 }
 
 export function DriverIsAuthenticated ({ id, authenticated }) {

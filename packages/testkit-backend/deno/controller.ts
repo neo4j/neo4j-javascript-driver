@@ -37,6 +37,8 @@ function newWire(context: Context, reply: Reply): Wire {
               msg: e.message,
               // @ts-ignore Code Neo4jError does have code
               code: e.code,
+              // @ts-ignore Code Neo4jError does retryable
+              retryable: e.retriable,
             },
           });
         }

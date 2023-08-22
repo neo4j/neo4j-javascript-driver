@@ -26,7 +26,7 @@ import {
   internal,
   ServerInfo,
   staticAuthTokenManager,
-  expirationBasedAuthTokenManager
+  authTokenManagers
 } from 'neo4j-driver-core'
 import { RoutingTable } from '../../src/rediscovery/'
 import { Pool } from '../../src/pool'
@@ -1718,7 +1718,8 @@ describe.each([
       ],
       pool
     )
-    connectionProvider._authTokenManager = expirationBasedAuthTokenManager({ tokenProvider: () => null })
+
+    setupAuthTokenManager(connectionProvider, authTokenManagers.bearer({ tokenProvider: () => null }))
 
     const error = newError(
       'Message',
@@ -1756,8 +1757,51 @@ describe.each([
         )
       ],
       pool
+
     )
-    connectionProvider._authTokenManager = staticAuthTokenManager({ authToken: null })
+
+    setupAuthTokenManager(connectionProvider, staticAuthTokenManager({ authToken: null }))
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const error1 = server3Connection.handleAndTransformError(error, server3)
+    const error2 = server2Connection.handleAndTransformError(error, server2)
+
+    expect(error1.retriable).toBe(false)
+    expect(error2.retriable).toBe(false)
+  })
+
+  it.each(usersDataSet)('should not change error to retriable when error when TokenExpired happens and authTokenManagers.basic is being used [user=%s]', async (user) => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+
+    )
+
+    setupAuthTokenManager(connectionProvider, authTokenManagers.basic({ tokenProvider: () => {} }))
 
     const error = newError(
       'Message',
@@ -3943,4 +3987,8 @@ class FakeDnsResolver {
   resolve (seedRouter) {
     return Promise.resolve(this._addresses ? this._addresses : [seedRouter])
   }
+}
+
+function setupAuthTokenManager (provider, authTokenManager) {
+  provider._authenticationProvider._authTokenManager = authTokenManager
 }

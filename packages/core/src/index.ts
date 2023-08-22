@@ -87,7 +87,7 @@ import Session, { TransactionConfig } from './session'
 import Driver, * as driver from './driver'
 import auth from './auth'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager'
-import AuthTokenManager, { expirationBasedAuthTokenManager, staticAuthTokenManager, isStaticAuthTokenManger, AuthTokenAndExpiration } from './auth-token-manager'
+import AuthTokenManager, { authTokenManagers, AuthTokenManagers, staticAuthTokenManager, AuthTokenAndExpiration } from './auth-token-manager'
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver'
 import { Config } from './types'
 import * as types from './types'
@@ -108,6 +108,7 @@ const error = {
  * @private
  */
 const forExport = {
+  authTokenManagers,
   newError,
   Neo4jError,
   isRetriableError,
@@ -165,7 +166,6 @@ const forExport = {
   json,
   auth,
   bookmarkManager,
-  expirationBasedAuthTokenManager,
   routing,
   resultTransformers,
   notificationCategory,
@@ -175,6 +175,7 @@ const forExport = {
 }
 
 export {
+  authTokenManagers,
   newError,
   Neo4jError,
   isRetriableError,
@@ -233,9 +234,7 @@ export {
   json,
   auth,
   bookmarkManager,
-  expirationBasedAuthTokenManager,
   staticAuthTokenManager,
-  isStaticAuthTokenManger,
   routing,
   resultTransformers,
   notificationCategory,
@@ -254,6 +253,7 @@ export type {
   BookmarkManager,
   BookmarkManagerConfig,
   AuthTokenManager,
+  AuthTokenManagers,
   AuthTokenAndExpiration,
   Config,
   SessionConfig,

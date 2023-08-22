@@ -50,8 +50,8 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
   async acquireConnection ({ accessMode, database, bookmarks, auth, forceReAuth } = {}) {
     const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
       errorCode: SERVICE_UNAVAILABLE,
-      handleAuthorizationExpired: (error, address, conn) =>
-        this._handleAuthorizationExpired(error, address, conn, database)
+      handleSecurityError: (error, address, conn) =>
+        this._handleSecurityError(error, address, conn, database)
     })
 
     const connection = await this._connectionPool.acquire({ auth, forceReAuth }, this._address)
@@ -68,12 +68,12 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
     return new DelegateConnection(connection, databaseSpecificErrorHandler)
   }
 
-  _handleAuthorizationExpired (error, address, connection, database) {
+  _handleSecurityError (error, address, connection, database) {
     this._log.warn(
       `Direct driver ${this._id} will close connection to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
 
-    return super._handleAuthorizationExpired(error, address, connection)
+    return super._handleSecurityError(error, address, connection)
   }
 
   async _hasProtocolVersion (versionPredicate) {

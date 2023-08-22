@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { expirationBasedAuthTokenManager } from 'neo4j-driver-core'
+import { staticAuthTokenManager } from 'neo4j-driver-core'
 import { object } from '../lang'
 
 /**
@@ -25,9 +25,7 @@ import { object } from '../lang'
  */
 export default class AuthenticationProvider {
   constructor ({ authTokenManager, userAgent, boltAgent }) {
-    this._authTokenManager = authTokenManager || expirationBasedAuthTokenManager({
-      tokenProvider: () => {}
-    })
+    this._authTokenManager = authTokenManager || staticAuthTokenManager({})
     this._userAgent = userAgent
     this._boltAgent = boltAgent
   }
@@ -56,12 +54,10 @@ export default class AuthenticationProvider {
   handleError ({ connection, code }) {
     if (
       connection &&
-      [
-        'Neo.ClientError.Security.Unauthorized',
-        'Neo.ClientError.Security.TokenExpired'
-      ].includes(code)
+      code.startsWith('Neo.ClientError.Security.')
     ) {
-      this._authTokenManager.onTokenExpired(connection.authToken)
+      return this._authTokenManager.handleSecurityException(connection.authToken, code)
     }
+    return false
   }
 }

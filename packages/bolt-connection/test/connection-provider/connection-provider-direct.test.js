@@ -20,7 +20,7 @@
 import DirectConnectionProvider from '../../src/connection-provider/connection-provider-direct'
 import { Pool } from '../../src/pool'
 import { Connection, DelegateConnection } from '../../src/connection'
-import { internal, newError, ServerInfo, staticAuthTokenManager, expirationBasedAuthTokenManager } from 'neo4j-driver-core'
+import { authTokenManagers, internal, newError, ServerInfo, staticAuthTokenManager } from 'neo4j-driver-core'
 import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
 import { functional } from '../../src/lang'
 
@@ -209,7 +209,7 @@ it('should call authenticationAuthProvider.handleError when TokenExpired happens
 it('should change error to retriable when error when TokenExpired happens and staticAuthTokenManager is not being used', async () => {
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
-  const connectionProvider = newDirectConnectionProvider(address, pool, expirationBasedAuthTokenManager({ tokenProvider: () => null }))
+  const connectionProvider = newDirectConnectionProvider(address, pool, authTokenManagers.bearer({ tokenProvider: () => null }))
 
   const conn = await connectionProvider.acquireConnection({
     accessMode: 'READ',
@@ -230,6 +230,26 @@ it('should not change error to retriable when error when TokenExpired happens an
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
   const connectionProvider = newDirectConnectionProvider(address, pool, staticAuthTokenManager({ authToken: null }))
+
+  const conn = await connectionProvider.acquireConnection({
+    accessMode: 'READ',
+    database: ''
+  })
+
+  const expectedError = newError(
+    'Message',
+    'Neo.ClientError.Security.TokenExpired'
+  )
+
+  const error = conn.handleAndTransformError(expectedError, address)
+
+  expect(error.retriable).toBe(false)
+})
+
+it('should not change error to retriable when error when TokenExpired happens and authTokenManagers.basic is being used', async () => {
+  const address = ServerAddress.fromUrl('localhost:123')
+  const pool = newPool()
+  const connectionProvider = newDirectConnectionProvider(address, pool, authTokenManagers.basic({ tokenProvider: () => null }))
 
   const conn = await connectionProvider.acquireConnection({
     accessMode: 'READ',

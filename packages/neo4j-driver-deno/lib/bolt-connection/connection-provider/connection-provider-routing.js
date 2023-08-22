@@ -116,12 +116,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return error
   }
 
-  _handleAuthorizationExpired (error, address, connection, database) {
+  _handleSecurityError (error, address, connection, database) {
     this._log.warn(
       `Routing driver ${this._id} will close connections to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
 
-    return super._handleAuthorizationExpired(error, address, connection, database)
+    return super._handleSecurityError(error, address, connection, database)
   }
 
   _handleWriteFailure (error, address, database) {
@@ -150,7 +150,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       (error, address) => this._handleUnavailability(error, address, context.database),
       (error, address) => this._handleWriteFailure(error, address, context.database),
       (error, address, conn) =>
-        this._handleAuthorizationExpired(error, address, conn, context.database)
+        this._handleSecurityError(error, address, conn, context.database)
     )
 
     const routingTable = await this._freshRoutingTable({
@@ -584,7 +584,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
       const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
         errorCode: SESSION_EXPIRED,
-        handleAuthorizationExpired: (error, address, conn) => this._handleAuthorizationExpired(error, address, conn)
+        handleSecurityError: (error, address, conn) => this._handleSecurityError(error, address, conn)
       })
 
       const delegateConnection = !connection._sticky
