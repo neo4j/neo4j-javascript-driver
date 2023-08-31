@@ -591,6 +591,7 @@ class Session {
    * Configure the transaction executor to pipeline transaction begin.
    *
    * @private
+   * @returns {void}
    */
   private _setTxExecutorToPipelineBegin (pipelined: boolean): void {
     this._transactionExecutor.pipelineBegin = pipelined
