@@ -32,10 +32,20 @@ type TransactionWork<T, Tx = Transaction> = (tx: Tx) => T | Promise<T>
 type Resolve<T> = (value: T | PromiseLike<T>) => void
 type Reject = (value: any) => void
 type Timeout = ReturnType<typeof setTimeout>
+type SetTimeout = (...args: Parameters<typeof setTimeout>) => Timeout
+type ClearTimeout = (timeoutId: Timeout) => void
 
 interface Dependencies {
-  setTimeout: typeof setTimeout
-  clearTimeout: typeof clearTimeout
+  setTimeout: SetTimeout
+  clearTimeout: ClearTimeout
+}
+
+function setTimeoutWrapper (callback: (...args:unknown[]) => void, ms: number | undefined, ...args: unknown[]): Timeout {
+  return setTimeout(callback, ms, ...args)
+}
+
+function clearTimeoutWrapper (timeoutId: Timeout): void {
+  return clearTimeout(timeoutId)
 }
 
 export class TransactionExecutor {
@@ -44,8 +54,8 @@ export class TransactionExecutor {
   private readonly _multiplier: number
   private readonly _jitterFactor: number
   private _inFlightTimeoutIds: Timeout[]
-  private readonly _setTimeout: typeof setTimeout
-  private readonly _clearTimeout: typeof clearTimeout
+  private readonly _setTimeout: SetTimeout
+  private readonly _clearTimeout: ClearTimeout
   public pipelineBegin: boolean
 
   constructor (
@@ -54,8 +64,8 @@ export class TransactionExecutor {
     multiplier?: number,
     jitterFactor?: number,
     dependencies: Dependencies = {
-      setTimeout,
-      clearTimeout
+      setTimeout: setTimeoutWrapper,
+      clearTimeout: clearTimeoutWrapper
     }
   ) {
     this._maxRetryTimeMs = _valueOrDefault(
