@@ -32,7 +32,7 @@ type TransactionWork<T, Tx = Transaction> = (tx: Tx) => T | Promise<T>
 type Resolve<T> = (value: T | PromiseLike<T>) => void
 type Reject = (value: any) => void
 type Timeout = ReturnType<typeof setTimeout>
-type SetTimeout = (...args: Parameters<typeof setTimeout>) => Timeout
+type SetTimeout = (callback: (...args: unknown[]) => void, ms: number | undefined, ...args: unknown[]) => Timeout
 type ClearTimeout = (timeoutId: Timeout) => void
 
 interface Dependencies {
