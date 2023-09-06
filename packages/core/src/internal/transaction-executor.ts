@@ -33,19 +33,30 @@ type Resolve<T> = (value: T | PromiseLike<T>) => void
 type Reject = (value: any) => void
 type Timeout = ReturnType<typeof setTimeout>
 
+interface Dependencies {
+  setTimeout: typeof setTimeout
+  clearTimeout: typeof clearTimeout
+}
+
 export class TransactionExecutor {
   private readonly _maxRetryTimeMs: number
   private readonly _initialRetryDelayMs: number
   private readonly _multiplier: number
   private readonly _jitterFactor: number
   private _inFlightTimeoutIds: Timeout[]
+  private readonly _setTimeout: typeof setTimeout
+  private readonly _clearTimeout: typeof clearTimeout
   public pipelineBegin: boolean
 
   constructor (
     maxRetryTimeMs?: number | null,
     initialRetryDelayMs?: number,
     multiplier?: number,
-    jitterFactor?: number
+    jitterFactor?: number,
+    dependencies: Dependencies = {
+      setTimeout,
+      clearTimeout
+    }
   ) {
     this._maxRetryTimeMs = _valueOrDefault(
       maxRetryTimeMs,
@@ -63,6 +74,9 @@ export class TransactionExecutor {
       jitterFactor,
       DEFAULT_RETRY_DELAY_JITTER_FACTOR
     )
+
+    this._setTimeout = dependencies.setTimeout
+    this._clearTimeout = dependencies.clearTimeout
 
     this._inFlightTimeoutIds = []
     this.pipelineBegin = false
@@ -99,7 +113,7 @@ export class TransactionExecutor {
 
   close (): void {
     // cancel all existing timeouts to prevent further retries
-    this._inFlightTimeoutIds.forEach(timeoutId => clearTimeout(timeoutId))
+    this._inFlightTimeoutIds.forEach(timeoutId => this._clearTimeout(timeoutId))
     this._inFlightTimeoutIds = []
   }
 
@@ -119,7 +133,7 @@ export class TransactionExecutor {
 
     return new Promise<T>((resolve, reject) => {
       const nextRetryTime = this._computeDelayWithJitter(retryDelayMs)
-      const timeoutId = setTimeout(() => {
+      const timeoutId = this._setTimeout(() => {
         // filter out this timeoutId when time has come and function is being executed
         this._inFlightTimeoutIds = this._inFlightTimeoutIds.filter(
           id => id !== timeoutId
