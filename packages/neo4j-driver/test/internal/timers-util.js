@@ -15,48 +15,39 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+*/
+
+/**
+ * This is a lighter mock which only creates mocked functions to work
+ * as timeouts.
  */
-class SetTimeoutMock {
+class TimeoutsMock {
   constructor () {
-    this._clearState()
+    this.clearState()
+    // bind it to be used as standalone functions
+    this.setTimeout = this.setTimeout.bind(this)
+    this.clearTimeout = this.clearTimeout.bind(this)
   }
 
-  install () {
-    this._originalSetTimeout = global.setTimeout
-    global.setTimeout = (code, delay) => {
-      if (!this._paused) {
-        code()
-        this.invocationDelays.push(delay)
-      }
-      return this._timeoutIdCounter++
+  setTimeout (code, delay) {
+    const timeoutId = this._timeoutIdCounter++
+    this.invocationDelays.push(delay)
+    if (!this._timeoutCallbacksDisabled) {
+      code()
     }
-
-    this._originalClearTimeout = global.clearTimeout
-    global.clearTimeout = id => {
-      this.clearedTimeouts.push(id)
-    }
-
-    return this
+    return timeoutId
   }
 
-  pause () {
-    this._paused = true
+  clearTimeout (id) {
+    this.clearedTimeouts.push(id)
   }
 
-  uninstall () {
-    global.setTimeout = this._originalSetTimeout
-    global.clearTimeout = this._originalClearTimeout
-    this._clearState()
+  disableTimeoutCallbacks () {
+    this._timeoutCallbacksDisabled = true
   }
 
-  setTimeoutOriginal (code, delay) {
-    return this._originalSetTimeout.call(null, code, delay)
-  }
-
-  _clearState () {
-    this._originalSetTimeout = null
-    this._originalClearTimeout = null
-    this._paused = false
+  clearState () {
+    this._timeoutCallbacksDisabled = false
     this._timeoutIdCounter = 0
 
     this.invocationDelays = []
@@ -64,4 +55,6 @@ class SetTimeoutMock {
   }
 }
 
-export const setTimeoutMock = new SetTimeoutMock()
+export {
+  TimeoutsMock
+}

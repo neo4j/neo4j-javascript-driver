@@ -32,6 +32,21 @@ type TransactionWork<T, Tx = Transaction> = (tx: Tx) => T | Promise<T>
 type Resolve<T> = (value: T | PromiseLike<T>) => void
 type Reject = (value: any) => void
 type Timeout = ReturnType<typeof setTimeout>
+type SetTimeout = (callback: (...args: unknown[]) => void, ms: number | undefined, ...args: unknown[]) => Timeout
+type ClearTimeout = (timeoutId: Timeout) => void
+
+interface Dependencies {
+  setTimeout: SetTimeout
+  clearTimeout: ClearTimeout
+}
+
+function setTimeoutWrapper (callback: (...args: unknown[]) => void, ms: number | undefined, ...args: unknown[]): Timeout {
+  return setTimeout(callback, ms, ...args)
+}
+
+function clearTimeoutWrapper (timeoutId: Timeout): void {
+  return clearTimeout(timeoutId)
+}
 
 export class TransactionExecutor {
   private readonly _maxRetryTimeMs: number
@@ -39,13 +54,19 @@ export class TransactionExecutor {
   private readonly _multiplier: number
   private readonly _jitterFactor: number
   private _inFlightTimeoutIds: Timeout[]
+  private readonly _setTimeout: SetTimeout
+  private readonly _clearTimeout: ClearTimeout
   public pipelineBegin: boolean
 
   constructor (
     maxRetryTimeMs?: number | null,
     initialRetryDelayMs?: number,
     multiplier?: number,
-    jitterFactor?: number
+    jitterFactor?: number,
+    dependencies: Dependencies = {
+      setTimeout: setTimeoutWrapper,
+      clearTimeout: clearTimeoutWrapper
+    }
   ) {
     this._maxRetryTimeMs = _valueOrDefault(
       maxRetryTimeMs,
@@ -63,6 +84,9 @@ export class TransactionExecutor {
       jitterFactor,
       DEFAULT_RETRY_DELAY_JITTER_FACTOR
     )
+
+    this._setTimeout = dependencies.setTimeout
+    this._clearTimeout = dependencies.clearTimeout
 
     this._inFlightTimeoutIds = []
     this.pipelineBegin = false
@@ -99,7 +123,7 @@ export class TransactionExecutor {
 
   close (): void {
     // cancel all existing timeouts to prevent further retries
-    this._inFlightTimeoutIds.forEach(timeoutId => clearTimeout(timeoutId))
+    this._inFlightTimeoutIds.forEach(timeoutId => this._clearTimeout(timeoutId))
     this._inFlightTimeoutIds = []
   }
 
@@ -119,7 +143,7 @@ export class TransactionExecutor {
 
     return new Promise<T>((resolve, reject) => {
       const nextRetryTime = this._computeDelayWithJitter(retryDelayMs)
-      const timeoutId = setTimeout(() => {
+      const timeoutId = this._setTimeout(() => {
         // filter out this timeoutId when time has come and function is being executed
         this._inFlightTimeoutIds = this._inFlightTimeoutIds.filter(
           id => id !== timeoutId

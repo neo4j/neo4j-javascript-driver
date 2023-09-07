@@ -18,7 +18,7 @@
  */
 
 import { newError, error as err, internal } from 'neo4j-driver-core'
-import { setTimeoutMock } from './timers-util'
+import { TimeoutsMock } from './timers-util'
 import lolex from 'lolex'
 
 const {
@@ -89,36 +89,31 @@ describe('#unit TransactionExecutor', () => {
   }, 60000)
 
   it('should cancel in-flight timeouts when closed', async () => {
-    const fakeSetTimeout = setTimeoutMock.install()
-    try {
-      const executor = new TransactionExecutor()
-      // do not execute setTimeout callbacks
-      fakeSetTimeout.pause()
+    const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
+    // do not execute setTimeout callbacks
+    fakeSetTimeout.disableTimeoutCallbacks()
 
-      executor.execute(transactionCreator([SERVICE_UNAVAILABLE]), () =>
-        Promise.resolve(42)
-      )
-      executor.execute(transactionCreator([TRANSIENT_ERROR_1]), () =>
-        Promise.resolve(4242)
-      )
-      executor.execute(transactionCreator([SESSION_EXPIRED]), () =>
-        Promise.resolve(424242)
-      )
+    executor.execute(transactionCreator([SERVICE_UNAVAILABLE]), () =>
+      Promise.resolve(42)
+    )
+    executor.execute(transactionCreator([TRANSIENT_ERROR_1]), () =>
+      Promise.resolve(4242)
+    )
+    executor.execute(transactionCreator([SESSION_EXPIRED]), () =>
+      Promise.resolve(424242)
+    )
 
-      await new Promise((resolve, reject) => {
-        fakeSetTimeout.setTimeoutOriginal(() => {
-          try {
-            executor.close()
-            expect(fakeSetTimeout.clearedTimeouts.length).toEqual(3)
-            resolve()
-          } catch (error) {
-            reject(error)
-          }
-        }, 1000)
-      })
-    } finally {
-      fakeSetTimeout.uninstall()
-    }
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          executor.close()
+          expect(fakeSetTimeout.clearedTimeouts.length).toEqual(3)
+          resolve()
+        } catch (error) {
+          reject(error)
+        }
+      }, 1000)
+    })
   }, 60000)
 })
 
@@ -320,177 +315,167 @@ describe('#unit TransactionExecutor', () => {
     })
 
     async function testRetryWhenTransactionCreatorFails (errorCodes) {
-      const fakeSetTimeout = setTimeoutMock.install()
-      try {
-        const executor = new TransactionExecutor()
-        executor.pipelineBegin = pipelineBegin
-        const transactionCreator = throwingTransactionCreator(
-          errorCodes,
-          new FakeTransaction()
-        )
-        const usedTransactions = []
+      const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
+      executor.pipelineBegin = pipelineBegin
+      const transactionCreator = throwingTransactionCreator(
+        errorCodes,
+        new FakeTransaction()
+      )
+      const usedTransactions = []
 
-        const result = await executor.execute(transactionCreator, tx => {
-          expect(tx).toBeDefined()
-          usedTransactions.push(tx)
-          return Promise.resolve(42)
-        })
+      const result = await executor.execute(transactionCreator, tx => {
+        expect(tx).toBeDefined()
+        usedTransactions.push(tx)
+        return Promise.resolve(42)
+      })
 
-        expect(usedTransactions.length).toEqual(1)
-        expect(result).toEqual(42)
-        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-      } finally {
-        fakeSetTimeout.uninstall()
-      }
+      expect(usedTransactions.length).toEqual(1)
+      expect(result).toEqual(42)
+      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
     }
 
     async function testRetryWhenTransactionBeginFails (errorCodes) {
-      const fakeSetTimeout = setTimeoutMock.install()
-      try {
-        const executor = new TransactionExecutor()
-        executor.pipelineBegin = pipelineBegin
-        const transactionCreator = throwingTransactionCreatorOnBegin(
-          errorCodes,
-          new FakeTransaction()
-        )
-        const usedTransactions = []
-        const beginTransactions = []
+      const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
+      executor.pipelineBegin = pipelineBegin
+      const transactionCreator = throwingTransactionCreatorOnBegin(
+        errorCodes,
+        new FakeTransaction()
+      )
+      const usedTransactions = []
+      const beginTransactions = []
 
-        const result = await executor.execute(transactionCreator, async tx => {
-          expect(tx).toBeDefined()
-          beginTransactions.push(tx)
+      const result = await executor.execute(transactionCreator, async tx => {
+        expect(tx).toBeDefined()
+        beginTransactions.push(tx)
 
-          if (pipelineBegin) {
-            // forcing await for tx since pipeline doesn't wait for begin return
-            await tx
-          }
+        if (pipelineBegin) {
+          // forcing await for tx since pipeline doesn't wait for begin return
+          await tx
+        }
 
-          usedTransactions.push(tx)
-          return Promise.resolve(42)
-        })
+        usedTransactions.push(tx)
+        return Promise.resolve(42)
+      })
 
-        expect(beginTransactions.length).toEqual(pipelineBegin ? errorCodes.length + 1 : 1)
-        expect(usedTransactions.length).toEqual(1)
-        expect(result).toEqual(42)
-        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-      } finally {
-        fakeSetTimeout.uninstall()
-      }
+      expect(beginTransactions.length).toEqual(pipelineBegin ? errorCodes.length + 1 : 1)
+      expect(usedTransactions.length).toEqual(1)
+      expect(result).toEqual(42)
+      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
     }
 
     async function testRetryWhenTransactionWorkReturnsRejectedPromise (
       errorCodes
     ) {
-      const fakeSetTimeout = setTimeoutMock.install()
-      try {
-        const executor = new TransactionExecutor()
-        executor.pipelineBegin = pipelineBegin
-        const usedTransactions = []
-        const realWork = transactionWork(errorCodes, 42)
+      const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
+      executor.pipelineBegin = pipelineBegin
+      const usedTransactions = []
+      const realWork = transactionWork(errorCodes, 42)
 
-        const result = await executor.execute(transactionCreator(), tx => {
-          expect(tx).toBeDefined()
-          usedTransactions.push(tx)
-          return realWork()
-        })
+      const result = await executor.execute(transactionCreator(), tx => {
+        expect(tx).toBeDefined()
+        usedTransactions.push(tx)
+        return realWork()
+      })
 
-        // work should have failed 'failures.length' times and succeeded 1 time
-        expect(usedTransactions.length).toEqual(errorCodes.length + 1)
-        expectAllTransactionsToBeClosed(usedTransactions)
-        expect(result).toEqual(42)
-        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-      } finally {
-        fakeSetTimeout.uninstall()
-      }
+      // work should have failed 'failures.length' times and succeeded 1 time
+      expect(usedTransactions.length).toEqual(errorCodes.length + 1)
+      expectAllTransactionsToBeClosed(usedTransactions)
+      expect(result).toEqual(42)
+      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
     }
 
     async function testRetryWhenTransactionCommitReturnsRejectedPromise (
       errorCodes
     ) {
-      const fakeSetTimeout = setTimeoutMock.install()
-      try {
-        const executor = new TransactionExecutor()
-        executor.pipelineBegin = pipelineBegin
-        const usedTransactions = []
-        const realWork = () => Promise.resolve(4242)
+      const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
+      executor.pipelineBegin = pipelineBegin
+      const usedTransactions = []
+      const realWork = () => Promise.resolve(4242)
 
-        const result = await executor.execute(
-          transactionCreator(errorCodes),
-          tx => {
-            expect(tx).toBeDefined()
-            usedTransactions.push(tx)
-            return realWork()
-          }
-        )
+      const result = await executor.execute(
+        transactionCreator(errorCodes),
+        tx => {
+          expect(tx).toBeDefined()
+          usedTransactions.push(tx)
+          return realWork()
+        }
+      )
 
-        // work should have failed 'failures.length' times and succeeded 1 time
-        expect(usedTransactions.length).toEqual(errorCodes.length + 1)
-        expectAllTransactionsToBeClosed(usedTransactions)
-        expect(result).toEqual(4242)
-        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-      } finally {
-        fakeSetTimeout.uninstall()
-      }
+      // work should have failed 'failures.length' times and succeeded 1 time
+      expect(usedTransactions.length).toEqual(errorCodes.length + 1)
+      expectAllTransactionsToBeClosed(usedTransactions)
+      expect(result).toEqual(4242)
+      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
     }
 
     async function testRetryWhenTransactionWorkThrows (errorCodes) {
-      const fakeSetTimeout = setTimeoutMock.install()
-      try {
-        const executor = new TransactionExecutor()
-        executor.pipelineBegin = pipelineBegin
-        const usedTransactions = []
-        const realWork = throwingTransactionWork(errorCodes, 42)
+      const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
+      executor.pipelineBegin = pipelineBegin
+      const usedTransactions = []
+      const realWork = throwingTransactionWork(errorCodes, 42)
 
-        const result = await executor.execute(transactionCreator(), async tx => {
-          expect(tx).toBeDefined()
-          usedTransactions.push(tx)
-          if (pipelineBegin) {
-            await tx
-          }
-          return realWork()
-        })
+      const result = await executor.execute(transactionCreator(), async tx => {
+        expect(tx).toBeDefined()
+        usedTransactions.push(tx)
+        if (pipelineBegin) {
+          await tx
+        }
+        return realWork()
+      })
 
-        // work should have failed 'failures.length' times and succeeded 1 time
-        expect(usedTransactions.length).toEqual(errorCodes.length + 1)
-        expectAllTransactionsToBeClosed(usedTransactions)
-        expect(result).toEqual(42)
-        verifyRetryDelays(fakeSetTimeout, errorCodes.length)
-      } finally {
-        fakeSetTimeout.uninstall()
-      }
+      // work should have failed 'failures.length' times and succeeded 1 time
+      expect(usedTransactions.length).toEqual(errorCodes.length + 1)
+      expectAllTransactionsToBeClosed(usedTransactions)
+      expect(result).toEqual(42)
+      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
     }
 
     async function testRetryWhenTransactionWorkThrowsAndRollbackFails (
       txWorkErrorCodes,
       rollbackErrorCodes
     ) {
-      const fakeSetTimeout = setTimeoutMock.install()
-      try {
-        const executor = new TransactionExecutor()
-        executor.pipelineBegin = pipelineBegin
-        const usedTransactions = []
-        const realWork = throwingTransactionWork(txWorkErrorCodes, 424242)
+      const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
+      executor.pipelineBegin = pipelineBegin
+      const usedTransactions = []
+      const realWork = throwingTransactionWork(txWorkErrorCodes, 424242)
 
-        const result = await executor.execute(
-          transactionCreator([], rollbackErrorCodes),
-          tx => {
-            expect(tx).toBeDefined()
-            usedTransactions.push(tx)
-            return realWork()
-          }
-        )
+      const result = await executor.execute(
+        transactionCreator([], rollbackErrorCodes),
+        tx => {
+          expect(tx).toBeDefined()
+          usedTransactions.push(tx)
+          return realWork()
+        }
+      )
 
-        // work should have failed 'failures.length' times and succeeded 1 time
-        expect(usedTransactions.length).toEqual(txWorkErrorCodes.length + 1)
-        expectAllTransactionsToBeClosed(usedTransactions)
-        expect(result).toEqual(424242)
-        verifyRetryDelays(fakeSetTimeout, txWorkErrorCodes.length)
-      } finally {
-        fakeSetTimeout.uninstall()
-      }
+      // work should have failed 'failures.length' times and succeeded 1 time
+      expect(usedTransactions.length).toEqual(txWorkErrorCodes.length + 1)
+      expectAllTransactionsToBeClosed(usedTransactions)
+      expect(result).toEqual(424242)
+      verifyRetryDelays(fakeSetTimeout, txWorkErrorCodes.length)
     }
   })
 })
+
+function createTransactionExecutorWithFakeTimeout (...args) {
+  const fakeSetTimeout = new TimeoutsMock()
+  const dependencies = {
+    setTimeout: fakeSetTimeout.setTimeout,
+    clearTimeout: fakeSetTimeout.clearTimeout
+  }
+
+  if (typeof args[4] === 'object' || args[4] === undefined) {
+    args[4] = { ...dependencies, ...args[4] }
+  } else {
+    throw new TypeError(
+      `Expected object or undefined as args[4] but got ${typeof args[4]}`)
+  }
+
+  return {
+    executor: new TransactionExecutor(...args),
+    fakeSetTimeout
+  }
+}
 
 async function testNoRetryOnUnknownError (
   errorCodes,
