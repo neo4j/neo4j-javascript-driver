@@ -95,7 +95,7 @@ export default class FakeConnection extends Connection {
     return Promise.resolve()
   }
 
-  _release () {
+  release () {
     this.releaseInvoked++
     return Promise.resolve()
   }
