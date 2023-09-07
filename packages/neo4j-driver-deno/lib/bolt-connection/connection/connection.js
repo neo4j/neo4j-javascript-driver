@@ -54,13 +54,6 @@ export default class Connection extends CoreConnection {
   }
 
   /**
-   * @returns {boolean} whether this connection is in a working condition
-   */
-  isOpen () {
-    throw new Error('not implemented')
-  }
-
-  /**
    * @returns {BoltProtocol} the underlying bolt protocol assigned to this connection
    */
   protocol () {
@@ -108,18 +101,6 @@ export default class Connection extends CoreConnection {
    * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
    */
   write (message, observer, flush) {
-    throw new Error('not implemented')
-  }
-
-  /**
-   * Send a RESET-message to the database. Message is immediately flushed to the network.
-   * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
-   */
-  resetAndFlush () {
-    throw new Error('not implemented')
-  }
-
-  hasOngoingObservableRequests () {
     throw new Error('not implemented')
   }
 
