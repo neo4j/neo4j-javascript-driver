@@ -139,7 +139,7 @@ class Transaction {
         this._onConnection()
         if (connection != null) {
           this._bookmarks = await getBookmarks()
-          return connection.protocol().beginTransaction({
+          return connection.beginTransaction({
             bookmarks: this._bookmarks,
             txConfig,
             mode: this._connectionHolder.mode(),
@@ -150,13 +150,13 @@ class Transaction {
               if (events != null) {
                 events.onError(error)
               }
-              return this._onError(error)
+              this._onError(error).catch(() => {})
             },
             afterComplete: (metadata: any) => {
               if (events != null) {
                 events.onComplete(metadata)
               }
-              return this._onComplete(metadata)
+              this._onComplete(metadata)
             }
           })
         } else {
@@ -364,7 +364,7 @@ const _states = {
       }
     },
     run: (
-      query: Query,
+      query: string,
       parameters: any,
       {
         connectionHolder,
@@ -388,7 +388,7 @@ const _states = {
           .then(conn => {
             onConnection()
             if (conn != null) {
-              return conn.protocol().run(query, parameters, {
+              return conn.run(query, parameters, {
                 bookmarks: Bookmarks.empty(),
                 txConfig: TxConfig.empty(),
                 beforeError: onError,
@@ -643,12 +643,12 @@ function finishTransaction (
         return Promise.all(pendingResults.map(result => result.summary())).then(results => {
           if (connection != null) {
             if (commit) {
-              return connection.protocol().commitTransaction({
+              return connection.commitTransaction({
                 beforeError: onError,
                 afterComplete: onComplete
               })
             } else {
-              return connection.protocol().rollbackTransaction({
+              return connection.rollbackTransaction({
                 beforeError: onError,
                 afterComplete: onComplete
               })

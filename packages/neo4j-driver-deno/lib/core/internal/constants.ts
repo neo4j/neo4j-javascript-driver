@@ -38,6 +38,8 @@ const BOLT_PROTOCOL_V5_1: number = 5.1
 const BOLT_PROTOCOL_V5_2: number = 5.2
 const BOLT_PROTOCOL_V5_3: number = 5.3
 
+export type AccessMode = typeof ACCESS_MODE_READ | typeof ACCESS_MODE_WRITE
+
 export {
   FETCH_ALL,
   ACCESS_MODE_READ,

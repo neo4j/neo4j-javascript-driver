@@ -18,6 +18,7 @@
  */
 
 import { Connection, ResultObserver, ResultSummary } from '../../src'
+import { BeginTransactionConfig, CommitTransactionConfig, RollbackConnectionConfig, RunQueryConfig } from '../../src/connection'
 import { ResultStreamObserver } from '../../src/internal/observers'
 
 /**
@@ -39,7 +40,7 @@ export default class FakeConnection extends Connection {
   public seenParameters: any[]
   public seenProtocolOptions: any[]
   private readonly _server: any
-  public protocolVersion: number | undefined
+  public protocolVersion: number
   public protocolErrorsHandled: number
   public seenProtocolErrors: string[]
   public seenRequestRoutingInformation: any[]
@@ -62,7 +63,7 @@ export default class FakeConnection extends Connection {
     this.seenParameters = []
     this.seenProtocolOptions = []
     this._server = {}
-    this.protocolVersion = undefined
+    this.protocolVersion = 1
     this.protocolErrorsHandled = 0
     this.seenProtocolErrors = []
     this.seenRequestRoutingInformation = []
@@ -96,44 +97,39 @@ export default class FakeConnection extends Connection {
     this._server.version = value
   }
 
-  protocol (): any {
-    // return fake protocol object that simply records seen queries and parameters
-    return {
-      run: (query: string, parameters: any | undefined, protocolOptions: any | undefined): ResultStreamObserver => {
-        this.seenQueries.push(query)
-        this.seenParameters.push(parameters)
-        this.seenProtocolOptions.push(protocolOptions)
-        return mockResultStreamObserver(query, parameters)
-      },
-      commitTransaction: () => {
-        return mockResultStreamObserver('COMMIT', {})
-      },
-      beginTransaction: async (...args: any) => {
-        this.seenBeginTransaction.push(...args)
-        return await Promise.resolve()
-      },
-      rollbackTransaction: () => {
-        this.rollbackInvoked++
-        if (this._rollbackError !== null) {
-          return mockResultStreamObserverWithError('ROLLBACK', {}, this._rollbackError)
-        }
-        return mockResultStreamObserver('ROLLBACK', {})
-      },
-      requestRoutingInformation: (params: any | undefined) => {
-        this.seenRequestRoutingInformation.push(params)
-        if (this._requestRoutingInformationMock != null) {
-          this._requestRoutingInformationMock(params)
-        }
-      },
-      version: this.protocolVersion
+  beginTransaction (config: BeginTransactionConfig): ResultStreamObserver {
+    this.seenBeginTransaction.push([config])
+    return mockResultStreamObserver('BEGIN', {})
+  }
+
+  run (query: string, parameters?: Record<string, unknown> | undefined, config?: RunQueryConfig | undefined): ResultStreamObserver {
+    this.seenQueries.push(query)
+    this.seenParameters.push(parameters)
+    this.seenProtocolOptions.push(config)
+    return mockResultStreamObserver(query, parameters)
+  }
+
+  commitTransaction (config: CommitTransactionConfig): ResultStreamObserver {
+    return mockResultStreamObserver('COMMIT', {})
+  }
+
+  rollbackTransaction (config: RollbackConnectionConfig): ResultStreamObserver {
+    this.rollbackInvoked++
+    if (this._rollbackError !== null) {
+      return mockResultStreamObserverWithError('ROLLBACK', {}, this._rollbackError)
     }
+    return mockResultStreamObserver('ROLLBACK', {})
+  }
+
+  getProtocolVersion (): number {
+    return this.protocolVersion
   }
 
   async resetAndFlush (): Promise<void> {
     this.resetInvoked++
   }
 
-  async _release (): Promise<void> {
+  async release (): Promise<void> {
     this.releaseInvoked++
   }
 

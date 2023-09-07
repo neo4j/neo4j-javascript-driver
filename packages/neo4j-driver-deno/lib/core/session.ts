@@ -187,7 +187,7 @@ class Session {
     const result = this._run(validatedQuery, params, async connection => {
       const bookmarks = await this._bookmarks()
       this._assertSessionIsOpen()
-      return (connection as Connection).protocol().run(validatedQuery, params, {
+      return (connection as Connection).run(validatedQuery, params, {
         bookmarks,
         txConfig: autoCommitTxConfig,
         mode: this._mode,

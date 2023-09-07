@@ -24,6 +24,18 @@ import { ServerInfo } from './result-summary'
 import { AuthToken } from './types'
 
 /**
+ * Interface define a releasable resource shape
+ *
+ * @private
+ * @interface
+ */
+class Releasable {
+  release (): Promise<void> {
+    throw new Error('Not implemented')
+  }
+}
+
+/**
  * Interface define a common way to acquire a connection
  *
  * @private
@@ -53,7 +65,7 @@ class ConnectionProvider {
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
     auth?: AuthToken
-  }): Promise<Connection> {
+  }): Promise<Connection & Releasable> {
     throw Error('Not implemented')
   }
 
@@ -150,3 +162,6 @@ class ConnectionProvider {
 }
 
 export default ConnectionProvider
+export {
+  Releasable
+}

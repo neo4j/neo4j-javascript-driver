@@ -21,9 +21,9 @@
 import { newError } from '../error'
 import { assertString } from './util'
 import Connection from '../connection'
-import { ACCESS_MODE_WRITE } from './constants'
+import { ACCESS_MODE_WRITE, AccessMode } from './constants'
 import { Bookmarks } from './bookmarks'
-import ConnectionProvider from '../connection-provider'
+import ConnectionProvider, { Releasable } from '../connection-provider'
 import { AuthToken } from '../types'
 
 /**
@@ -77,12 +77,12 @@ interface ConnectionHolderInterface {
  * @private
  */
 class ConnectionHolder implements ConnectionHolderInterface {
-  private readonly _mode: string
+  private readonly _mode: AccessMode
   private _database?: string
   private readonly _bookmarks: Bookmarks
   private readonly _connectionProvider?: ConnectionProvider
   private _referenceCount: number
-  private _connectionPromise: Promise<Connection | null>
+  private _connectionPromise: Promise<Connection & Releasable | null>
   private readonly _impersonatedUser?: string
   private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
   private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
@@ -111,7 +111,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     getConnectionAcquistionBookmarks,
     auth
   }: {
-    mode?: string
+    mode?: AccessMode
     database?: string
     bookmarks?: Bookmarks
     connectionProvider?: ConnectionProvider
@@ -133,7 +133,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._getConnectionAcquistionBookmarks = getConnectionAcquistionBookmarks ?? (() => Promise.resolve(Bookmarks.empty()))
   }
 
-  mode (): string | undefined {
+  mode (): AccessMode | undefined {
     return this._mode
   }
 
@@ -168,7 +168,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return true
   }
 
-  private async _createConnectionPromise (connectionProvider: ConnectionProvider): Promise<Connection | null> {
+  private async _createConnectionPromise (connectionProvider: ConnectionProvider): Promise<Connection & Releasable | null> {
     return await connectionProvider.acquireConnection({
       accessMode: this._mode,
       database: this._database,
@@ -218,15 +218,15 @@ class ConnectionHolder implements ConnectionHolderInterface {
    */
   private _releaseConnection (hasTx?: boolean): Promise<Connection | null> {
     this._connectionPromise = this._connectionPromise
-      .then((connection?: Connection | null) => {
+      .then((connection?: Connection & Releasable | null) => {
         if (connection != null) {
           if (connection.isOpen() && (connection.hasOngoingObservableRequests() || hasTx === true)) {
             return connection
               .resetAndFlush()
               .catch(ignoreError)
-              .then(() => connection._release().then(() => null))
+              .then(() => connection.release().then(() => null))
           }
-          return connection._release().then(() => null)
+          return connection.release().then(() => null)
         } else {
           return Promise.resolve(null)
         }

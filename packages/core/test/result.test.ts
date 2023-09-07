@@ -466,14 +466,15 @@ describe('Result', () => {
         it.each([123, undefined])(
           'should enrich summary with the protocol version onCompleted',
           async version => {
-            const connectionMock = {
-              protocol: () => {
-                return { version }
-              }
-            }
+            const connectionMock = new FakeConnection()
+            // converting to accept number as undefined
+            // this test is considering the situation where protocol version
+            // is undefined, which it should not happen in normal driver
+            // operation.
+            connectionMock.protocolVersion = version as unknown as number
 
             connectionHolderMock.getConnection = async (): Promise<Connection> => {
-              return asConnection(connectionMock)
+              return connectionMock
             }
             const metadata = {
               resultConsumedAfter: 20,
@@ -679,14 +680,15 @@ describe('Result', () => {
         it.each([123, undefined])(
           'should enrich summary with the protocol version on completed',
           async version => {
-            const connectionMock = {
-              protocol: () => {
-                return { version }
-              }
-            }
+            const connectionMock = new FakeConnection()
+            // converting to accept number as undefined
+            // this test is considering the situation where protocol version
+            // is undefined, which it should not happen in normal driver
+            // operation.
+            connectionMock.protocolVersion = version as unknown as number
 
             connectionHolderMock.getConnection = async (): Promise<Connection> => {
-              return await Promise.resolve(asConnection(connectionMock))
+              return await Promise.resolve(connectionMock)
             }
             const metadata = {
               resultConsumedAfter: 20,
@@ -1718,8 +1720,4 @@ function simulateStream (
     return true
   }
   */
-}
-
-function asConnection (value: any): Connection {
-  return value
 }
