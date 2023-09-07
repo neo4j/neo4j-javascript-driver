@@ -25,12 +25,12 @@ import { AuthToken } from './types.ts'
 
 /**
  * Interface define a releasable resource shape
- * 
+ *
  * @private
  * @interface
  */
 class Releasable {
-  release(): Promise<void> {
+  release (): Promise<void> {
     throw new Error('Not implemented')
   }
 }

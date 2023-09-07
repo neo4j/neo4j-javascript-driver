@@ -53,6 +53,7 @@ const matchers = {
     } else {
       result.message = `Expected '${actual}' to be an element of '[${expected}]', but it wasn't`
     }
+    return result
   },
   toBeMessage: function (actual, expected) {
     if (expected === undefined) {
@@ -84,6 +85,12 @@ const matchers = {
       result.message = () => `Expected message '[${failures}]', but it didn't`
     }
     return result
+  },
+  toBeCalledWithThis: function (theMockedFunction, thisArg) {
+    return {
+      pass: theMockedFunction.mock.contexts.filter(ctx => ctx === thisArg).length > 0,
+      message: () => `Expected to be called with this equals to '${json.stringify(thisArg)}', but it wasn't.`
+    }
   }
 }
 

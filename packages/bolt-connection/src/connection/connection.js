@@ -18,12 +18,14 @@
  */
 // eslint-disable-next-line no-unused-vars
 import { ResultStreamObserver, BoltProtocol } from '../bolt'
+import { Connection as CoreConnection } from 'neo4j-driver-core'
 
-export default class Connection {
+export default class Connection extends CoreConnection {
   /**
    * @param {ConnectionErrorHandler} errorHandler the error handler
    */
   constructor (errorHandler) {
+    super()
     this._errorHandler = errorHandler
   }
 

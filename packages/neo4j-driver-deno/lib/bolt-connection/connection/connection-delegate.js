@@ -35,6 +35,26 @@ export default class DelegateConnection extends Connection {
     this._delegate = delegate
   }
 
+  beginTransaction (config) {
+    return this._delegate.beginTransaction(config)
+  }
+
+  run (query, param, config) {
+    return this._delegate.run(query, param, config)
+  }
+
+  commitTransaction (config) {
+    return this._delegate.commitTransaction(config)
+  }
+
+  rollbackTransaction (config) {
+    return this._delegate.rollbackTransaction(config)
+  }
+
+  getProtocolVersion () {
+    return this._delegate.getProtocolVersion()
+  }
+
   get id () {
     return this._delegate.id
   }
@@ -103,11 +123,11 @@ export default class DelegateConnection extends Connection {
     return this._delegate.close()
   }
 
-  _release () {
+  release () {
     if (this._originalErrorHandler) {
       this._delegate._errorHandler = this._originalErrorHandler
     }
 
-    return this._delegate._release()
+    return this._delegate.release()
   }
 }

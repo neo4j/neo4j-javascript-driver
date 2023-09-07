@@ -20,10 +20,13 @@
 import ChannelConnection from '../../src/connection/connection-channel'
 import { int, internal, newError } from 'neo4j-driver-core'
 import { notificationFilterBehaviour } from '../bolt/behaviour'
+import { ResultStreamObserver } from '../../src/bolt'
 
 const {
   serverAddress: { ServerAddress },
-  logger: { Logger }
+  logger: { Logger },
+  bookmarks: { Bookmarks },
+  txConfig: { TxConfig }
 } = internal
 
 describe('ChannelConnection', () => {
@@ -712,6 +715,182 @@ describe('ChannelConnection', () => {
       await connection.resetAndFlush().catch(() => {})
 
       expect(protocol.reset).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  describe('.beginTransaction()', () => {
+    it('should call redirect the request to the protocol', () => {
+      const observer = new ResultStreamObserver()
+      const protocol = {
+        beginTransaction: jest.fn(() => observer)
+      }
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol })
+
+      const config = {
+        bookmarks: Bookmarks.empty(),
+        txConfig: TxConfig.empty(),
+        database: 'neo4j',
+        mode: 'READ',
+        impersonatedUser: 'other cat',
+        notificationFilter: {
+          minimumSeverityLevel: 'WARNING'
+        },
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const result = connection.beginTransaction(config)
+
+      expect(result).toBe(observer)
+      expect(protocol.beginTransaction).toBeCalledWith(config)
+    })
+  })
+
+  describe('.run()', () => {
+    it('should call redirect the request to the protocol', () => {
+      const observer = new ResultStreamObserver()
+      const protocol = {
+        run: jest.fn(() => observer)
+      }
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol })
+
+      const query = 'RETURN $x'
+      const params = { x: 1 }
+      const config = {
+        bookmarks: Bookmarks.empty(),
+        txConfig: TxConfig.empty(),
+        database: 'neo4j',
+        mode: 'READ',
+        impersonatedUser: 'other cat',
+        notificationFilter: {
+          minimumSeverityLevel: 'WARNING'
+        },
+        fetchSize: 1000,
+        highRecordWatermark: 1234,
+        lowRecordWatermark: 12,
+        reactive: false,
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const result = connection.run(query, params, config)
+
+      expect(result).toBe(observer)
+      expect(protocol.run).toBeCalledWith(query, params, config)
+    })
+  })
+
+  describe('.commitTransaction()', () => {
+    it('should call redirect the request to the protocol', () => {
+      const observer = new ResultStreamObserver()
+      const protocol = {
+        commitTransaction: jest.fn(() => observer)
+      }
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol })
+
+      const config = {
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const result = connection.commitTransaction(config)
+
+      expect(result).toBe(observer)
+      expect(protocol.commitTransaction).toBeCalledWith(config)
+    })
+  })
+
+  describe('.rollbackTransaction()', () => {
+    it('should call redirect the request to the protocol', () => {
+      const observer = new ResultStreamObserver()
+      const protocol = {
+        rollbackTransaction: jest.fn(() => observer)
+      }
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol })
+
+      const config = {
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const result = connection.rollbackTransaction(config)
+
+      expect(result).toBe(observer)
+      expect(protocol.rollbackTransaction).toBeCalledWith(config)
+    })
+  })
+
+  describe('.isOpen()', () => {
+    it('should return true when is not broken and channel is open', () => {
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => ({}), channel: { _open: true } })
+
+      expect(connection.isOpen()).toBe(true)
+    })
+
+    it('should return true when is not broken and channel not is open', () => {
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => ({}), channel: { _open: false } })
+
+      expect(connection.isOpen()).toBe(false)
+    })
+
+    it('should return true when is broken and channel not is open', () => {
+      const connection = spyOnConnectionChannel({
+        protocolSupplier: () => ({
+          notifyFatalError: () => {}
+        }),
+        channel: { _open: false }
+      })
+
+      connection._handleFatalError(new Error('the error which makes the connection be broken.'))
+
+      expect(connection.isOpen()).toBe(false)
+    })
+
+    it('should return true when is broken and channel is open', () => {
+      const connection = spyOnConnectionChannel({
+        protocolSupplier: () => ({
+          notifyFatalError: () => {}
+        }),
+        channel: { _open: true }
+      })
+
+      connection._handleFatalError(new Error('the error which makes the connection be broken.'))
+
+      expect(connection.isOpen()).toBe(false)
+    })
+  })
+
+  describe('.getProtocolVersion()', () => {
+    it('should call redirect request to the protocol', () => {
+      const version = 5.3
+      const getVersion = jest.fn(() => version)
+      const protocol = {
+        get version () {
+          return getVersion()
+        }
+      }
+
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol })
+
+      const result = connection.getProtocolVersion()
+
+      expect(result).toBe(version)
+      expect(getVersion).toBeCalledWith()
+    })
+  })
+
+  describe('.hasOngoingObservableRequests()', () => {
+    it('should call redirect request to the protocol', () => {
+      const protocol = {
+        hasOngoingObservableRequests: jest.fn(() => true)
+      }
+
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol })
+
+      const result = connection.hasOngoingObservableRequests()
+
+      expect(result).toBe(true)
+      expect(protocol.hasOngoingObservableRequests).toBeCalledWith()
     })
   })
 

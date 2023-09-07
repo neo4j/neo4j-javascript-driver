@@ -18,12 +18,14 @@
  */
 // eslint-disable-next-line no-unused-vars
 import { ResultStreamObserver, BoltProtocol } from '../bolt/index.js'
+import { Connection as CoreConnection } from '../../core/index.ts'
 
-export default class Connection {
+export default class Connection extends CoreConnection {
   /**
    * @param {ConnectionErrorHandler} errorHandler the error handler
    */
   constructor (errorHandler) {
+    super()
     this._errorHandler = errorHandler
   }
 

@@ -24,18 +24,17 @@ import { ResultStreamObserver } from './internal/observers.ts'
 import { TxConfig } from './internal/tx-config.ts'
 import NotificationFilter from './notification-filter.ts'
 
-
 interface HasBeforeErrorAndAfterComplete {
-  beforeError?: (error: Error) => void 
+  beforeError?: (error: Error) => void
   afterComplete?: (metadata: unknown) => void
 }
 
 interface BeginTransactionConfig extends HasBeforeErrorAndAfterComplete {
-  bookmarks: Bookmarks,
-  txConfig: TxConfig,
+  bookmarks: Bookmarks
+  txConfig: TxConfig
   mode?: AccessMode
   database?: string
-  impersonatedUser?: string 
+  impersonatedUser?: string
   notificationFilter?: NotificationFilter
 }
 
@@ -54,51 +53,49 @@ interface RunQueryConfig extends BeginTransactionConfig {
   reactive: boolean
 }
 
-
 /**
  * Interface which defines a connection for the core driver object.
- * 
- * 
- * This connection exposes only methods used by the code module. 
+ *
+ *
+ * This connection exposes only methods used by the code module.
  * Methods with connection implementation details can be defined and used
  * by the implementation layer.
- * 
+ *
  * @private
  * @interface
  */
 class Connection {
-  beginTransaction(config: BeginTransactionConfig): ResultStreamObserver {
+  beginTransaction (config: BeginTransactionConfig): ResultStreamObserver {
     throw new Error('Not implemented')
   }
 
-  run(query: string, parameters?: Record<string, unknown>, config?: RunQueryConfig): ResultStreamObserver {
+  run (query: string, parameters?: Record<string, unknown>, config?: RunQueryConfig): ResultStreamObserver {
     throw new Error('Not implemented')
   }
 
-  commitTransaction(config: CommitTransactionConfig): ResultStreamObserver {
+  commitTransaction (config: CommitTransactionConfig): ResultStreamObserver {
     throw new Error('Not implemented')
   }
 
-  rollbackTransaction(config: RollbackConnectionConfig): ResultStreamObserver {
+  rollbackTransaction (config: RollbackConnectionConfig): ResultStreamObserver {
     throw new Error('Not implemented')
   }
 
-  resetAndFlush(): Promise<void> {
+  resetAndFlush (): Promise<void> {
     throw new Error('Not implemented')
   }
 
-  isOpen(): boolean {
+  isOpen (): boolean {
     throw new Error('Not implemented')
   }
 
-  getProtocolVersion(): number {
-    throw new Error('Not implemented')
-  }
-  
-  hasOngoingObservableRequests(): boolean {
+  getProtocolVersion (): number {
     throw new Error('Not implemented')
   }
 
+  hasOngoingObservableRequests (): boolean {
+    throw new Error('Not implemented')
+  }
 }
 
 export default Connection

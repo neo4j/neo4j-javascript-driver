@@ -82,7 +82,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    */
   _createConnection ({ auth }, address, release) {
     return this._createChannelConnection(address).then(connection => {
-      connection._release = () => {
+      connection.release = () => {
         return release(address, connection)
       }
       this._openConnections[connection.id] = connection
@@ -160,7 +160,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
         await connection.resetAndFlush()
       }
     } finally {
-      await connection._release()
+      await connection.release()
     }
     return serverInfo
   }
@@ -191,7 +191,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       }
       throw error
     } finally {
-      await Promise.all(connectionsToRelease.map(conn => conn._release()))
+      await Promise.all(connectionsToRelease.map(conn => conn.release()))
     }
   }
 
@@ -201,7 +201,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     connection._sticky = connectionWithSameCredentials && !connection.supportsReAuth
 
     if (shouldCreateStickyConnection || connection._sticky) {
-      await connection._release()
+      await connection.release()
       throw newError('Driver is connected to a database that does not support user switch.')
     }
   }
