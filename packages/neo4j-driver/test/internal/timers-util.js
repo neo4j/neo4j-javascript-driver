@@ -18,7 +18,7 @@
 */
 
 /**
- * This is a liter mock which only creates mocked functions to work
+ * This is a lighter mock which only creates mocked functions to work
  * as timeouts.
  */
 class TimeoutsMock {
@@ -30,11 +30,12 @@ class TimeoutsMock {
   }
 
   setTimeout (code, delay) {
+    let timeoutId = this._timeoutIdCounter++
+    this.invocationDelays.push(delay)
     if (!this._paused) {
       code()
-      this.invocationDelays.push(delay)
     }
-    return this._timeoutIdCounter++
+    return timeoutId
   }
 
   clearTimeout (id) {

@@ -477,7 +477,7 @@ function createTransactionExecutorWithFakeTimeout (...args) {
     args[4] = { ...dependencies, ...args[4] }
   } else {
     throw new TypeError(
-      `Expected  object or undefined as args[4] but got ${typeof args[4]}`)
+      `Expected object or undefined as args[4] but got ${typeof args[4]}`)
   }
 
   return {
