@@ -316,7 +316,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(1)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })
@@ -343,7 +343,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(0)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })
@@ -369,7 +369,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(0)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })
@@ -398,7 +398,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(1)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })
@@ -424,7 +424,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(0)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })
