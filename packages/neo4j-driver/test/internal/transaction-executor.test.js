@@ -91,7 +91,7 @@ describe('#unit TransactionExecutor', () => {
   it('should cancel in-flight timeouts when closed', async () => {
     const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
     // do not execute setTimeout callbacks
-    fakeSetTimeout.pause()
+    fakeSetTimeout.disableTimeoutCallbacks()
 
     executor.execute(transactionCreator([SERVICE_UNAVAILABLE]), () =>
       Promise.resolve(42)
@@ -464,16 +464,7 @@ function createTransactionExecutorWithFakeTimeout (...args) {
     clearTimeout: fakeSetTimeout.clearTimeout
   }
 
-  // args should have at least 5 elements for place the dependencies
-  if (args.length < 5) {
-    args.length = 5
-  }
-
-  // dependencies not set, so we should set
-  if (args[4] === undefined) {
-    args[4] = dependencies
-  // dependencies are an object, so we should join both
-  } else if (typeof args[4] === 'object') {
+  if (typeof args[4] === 'object' || args[4] === undefined) {
     args[4] = { ...dependencies, ...args[4] }
   } else {
     throw new TypeError(

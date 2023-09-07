@@ -30,9 +30,9 @@ class TimeoutsMock {
   }
 
   setTimeout (code, delay) {
-    let timeoutId = this._timeoutIdCounter++
+    const timeoutId = this._timeoutIdCounter++
     this.invocationDelays.push(delay)
-    if (!this._paused) {
+    if (!this._timeoutCallbacksDisabled) {
       code()
     }
     return timeoutId
@@ -42,12 +42,12 @@ class TimeoutsMock {
     this.clearedTimeouts.push(id)
   }
 
-  pause () {
-    this._paused = true
+  disableTimeoutCallbacks () {
+    this._timeoutCallbacksDisabled = true
   }
 
   clearState () {
-    this._paused = false
+    this._timeoutCallbacksDisabled = false
     this._timeoutIdCounter = 0
 
     this.invocationDelays = []
