@@ -467,9 +467,9 @@ describe('Result', () => {
           'should enrich summary with the protocol version onCompleted',
           async version => {
             const connectionMock = new FakeConnection()
-            // converting to accept number as undefined
+            // converting to accept undefined as number
             // this test is considering the situation where protocol version
-            // is undefined, which it should not happen in normal driver
+            // is undefined, which should not happen during normal driver
             // operation.
             connectionMock.protocolVersion = version as unknown as number
 
@@ -681,9 +681,9 @@ describe('Result', () => {
           'should enrich summary with the protocol version on completed',
           async version => {
             const connectionMock = new FakeConnection()
-            // converting to accept number as undefined
+            // converting to accept undefined as number
             // this test is considering the situation where protocol version
-            // is undefined, which it should not happen in normal driver
+            // is undefined, which should not happen during normal driver
             // operation.
             connectionMock.protocolVersion = version as unknown as number
 
