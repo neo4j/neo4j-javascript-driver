@@ -21,6 +21,7 @@ import { ConnectionProvider, newError, NotificationFilter, Transaction, Transact
 import { BeginTransactionConfig } from '../src/connection'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { ConnectionHolder } from '../src/internal/connection-holder'
+import { Logger } from '../src/internal/logger'
 import { TxConfig } from '../src/internal/tx-config'
 import FakeConnection from './utils/connection.fake'
 import { validNotificationFilters } from './utils/notification-filters.fixtures'
@@ -511,7 +512,7 @@ function newTransactionPromise ({
   }
   connectionProvider.close = async () => await Promise.resolve()
 
-  const connectionHolder = new ConnectionHolder({ connectionProvider })
+  const connectionHolder = new ConnectionHolder({ connectionProvider, log: Logger.create({}) })
   connectionHolder.initializeConnection()
 
   const transaction = new TransactionPromise({
@@ -547,7 +548,7 @@ function newRegularTransaction ({
   connectionProvider.acquireConnection = async () => await Promise.resolve(connection)
   connectionProvider.close = async () => await Promise.resolve()
 
-  const connectionHolder = new ConnectionHolder({ connectionProvider })
+  const connectionHolder = new ConnectionHolder({ connectionProvider, log: Logger.create({}) })
   connectionHolder.initializeConnection()
 
   const transaction = new Transaction({

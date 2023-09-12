@@ -27,6 +27,7 @@ import {
 import ResultStreamObserverMock from './utils/result-stream-observer.mock'
 import Result from '../src/result'
 import FakeConnection from './utils/connection.fake'
+import { Logger } from '../src/internal/logger'
 
 interface AB {
   a: number
@@ -154,7 +155,7 @@ describe('Result', () => {
       ])('when query=%s and parameters=%s', (query, params, expected) => {
         let connectionHolderMock: connectionHolder.ConnectionHolder
         beforeEach(() => {
-          connectionHolderMock = new connectionHolder.ConnectionHolder({})
+          connectionHolderMock = new connectionHolder.ConnectionHolder({ log: Logger.create({}) })
           result = new Result(
             Promise.resolve(streamObserverMock),
             query,
@@ -406,7 +407,7 @@ describe('Result', () => {
         let connectionHolderMock: connectionHolder.ConnectionHolder
 
         beforeEach(() => {
-          connectionHolderMock = new connectionHolder.ConnectionHolder({})
+          connectionHolderMock = new connectionHolder.ConnectionHolder({ log: Logger.create({}) })
           result = new Result(
             Promise.resolve(streamObserverMock),
             'query',
@@ -632,7 +633,7 @@ describe('Result', () => {
         let connectionHolderMock: connectionHolder.ConnectionHolder
 
         beforeEach(() => {
-          connectionHolderMock = new connectionHolder.ConnectionHolder({})
+          connectionHolderMock = new connectionHolder.ConnectionHolder({ log: Logger.create({}) })
           result = new Result(
             Promise.resolve(streamObserverMock),
             'query',

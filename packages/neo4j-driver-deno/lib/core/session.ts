@@ -75,7 +75,7 @@ class Session {
   private readonly _results: Result[]
   private readonly _bookmarkManager?: BookmarkManager
   private readonly _notificationFilter?: NotificationFilter
-  private readonly _log?: Logger
+  private readonly _log: Logger
   /**
    * @constructor
    * @protected
@@ -132,7 +132,8 @@ class Session {
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,
-      getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks
+      getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
+      log
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
@@ -142,7 +143,8 @@ class Session {
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,
-      getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks
+      getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
+      log
     })
     this._open = true
     this._hasTx = false

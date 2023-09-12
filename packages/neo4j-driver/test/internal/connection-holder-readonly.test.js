@@ -299,7 +299,7 @@ describe('#unit ReadOnlyConnectionHolder wrapping ConnectionHolder', () => {
 })
 
 function newConnectionHolder (params, connectionHolderInit = () => {}) {
-  const connectionHolder = new ConnectionHolder(params)
+  const connectionHolder = new ConnectionHolder(params || {})
   connectionHolderInit(connectionHolder)
   return new ReadOnlyConnectionHolder(connectionHolder)
 }
