@@ -19,7 +19,7 @@
 
 /* eslint-disable @typescript-eslint/promise-function-async */
 
-import { FailedObserver } from './internal/observers.ts'
+import { FailedObserver, ResultStreamObserver } from './internal/observers.ts'
 import { validateQueryAndParameters } from './internal/util.ts'
 import { FETCH_ALL, ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants.ts'
 import { newError } from './error.ts'
@@ -40,7 +40,7 @@ import { RecordShape } from './record.ts'
 import NotificationFilter from './notification-filter.ts'
 import { Logger } from './internal/logger.ts'
 
-type ConnectionConsumer = (connection: Connection | null) => any | undefined | Promise<any> | Promise<undefined>
+type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
@@ -189,7 +189,7 @@ class Session {
     const result = this._run(validatedQuery, params, async connection => {
       const bookmarks = await this._bookmarks()
       this._assertSessionIsOpen()
-      return (connection as Connection).run(validatedQuery, params, {
+      return connection.run(validatedQuery, params, {
         bookmarks,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
@@ -207,57 +207,62 @@ class Session {
     return result
   }
 
-  _run (
+  _run <T extends ResultStreamObserver = ResultStreamObserver>(
     query: Query,
     parameters: any,
-    customRunner: ConnectionConsumer
+    customRunner: ConnectionConsumer<T>
   ): Result {
-    const connectionHolder = this._connectionHolderWithMode(this._mode)
-
-    let observerPromise
-    if (!this._open) {
-      observerPromise = Promise.resolve(
-        new FailedObserver({
-          error: newError('Cannot run query in a closed session.')
-        })
-      )
-    } else if (!this._hasTx && connectionHolder.initializeConnection()) {
-      observerPromise = connectionHolder
-        .getConnection()
-        .then(connection => customRunner(connection))
-        .catch(error => Promise.resolve(new FailedObserver({ error })))
-    } else {
-      observerPromise = Promise.resolve(
-        new FailedObserver({
-          error: newError(
-            'Queries cannot be run directly on a ' +
-              'session with an open transaction; either run from within the ' +
-              'transaction or use a different session.'
-          )
-        })
-      )
-    }
+    const { connectionHolder, resultPromise } = this._acquireAndConsumeConnection(customRunner)
+    const observerPromise  = resultPromise.catch(error => Promise.resolve(new FailedObserver({ error })))
     const watermarks = { high: this._highRecordWatermark, low: this._lowRecordWatermark }
     return new Result(observerPromise, query, parameters, connectionHolder, watermarks)
   }
 
-  _acquireConnection (connectionConsumer: ConnectionConsumer): Promise<Connection> {
-    let promise
+  /**
+   * This method is used by Rediscovery on the neo4j-driver-bolt-protocol package.
+   * 
+   * @private
+   * @param {function()} connectionConsumer The method which will use the connection
+   * @returns {Promise<T>} A connection promise
+   */
+  _acquireConnection<T> (connectionConsumer: ConnectionConsumer<T>): Promise<T> {
+    const { connectionHolder, resultPromise } = this._acquireAndConsumeConnection(connectionConsumer)
+
+    return resultPromise.then(async (result: T) => {
+      await connectionHolder.releaseConnection()
+      return result
+    })
+  }
+
+  /**
+   * Acquires a {@link Connection}, consume it and return a promise of the result along with 
+   * the {@link ConnectionHolder} used in the process.
+   *  
+   * @private
+   * @param connectionConsumer 
+   * @returns {object} The connection holder and connection promise.
+   */
+
+  private _acquireAndConsumeConnection<T>(connectionConsumer: ConnectionConsumer<T>): { 
+    connectionHolder: ConnectionHolder, 
+    resultPromise: Promise<T> 
+  } {
+
+    let resultPromise: Promise<T>
     const connectionHolder = this._connectionHolderWithMode(this._mode)
     if (!this._open) {
-      promise = Promise.reject(
+      resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
     } else if (!this._hasTx && connectionHolder.initializeConnection()) {
-      promise = connectionHolder
+      resultPromise = connectionHolder
         .getConnection()
-        .then(connection => connectionConsumer(connection))
-        .then(async result => {
-          await connectionHolder.releaseConnection()
-          return result
-        })
+        // Connection won't be null at this point since the initialize method
+        // return 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        .then(connection => connectionConsumer(connection!))
     } else {
-      promise = Promise.reject(
+      resultPromise = Promise.reject(
         newError(
           'Queries cannot be run directly on a ' +
             'session with an open transaction; either run from within the ' +
@@ -266,7 +271,7 @@ class Session {
       )
     }
 
-    return promise
+    return { connectionHolder, resultPromise }
   }
 
   /**
