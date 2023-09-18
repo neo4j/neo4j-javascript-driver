@@ -213,14 +213,14 @@ class Session {
     customRunner: ConnectionConsumer<T>
   ): Result {
     const { connectionHolder, resultPromise } = this._acquireAndConsumeConnection(customRunner)
-    const observerPromise  = resultPromise.catch(error => Promise.resolve(new FailedObserver({ error })))
+    const observerPromise = resultPromise.catch(error => Promise.resolve(new FailedObserver({ error })))
     const watermarks = { high: this._highRecordWatermark, low: this._lowRecordWatermark }
     return new Result(observerPromise, query, parameters, connectionHolder, watermarks)
   }
 
   /**
    * This method is used by Rediscovery on the neo4j-driver-bolt-protocol package.
-   * 
+   *
    * @private
    * @param {function()} connectionConsumer The method which will use the connection
    * @returns {Promise<T>} A connection promise
@@ -235,19 +235,18 @@ class Session {
   }
 
   /**
-   * Acquires a {@link Connection}, consume it and return a promise of the result along with 
+   * Acquires a {@link Connection}, consume it and return a promise of the result along with
    * the {@link ConnectionHolder} used in the process.
-   *  
+   *
    * @private
-   * @param connectionConsumer 
+   * @param connectionConsumer
    * @returns {object} The connection holder and connection promise.
    */
 
-  private _acquireAndConsumeConnection<T>(connectionConsumer: ConnectionConsumer<T>): { 
-    connectionHolder: ConnectionHolder, 
-    resultPromise: Promise<T> 
+  private _acquireAndConsumeConnection<T>(connectionConsumer: ConnectionConsumer<T>): {
+    connectionHolder: ConnectionHolder
+    resultPromise: Promise<T>
   } {
-
     let resultPromise: Promise<T>
     const connectionHolder = this._connectionHolderWithMode(this._mode)
     if (!this._open) {
@@ -258,7 +257,7 @@ class Session {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
-        // return 
+        // return
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         .then(connection => connectionConsumer(connection!))
     } else {
