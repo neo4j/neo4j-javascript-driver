@@ -156,6 +156,26 @@ export default class ChannelConnection extends Connection {
     }
   }
 
+  beginTransaction (config) {
+    return this._protocol.beginTransaction(config)
+  }
+
+  run (query, parameters, config) {
+    return this._protocol.run(query, parameters, config)
+  }
+
+  commitTransaction (config) {
+    return this._protocol.commitTransaction(config)
+  }
+
+  rollbackTransaction (config) {
+    return this._protocol.rollbackTransaction(config)
+  }
+
+  getProtocolVersion () {
+    return this._protocol.version
+  }
+
   get authToken () {
     return this._authToken
   }

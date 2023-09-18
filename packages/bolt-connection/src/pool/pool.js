@@ -273,53 +273,56 @@ class Pool {
   async _release (address, resource, pool) {
     const key = address.asKey()
 
-    if (pool.isActive()) {
-      // there exist idle connections for the given key
-      if (!await this._validateOnRelease(resource)) {
+    try {
+      if (pool.isActive()) {
+        // there exist idle connections for the given key
+        if (!await this._validateOnRelease(resource)) {
+          if (this._log.isDebugEnabled()) {
+            this._log.debug(
+              `${resource} destroyed and can't be released to the pool ${key} because it is not functional`
+            )
+          }
+          pool.removeInUse(resource)
+          await this._destroy(resource)
+        } else {
+          if (this._installIdleObserver) {
+            this._installIdleObserver(resource, {
+              onError: error => {
+                this._log.debug(
+                  `Idle connection ${resource} destroyed because of error: ${error}`
+                )
+                const pool = this._pools[key]
+                if (pool) {
+                  this._pools[key] = pool.filter(r => r !== resource)
+                  pool.removeInUse(resource)
+                }
+                // let's not care about background clean-ups due to errors but just trigger the destroy
+                // process for the resource, we especially catch any errors and ignore them to avoid
+                // unhandled promise rejection warnings
+                this._destroy(resource).catch(() => {})
+              }
+            })
+          }
+          pool.push(resource)
+          if (this._log.isDebugEnabled()) {
+            this._log.debug(`${resource} released to the pool ${key}`)
+          }
+        }
+      } else {
+        // key has been purged, don't put it back, just destroy the resource
         if (this._log.isDebugEnabled()) {
           this._log.debug(
-            `${resource} destroyed and can't be released to the pool ${key} because it is not functional`
+            `${resource} destroyed and can't be released to the pool ${key} because pool has been purged`
           )
         }
         pool.removeInUse(resource)
         await this._destroy(resource)
-      } else {
-        if (this._installIdleObserver) {
-          this._installIdleObserver(resource, {
-            onError: error => {
-              this._log.debug(
-                `Idle connection ${resource} destroyed because of error: ${error}`
-              )
-              const pool = this._pools[key]
-              if (pool) {
-                this._pools[key] = pool.filter(r => r !== resource)
-                pool.removeInUse(resource)
-              }
-              // let's not care about background clean-ups due to errors but just trigger the destroy
-              // process for the resource, we especially catch any errors and ignore them to avoid
-              // unhandled promise rejection warnings
-              this._destroy(resource).catch(() => {})
-            }
-          })
-        }
-        pool.push(resource)
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} released to the pool ${key}`)
-        }
       }
-    } else {
-      // key has been purged, don't put it back, just destroy the resource
-      if (this._log.isDebugEnabled()) {
-        this._log.debug(
-          `${resource} destroyed and can't be released to the pool ${key} because pool has been purged`
-        )
-      }
-      pool.removeInUse(resource)
-      await this._destroy(resource)
-    }
-    resourceReleased(key, this._activeResourceCounts)
+    } finally {
+      resourceReleased(key, this._activeResourceCounts)
 
-    this._processPendingAcquireRequests(address)
+      this._processPendingAcquireRequests(address)
+    }
   }
 
   async _purgeKey (key) {

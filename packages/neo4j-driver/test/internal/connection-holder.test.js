@@ -23,7 +23,8 @@ import FakeConnection from './fake-connection'
 import { internal } from 'neo4j-driver-core'
 
 const {
-  connectionHolder: { ConnectionHolder, EMPTY_CONNECTION_HOLDER }
+  connectionHolder: { ConnectionHolder, EMPTY_CONNECTION_HOLDER },
+  logger: { Logger }
 } = internal
 
 describe('#unit EmptyConnectionHolder', () => {
@@ -254,7 +255,7 @@ describe('#unit ConnectionHolder', () => {
       expect(connectionProvider.mode()).toBe(mode)
     }
 
-    verifyMode(new ConnectionHolder(), WRITE)
+    verifyMode(new ConnectionHolder({}), WRITE)
     verifyMode(new ConnectionHolder({ mode: WRITE }), WRITE)
     verifyMode(new ConnectionHolder({ mode: READ }), READ)
   })
@@ -266,7 +267,7 @@ describe('#unit ConnectionHolder', () => {
 
     const connectionProvider = newSingleConnectionProvider(new FakeConnection())
 
-    verifyDefault(new ConnectionHolder())
+    verifyDefault(new ConnectionHolder({}))
     verifyDefault(new ConnectionHolder({ mode: READ, connectionProvider }))
     verifyDefault(new ConnectionHolder({ mode: WRITE, connectionProvider }))
     verifyDefault(
@@ -316,8 +317,80 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(1)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
+        })
+      })
+
+      describe('and connection is open but release fails', () => {
+        describe('when warn logging is enabled', () => {
+          let connection
+          let releaseError
+          let log
+          let warnSpy
+
+          beforeEach(async () => {
+            log = new Logger('warn', () => {})
+            warnSpy = spyOn(log, 'warn').and.callThrough()
+
+            releaseError = new Error('something wrong is not right')
+            connection = new FakeConnection()
+            const originalRelease = connection.release.bind(connection)
+            connection.release = () => {
+              originalRelease()
+              return Promise.reject(releaseError)
+            }
+            const connectionProvider = newSingleConnectionProvider(connection)
+            const connectionHolder = new ConnectionHolder({
+              mode: READ,
+              connectionProvider,
+              log
+            })
+
+            connectionHolder.initializeConnection()
+
+            await connectionHolder.releaseConnection()
+          })
+
+          it('should log error as warning()', () => {
+            expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(
+              `ConnectionHolder got an error while releasing the connection. Error ${releaseError}. Stacktrace:`
+            ))
+          })
+        })
+
+        describe('when warn logging is not  enabled', () => {
+          let connection
+          let releaseError
+          let log
+          let warnSpy
+
+          beforeEach(async () => {
+            log = new Logger('error', () => {})
+            warnSpy = spyOn(log, 'warn').and.callThrough()
+
+            releaseError = new Error('something wrong is not right')
+            connection = new FakeConnection()
+            const originalRelease = connection.release.bind(connection)
+            connection.release = () => {
+              originalRelease()
+              return Promise.reject(releaseError)
+            }
+            const connectionProvider = newSingleConnectionProvider(connection)
+            const connectionHolder = new ConnectionHolder({
+              mode: READ,
+              connectionProvider,
+              log
+            })
+
+            connectionHolder.initializeConnection()
+
+            await connectionHolder.releaseConnection()
+          })
+
+          it('should not log error', () => {
+            expect(warnSpy).not.toHaveBeenCalled()
+          })
         })
       })
 
@@ -343,7 +416,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(0)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })
@@ -369,7 +442,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(0)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })
@@ -398,7 +471,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(1)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })
@@ -424,7 +497,7 @@ describe('#unit ConnectionHolder', () => {
           expect(connection.resetInvoked).toBe(0)
         })
 
-        it('should call connection._release()', () => {
+        it('should call connection.release()', () => {
           expect(connection.releaseInvoked).toBe(1)
         })
       })

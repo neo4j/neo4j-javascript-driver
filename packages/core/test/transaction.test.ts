@@ -18,8 +18,10 @@
  */
 
 import { ConnectionProvider, newError, NotificationFilter, Transaction, TransactionPromise } from '../src'
+import { BeginTransactionConfig } from '../src/connection'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { ConnectionHolder } from '../src/internal/connection-holder'
+import { Logger } from '../src/internal/logger'
 import { TxConfig } from '../src/internal/tx-config'
 import FakeConnection from './utils/connection.fake'
 import { validNotificationFilters } from './utils/notification-filters.fixtures'
@@ -137,15 +139,12 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
         function setupTx (): [TransactionPromise] {
           const connection = newFakeConnection()
-          const protocol = connection.protocol()
+          const originalBegin = connection.beginTransaction.bind(connection)
 
-          connection.protocol = () => {
-            return {
-              ...protocol,
-              beginTransaction: (params: { afterComplete: (meta: any) => void }) => {
-                ctx(() => params.afterComplete({}))
-              }
-            }
+          connection.beginTransaction = (config: BeginTransactionConfig) => {
+            const stream = originalBegin(config)
+            ctx(() => config.afterComplete?.call(null, {}))
+            return stream
           }
 
           const tx = newTransactionPromise({
@@ -251,16 +250,14 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
         function setupTx (): [TransactionPromise, Error] {
           const connection = newFakeConnection()
-          const protocol = connection.protocol()
           const expectedError = newError('begin error')
 
-          connection.protocol = () => {
-            return {
-              ...protocol,
-              beginTransaction: (params: { beforeError: (error: Error) => void }) => {
-                ctx(() => params.beforeError(expectedError))
-              }
-            }
+          const originalBegin = connection.beginTransaction.bind(connection)
+
+          connection.beginTransaction = (config: BeginTransactionConfig) => {
+            const stream = originalBegin(config)
+            ctx(() => config.beforeError?.call(null, expectedError))
+            return stream
           }
 
           const tx = newTransactionPromise({
@@ -515,7 +512,7 @@ function newTransactionPromise ({
   }
   connectionProvider.close = async () => await Promise.resolve()
 
-  const connectionHolder = new ConnectionHolder({ connectionProvider })
+  const connectionHolder = new ConnectionHolder({ connectionProvider, log: Logger.create({}) })
   connectionHolder.initializeConnection()
 
   const transaction = new TransactionPromise({
@@ -551,7 +548,7 @@ function newRegularTransaction ({
   connectionProvider.acquireConnection = async () => await Promise.resolve(connection)
   connectionProvider.close = async () => await Promise.resolve()
 
-  const connectionHolder = new ConnectionHolder({ connectionProvider })
+  const connectionHolder = new ConnectionHolder({ connectionProvider, log: Logger.create({}) })
   connectionHolder.initializeConnection()
 
   const transaction = new Transaction({

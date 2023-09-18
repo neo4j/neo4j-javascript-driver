@@ -16,20 +16,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import DelegateConnection from '../../../bolt-connection/lib/connection/connection-delegate'
-import Connection from '../../../bolt-connection/lib/connection/connection'
-import { BoltProtocol } from '../../../bolt-connection/lib/bolt'
-import ConnectionErrorHandler from '../../../bolt-connection/lib/connection/connection-error-handler'
-import { internal } from 'neo4j-driver-core'
+
+import Connection from '../../src/connection/connection'
+import DelegateConnection from '../../src/connection/connection-delegate'
+import { Connection as CoreConnection, internal } from 'neo4j-driver-core'
+import ConnectionErrorHandler from '../../src/connection/connection-error-handler'
+import { BoltProtocol } from '../../src/bolt'
+import utils from '../test-utils'
 
 const {
   serverAddress: { ServerAddress: BoltAddress }
 } = internal
 
-describe('#unit DelegateConnection', () => {
+describe('DelegateConnection', () => {
+  beforeEach(() => {
+    expect.extend(utils.matchers)
+  })
+
+  const NON_DELEGATE_METHODS = [
+    'constructor',
+    // the delegate replaces the error handler of the original connection
+    // and not delegate the requests to the previous connection until released
+    'handleAndTransformError'
+  ]
+
   it('should delegate get id', () => {
     const delegate = new Connection(null)
-    const spy = spyOnProperty(delegate, 'id', 'get').and.returnValue(5)
+    const spy = jest.spyOn(delegate, 'id', 'get').mockReturnValue(5)
     const connection = new DelegateConnection(delegate, null)
 
     expect(connection.id).toBe(5)
@@ -38,7 +51,7 @@ describe('#unit DelegateConnection', () => {
 
   it('should delegate get databaseId', () => {
     const delegate = new Connection(null)
-    const spy = spyOnProperty(delegate, 'databaseId', 'get').and.returnValue(
+    const spy = jest.spyOn(delegate, 'databaseId', 'get').mockReturnValue(
       '123-456'
     )
     const connection = new DelegateConnection(delegate, null)
@@ -49,7 +62,7 @@ describe('#unit DelegateConnection', () => {
 
   it('should delegate set databaseId', () => {
     const delegate = new Connection(null)
-    const spy = spyOnProperty(delegate, 'databaseId', 'set')
+    const spy = jest.spyOn(delegate, 'databaseId', 'set').mockImplementation(() => {})
     const connection = new DelegateConnection(delegate, null)
 
     connection.databaseId = '345-678'
@@ -63,7 +76,7 @@ describe('#unit DelegateConnection', () => {
       version: 'Neo4j/3.5.6'
     }
     const delegate = new Connection(null)
-    const spy = spyOnProperty(delegate, 'server', 'get').and.returnValue(server)
+    const spy = jest.spyOn(delegate, 'server', 'get').mockReturnValue(server)
     const connection = new DelegateConnection(delegate, null)
 
     expect(connection.server).toBe(server)
@@ -73,7 +86,7 @@ describe('#unit DelegateConnection', () => {
   it('should delegate get address', () => {
     const address = BoltAddress.fromUrl('bolt://127.0.0.1:8080')
     const delegate = new Connection(null)
-    const spy = spyOnProperty(delegate, 'address', 'get').and.returnValue(
+    const spy = jest.spyOn(delegate, 'address', 'get').mockReturnValue(
       address
     )
     const connection = new DelegateConnection(delegate, null)
@@ -85,7 +98,7 @@ describe('#unit DelegateConnection', () => {
   it('should delegate get version', () => {
     const version = 'Neo4j/3.5.6'
     const delegate = new Connection(null)
-    const spy = spyOnProperty(delegate, 'version', 'get').and.returnValue(
+    const spy = jest.spyOn(delegate, 'version', 'get').mockReturnValue(
       version
     )
     const connection = new DelegateConnection(delegate, null)
@@ -96,7 +109,7 @@ describe('#unit DelegateConnection', () => {
 
   it('should delegate set version', () => {
     const delegate = new Connection(null)
-    const spy = spyOnProperty(delegate, 'version', 'set')
+    const spy = jest.spyOn(delegate, 'version', 'set').mockImplementation(() => {})
     const connection = new DelegateConnection(delegate, null)
 
     connection.version = 'Neo4j/3.4.9'
@@ -106,7 +119,7 @@ describe('#unit DelegateConnection', () => {
 
   it('should delegate isOpen', () => {
     const delegate = new Connection(null)
-    const spy = spyOn(delegate, 'isOpen').and.returnValue(true)
+    const spy = jest.spyOn(delegate, 'isOpen').mockReturnValue(true)
     const connection = new DelegateConnection(delegate, null)
 
     expect(connection.isOpen()).toBeTruthy()
@@ -116,7 +129,7 @@ describe('#unit DelegateConnection', () => {
   it('should delegate protocol', () => {
     const protocol = new BoltProtocol()
     const delegate = new Connection(null)
-    const spy = spyOn(delegate, 'protocol').and.returnValue(protocol)
+    const spy = jest.spyOn(delegate, 'protocol').mockReturnValue(protocol)
     const connection = new DelegateConnection(delegate, null)
 
     expect(connection.protocol()).toBe(protocol)
@@ -125,7 +138,7 @@ describe('#unit DelegateConnection', () => {
 
   it('should delegate connect', () => {
     const delegate = new Connection(null)
-    const spy = spyOn(delegate, 'connect')
+    const spy = jest.spyOn(delegate, 'connect').mockImplementation(() => {})
     const connection = new DelegateConnection(delegate, null)
 
     connection.connect('neo4j/js-driver', 'mydriver/0.0.0 some system info', {})
@@ -135,7 +148,7 @@ describe('#unit DelegateConnection', () => {
 
   it('should delegate write', () => {
     const delegate = new Connection(null)
-    const spy = spyOn(delegate, 'write')
+    const spy = jest.spyOn(delegate, 'write').mockImplementation(() => {})
     const connection = new DelegateConnection(delegate, null)
 
     connection.write({}, null, true)
@@ -145,7 +158,7 @@ describe('#unit DelegateConnection', () => {
 
   it('should delegate resetAndFlush', () => {
     const delegate = new Connection(null)
-    const spy = spyOn(delegate, 'resetAndFlush')
+    const spy = jest.spyOn(delegate, 'resetAndFlush').mockImplementation(() => {})
     const connection = new DelegateConnection(delegate, null)
 
     connection.resetAndFlush()
@@ -155,7 +168,7 @@ describe('#unit DelegateConnection', () => {
 
   it('should delegate close', async () => {
     const delegate = new Connection(null)
-    const spy = spyOn(delegate, 'close').and.returnValue(Promise.resolve())
+    const spy = jest.spyOn(delegate, 'close').mockReturnValue(Promise.resolve())
     const connection = new DelegateConnection(delegate, null)
 
     await connection.close()
@@ -163,13 +176,13 @@ describe('#unit DelegateConnection', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
-  it('should delegate _release', () => {
+  it('should delegate release', () => {
     const delegate = new Connection(null)
-    delegate._release = () => {}
-    const spy = spyOn(delegate, '_release')
+    delegate.release = () => {}
+    const spy = jest.spyOn(delegate, 'release').mockImplementation(() => {})
     const connection = new DelegateConnection(delegate, null)
 
-    connection._release()
+    connection.release()
 
     expect(spy).toHaveBeenCalledTimes(1)
   })
@@ -177,7 +190,7 @@ describe('#unit DelegateConnection', () => {
   it('should override errorHandler on create and restore on release', () => {
     const errorHandlerOriginal = new ConnectionErrorHandler('code1')
     const delegate = new Connection(errorHandlerOriginal)
-    delegate._release = () => {}
+    delegate.release = () => {}
 
     expect(delegate._errorHandler).toBe(errorHandlerOriginal)
 
@@ -186,8 +199,31 @@ describe('#unit DelegateConnection', () => {
 
     expect(delegate._errorHandler).toBe(errorHandlerNew)
 
-    connection._release()
+    connection.release()
 
     expect(delegate._errorHandler).toBe(errorHandlerOriginal)
   })
+
+  it.each(getDelegatedMethods())('should delegate %s calls with exact args number and return value', (delegatedMethod) => {
+    const result = 'the result'
+    const method = CoreConnection.prototype[delegatedMethod] || Connection.prototype[delegatedMethod]
+    const argsNumber = method.length // function.length returns the number of arguments expected by the function
+    const args = [...Array(argsNumber).keys()]
+
+    const connection = {
+      [delegatedMethod]: jest.fn(() => result)
+    }
+
+    const delegatedConnection = new DelegateConnection(connection)
+
+    expect(delegatedConnection[delegatedMethod](...args)).toBe(result)
+    expect(connection[delegatedMethod]).toHaveBeenCalledTimes(1)
+    expect(connection[delegatedMethod]).toBeCalledWith(...args)
+    expect(connection[delegatedMethod]).toBeCalledWithThis(connection)
+  })
+
+  function getDelegatedMethods () {
+    const allMethods = new Set([...Object.keys(Connection.prototype), ...Object.keys(CoreConnection.prototype)])
+    return [...allMethods].filter(method => !NON_DELEGATE_METHODS.includes(method))
+  }
 })

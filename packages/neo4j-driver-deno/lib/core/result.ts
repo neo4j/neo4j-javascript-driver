@@ -513,7 +513,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
           connectionHolder
             .releaseConnection()
             .then(() =>
-              connection?.protocol()?.version
+              connection?.getProtocolVersion()
             ),
         // onRejected:
         _ => undefined

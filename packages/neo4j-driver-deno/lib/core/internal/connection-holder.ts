@@ -21,10 +21,11 @@
 import { newError } from '../error.ts'
 import { assertString } from './util.ts'
 import Connection from '../connection.ts'
-import { ACCESS_MODE_WRITE } from './constants.ts'
+import { ACCESS_MODE_WRITE, AccessMode } from './constants.ts'
 import { Bookmarks } from './bookmarks.ts'
-import ConnectionProvider from '../connection-provider.ts'
+import ConnectionProvider, { Releasable } from '../connection-provider.ts'
 import { AuthToken } from '../types.ts'
+import { Logger } from './logger.ts'
 
 /**
  * @private
@@ -77,16 +78,17 @@ interface ConnectionHolderInterface {
  * @private
  */
 class ConnectionHolder implements ConnectionHolderInterface {
-  private readonly _mode: string
+  private readonly _mode: AccessMode
   private _database?: string
   private readonly _bookmarks: Bookmarks
   private readonly _connectionProvider?: ConnectionProvider
   private _referenceCount: number
-  private _connectionPromise: Promise<Connection | null>
+  private _connectionPromise: Promise<Connection & Releasable | null>
   private readonly _impersonatedUser?: string
   private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
   private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
   private readonly _auth?: AuthToken
+  private readonly _log: Logger
   private _closed: boolean
 
   /**
@@ -102,16 +104,17 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @property {AuthToken} params.auth - the target auth for the to-be-acquired connection
    */
   constructor ({
-    mode = ACCESS_MODE_WRITE,
+    mode,
     database = '',
     bookmarks,
     connectionProvider,
     impersonatedUser,
     onDatabaseNameResolved,
     getConnectionAcquistionBookmarks,
-    auth
+    auth,
+    log
   }: {
-    mode?: string
+    mode?: AccessMode
     database?: string
     bookmarks?: Bookmarks
     connectionProvider?: ConnectionProvider
@@ -119,8 +122,9 @@ class ConnectionHolder implements ConnectionHolderInterface {
     onDatabaseNameResolved?: (databaseName?: string) => void
     getConnectionAcquistionBookmarks?: () => Promise<Bookmarks>
     auth?: AuthToken
-  } = {}) {
-    this._mode = mode
+    log: Logger
+  }) {
+    this._mode = mode ?? ACCESS_MODE_WRITE
     this._closed = false
     this._database = database != null ? assertString(database, 'database') : ''
     this._bookmarks = bookmarks ?? Bookmarks.empty()
@@ -130,10 +134,12 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
     this._auth = auth
+    this._log = log
+    this._logError = this._logError.bind(this)
     this._getConnectionAcquistionBookmarks = getConnectionAcquistionBookmarks ?? (() => Promise.resolve(Bookmarks.empty()))
   }
 
-  mode (): string | undefined {
+  mode (): AccessMode | undefined {
     return this._mode
   }
 
@@ -168,7 +174,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return true
   }
 
-  private async _createConnectionPromise (connectionProvider: ConnectionProvider): Promise<Connection | null> {
+  private async _createConnectionPromise (connectionProvider: ConnectionProvider): Promise<Connection & Releasable | null> {
     return await connectionProvider.acquireConnection({
       accessMode: this._mode,
       database: this._database,
@@ -209,6 +215,10 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._releaseConnection(hasTx)
   }
 
+  log (): Logger {
+    return this._log
+  }
+
   /**
    * Return the current pooled connection instance to the connection pool.
    * We don't pool Session instances, to avoid users using the Session after they've called close.
@@ -218,22 +228,31 @@ class ConnectionHolder implements ConnectionHolderInterface {
    */
   private _releaseConnection (hasTx?: boolean): Promise<Connection | null> {
     this._connectionPromise = this._connectionPromise
-      .then((connection?: Connection | null) => {
+      .then((connection?: Connection & Releasable | null) => {
         if (connection != null) {
           if (connection.isOpen() && (connection.hasOngoingObservableRequests() || hasTx === true)) {
             return connection
               .resetAndFlush()
               .catch(ignoreError)
-              .then(() => connection._release().then(() => null))
+              .then(() => connection.release().then(() => null))
           }
-          return connection._release().then(() => null)
+          return connection.release().then(() => null)
         } else {
           return Promise.resolve(null)
         }
       })
-      .catch(ignoreError)
+      .catch(this._logError)
 
     return this._connectionPromise
+  }
+
+  _logError (error: Error): null {
+    if (this._log.isWarnEnabled()) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      this._log.warn(`ConnectionHolder got an error while releasing the connection. Error ${error}. Stacktrace: ${error.stack}`)
+    }
+
+    return null
   }
 }
 
@@ -245,7 +264,7 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
   private readonly _connectionHolder: ConnectionHolder
 
   /**
-   * Contructor
+   * Constructor
    * @param {ConnectionHolder} connectionHolder the connection holder which will treat the requests
    */
   constructor (connectionHolder: ConnectionHolder) {
@@ -255,7 +274,8 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
       bookmarks: connectionHolder.bookmarks(),
       // @ts-expect-error
       getConnectionAcquistionBookmarks: connectionHolder._getConnectionAcquistionBookmarks,
-      connectionProvider: connectionHolder.connectionProvider()
+      connectionProvider: connectionHolder.connectionProvider(),
+      log: connectionHolder.log()
     })
     this._connectionHolder = connectionHolder
   }
@@ -298,6 +318,13 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
 }
 
 class EmptyConnectionHolder extends ConnectionHolder {
+  constructor () {
+    super({
+      // Empty logger
+      log: Logger.create({})
+    })
+  }
+
   mode (): undefined {
     return undefined
   }

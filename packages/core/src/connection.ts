@@ -18,121 +18,91 @@
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
 
-import { ServerAddress } from './internal/server-address'
+import { Bookmarks } from './internal/bookmarks'
+import { AccessMode } from './internal/constants'
+import { ResultStreamObserver } from './internal/observers'
+import { TxConfig } from './internal/tx-config'
+import NotificationFilter from './notification-filter'
+
+interface HasBeforeErrorAndAfterComplete {
+  beforeError?: (error: Error) => void
+  afterComplete?: (metadata: unknown) => void
+}
+
+interface BeginTransactionConfig extends HasBeforeErrorAndAfterComplete {
+  bookmarks: Bookmarks
+  txConfig: TxConfig
+  mode?: AccessMode
+  database?: string
+  impersonatedUser?: string
+  notificationFilter?: NotificationFilter
+}
+
+interface CommitTransactionConfig extends HasBeforeErrorAndAfterComplete {
+
+}
+
+interface RollbackConnectionConfig extends HasBeforeErrorAndAfterComplete {
+
+}
+
+interface RunQueryConfig extends BeginTransactionConfig {
+  fetchSize: number
+  highRecordWatermark: number
+  lowRecordWatermark: number
+  reactive: boolean
+}
 
 /**
- * Interface which defines the raw connection with the database
+ * Interface which defines a connection for the core driver object.
+ *
+ *
+ * This connection exposes only methods used by the code module.
+ * Methods with connection implementation details can be defined and used
+ * by the implementation layer.
+ *
  * @private
+ * @interface
  */
 class Connection {
-  get id (): string {
-    return ''
+  beginTransaction (config: BeginTransactionConfig): ResultStreamObserver {
+    throw new Error('Not implemented')
   }
 
-  get databaseId (): string {
-    return ''
+  run (query: string, parameters?: Record<string, unknown>, config?: RunQueryConfig): ResultStreamObserver {
+    throw new Error('Not implemented')
   }
 
-  get server (): any {
-    return {}
+  commitTransaction (config: CommitTransactionConfig): ResultStreamObserver {
+    throw new Error('Not implemented')
   }
 
-  /**
-   * @property {object} authToken The auth registered in the connection
-   */
-  get authToken (): any {
-    return {}
+  rollbackTransaction (config: RollbackConnectionConfig): ResultStreamObserver {
+    throw new Error('Not implemented')
   }
 
-  /**
-   * @property {ServerAddress} the server address this connection is opened against
-   */
-  get address (): ServerAddress | undefined {
-    return undefined
-  }
-
-  /**
-   * @property {ServerVersion} the version of the server this connection is connected to
-   */
-  get version (): any {
-    return undefined
-  }
-
-  /**
-   * @property {boolean} supportsReAuth Indicates the connection supports re-auth
-   */
-  get supportsReAuth (): boolean {
-    return false
-  }
-
-  /**
-   * @returns {boolean} whether this connection is in a working condition
-   */
-  isOpen (): boolean {
-    return false
-  }
-
-  /**
-   * @todo be removed and internalize the methods
-   * @returns {any} the underlying bolt protocol assigned to this connection
-   */
-  protocol (): any {
-    throw Error('Not implemented')
-  }
-
-  /**
-   * Connect to the target address, negotiate Bolt protocol and send initialization message.
-   * @param {string} userAgent the user agent for this driver.
-   * @param {string} boltAgent the bolt agent for this driver.
-   * @param {Object} authToken the object containing auth information.
-   * @param {Object} waitReAuth whether to connect method should wait until re-Authorised
-   * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
-   */
-  connect (userAgent: string, boltAgent: string, authToken: any, waitReAuth: false): Promise<Connection> {
-    throw Error('Not implemented')
-  }
-
-  /**
-   * Write a message to the network channel.
-   * @param {RequestMessage} message the message to write.
-   * @param {ResultStreamObserver} observer the response observer.
-   * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
-   */
-  write (message: any, observer: any, flush: boolean): void {
-    throw Error('Not implemented')
-  }
-
-  /**
-   * Send a RESET-message to the database. Message is immediately flushed to the network.
-   * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
-   */
   resetAndFlush (): Promise<void> {
-    throw Error('Not implemented')
+    throw new Error('Not implemented')
   }
 
-  /**
-   * Checks if there is an ongoing request being handled
-   * @return {boolean} `true` if there is an ongoing request being handled
-   */
+  isOpen (): boolean {
+    throw new Error('Not implemented')
+  }
+
+  getProtocolVersion (): number {
+    throw new Error('Not implemented')
+  }
+
   hasOngoingObservableRequests (): boolean {
-    throw Error('Not implemented')
-  }
-
-  /**
-   * Call close on the channel.
-   * @returns {Promise<void>} - A promise that will be resolved when the connection is closed.
-   *
-   */
-  close (): Promise<void> {
-    throw Error('Not implemented')
-  }
-
-  /**
-   * Called to release the connection
-   */
-  _release (): Promise<void> {
-    return Promise.resolve()
+    throw new Error('Not implemented')
   }
 }
 
 export default Connection
+
+export type {
+  BeginTransactionConfig,
+  CommitTransactionConfig,
+  RollbackConnectionConfig,
+  RunQueryConfig
+}

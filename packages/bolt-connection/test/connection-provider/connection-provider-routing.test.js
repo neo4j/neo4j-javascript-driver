@@ -2834,8 +2834,8 @@ describe.each([
 
         expect(connections.length).toBe(1)
         expect(connections[0].resetAndFlush).toHaveBeenCalled()
-        expect(connections[0]._release).toHaveBeenCalled()
-        expect(connections[0]._release.mock.invocationCallOrder[0])
+        expect(connections[0].release).toHaveBeenCalled()
+        expect(connections[0].release.mock.invocationCallOrder[0])
           .toBeGreaterThan(connections[0].resetAndFlush.mock.invocationCallOrder[0])
       })
 
@@ -2856,7 +2856,7 @@ describe.each([
 
         // extra checks
         expect(connections.length).toBe(1)
-        expect(connections[0]._release).toHaveBeenCalled()
+        expect(connections[0].release).toHaveBeenCalled()
       })
 
       it('should not acquire, resetAndFlush and release connections for sever with the other access mode', async () => {
@@ -2900,7 +2900,7 @@ describe.each([
 
               expect(connections.length).toBe(1)
               expect(connections[0].resetAndFlush).toHaveBeenCalled()
-              expect(connections[0]._release).toHaveBeenCalled()
+              expect(connections[0].release).toHaveBeenCalled()
             }
           }
         })
@@ -2956,8 +2956,8 @@ describe.each([
 
               expect(connections.length).toBe(1)
               expect(connections[0].resetAndFlush).toHaveBeenCalled()
-              expect(connections[0]._release).toHaveBeenCalled()
-              expect(connections[0]._release.mock.invocationCallOrder[0])
+              expect(connections[0].release).toHaveBeenCalled()
+              expect(connections[0].release.mock.invocationCallOrder[0])
                 .toBeGreaterThan(connections[0].resetAndFlush.mock.invocationCallOrder[0])
             }
           }
@@ -2979,7 +2979,7 @@ describe.each([
 
               expect(connections.length).toBe(1)
               expect(connections[0].resetAndFlush).toHaveBeenCalled()
-              expect(connections[0]._release).toHaveBeenCalled()
+              expect(connections[0].release).toHaveBeenCalled()
             }
           }
         })
@@ -3054,7 +3054,7 @@ describe.each([
               connection.resetAndFlush = resetAndFlush
             }
             if (releaseMock) {
-              connection._release = releaseMock
+              connection.release = releaseMock
             }
             seenConnectionsPerAddress.get(address).push(connection)
             return connection
@@ -3193,7 +3193,7 @@ describe.each([
 
           const connection = await create({}, server0, release)
 
-          const released = connection._release()
+          const released = connection.release()
 
           expect(released).toBe(releaseResult)
           expect(release).toHaveBeenCalledWith(server0, connection)
@@ -3460,7 +3460,7 @@ describe.each([
 
           expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
           expect(poolAcquire).toHaveBeenCalledWith({ auth }, server3)
-          expect(connection._release).toHaveBeenCalled()
+          expect(connection.release).toHaveBeenCalled()
           expect(connection._sticky).toEqual(isStickyConn)
         })
 
@@ -3502,7 +3502,7 @@ describe.each([
 
           expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
           expect(poolAcquire).toHaveBeenCalledWith({ auth }, server1)
-          expect(connection._release).toHaveBeenCalled()
+          expect(connection.release).toHaveBeenCalled()
           expect(connection._sticky).toEqual(isStickyConn)
         })
 
@@ -3546,7 +3546,7 @@ describe.each([
 
           expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
           expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
-          expect(connection._release).toHaveBeenCalled()
+          expect(connection.release).toHaveBeenCalled()
           expect(connection._sticky).toEqual(isStickyConn)
         })
 
@@ -3575,7 +3575,7 @@ describe.each([
 
           expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
           expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
-          expect(connection._release).toHaveBeenCalled()
+          expect(connection.release).toHaveBeenCalled()
           expect(connection._sticky).toEqual(isStickyConn)
         })
       })
@@ -3903,7 +3903,7 @@ class FakeConnection extends Connection {
     this._version = version
     this._protocolVersion = protocolVersion
     this.release = release
-    this._release = jest.fn(() => release(address, this))
+    this.release = jest.fn(() => release(address, this))
     this.resetAndFlush = jest.fn(() => Promise.resolve())
     this._server = server
     this._authToken = authToken

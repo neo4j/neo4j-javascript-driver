@@ -125,6 +125,146 @@ describe('#unit Pool', () => {
     expect(destroyed[1].id).toBe(r1.id)
   })
 
+  it('should release resources and process acquisitions when destroy connection', async () => {
+    // Given a pool that allocates
+    let counter = 0
+    const destroyed = []
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (_acquisitionContext, server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        destroyed.push(res)
+        return Promise.resolve()
+      },
+      validateOnRelease: res => false,
+      config: new PoolConfig(2, 10000)
+    })
+
+    // When
+    const r0 = await pool.acquire({}, address)
+    const r1 = await pool.acquire({}, address)
+    const promiseOfR2Status = { state: 'pending' }
+    const promiseOfR2 = pool.acquire({}, address)
+      .then(r2 => {
+        promiseOfR2Status.state = 'resolved'
+        return r2
+      }).catch((e) => {
+        promiseOfR2Status.state = 'rejected'
+        throw e
+      })
+
+    expect(promiseOfR2Status.state).toEqual('pending')
+
+    await r0.close()
+    await r1.close()
+
+    // Then
+    const r2 = await promiseOfR2
+
+    await r2.close()
+
+    expect(destroyed.length).toBe(3)
+    expect(destroyed[0].id).toBe(r0.id)
+    expect(destroyed[1].id).toBe(r1.id)
+    expect(destroyed[2].id).toBe(r2.id)
+  })
+
+  it('should release resources and process acquisitions when destroy connection fails', async () => {
+    // Given a pool that allocates
+    let counter = 0
+    const theMadeUpError = new Error('I made this error for testing')
+    const destroyed = []
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (_acquisitionContext, server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        destroyed.push(res)
+        return Promise.reject(theMadeUpError)
+      },
+      validateOnRelease: res => false,
+      config: new PoolConfig(2, 3000)
+    })
+
+    // When
+    const r0 = await pool.acquire({}, address)
+    const r1 = await pool.acquire({}, address)
+    const promiseOfR2Status = { state: 'pending' }
+    const promiseOfR2 = pool.acquire({}, address)
+      .then(r2 => {
+        promiseOfR2Status.state = 'resolved'
+        return r2
+      }).catch((e) => {
+        promiseOfR2Status.state = 'rejected'
+        throw e
+      })
+
+    expect(promiseOfR2Status.state).toEqual('pending')
+
+    await expect(r0.close()).rejects.toThrow(theMadeUpError)
+    await expect(r1.close()).rejects.toThrow(theMadeUpError)
+
+    // Then
+    const r2 = await promiseOfR2
+
+    await expect(r2.close()).rejects.toThrow(theMadeUpError)
+
+    expect(destroyed.length).toBe(3)
+    expect(destroyed[0].id).toBe(r0.id)
+    expect(destroyed[1].id).toBe(r1.id)
+    expect(destroyed[2].id).toBe(r2.id)
+  })
+
+  it('should release resources and process acquisitions when destroy connection fails in closed pools', async () => {
+    // Given a pool that allocates
+    let counter = 0
+    const theMadeUpError = new Error('I made this error for testing')
+    const destroyed = []
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (_acquisitionContext, server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        destroyed.push(res)
+        return Promise.reject(theMadeUpError)
+      },
+      validateOnRelease: res => true,
+      config: new PoolConfig(2, 3000)
+    })
+
+    // When
+    const r0 = await pool.acquire({}, address)
+    const r1 = await pool.acquire({}, address)
+
+    const promiseOfR2Status = { state: 'pending' }
+    const promiseOfR2 = pool.acquire({}, address)
+      .then(r2 => {
+        promiseOfR2Status.state = 'resolved'
+        return r2
+      }).catch((e) => {
+        promiseOfR2Status.state = 'rejected'
+        throw e
+      })
+
+    await pool.purge(address)
+
+    expect(promiseOfR2Status.state).toEqual('pending')
+
+    await expect(r0.close()).rejects.toThrow(theMadeUpError)
+    await expect(r1.close()).rejects.toThrow(theMadeUpError)
+
+    // Then
+    const r2 = await promiseOfR2
+
+    // Don't fail since the pool will be open again
+    await r2.close()
+
+    expect(destroyed.length).toBe(2)
+    expect(destroyed[0].id).toBe(r0.id)
+    expect(destroyed[1].id).toBe(r1.id)
+  })
+
   it('frees if validateOnRelease returns Promise.resolve(false)', async () => {
     // Given a pool that allocates
     let counter = 0
@@ -1309,6 +1449,6 @@ class Resource {
   }
 
   close () {
-    this.release(this.key, this)
+    return this.release(this.key, this)
   }
 }

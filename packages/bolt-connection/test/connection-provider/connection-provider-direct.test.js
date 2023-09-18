@@ -289,7 +289,7 @@ describe('constructor', () => {
 
         const connection = await create({}, server0, release)
 
-        const released = connection._release()
+        const released = connection.release()
 
         expect(released).toBe(releaseResult)
         expect(release).toHaveBeenCalledWith(server0, connection)
@@ -546,7 +546,7 @@ describe('user-switching', () => {
 
         expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
         expect(poolAcquire).toHaveBeenCalledWith({ auth: acquireAuth }, address)
-        expect(connection._release).toHaveBeenCalled()
+        expect(connection.release).toHaveBeenCalled()
         expect(connection._sticky).toEqual(isStickyConn)
       })
     })
@@ -599,7 +599,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
 
       await connectionProvider.verifyConnectivityAndGetServerInfo()
 
-      expect(seenConnections[0]._release).toHaveBeenCalledTimes(1)
+      expect(seenConnections[0].release).toHaveBeenCalledTimes(1)
     })
 
     it('should resetAndFlush and then release the connection', async () => {
@@ -607,7 +607,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
 
       await connectionProvider.verifyConnectivityAndGetServerInfo()
 
-      expect(seenConnections[0]._release.mock.invocationCallOrder[0])
+      expect(seenConnections[0].release.mock.invocationCallOrder[0])
         .toBeGreaterThan(resetAndFlush.mock.invocationCallOrder[0])
     })
 
@@ -636,7 +636,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
           await connectionProvider.verifyConnectivityAndGetServerInfo()
         } catch (e) {
         } finally {
-          expect(seenConnections[0]._release).toHaveBeenCalledTimes(1)
+          expect(seenConnections[0].release).toHaveBeenCalledTimes(1)
         }
       })
 
@@ -692,7 +692,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
         }
         connection.resetAndFlush = resetAndFlush
         if (releaseMock) {
-          connection._release = releaseMock
+          connection.release = releaseMock
         }
         seenConnections.push(connection)
         return connection
@@ -782,7 +782,7 @@ class FakeConnection extends Connection {
     super(null)
 
     this._address = address
-    this._release = jest.fn(() => release(address, this))
+    this.release = jest.fn(() => release(address, this))
     this._server = server
     this._authToken = auth
     this._closed = false

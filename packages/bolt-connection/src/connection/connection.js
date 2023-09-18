@@ -18,12 +18,14 @@
  */
 // eslint-disable-next-line no-unused-vars
 import { ResultStreamObserver, BoltProtocol } from '../bolt'
+import { Connection as CoreConnection } from 'neo4j-driver-core'
 
-export default class Connection {
+export default class Connection extends CoreConnection {
   /**
    * @param {ConnectionErrorHandler} errorHandler the error handler
    */
   constructor (errorHandler) {
+    super()
     this._errorHandler = errorHandler
   }
 
@@ -48,13 +50,6 @@ export default class Connection {
   }
 
   get supportsReAuth () {
-    throw new Error('not implemented')
-  }
-
-  /**
-   * @returns {boolean} whether this connection is in a working condition
-   */
-  isOpen () {
     throw new Error('not implemented')
   }
 
@@ -106,18 +101,6 @@ export default class Connection {
    * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
    */
   write (message, observer, flush) {
-    throw new Error('not implemented')
-  }
-
-  /**
-   * Send a RESET-message to the database. Message is immediately flushed to the network.
-   * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
-   */
-  resetAndFlush () {
-    throw new Error('not implemented')
-  }
-
-  hasOngoingObservableRequests () {
     throw new Error('not implemented')
   }
 

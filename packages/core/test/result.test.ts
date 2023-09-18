@@ -27,6 +27,7 @@ import {
 import ResultStreamObserverMock from './utils/result-stream-observer.mock'
 import Result from '../src/result'
 import FakeConnection from './utils/connection.fake'
+import { Logger } from '../src/internal/logger'
 
 interface AB {
   a: number
@@ -154,7 +155,7 @@ describe('Result', () => {
       ])('when query=%s and parameters=%s', (query, params, expected) => {
         let connectionHolderMock: connectionHolder.ConnectionHolder
         beforeEach(() => {
-          connectionHolderMock = new connectionHolder.ConnectionHolder({})
+          connectionHolderMock = new connectionHolder.ConnectionHolder({ log: Logger.create({}) })
           result = new Result(
             Promise.resolve(streamObserverMock),
             query,
@@ -406,7 +407,7 @@ describe('Result', () => {
         let connectionHolderMock: connectionHolder.ConnectionHolder
 
         beforeEach(() => {
-          connectionHolderMock = new connectionHolder.ConnectionHolder({})
+          connectionHolderMock = new connectionHolder.ConnectionHolder({ log: Logger.create({}) })
           result = new Result(
             Promise.resolve(streamObserverMock),
             'query',
@@ -466,14 +467,15 @@ describe('Result', () => {
         it.each([123, undefined])(
           'should enrich summary with the protocol version onCompleted',
           async version => {
-            const connectionMock = {
-              protocol: () => {
-                return { version }
-              }
-            }
+            const connectionMock = new FakeConnection()
+            // converting to accept undefined as number
+            // this test is considering the situation where protocol version
+            // is undefined, which should not happen during normal driver
+            // operation.
+            connectionMock.protocolVersion = version as unknown as number
 
             connectionHolderMock.getConnection = async (): Promise<Connection> => {
-              return asConnection(connectionMock)
+              return connectionMock
             }
             const metadata = {
               resultConsumedAfter: 20,
@@ -631,7 +633,7 @@ describe('Result', () => {
         let connectionHolderMock: connectionHolder.ConnectionHolder
 
         beforeEach(() => {
-          connectionHolderMock = new connectionHolder.ConnectionHolder({})
+          connectionHolderMock = new connectionHolder.ConnectionHolder({ log: Logger.create({}) })
           result = new Result(
             Promise.resolve(streamObserverMock),
             'query',
@@ -679,14 +681,15 @@ describe('Result', () => {
         it.each([123, undefined])(
           'should enrich summary with the protocol version on completed',
           async version => {
-            const connectionMock = {
-              protocol: () => {
-                return { version }
-              }
-            }
+            const connectionMock = new FakeConnection()
+            // converting to accept undefined as number
+            // this test is considering the situation where protocol version
+            // is undefined, which should not happen during normal driver
+            // operation.
+            connectionMock.protocolVersion = version as unknown as number
 
             connectionHolderMock.getConnection = async (): Promise<Connection> => {
-              return await Promise.resolve(asConnection(connectionMock))
+              return await Promise.resolve(connectionMock)
             }
             const metadata = {
               resultConsumedAfter: 20,
@@ -1718,8 +1721,4 @@ function simulateStream (
     return true
   }
   */
-}
-
-function asConnection (value: any): Connection {
-  return value
 }

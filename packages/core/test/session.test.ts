@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction, BookmarkManager, bookmarkManager, NotificationFilter, int } from '../src'
+import { BeginTransactionConfig, CommitTransactionConfig } from '../src/connection'
+import { Releasable } from '../src/connection-provider'
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import { Logger } from '../src/internal/logger'
@@ -1173,36 +1175,28 @@ describe('session', () => {
 })
 
 function mockBeginWithSuccess (connection: FakeConnection): FakeConnection {
-  const protocol = connection.protocol()
-  connection.protocol = () => {
-    return {
-      ...protocol,
-      beginTransaction: (params: { afterComplete: () => {} }, ...args: any[]) => {
-        protocol.beginTransaction([params, ...args])
-        params.afterComplete()
-      }
-    }
+  const originalBegin = connection.beginTransaction.bind(connection)
+  connection.beginTransaction = (config: BeginTransactionConfig) => {
+    const stream = originalBegin(config)
+    config.afterComplete?.call(null, {})
+    return stream
   }
   return connection
 }
 
 function mockCommitWithSuccess (connection: FakeConnection, metadata: any): FakeConnection {
-  const protocol = connection.protocol()
-  connection.protocol = () => {
-    return {
-      ...protocol,
-      commitTransaction: (params: { afterComplete: (metadata: any) => {} }, ...args: any[]) => {
-        const observer = protocol.commitTransaction(...[params, ...args])
-        params.afterComplete(metadata)
-        return observer
-      }
-    }
+  const originalCommit = connection.commitTransaction.bind(connection)
+
+  connection.commitTransaction = (config: CommitTransactionConfig) => {
+    const stream = originalCommit(config)
+    config.afterComplete?.call(null, metadata)
+    return stream
   }
   return connection
 }
 
 function newSessionWithConnection (
-  connection: Connection,
+  connection: Connection & Releasable,
   beginTx: boolean = true,
   fetchSize: number = 1000,
   lastBookmarks: bookmarks.Bookmarks = bookmarks.Bookmarks.empty(),
@@ -1224,7 +1218,7 @@ function setupSession ({
   notificationFilter,
   auth
 }: {
-  connection: Connection
+  connection: Connection & Releasable
   beginTx?: boolean
   fetchSize?: number
   lastBookmarks?: bookmarks.Bookmarks
