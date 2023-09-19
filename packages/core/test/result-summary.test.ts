@@ -273,7 +273,7 @@ describe('QueryStatistics', () => {
     'indexesRemoved',
     'constraintsAdded',
     'constraintsRemoved'
-  ])('.%s', (field: keyof Stats) => {
+  ])('.updates().%s', (field: keyof Stats) => {
     it('should handle return arbitrary integer as it is', () => {
       return fc.assert(
         fc.property(
