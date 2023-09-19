@@ -262,25 +262,25 @@ describe('ProfilePlan', () => {
 
 describe('QueryStatistics', () => {
   describe.each([
-    'nodesCreated',
-    'nodesDeleted',
-    'relationshipsCreated',
-    'relationshipsDeleted',
-    'propertiesSet',
-    'labelsAdded',
-    'labelsRemoved',
-    'indexesAdded',
-    'indexesRemoved',
-    'constraintsAdded',
-    'constraintsRemoved'
-  ])('.updates().%s', (field: keyof Stats) => {
+    ['nodesCreated', 'nodes-created'],
+    ['nodesDeleted', 'nodes-deleted'],
+    ['relationshipsCreated', 'relationships-created'],
+    ['relationshipsDeleted', 'relationships-deleted'],
+    ['propertiesSet', 'properties-set'],
+    ['labelsAdded', 'labels-added'],
+    ['labelsRemoved', 'labels-removed'],
+    ['indexesAdded', 'indexes-added'],
+    ['indexesRemoved', 'indexes-removed'],
+    ['constraintsAdded', 'constraints-added'],
+    ['constraintsRemoved', 'constraints-removed']
+  ])('.updates().%s', (field: keyof Stats, rawField: string) => {
     it('should handle return arbitrary integer as it is', () => {
       return fc.assert(
         fc.property(
           fc.integer(),
           value => {
             const stats = {
-              [field]: value
+              [rawField]: value
             }
 
             const queryStatistics = new QueryStatistics(stats)
@@ -297,7 +297,7 @@ describe('QueryStatistics', () => {
           fc.maxSafeInteger().map(value => [int(value), value]),
           ([value, expectedValue]) => {
             const stats = {
-              [field]: value
+              [rawField]: value
             }
 
             const queryStatistics = new QueryStatistics(stats)
@@ -314,7 +314,7 @@ describe('QueryStatistics', () => {
           fc.integer().map(value => [int(value), value]),
           ([value, expectedValue]) => {
             const stats = {
-              [field]: value
+              [rawField]: value
             }
 
             const queryStatistics = new QueryStatistics(stats)
@@ -331,7 +331,7 @@ describe('QueryStatistics', () => {
           fc.maxSafeInteger().map(value => [BigInt(value), value]),
           ([value, expectedValue]) => {
             const stats = {
-              [field]: value
+              [rawField]: value
             }
 
             const queryStatistics = new QueryStatistics(stats)
@@ -348,7 +348,7 @@ describe('QueryStatistics', () => {
           fc.integer().map(value => [BigInt(value), value]),
           ([value, expectedValue]) => {
             const stats = {
-              [field]: value
+              [rawField]: value
             }
 
             const queryStatistics = new QueryStatistics(stats)
