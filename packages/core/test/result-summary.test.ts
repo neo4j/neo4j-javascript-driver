@@ -17,14 +17,20 @@
  * limitations under the License.
  */
 
+import { int } from '../src'
 import {
   ServerInfo,
   Notification,
   NotificationSeverityLevel,
   NotificationCategory,
   notificationSeverityLevel,
-  notificationCategory
+  notificationCategory,
+  ProfiledPlan,
+  QueryStatistics,
+  Stats
 } from '../src/result-summary'
+
+import fc from 'fast-check'
 
 describe('ServerInfo', () => {
   it.each([
@@ -155,6 +161,203 @@ describe('notificationCategory', () => {
   it.each(getValidCategories())('should have %s as key', (category) => {
     const keys = Object.keys(notificationCategory)
     expect(keys.includes(category)).toBe(true)
+  })
+})
+
+describe('ProfilePlan', () => {
+  describe.each([
+    'dbHits',
+    'rows',
+    'pageCacheMisses',
+    'pageCacheHits',
+    'pageCacheHitRatio',
+    'time'
+  ])('.%s', (field: keyof ProfiledPlan) => {
+    it('should handle return arbitrary integer as it is', () => {
+      return fc.assert(
+        fc.property(
+          fc.integer(),
+          value => {
+            const rawProfilePlan = {
+              [field]: value
+            }
+
+            const profilePlan = new ProfiledPlan(rawProfilePlan)
+
+            return profilePlan[field] === value
+          }
+        )
+      )
+    })
+
+    it('should handle Integer with maxSafeInteger', () => {
+      return fc.assert(
+        fc.property(
+          fc.maxSafeInteger().map(value => [int(value), value]),
+          ([value, expectedValue]) => {
+            const rawProfilePlan = {
+              [field]: value
+            }
+
+            const profilePlan = new ProfiledPlan(rawProfilePlan)
+
+            return profilePlan[field] === expectedValue
+          }
+        )
+      )
+    })
+
+    it('should handle Integer with arbitrary integer', () => {
+      return fc.assert(
+        fc.property(
+          fc.integer().map(value => [int(value), value]),
+          ([value, expectedValue]) => {
+            const rawProfilePlan = {
+              [field]: value
+            }
+
+            const profilePlan = new ProfiledPlan(rawProfilePlan)
+
+            return profilePlan[field] === expectedValue
+          }
+        )
+      )
+    })
+
+    it('should handle BigInt with maxSafeInteger', () => {
+      return fc.assert(
+        fc.property(
+          fc.maxSafeInteger().map(value => [BigInt(value), value]),
+          ([value, expectedValue]) => {
+            const rawProfilePlan = {
+              [field]: value
+            }
+
+            const profilePlan = new ProfiledPlan(rawProfilePlan)
+
+            return profilePlan[field] === expectedValue
+          }
+        )
+      )
+    })
+
+    it('should handle Integer with arbitrary integer', () => {
+      return fc.assert(
+        fc.property(
+          fc.integer().map(value => [BigInt(value), value]),
+          ([value, expectedValue]) => {
+            const rawProfilePlan = {
+              [field]: value
+            }
+
+            const profilePlan = new ProfiledPlan(rawProfilePlan)
+
+            return profilePlan[field] === expectedValue
+          }
+        )
+      )
+    })
+  })
+})
+
+describe('QueryStatistics', () => {
+  describe.each([
+    'nodesCreated',
+    'nodesDeleted',
+    'relationshipsCreated',
+    'relationshipsDeleted',
+    'propertiesSet',
+    'labelsAdded',
+    'labelsRemoved',
+    'indexesAdded',
+    'indexesRemoved',
+    'constraintsAdded',
+    'constraintsRemoved'
+  ])('.%s', (field: keyof Stats) => {
+    it('should handle return arbitrary integer as it is', () => {
+      return fc.assert(
+        fc.property(
+          fc.integer(),
+          value => {
+            const stats = {
+              [field]: value
+            }
+
+            const queryStatistics = new QueryStatistics(stats)
+
+            return queryStatistics.updates()[field] === value
+          }
+        )
+      )
+    })
+
+    it('should handle Integer with maxSafeInteger', () => {
+      return fc.assert(
+        fc.property(
+          fc.maxSafeInteger().map(value => [int(value), value]),
+          ([value, expectedValue]) => {
+            const stats = {
+              [field]: value
+            }
+
+            const queryStatistics = new QueryStatistics(stats)
+
+            return queryStatistics.updates()[field] === expectedValue
+          }
+        )
+      )
+    })
+
+    it('should handle Integer with arbitrary integer', () => {
+      return fc.assert(
+        fc.property(
+          fc.integer().map(value => [int(value), value]),
+          ([value, expectedValue]) => {
+            const stats = {
+              [field]: value
+            }
+
+            const queryStatistics = new QueryStatistics(stats)
+
+            return queryStatistics.updates()[field] === expectedValue
+          }
+        )
+      )
+    })
+
+    it('should handle BigInt with maxSafeInteger', () => {
+      return fc.assert(
+        fc.property(
+          fc.maxSafeInteger().map(value => [BigInt(value), value]),
+          ([value, expectedValue]) => {
+            const stats = {
+              [field]: value
+            }
+
+            const queryStatistics = new QueryStatistics(stats)
+
+            return queryStatistics.updates()[field] === expectedValue
+          }
+        )
+      )
+    })
+
+    it('should handle Integer with arbitrary integer', () => {
+      return fc.assert(
+        fc.property(
+          fc.integer().map(value => [BigInt(value), value]),
+          ([value, expectedValue]) => {
+            const stats = {
+              [field]: value
+            }
+
+            const queryStatistics = new QueryStatistics(stats)
+
+            return queryStatistics.updates()[field] === expectedValue
+          }
+        )
+      )
+    })
   })
 })
 
