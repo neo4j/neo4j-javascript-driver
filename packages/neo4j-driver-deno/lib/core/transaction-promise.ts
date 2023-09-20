@@ -81,7 +81,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
-    notificationFilter?: NotificationFilter,
+    notificationFilter?: NotificationFilter
     apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig
   }) {
     super({
@@ -175,7 +175,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
   _begin (bookmarks: () => Promise<Bookmarks>, txConfig: TxConfig): void {
     return super._begin(bookmarks, txConfig, {
       onError: this._onBeginError.bind(this),
-      onComplete: this._onBeginMetadata.bind(this),
+      onComplete: this._onBeginMetadata.bind(this)
     })
   }
 

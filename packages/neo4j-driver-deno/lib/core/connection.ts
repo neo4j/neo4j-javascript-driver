@@ -25,7 +25,7 @@ import { TxConfig } from './internal/tx-config.ts'
 import NotificationFilter from './notification-filter.ts'
 
 interface ApiTelemetryConfig {
-  api?: TelemetryApis,
+  api?: TelemetryApis
   onTelemetrySuccess?: () => void
 }
 

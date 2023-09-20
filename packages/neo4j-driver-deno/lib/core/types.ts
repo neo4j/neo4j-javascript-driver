@@ -80,6 +80,7 @@ export class Config {
   logging?: LoggingConfig
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
+  telemetryDisabled?: boolean
 
   /**
    * @constructor
@@ -285,6 +286,16 @@ export class Config {
      * @type {string|undefined}
      */
     this.userAgent = undefined
+
+    /**
+     * Specify if telemetry collection is disabled.
+     * 
+     * Metrics are only collected when enabled both in server and driver instances.
+     * 
+     * **Default**: ```false``` 
+     * @type {boolean}
+     */
+    this.telemetryDisabled = undefined
   }
 }
 

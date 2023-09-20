@@ -103,7 +103,7 @@ export class TransactionExecutor {
   ): Promise<T> {
     const apiTransactionConfig: NonAutoCommitApiTelemetryConfig = {
       api: this.telemetryApi,
-      onTelemetrySuccess: () => { 
+      onTelemetrySuccess: () => {
         apiTransactionConfig.api = undefined
       }
     }
@@ -195,7 +195,7 @@ export class TransactionExecutor {
   ): Promise<void> {
     let tx: Transaction
     try {
-      const txPromise = transactionCreator({...apiTransactionConfig})
+      const txPromise = transactionCreator({ ...apiTransactionConfig })
       tx = this.pipelineBegin ? txPromise : await txPromise
     } catch (error) {
       // failed to create a transaction

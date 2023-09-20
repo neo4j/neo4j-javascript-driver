@@ -106,7 +106,7 @@ class Transaction {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
-    notificationFilter?: NotificationFilter,
+    notificationFilter?: NotificationFilter
     apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig
   }) {
     this._connectionHolder = connectionHolder
@@ -139,7 +139,7 @@ class Transaction {
    * @returns {void}
    */
   _begin (getBookmarks: () => Promise<Bookmarks>, txConfig: TxConfig, events?: {
-    onError: (error: Error) => void,
+    onError: (error: Error) => void
     onComplete: (metadata: any) => void
   }): void {
     this._connectionHolder
@@ -156,7 +156,7 @@ class Transaction {
             impersonatedUser: this._impersonatedUser,
             notificationFilter: this._notificationFilter,
             apiTelemetryConfig: this._apiTelemetryConfig,
-            beforeError: (error: Error) =>  {
+            beforeError: (error: Error) => {
               if (events != null) {
                 events.onError(error)
               }
@@ -719,4 +719,4 @@ export default Transaction
 export type {
   NonAutoCommitTelemetryApis,
   NonAutoCommitApiTelemetryConfig
-} 
+}

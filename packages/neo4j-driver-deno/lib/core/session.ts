@@ -194,7 +194,7 @@ class Session {
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
-        apiTelemetryConfig: { 
+        apiTelemetryConfig: {
           api: TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION
         },
         impersonatedUser: this._impersonatedUser,
@@ -326,7 +326,7 @@ class Session {
       lowRecordWatermark: this._lowRecordWatermark,
       highRecordWatermark: this._highRecordWatermark,
       notificationFilter: this._notificationFilter,
-      apiTelemetryConfig: apiTelemetryConfig
+      apiTelemetryConfig
     })
     tx._begin(() => this._bookmarks(), txConfig)
     return tx
