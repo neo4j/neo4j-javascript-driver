@@ -43,7 +43,7 @@ import {
 
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
-import { notificationFilterBehaviour } from './behaviour'
+import { notificationFilterBehaviour, telemetryBehaviour } from './behaviour'
 
 const WRITE = 'WRITE'
 
@@ -627,6 +627,10 @@ describe('#unit BoltProtocolV4x0', () => {
     notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
     notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
     notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  describe('Bolt 5.4', () => {
+    telemetryBehaviour.protocolNotSupportsTelemetry(newProtocol)
   })
 
   function newProtocol (recorder) {

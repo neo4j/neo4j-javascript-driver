@@ -19,7 +19,7 @@
 
 import RequestMessage from '../../src/bolt/request-message'
 import { internal, int, json } from 'neo4j-driver-core'
-import { notificationFilterBehaviour } from './behaviour'
+import { notificationFilterBehaviour, telemetryBehaviour } from './behaviour'
 
 const {
   bookmarks: { Bookmarks },
@@ -533,7 +533,7 @@ describe('#unit RequestMessage', () => {
     })
   })
 
-  describe('Bolt5.3', () => {
+  describe('BoltV5.3', () => {
     it('should create HELLO with NodeJS Bolt Agent', () => {
       const userAgent = 'my-driver/1.0.2'
       const boltAgent = {
@@ -632,6 +632,18 @@ describe('#unit RequestMessage', () => {
       ])
       expect(message.toString()).toEqual(
         `HELLO ${json.stringify(expectedFields)}`
+      )
+    })
+  })
+
+  describe('BoltV5.4', () => {
+    it.each(telemetryBehaviour.telemetryApiFixture())('should create TELEMETRY with api=%s', (api) => {
+      const message = RequestMessage.telemetry({ api })
+
+      expect(message.signature).toEqual(0x54)
+      expect(message.fields).toEqual([api])
+      expect(message.toString()).toEqual(
+        `TELEMETRY ${api}`
       )
     })
   })

@@ -38,7 +38,7 @@ import utils from '../test-utils'
 import { LoginObserver } from '../../src/bolt/stream-observers'
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
-import { notificationFilterBehaviour } from './behaviour'
+import { notificationFilterBehaviour, telemetryBehaviour } from './behaviour'
 
 const WRITE = 'WRITE'
 
@@ -664,6 +664,10 @@ describe('#unit BoltProtocolV1', () => {
     notificationFilterBehaviour.shouldNotSupportNotificationFilterOnInitialize(newProtocol)
     notificationFilterBehaviour.shouldNotSupportNotificationFilterOnBeginTransaction(newProtocol)
     notificationFilterBehaviour.shouldNotSupportNotificationFilterOnRun(newProtocol)
+  })
+
+  describe('Bolt 5.4', () => {
+    telemetryBehaviour.protocolNotSupportsTelemetry(newProtocol)
   })
 
   function newProtocol (recorder) {

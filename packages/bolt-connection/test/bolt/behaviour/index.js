@@ -18,3 +18,4 @@
  */
 
 export * as notificationFilterBehaviour from './notification-filter'
+export * as telemetryBehaviour from './telemetry'

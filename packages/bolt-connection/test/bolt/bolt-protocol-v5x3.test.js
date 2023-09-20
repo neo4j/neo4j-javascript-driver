@@ -40,7 +40,7 @@ import {
 } from 'neo4j-driver-core'
 
 import { alloc } from '../../src/channel'
-import { notificationFilterBehaviour } from './behaviour'
+import { notificationFilterBehaviour, telemetryBehaviour } from './behaviour'
 
 const WRITE = 'WRITE'
 
@@ -1148,6 +1148,10 @@ describe('#unit BoltProtocolV5x3', () => {
 
       const unpacked = protocol.unpack(buffer)
       expect(unpacked).toEqual(struct)
+    })
+
+    describe('Bolt 5.4', () => {
+      telemetryBehaviour.protocolNotSupportsTelemetry(newProtocol)
     })
   })
 
