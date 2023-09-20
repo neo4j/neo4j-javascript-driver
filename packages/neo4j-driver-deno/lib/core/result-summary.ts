@@ -644,9 +644,9 @@ class ServerInfo {
 
 function intValue (value: NumberOrInteger): number {
   if (value instanceof Integer) {
-    return value.toInt()
+    return value.toNumber()
   } else if (typeof value === 'bigint') {
-    return int(value).toInt()
+    return int(value).toNumber()
   } else {
     return value
   }
