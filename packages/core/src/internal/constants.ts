@@ -38,6 +38,15 @@ const BOLT_PROTOCOL_V5_1: number = 5.1
 const BOLT_PROTOCOL_V5_2: number = 5.2
 const BOLT_PROTOCOL_V5_3: number = 5.3
 
+const TELEMETRY_APIS = {
+  MANAGED_TRANSACTION: 0,
+  UNMANAGED_TRANSACTION: 1,
+  AUTO_COMMIT_TRANSACTION: 2,
+  EXECUTE_QUERY: 3
+} as const
+
+export type TelemetryApis = typeof TELEMETRY_APIS[keyof typeof TELEMETRY_APIS]
+
 export type AccessMode = typeof ACCESS_MODE_READ | typeof ACCESS_MODE_WRITE
 
 export {
@@ -58,5 +67,6 @@ export {
   BOLT_PROTOCOL_V5_0,
   BOLT_PROTOCOL_V5_1,
   BOLT_PROTOCOL_V5_2,
-  BOLT_PROTOCOL_V5_3
+  BOLT_PROTOCOL_V5_3,
+  TELEMETRY_APIS
 }

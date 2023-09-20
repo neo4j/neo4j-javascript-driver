@@ -22,6 +22,7 @@ import QueryExecutor from '../../src/internal/query-executor'
 import ManagedTransaction from '../../src/transaction-managed'
 import ResultStreamObserverMock from '../utils/result-stream-observer.mock'
 import { Query } from '../../src/types'
+import { TELEMETRY_APIS } from '../../src/internal/constants'
 
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
@@ -86,18 +87,18 @@ describe('QueryExecutor', () => {
       expect(spyOnExecuteRead).toHaveBeenCalled()
     })
 
-    it('should configure the session with pipeline begin', async () => {
+    it('should configure the session with pipeline begin and correct api metrics', async () => {
       const { queryExecutor, sessionsCreated } = createExecutor()
 
       await queryExecutor.execute(baseConfig, 'query')
 
       expect(sessionsCreated.length).toBe(1)
-      const [{ spyOnSetTxExecutorToPipelineBegin, spyOnExecuteRead }] = sessionsCreated
+      const [{ spyOnConfigureTransactionExecutor, spyOnExecuteRead }] = sessionsCreated
 
-      expect(spyOnSetTxExecutorToPipelineBegin).toHaveBeenCalledTimes(1)
-      expect(spyOnSetTxExecutorToPipelineBegin).toHaveBeenCalledWith(true)
+      expect(spyOnConfigureTransactionExecutor).toHaveBeenCalledTimes(1)
+      expect(spyOnConfigureTransactionExecutor).toHaveBeenCalledWith(true, TELEMETRY_APIS.EXECUTE_QUERY)
       expect(spyOnExecuteRead.mock.invocationCallOrder[0]).toBeGreaterThan(
-        spyOnSetTxExecutorToPipelineBegin.mock.invocationCallOrder[0]
+        spyOnConfigureTransactionExecutor.mock.invocationCallOrder[0]
       )
     })
 
@@ -228,18 +229,18 @@ describe('QueryExecutor', () => {
       expect(spyOnExecuteWrite).toHaveBeenCalled()
     })
 
-    it('should configure the session with pipeline begin', async () => {
+    it('should configure the session with pipeline begin and api telemetry', async () => {
       const { queryExecutor, sessionsCreated } = createExecutor()
 
       await queryExecutor.execute(baseConfig, 'query')
 
       expect(sessionsCreated.length).toBe(1)
-      const [{ spyOnSetTxExecutorToPipelineBegin, spyOnExecuteWrite }] = sessionsCreated
+      const [{ spyOnConfigureTransactionExecutor, spyOnExecuteWrite }] = sessionsCreated
 
-      expect(spyOnSetTxExecutorToPipelineBegin).toHaveBeenCalledTimes(1)
-      expect(spyOnSetTxExecutorToPipelineBegin).toHaveBeenCalledWith(true)
+      expect(spyOnConfigureTransactionExecutor).toHaveBeenCalledTimes(1)
+      expect(spyOnConfigureTransactionExecutor).toHaveBeenCalledWith(true, TELEMETRY_APIS.EXECUTE_QUERY)
       expect(spyOnExecuteWrite.mock.invocationCallOrder[0]).toBeGreaterThan(
-        spyOnSetTxExecutorToPipelineBegin.mock.invocationCallOrder[0]
+        spyOnConfigureTransactionExecutor.mock.invocationCallOrder[0]
       )
     })
 
@@ -346,7 +347,7 @@ describe('QueryExecutor', () => {
         spyOnExecuteRead: jest.SpyInstance<any>
         spyOnExecuteWrite: jest.SpyInstance<any>
         spyOnClose: jest.SpyInstance<Promise<void>>
-        spyOnSetTxExecutorToPipelineBegin: jest.SpyInstance<void>
+        spyOnConfigureTransactionExecutor: jest.SpyInstance<void>
       }>
       createSession: jest.Mock<Session, [args: any]>
     } {
@@ -359,7 +360,7 @@ describe('QueryExecutor', () => {
       spyOnExecuteRead: jest.SpyInstance<any>
       spyOnExecuteWrite: jest.SpyInstance<any>
       spyOnClose: jest.SpyInstance<Promise<void>>
-      spyOnSetTxExecutorToPipelineBegin: jest.SpyInstance<void>
+      spyOnConfigureTransactionExecutor: jest.SpyInstance<void>
     }> = []
     const createSession = jest.fn((args) => {
       const session = new Session(args)
@@ -369,7 +370,7 @@ describe('QueryExecutor', () => {
         spyOnExecuteWrite: jest.spyOn(session, 'executeWrite'),
         spyOnClose: jest.spyOn(session, 'close'),
         // @ts-expect-error
-        spyOnSetTxExecutorToPipelineBegin: jest.spyOn(session, '_setTxExecutorToPipelineBegin')
+        spyOnConfigureTransactionExecutor: jest.spyOn(session, '_configureTransactionExecutor')
       }
       sessionsCreated.push(sessionCreated)
       _mockSessionExecuteRead(sessionCreated.spyOnExecuteRead)

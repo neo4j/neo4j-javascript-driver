@@ -19,7 +19,7 @@
 
 /* eslint-disable @typescript-eslint/promise-function-async */
 import { validateQueryAndParameters } from './internal/util.ts'
-import Connection from './connection.ts'
+import Connection, { ApiTelemetryConfig } from './connection.ts'
 import {
   ConnectionHolder,
   ReadOnlyConnectionHolder,
@@ -39,6 +39,10 @@ import Result from './result.ts'
 import { Query } from './types.ts'
 import { RecordShape } from './record.ts'
 import NotificationFilter from './notification-filter.ts'
+import { TelemetryApis, TELEMETRY_APIS } from './internal/constants.ts'
+
+type NonAutoCommitTelemetryApis = Exclude<TelemetryApis, typeof TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION>
+type NonAutoCommitApiTelemetryConfig = Omit<ApiTelemetryConfig, 'api'> & { api?: NonAutoCommitTelemetryApis }
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -63,6 +67,7 @@ class Transaction {
   private readonly _activePromise: Promise<void>
   private _acceptActive: () => void
   private readonly _notificationFilter?: NotificationFilter
+  private readonly _apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig
 
   /**
    * @constructor
@@ -89,7 +94,8 @@ class Transaction {
     impersonatedUser,
     highRecordWatermark,
     lowRecordWatermark,
-    notificationFilter
+    notificationFilter,
+    apiTelemetryConfig
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -100,7 +106,8 @@ class Transaction {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
-    notificationFilter?: NotificationFilter
+    notificationFilter?: NotificationFilter,
+    apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig
   }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
@@ -117,6 +124,7 @@ class Transaction {
     this._highRecordWatermark = highRecordWatermark
     this._bookmarks = Bookmarks.empty()
     this._notificationFilter = notificationFilter
+    this._apiTelemetryConfig = apiTelemetryConfig
     this._acceptActive = () => { } // satisfy DenoJS
     this._activePromise = new Promise((resolve, reject) => {
       this._acceptActive = resolve
@@ -127,10 +135,11 @@ class Transaction {
    * @private
    * @param {Bookmarks | string |  string []} bookmarks
    * @param {TxConfig} txConfig
+   * @param {Object} events List of observers to events
    * @returns {void}
    */
   _begin (getBookmarks: () => Promise<Bookmarks>, txConfig: TxConfig, events?: {
-    onError: (error: Error) => void
+    onError: (error: Error) => void,
     onComplete: (metadata: any) => void
   }): void {
     this._connectionHolder
@@ -146,7 +155,8 @@ class Transaction {
             database: this._connectionHolder.database(),
             impersonatedUser: this._impersonatedUser,
             notificationFilter: this._notificationFilter,
-            beforeError: (error: Error) => {
+            apiTelemetryConfig: this._apiTelemetryConfig,
+            beforeError: (error: Error) =>  {
               if (events != null) {
                 events.onError(error)
               }
@@ -706,3 +716,7 @@ function newCompletedResult (
 }
 
 export default Transaction
+export type {
+  NonAutoCommitTelemetryApis,
+  NonAutoCommitApiTelemetryConfig
+} 

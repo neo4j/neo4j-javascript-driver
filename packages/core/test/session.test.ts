@@ -20,9 +20,10 @@ import { ConnectionProvider, Session, Connection, TransactionPromise, Transactio
 import { BeginTransactionConfig, CommitTransactionConfig } from '../src/connection'
 import { Releasable } from '../src/connection-provider'
 import { bookmarks } from '../src/internal'
-import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
+import { ACCESS_MODE_READ, FETCH_ALL, TELEMETRY_APIS } from '../src/internal/constants'
 import { Logger } from '../src/internal/logger'
 import { TransactionExecutor } from '../src/internal/transaction-executor'
+import { NonAutoCommitTelemetryApis } from '../src/transaction'
 import ManagedTransaction from '../src/transaction-managed'
 import { AuthToken, LoggerFunction } from '../src/types'
 import FakeConnection from './utils/connection.fake'
@@ -85,6 +86,22 @@ describe('session', () => {
 
     // @ts-expect-error
     expect(result._watermarks).toEqual({ high: Number.MAX_VALUE, low: Number.MAX_VALUE })
+  })
+
+  it('run should set expected apiTelemetryConfig with api equals to TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION', async () => {
+    const connection = newFakeConnection()
+    const session = newSessionWithConnection(connection, false, 1000)
+
+    const result = session.run('RETURN 1')
+    await result
+
+    expect(connection.seenProtocolOptions[0]).toMatchObject({
+      apiTelemetryConfig: {
+        api: TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION
+      }
+    })
+    // @ts-expect-error
+    expect(result._watermarks).toEqual({ high: 700, low: 300 })
   })
 
   it('run should send watermarks to Transaction when fetchsize if defined (begin)', async () => {
@@ -551,6 +568,31 @@ describe('session', () => {
         )
       )
     })
+
+    it('should call begin query with apiTelemetryConfig with api equals to TELEMETRY_APIS.UNMANAGED_TRANSACTION', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: [...neo4jBookmarks, ...systemBookmarks]
+      })
+
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.beginTransaction()
+
+      expect(connection.seenBeginTransaction[0]).toEqual([
+        expect.objectContaining({
+          apiTelemetryConfig: {
+            api: TELEMETRY_APIS.UNMANAGED_TRANSACTION
+          }
+        })
+      ])
+    })
   })
 
   describe('.commit()', () => {
@@ -687,6 +729,22 @@ describe('session', () => {
           }
         )
       )
+    })
+
+    it('should call begin with apiTelemetryConfig with api equals to TELEMETRY_APIS.MANAGED_TRANSACTION', async () => {
+      const connection = mockBeginWithSuccess(newFakeConnection())
+      const session = newSessionWithConnection(connection, false, FETCH_ALL)
+      // @ts-expect-error
+      jest.spyOn(Transaction.prototype, 'run').mockImplementation(async () => await Promise.resolve())
+      const query = 'RETURN $a'
+      const params = { a: 1 }
+
+      await execute(session)(async (tx: ManagedTransaction) => {
+        await tx.run(query, params)
+      })
+
+      expect(connection.seenBeginTransaction[0][0].apiTelemetryConfig.api)
+        .toEqual(TELEMETRY_APIS.MANAGED_TRANSACTION)
     })
 
     it('should log a warning for timeout configurations with sub milliseconds', async () => {
@@ -1154,22 +1212,31 @@ describe('session', () => {
     })
   })
 
-  describe('Pipeline Begin on TxFunc', () => {
+  describe('_configureTransactionExecutor', () => {
     it('session should not change the default on session creation', () => {
       const session = newSessionWithConnection(new FakeConnection())
 
       // @ts-expect-error
       expect(session._transactionExecutor.pipelineBegin).toEqual(new TransactionExecutor().pipelineBegin)
+      // @ts-expect-error
+      expect(session._transactionExecutor.telemetryApi).toEqual(new TransactionExecutor().telemetryApi)
     })
 
-    it.each([true, false])('_setTxExecutorToPipelineBegin(%s) => configure executor', (pipelined) => {
+    it.each(
+      [...Object.values(TELEMETRY_APIS)
+        .filter(api => api !== TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION)
+        .flatMap(api => [true, false].map(pipelined => [pipelined, api]))
+      ]
+    )('(%s, %s) => configure executor', (pipelined: boolean, telemetryApi: NonAutoCommitTelemetryApis) => {
       const session = newSessionWithConnection(new FakeConnection())
 
       // @ts-expect-error
-      session._setTxExecutorToPipelineBegin(pipelined)
+      session._configureTransactionExecutor(pipelined, telemetryApi)
 
       // @ts-expect-error
       expect(session._transactionExecutor.pipelineBegin).toEqual(pipelined)
+      // @ts-expect-error
+      expect(session._transactionExecutor.telemetryApi).toEqual(telemetryApi)
     })
   })
 })

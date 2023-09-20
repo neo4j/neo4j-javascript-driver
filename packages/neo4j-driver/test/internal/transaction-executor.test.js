@@ -314,6 +314,105 @@ describe('#unit TransactionExecutor', () => {
       expect(context.workCalls).toEqual(2)
     })
 
+    ;[
+      [0, executor => executor],
+      [3, executor => {
+        executor.telemetryApi = 3
+        return executor
+      }]
+    ].forEach(([telemetryApi, applyChangesToExecutor]) => {
+      describe(`telemetry when api is ${telemetryApi}`, () => {
+        let executor
+
+        beforeEach(() => {
+          const executorAndFakeSetTimeout = createTransactionExecutorWithFakeTimeout()
+          executor = applyChangesToExecutor(executorAndFakeSetTimeout.executor)
+        })
+
+        it(`should create transaction with telemetryApi equals to ${telemetryApi}`, async () => {
+          const tx = new FakeTransaction()
+          const transactionCreator = spyOnFunction(({ onTelemetrySuccess }) => {
+            onTelemetrySuccess()
+            return tx
+          })
+
+          await executor.execute(transactionCreator, async (x) => 1)
+
+          expect(transactionCreator.calls.length).toBe(1)
+          expect(transactionCreator.calls[0][0].api).toBe(telemetryApi)
+        })
+
+        it('should not send metric on the retry when metrics sent with success', async () => {
+          const transactions = [
+            new FakeTransaction(undefined, undefined, TRANSIENT_ERROR_1),
+            new FakeTransaction()
+          ]
+
+          const transactionCreator = spyOnFunction(({ onTelemetrySuccess }) => {
+            onTelemetrySuccess()
+            return transactions.shift()
+          })
+
+          await executor.execute(transactionCreator, async (x) => 1)
+
+          expect(transactionCreator.calls.length).toBe(2)
+          expect(transactionCreator.calls[0][0].api).toBe(telemetryApi)
+          expect(transactionCreator.calls[1][0].api).toBe(undefined)
+        })
+
+        it('should send metric on the retry when metrics sent without success success', async () => {
+          const transactions = [
+            new FakeTransaction(undefined, undefined, TRANSIENT_ERROR_1),
+            new FakeTransaction()
+          ]
+
+          const transactionCreator = spyOnFunction(({ onTelemetrySuccess }) => {
+            if (transactions.length === 1) {
+              onTelemetrySuccess()
+            }
+            return transactions.shift()
+          })
+
+          await executor.execute(transactionCreator, async (x) => 1)
+
+          expect(transactionCreator.calls.length).toBe(2)
+          expect(transactionCreator.calls[0][0].api).toBe(telemetryApi)
+          expect(transactionCreator.calls[1][0].api).toBe(telemetryApi)
+        })
+
+        it('should isolate execution context', async () => {
+          const tx = new FakeTransaction()
+          const transactionCreator = spyOnFunction(({ onTelemetrySuccess }) => {
+            onTelemetrySuccess()
+            return tx
+          })
+
+          await executor.execute(transactionCreator, async (x) => 1)
+          await executor.execute(transactionCreator, async (x) => 1)
+
+          expect(transactionCreator.calls.length).toBe(2)
+          expect(transactionCreator.calls[0][0].api).toBe(telemetryApi)
+          expect(transactionCreator.calls[1][0].api).toBe(telemetryApi)
+        })
+
+        afterEach(async () => {
+          await executor.close()
+        })
+
+        function spyOnFunction (fun) {
+          const context = {
+            calls: []
+          }
+          function myFunction (...args) {
+            context.calls.push(args)
+            return fun(...args)
+          }
+
+          return Object.defineProperty(myFunction, 'calls', { get: () => context.calls })
+        }
+      })
+    })
+
     async function testRetryWhenTransactionCreatorFails (errorCodes) {
       const { fakeSetTimeout, executor } = createTransactionExecutorWithFakeTimeout()
       executor.pipelineBegin = pipelineBegin

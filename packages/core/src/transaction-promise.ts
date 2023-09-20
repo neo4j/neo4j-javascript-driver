@@ -19,7 +19,7 @@
 
 /* eslint-disable @typescript-eslint/promise-function-async */
 
-import Transaction from './transaction'
+import Transaction, { NonAutoCommitApiTelemetryConfig } from './transaction'
 import {
   ConnectionHolder
 } from './internal/connection-holder'
@@ -69,7 +69,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     impersonatedUser,
     highRecordWatermark,
     lowRecordWatermark,
-    notificationFilter
+    notificationFilter,
+    apiTelemetryConfig
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -81,6 +82,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     highRecordWatermark: number
     lowRecordWatermark: number
     notificationFilter?: NotificationFilter
+    apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig
   }) {
     super({
       connectionHolder,
@@ -92,7 +94,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
       impersonatedUser,
       highRecordWatermark,
       lowRecordWatermark,
-      notificationFilter
+      notificationFilter,
+      apiTelemetryConfig
     })
   }
 

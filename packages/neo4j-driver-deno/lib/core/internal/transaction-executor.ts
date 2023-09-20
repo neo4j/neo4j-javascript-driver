@@ -17,17 +17,17 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-
 import { newError, isRetriableError } from '../error.ts'
-import Transaction from '../transaction.ts'
+import Transaction, { NonAutoCommitApiTelemetryConfig, NonAutoCommitTelemetryApis } from '../transaction.ts'
 import TransactionPromise from '../transaction-promise.ts'
+import { TELEMETRY_APIS } from './constants.ts'
 
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds
 const DEFAULT_INITIAL_RETRY_DELAY_MS = 1000 // 1 seconds
 const DEFAULT_RETRY_DELAY_MULTIPLIER = 2.0
 const DEFAULT_RETRY_DELAY_JITTER_FACTOR = 0.2
 
-type TransactionCreator = () => TransactionPromise
+type TransactionCreator = (apiTransactionConfig?: NonAutoCommitApiTelemetryConfig) => TransactionPromise
 type TransactionWork<T, Tx = Transaction> = (tx: Tx) => T | Promise<T>
 type Resolve<T> = (value: T | PromiseLike<T>) => void
 type Reject = (value: any) => void
@@ -56,6 +56,7 @@ export class TransactionExecutor {
   private _inFlightTimeoutIds: Timeout[]
   private readonly _setTimeout: SetTimeout
   private readonly _clearTimeout: ClearTimeout
+  public telemetryApi: NonAutoCommitTelemetryApis
   public pipelineBegin: boolean
 
   constructor (
@@ -90,6 +91,7 @@ export class TransactionExecutor {
 
     this._inFlightTimeoutIds = []
     this.pipelineBegin = false
+    this.telemetryApi = TELEMETRY_APIS.MANAGED_TRANSACTION
 
     this._verifyAfterConstruction()
   }
@@ -99,13 +101,21 @@ export class TransactionExecutor {
     transactionWork: TransactionWork<T, Tx>,
     transactionWrapper?: (tx: Transaction) => Tx
   ): Promise<T> {
+    const apiTransactionConfig: NonAutoCommitApiTelemetryConfig = {
+      api: this.telemetryApi,
+      onTelemetrySuccess: () => { 
+        apiTransactionConfig.api = undefined
+      }
+    }
+
     return new Promise<T>((resolve, reject) => {
       this._executeTransactionInsidePromise(
         transactionCreator,
         transactionWork,
         resolve,
         reject,
-        transactionWrapper
+        transactionWrapper,
+        apiTransactionConfig
       ).catch(reject)
     }).catch(error => {
       const retryStartTimeMs = Date.now()
@@ -116,7 +126,8 @@ export class TransactionExecutor {
         error,
         retryStartTimeMs,
         retryDelayMs,
-        transactionWrapper
+        transactionWrapper,
+        apiTransactionConfig
       )
     })
   }
@@ -133,7 +144,8 @@ export class TransactionExecutor {
     error: Error,
     retryStartTime: number,
     retryDelayMs: number,
-    transactionWrapper?: (tx: Transaction) => Tx
+    transactionWrapper?: (tx: Transaction) => Tx,
+    apiTransactionConfig?: NonAutoCommitApiTelemetryConfig
   ): Promise<T> {
     const elapsedTimeMs = Date.now() - retryStartTime
 
@@ -153,7 +165,8 @@ export class TransactionExecutor {
           transactionWork,
           resolve,
           reject,
-          transactionWrapper
+          transactionWrapper,
+          apiTransactionConfig
         ).catch(reject)
       }, nextRetryTime)
       // add newly created timeoutId to the list of all in-flight timeouts
@@ -166,7 +179,8 @@ export class TransactionExecutor {
         error,
         retryStartTime,
         nextRetryDelayMs,
-        transactionWrapper
+        transactionWrapper,
+        apiTransactionConfig
       )
     })
   }
@@ -176,11 +190,12 @@ export class TransactionExecutor {
     transactionWork: TransactionWork<T, Tx>,
     resolve: Resolve<T>,
     reject: Reject,
-    transactionWrapper?: (tx: Transaction) => Tx
+    transactionWrapper?: (tx: Transaction) => Tx,
+    apiTransactionConfig?: NonAutoCommitApiTelemetryConfig
   ): Promise<void> {
     let tx: Transaction
     try {
-      const txPromise = transactionCreator()
+      const txPromise = transactionCreator({...apiTransactionConfig})
       tx = this.pipelineBegin ? txPromise : await txPromise
     } catch (error) {
       // failed to create a transaction

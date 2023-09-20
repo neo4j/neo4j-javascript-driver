@@ -15,21 +15,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+*/
 /* eslint-disable @typescript-eslint/promise-function-async */
 
 import { Bookmarks } from './internal/bookmarks'
-import { AccessMode } from './internal/constants'
+import { AccessMode, TelemetryApis } from './internal/constants'
 import { ResultStreamObserver } from './internal/observers'
 import { TxConfig } from './internal/tx-config'
 import NotificationFilter from './notification-filter'
+
+interface ApiTelemetryConfig {
+  api?: TelemetryApis
+  onTelemetrySuccess?: () => void
+}
+
+interface HasApiTelemetry {
+  apiTelemetryConfig?: ApiTelemetryConfig
+}
 
 interface HasBeforeErrorAndAfterComplete {
   beforeError?: (error: Error) => void
   afterComplete?: (metadata: unknown) => void
 }
 
-interface BeginTransactionConfig extends HasBeforeErrorAndAfterComplete {
+interface BeginTransactionConfig extends HasBeforeErrorAndAfterComplete, HasApiTelemetry {
   bookmarks: Bookmarks
   txConfig: TxConfig
   mode?: AccessMode
@@ -104,5 +113,6 @@ export type {
   BeginTransactionConfig,
   CommitTransactionConfig,
   RollbackConnectionConfig,
-  RunQueryConfig
+  RunQueryConfig,
+  ApiTelemetryConfig
 }
