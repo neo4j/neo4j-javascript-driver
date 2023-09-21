@@ -42,7 +42,7 @@ import NotificationFilter from './notification-filter.ts'
 import { TelemetryApis, TELEMETRY_APIS } from './internal/constants.ts'
 
 type NonAutoCommitTelemetryApis = Exclude<TelemetryApis, typeof TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION>
-type NonAutoCommitApiTelemetryConfig = Omit<ApiTelemetryConfig, 'api'> & { api?: NonAutoCommitTelemetryApis }
+type NonAutoCommitApiTelemetryConfig = Omit<ApiTelemetryConfig, 'api'> & { api: NonAutoCommitTelemetryApis }
 
 /**
  * Represents a transaction in the Neo4j database.

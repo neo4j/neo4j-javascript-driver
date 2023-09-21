@@ -348,8 +348,10 @@ describe('#unit TransactionExecutor', () => {
             new FakeTransaction()
           ]
 
-          const transactionCreator = spyOnFunction(({ onTelemetrySuccess }) => {
-            onTelemetrySuccess()
+          const transactionCreator = spyOnFunction(({ onTelemetrySuccess } = {}) => {
+            if (onTelemetrySuccess) {
+              onTelemetrySuccess()
+            }
             return transactions.shift()
           })
 
@@ -357,7 +359,7 @@ describe('#unit TransactionExecutor', () => {
 
           expect(transactionCreator.calls.length).toBe(2)
           expect(transactionCreator.calls[0][0].api).toBe(telemetryApi)
-          expect(transactionCreator.calls[1][0].api).toBe(undefined)
+          expect(transactionCreator.calls[1][0]).toBe(undefined)
         })
 
         it('should send metric on the retry when metrics sent without success success', async () => {

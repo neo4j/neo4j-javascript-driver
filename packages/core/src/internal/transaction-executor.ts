@@ -48,6 +48,8 @@ function clearTimeoutWrapper (timeoutId: Timeout): void {
   return clearTimeout(timeoutId)
 }
 
+interface ExecutionContext { apiTransactionConfig?: NonAutoCommitApiTelemetryConfig }
+
 export class TransactionExecutor {
   private readonly _maxRetryTimeMs: number
   private readonly _initialRetryDelayMs: number
@@ -101,10 +103,12 @@ export class TransactionExecutor {
     transactionWork: TransactionWork<T, Tx>,
     transactionWrapper?: (tx: Transaction) => Tx
   ): Promise<T> {
-    const apiTransactionConfig: NonAutoCommitApiTelemetryConfig = {
-      api: this.telemetryApi,
-      onTelemetrySuccess: () => {
-        apiTransactionConfig.api = undefined
+    const context: ExecutionContext = {
+      apiTransactionConfig: {
+        api: this.telemetryApi,
+        onTelemetrySuccess: () => {
+          context.apiTransactionConfig = undefined
+        }
       }
     }
 
@@ -115,7 +119,7 @@ export class TransactionExecutor {
         resolve,
         reject,
         transactionWrapper,
-        apiTransactionConfig
+        context
       ).catch(reject)
     }).catch(error => {
       const retryStartTimeMs = Date.now()
@@ -127,7 +131,7 @@ export class TransactionExecutor {
         retryStartTimeMs,
         retryDelayMs,
         transactionWrapper,
-        apiTransactionConfig
+        context
       )
     })
   }
@@ -145,7 +149,7 @@ export class TransactionExecutor {
     retryStartTime: number,
     retryDelayMs: number,
     transactionWrapper?: (tx: Transaction) => Tx,
-    apiTransactionConfig?: NonAutoCommitApiTelemetryConfig
+    executionContext?: ExecutionContext
   ): Promise<T> {
     const elapsedTimeMs = Date.now() - retryStartTime
 
@@ -166,7 +170,7 @@ export class TransactionExecutor {
           resolve,
           reject,
           transactionWrapper,
-          apiTransactionConfig
+          executionContext
         ).catch(reject)
       }, nextRetryTime)
       // add newly created timeoutId to the list of all in-flight timeouts
@@ -180,7 +184,7 @@ export class TransactionExecutor {
         retryStartTime,
         nextRetryDelayMs,
         transactionWrapper,
-        apiTransactionConfig
+        executionContext
       )
     })
   }
@@ -191,11 +195,15 @@ export class TransactionExecutor {
     resolve: Resolve<T>,
     reject: Reject,
     transactionWrapper?: (tx: Transaction) => Tx,
-    apiTransactionConfig?: NonAutoCommitApiTelemetryConfig
+    executionContext?: ExecutionContext
   ): Promise<void> {
     let tx: Transaction
     try {
-      const txPromise = transactionCreator({ ...apiTransactionConfig })
+      const txPromise = transactionCreator(
+        executionContext?.apiTransactionConfig != null
+          ? { ...executionContext?.apiTransactionConfig }
+          : undefined
+      )
       tx = this.pipelineBegin ? txPromise : await txPromise
     } catch (error) {
       // failed to create a transaction

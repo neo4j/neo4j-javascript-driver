@@ -40,7 +40,7 @@ import {
 } from 'neo4j-driver-core'
 
 import { alloc } from '../../src/channel'
-import { notificationFilterBehaviour } from './behaviour'
+import { notificationFilterBehaviour, telemetryBehaviour } from './behaviour'
 
 const WRITE = 'WRITE'
 
@@ -55,6 +55,8 @@ describe('#unit BoltProtocolV5x4', () => {
   beforeEach(() => {
     expect.extend(utils.matchers)
   })
+
+  telemetryBehaviour.protocolSupportsTelemetry(newProtocol)
 
   it('should request routing information', () => {
     const recorder = new utils.MessageRecordingConnection()

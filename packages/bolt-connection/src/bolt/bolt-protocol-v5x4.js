@@ -19,6 +19,8 @@
 import BoltProtocolV5x3 from './bolt-protocol-v5x3'
 
 import transformersFactories from './bolt-protocol-v5x4.transformer'
+import RequestMessage from './request-message'
+import { TelemetryObserver } from './stream-observers'
 import Transformer from './transformer'
 
 import { internal } from 'neo4j-driver-core'
@@ -37,5 +39,23 @@ export default class BoltProtocol extends BoltProtocolV5x3 {
       this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)))
     }
     return this._transformer
+  }
+
+  /**
+   * Send a TELEMETRY through the underlying connection.
+   *
+   * @param {object} param0 Message params
+   * @param {number} param0.api The API called
+   * @param {object} param1 Configuration and callbacks callbacks
+   * @param {function()} param1.onComplete Called when completed
+   * @param {function()} param1.onError Called when error
+   * @return {StreamObserver} the stream observer that monitors the corresponding server response.
+   */
+  telemetry ({ api }, { onError, onCompleted } = {}) {
+    const observer = new TelemetryObserver({ onCompleted, onError })
+
+    this.write(RequestMessage.telemetry({ api }), observer, false)
+
+    return observer
   }
 }
