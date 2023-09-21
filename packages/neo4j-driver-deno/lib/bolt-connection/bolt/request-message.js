@@ -372,10 +372,11 @@ export default class RequestMessage {
   }
 
   static telemetry ({ api }) {
+    const parsedApi = int(api)
     return new RequestMessage(
       TELEMETRY,
-      [api],
-      () => `TELEMETRY ${api}`
+      [parsedApi],
+      () => `TELEMETRY ${parsedApi.toString()}`
     )
   }
 

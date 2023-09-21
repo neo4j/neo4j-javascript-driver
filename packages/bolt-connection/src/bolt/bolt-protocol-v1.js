@@ -461,7 +461,7 @@ export default class BoltProtocol {
    * @param {object} param0 Message params
    * @param {number} param0.api The API called
    * @param {object} param1 Configuration and callbacks callbacks
-   * @param {function()} param1.onComplete Called when completed
+   * @param {function()} param1.onCompleted Called when completed
    * @param {function()} param1.onError Called when error
    * @return {StreamObserver} the stream observer that monitors the corresponding server response.
    */

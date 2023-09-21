@@ -641,9 +641,9 @@ describe('#unit RequestMessage', () => {
       const message = RequestMessage.telemetry({ api })
 
       expect(message.signature).toEqual(0x54)
-      expect(message.fields).toEqual([api])
+      expect(message.fields).toEqual([int(api)])
       expect(message.toString()).toEqual(
-        `TELEMETRY ${api}`
+        `TELEMETRY ${int(api).toString()}`
       )
     })
   })
