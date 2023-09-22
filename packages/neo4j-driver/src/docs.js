@@ -28,9 +28,13 @@
  *   <li>explicit transactions using {@link Session#beginTransaction} and {@link RxSession#beginTransaction}</li>
  * </ul>
  * @typedef {Object} TransactionConfig
- * @property {number} timeout - the transaction timeout in **milliseconds**. Transactions that execute longer than the configured timeout will
- * be terminated by the database. This functionality allows to limit query/transaction execution time. Specified timeout overrides the default timeout
- * configured in the database using `dbms.transaction.timeout` setting. Value should not represent a duration of zero or negative duration.
+ * @property {number} timeout - the transaction timeout in **milliseconds**. Transactions that execute longer than the
+ * configured timeout will be terminated by the database. This functionality allows to limit query/transaction execution
+ * time. The Specified timeout overrides the default timeout configured in the database using the
+ * `db.transaction.timeout` setting (``dbms.transaction.timeout`` before Neo4j 5.0). Values higher than
+ * `db.transaction.timeout` will be ignored and will fall back to the default for server versions 4.2 to including 5.2.
+ * The value should not represent a negative duration. A timeout of `0` will make the transaction execute indefinitely.
+ * `null` (default) will use the default timeout configured on the server.
  * @property {Object} metadata - the transaction metadata. Specified metadata will be attached to the executing transaction and visible in the output
  * of `SHOW TRANSACTIONS YIELD *`. It will also get logged to the `query.log` file. This functionality makes it easier to tag transactions and is
  * equivalent to the `dbms.setTXMetaData` procedure, see https://neo4j.com/docs/cypher-manual/current/clauses/transaction-clauses/#query-listing-transactions
