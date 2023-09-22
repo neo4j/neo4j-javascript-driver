@@ -88,7 +88,7 @@ describe('session', () => {
     expect(result._watermarks).toEqual({ high: Number.MAX_VALUE, low: Number.MAX_VALUE })
   })
 
-  it('run should set expected apiTelemetryConfig with api equals to TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION', async () => {
+  it('run should set protocol option apiTelemetryConfig.api to TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION', async () => {
     const connection = newFakeConnection()
     const session = newSessionWithConnection(connection, false, 1000)
 

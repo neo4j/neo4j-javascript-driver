@@ -293,6 +293,7 @@ export class Config {
      * Metrics are only collected when enabled both in server and driver instances.
      *
      * **Default**: ```false```
+     * 
      * @type {boolean}
      */
     this.telemetryDisabled = undefined

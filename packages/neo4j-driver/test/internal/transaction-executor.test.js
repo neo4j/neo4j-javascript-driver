@@ -362,7 +362,7 @@ describe('#unit TransactionExecutor', () => {
           expect(transactionCreator.calls[1][0]).toBe(undefined)
         })
 
-        it('should send metric on the retry when metrics sent without success success', async () => {
+        it('should send metrics on the retry when metrics sent without success', async () => {
           const transactions = [
             new FakeTransaction(undefined, undefined, TRANSIENT_ERROR_1),
             new FakeTransaction()
