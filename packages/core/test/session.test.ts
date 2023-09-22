@@ -741,8 +741,11 @@ describe('session', () => {
         await tx.run(query, params)
       })
 
-      expect(connection.seenBeginTransaction[0][0].apiTelemetryConfig.api)
-        .toEqual(TELEMETRY_APIS.MANAGED_TRANSACTION)
+      expect(connection.seenBeginTransaction[0][0]).toMatchObject({
+        apiTelemetryConfig: {
+          api: TELEMETRY_APIS.MANAGED_TRANSACTION
+        }
+      })
     })
 
     it('should log a warning for timeout configurations with sub milliseconds', async () => {
