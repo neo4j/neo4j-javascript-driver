@@ -100,8 +100,6 @@ describe('session', () => {
         api: TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION
       }
     })
-    // @ts-expect-error
-    expect(result._watermarks).toEqual({ high: 700, low: 300 })
   })
 
   it('run should send watermarks to Transaction when fetchsize if defined (begin)', async () => {

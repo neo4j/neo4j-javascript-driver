@@ -42,7 +42,7 @@ import NotificationFilter from './notification-filter'
 import { TelemetryApis, TELEMETRY_APIS } from './internal/constants'
 
 type NonAutoCommitTelemetryApis = Exclude<TelemetryApis, typeof TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION>
-type NonAutoCommitApiTelemetryConfig = Omit<ApiTelemetryConfig, 'api'> & { api: NonAutoCommitTelemetryApis }
+type NonAutoCommitApiTelemetryConfig = ApiTelemetryConfig<NonAutoCommitTelemetryApis>
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -83,6 +83,7 @@ class Transaction {
    * @param {number} args.highRecordWatermark - The high watermark for the record buffer.
    * @param {number} args.lowRecordWatermark - The low watermark for the record buffer.
    * @param {NotificationFilter} args.notificationFilter - The notification filter used for this transaction.
+   * @param {NonAutoCommitApiTelemetryConfig} args.apiTelemetryConfig - The api telemetry configuration. Empty/Null for disabling telemetry
    */
   constructor ({
     connectionHolder,

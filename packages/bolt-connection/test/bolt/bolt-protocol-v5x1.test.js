@@ -493,7 +493,7 @@ describe('#unit BoltProtocolV5x1', () => {
       ['Relationship', new Relationship(1, 2, 3, 'a', { b: 'c' }, 'd', 'e', 'f')],
       ['UnboundRelationship', new UnboundRelationship(1, 'a', { b: 'c' }, '1')],
       ['Path', new Path(new Node(1, [], {}), new Node(2, [], {}), [])]
-    ])('should pack not pack graph types (%s)', (_, graphType) => {
+    ])('should resultant function not pack graph types (%s)', (_, graphType) => {
       const protocol = new BoltProtocolV5x1(
         new utils.MessageRecordingConnection(),
         null,

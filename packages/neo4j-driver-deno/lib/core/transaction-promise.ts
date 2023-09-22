@@ -58,6 +58,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
    * @param {number} args.fetchSize - the record fetch size in each pulling batch.
    * @param {string} args.impersonatedUser - The name of the user which should be impersonated for the duration of the session.
    * @param {NotificationFilter} args.notificationFilter - The notification filter used for this transaction.
+   * @param {NonAutoCommitApiTelemetryConfig} args.apiTelemetryConfig - The api telemetry configuration. Empty/Null for disabling telemetry
    */
   constructor ({
     connectionHolder,

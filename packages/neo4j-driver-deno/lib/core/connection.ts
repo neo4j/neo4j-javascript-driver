@@ -24,8 +24,8 @@ import { ResultStreamObserver } from './internal/observers.ts'
 import { TxConfig } from './internal/tx-config.ts'
 import NotificationFilter from './notification-filter.ts'
 
-interface ApiTelemetryConfig {
-  api: TelemetryApis
+interface ApiTelemetryConfig<Apis extends TelemetryApis = TelemetryApis> {
+  api: Apis
   onTelemetrySuccess?: () => void
 }
 

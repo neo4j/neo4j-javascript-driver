@@ -541,13 +541,13 @@ class TelemetryObserver extends ResultStreamObserver {
 
   onNext (record) {
     this.onError(
-      newError('Received RECORD when logging off ' + json.stringify(record))
+      newError('Received RECORD when sending telemetry ' + json.stringify(record), PROTOCOL_ERROR)
     )
   }
 
   onError (error) {
     if (this._onError) {
-      this._onError(error)
+      this._onError(newError(`Telemetry should not fail. Caused by: ${error.message}`, PROTOCOL_ERROR, error))
     }
   }
 
