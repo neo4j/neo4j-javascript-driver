@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { internal, error } from 'neo4j-driver-core'
+import { internal } from 'neo4j-driver-core'
 import { CompletedObserver, TelemetryObserver } from '../../../src/bolt'
 import utils from '../../test-utils'
 import RequestMessage from '../../../src/bolt/request-message'
@@ -27,8 +27,6 @@ const {
     TELEMETRY_APIS
   }
 } = internal
-
-const { PROTOCOL_ERROR } = error
 
 /**
  * Test setup for protocol versions which doesn't supports telemetry
@@ -119,22 +117,12 @@ export function protocolSupportsTelemetry (createProtocol) {
           result.onError(error)
 
           if (config != null && config.onError) {
-            expect(config.onError).toHaveBeenCalledTimes(1)
-            expect(config.onError.mock.calls[0][0].code).toBe(PROTOCOL_ERROR)
-
-            if (isErrorCauseSupported()) {
-              expect(config.onError.mock.calls[0][0].cause).toBe(error)
-            }
+            expect(config.onError).toHaveBeenCalledWith(error)
           }
         })
       })
     })
   })
-}
-
-export function isErrorCauseSupported () {
-  const error = new Error('message', { cause: new Error('other error') })
-  return error.cause != null
 }
 
 export function telemetryApiFixture () {

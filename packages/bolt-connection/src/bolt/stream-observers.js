@@ -547,7 +547,7 @@ class TelemetryObserver extends ResultStreamObserver {
 
   onError (error) {
     if (this._onError) {
-      this._onError(newError(`Telemetry should not fail. Caused by: ${error.message}`, PROTOCOL_ERROR, error))
+      this._onError(error)
     }
   }
 
