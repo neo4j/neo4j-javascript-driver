@@ -21,10 +21,10 @@
 
 import { FailedObserver, ResultStreamObserver } from './internal/observers.ts'
 import { validateQueryAndParameters } from './internal/util.ts'
-import { FETCH_ALL, ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants.ts'
+import { FETCH_ALL, ACCESS_MODE_READ, ACCESS_MODE_WRITE, TELEMETRY_APIS } from './internal/constants.ts'
 import { newError } from './error.ts'
 import Result from './result.ts'
-import Transaction from './transaction.ts'
+import Transaction, { NonAutoCommitApiTelemetryConfig, NonAutoCommitTelemetryApis } from './transaction.ts'
 import { ConnectionHolder } from './internal/connection-holder.ts'
 import { TransactionExecutor } from './internal/transaction-executor.ts'
 import { Bookmarks } from './internal/bookmarks.ts'
@@ -194,6 +194,9 @@ class Session {
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
+        apiTelemetryConfig: {
+          api: TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION
+        },
         impersonatedUser: this._impersonatedUser,
         afterComplete: (meta: any) => this._onCompleteCallback(meta, bookmarks),
         reactive: this._reactive,
@@ -293,10 +296,10 @@ class Session {
       txConfig = new TxConfig(arg, this._log)
     }
 
-    return this._beginTransaction(this._mode, txConfig)
+    return this._beginTransaction(this._mode, txConfig, { api: TELEMETRY_APIS.UNMANAGED_TRANSACTION })
   }
 
-  _beginTransaction (accessMode: SessionMode, txConfig: TxConfig): TransactionPromise {
+  _beginTransaction (accessMode: SessionMode, txConfig: TxConfig, apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig): TransactionPromise {
     if (!this._open) {
       throw newError('Cannot begin a transaction on a closed session.')
     }
@@ -322,7 +325,8 @@ class Session {
       fetchSize: this._fetchSize,
       lowRecordWatermark: this._lowRecordWatermark,
       highRecordWatermark: this._highRecordWatermark,
-      notificationFilter: this._notificationFilter
+      notificationFilter: this._notificationFilter,
+      apiTelemetryConfig
     })
     tx._begin(() => this._bookmarks(), txConfig)
     return tx
@@ -431,7 +435,7 @@ class Session {
     transactionWork: TransactionWork<T>
   ): Promise<T> {
     return this._transactionExecutor.execute(
-      () => this._beginTransaction(accessMode, transactionConfig),
+      (apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig) => this._beginTransaction(accessMode, transactionConfig, apiTelemetryConfig),
       transactionWork
     )
   }
@@ -493,7 +497,7 @@ class Session {
     transactionWork: ManagedTransactionWork<T>
   ): Promise<T> {
     return this._transactionExecutor.execute(
-      () => this._beginTransaction(accessMode, transactionConfig),
+      (apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig) => this._beginTransaction(accessMode, transactionConfig, apiTelemetryConfig),
       transactionWork,
       ManagedTransaction.fromTransaction
     )
@@ -594,13 +598,15 @@ class Session {
   }
 
   /**
-   * Configure the transaction executor to pipeline transaction begin.
+   * Configure the transaction executor
    *
+   * This used by {@link Driver#executeQuery}
    * @private
    * @returns {void}
    */
-  private _setTxExecutorToPipelineBegin (pipelined: boolean): void {
+  private _configureTransactionExecutor (pipelined: boolean, telemetryApi: NonAutoCommitTelemetryApis): void {
     this._transactionExecutor.pipelineBegin = pipelined
+    this._transactionExecutor.telemetryApi = telemetryApi
   }
 
   /**

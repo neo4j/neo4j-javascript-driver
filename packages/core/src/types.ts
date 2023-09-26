@@ -80,6 +80,7 @@ export class Config {
   logging?: LoggingConfig
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
+  telemetryDisabled?: boolean
 
   /**
    * @constructor
@@ -285,6 +286,34 @@ export class Config {
      * @type {string|undefined}
      */
     this.userAgent = undefined
+
+    /**
+     * Specify if telemetry collection is disabled.
+     *
+     * By default, the driver will send anonymous usage statistics to the server it connects to if the server requests those.
+     * By setting ``telemetryDisabled=true``, the driver will not send any telemetry data.
+     *
+     * The driver transmits the following information:
+     *
+     * Every time one of the following APIs is used to execute a query (for the first time), the server is informed of this
+     * (without any further information like arguments, client identifiers, etc.):
+     *
+     * * {@link Driver#executeQuery}
+     * * {@link Session#run}
+     * * {@link Session#beginTransaction}
+     * * {@link Session#executeRead}
+     * * {@link Session#executeWrite}
+     * * {@link Session#writeTransaction}
+     * * {@link Session#readTransaction}
+     * * The reactive counterparts of methods above.
+     *
+     * Metrics are only collected when enabled both in server and driver instances.
+     *
+     * **Default**: ```false```
+     *
+     * @type {boolean}
+     */
+    this.telemetryDisabled = false
   }
 }
 

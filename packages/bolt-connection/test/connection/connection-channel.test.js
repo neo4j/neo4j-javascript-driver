@@ -20,7 +20,7 @@
 import ChannelConnection from '../../src/connection/connection-channel'
 import { int, internal, newError } from 'neo4j-driver-core'
 import { notificationFilterBehaviour } from '../bolt/behaviour'
-import { ResultStreamObserver } from '../../src/bolt'
+import { CompletedObserver, ResultStreamObserver } from '../../src/bolt'
 
 const {
   serverAddress: { ServerAddress },
@@ -744,6 +744,153 @@ describe('ChannelConnection', () => {
       expect(result).toBe(observer)
       expect(protocol.beginTransaction).toBeCalledWith(config)
     })
+
+    it.each([
+      [undefined, { hints: { 'telemetry.enabled': true } }],
+      [false, { hints: { 'telemetry.enabled': true } }]
+    ])('should send telemetry when telemetryDisabled=%s and metadata=%o and telemetry configured', async (telemetryDisabled, metadata) => {
+      const observer = new ResultStreamObserver()
+
+      const protocol = {
+        telemetry: jest.fn(() => new CompletedObserver()),
+        beginTransaction: jest.fn(() => observer),
+        initialize: jest.fn(observer => observer.onComplete(metadata))
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ protocolSupplier, telemetryDisabled })
+
+      await connection.connect('userAgent', 'boltAgent', {})
+
+      const config = {
+        bookmarks: Bookmarks.empty(),
+        txConfig: TxConfig.empty(),
+        database: 'neo4j',
+        mode: 'READ',
+        impersonatedUser: 'other cat',
+        notificationFilter: {
+          minimumSeverityLevel: 'WARNING'
+        },
+        apiTelemetryConfig: {
+          api: 2,
+          onTelemetrySuccess: jest.fn()
+        },
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const result = connection.beginTransaction(config)
+
+      expect(result).toBe(observer)
+      expect(protocol.beginTransaction).toBeCalledWith(config)
+
+      expect(protocol.telemetry).toBeCalled()
+      expect(protocol.telemetry).toHaveBeenCalledWith({ api: config.apiTelemetryConfig.api }, {
+        onCompleted: config.apiTelemetryConfig.onTelemetrySuccess,
+        onError: config.beforeError
+      })
+    })
+
+    it.each([
+      [true, { hints: { 'telemetry.enabled': true } }],
+      [undefined, { hints: { 'telemetry.enabled': false } }],
+      [false, { hints: { 'telemetry.enabled': false } }],
+      [true, { hints: { 'telemetry.enabled': false } }],
+      [undefined, { hints: { } }],
+      [false, { hints: { } }],
+      [true, { hints: { } }],
+      [undefined, { }],
+      [false, { }],
+      [true, { }],
+      [undefined, undefined],
+      [false, undefined],
+      [true, undefined]
+    ])('should not send telemetry when telemetryDisabled=%s and metadata=%o and telemetry configured', async (telemetryDisabled, metadata) => {
+      const observer = new ResultStreamObserver()
+
+      const protocol = {
+        telemetry: jest.fn(() => new CompletedObserver()),
+        beginTransaction: jest.fn(() => observer),
+        initialize: jest.fn(observer => observer.onComplete(metadata))
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ protocolSupplier, telemetryDisabled })
+
+      await connection.connect('userAgent', 'boltAgent', {})
+
+      const config = {
+        bookmarks: Bookmarks.empty(),
+        txConfig: TxConfig.empty(),
+        database: 'neo4j',
+        mode: 'READ',
+        impersonatedUser: 'other cat',
+        notificationFilter: {
+          minimumSeverityLevel: 'WARNING'
+        },
+        apiTelemetryConfig: {
+          api: 2,
+          onTelemetrySuccess: jest.fn()
+        },
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const result = connection.beginTransaction(config)
+
+      expect(result).toBe(observer)
+      expect(protocol.beginTransaction).toBeCalledWith(config)
+
+      expect(protocol.telemetry).not.toBeCalled()
+    })
+
+    it.each([
+      [undefined, { hints: { 'telemetry.enabled': true } }],
+      [false, { hints: { 'telemetry.enabled': true } }],
+      [true, { hints: { 'telemetry.enabled': true } }],
+      [undefined, { hints: { 'telemetry.enabled': false } }],
+      [false, { hints: { 'telemetry.enabled': false } }],
+      [true, { hints: { 'telemetry.enabled': false } }],
+      [undefined, { hints: { } }],
+      [false, { hints: { } }],
+      [true, { hints: { } }],
+      [undefined, { }],
+      [false, { }],
+      [true, { }],
+      [undefined, undefined],
+      [false, undefined],
+      [true, undefined]
+    ])('should not send telemetry when telemetryDisabled=%s and metadata=%o and telemetry is not configured', async (telemetryDisabled, metadata) => {
+      const observer = new ResultStreamObserver()
+
+      const protocol = {
+        telemetry: jest.fn(() => new CompletedObserver()),
+        beginTransaction: jest.fn(() => observer),
+        initialize: jest.fn(observer => observer.onComplete(metadata))
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ protocolSupplier, telemetryDisabled })
+
+      await connection.connect('userAgent', 'boltAgent', {})
+
+      const config = {
+        bookmarks: Bookmarks.empty(),
+        txConfig: TxConfig.empty(),
+        database: 'neo4j',
+        mode: 'READ',
+        impersonatedUser: 'other cat',
+        notificationFilter: {
+          minimumSeverityLevel: 'WARNING'
+        },
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const result = connection.beginTransaction(config)
+
+      expect(result).toBe(observer)
+      expect(protocol.beginTransaction).toBeCalledWith(config)
+
+      expect(protocol.telemetry).not.toBeCalled()
+    })
   })
 
   describe('.run()', () => {
@@ -777,6 +924,162 @@ describe('ChannelConnection', () => {
 
       expect(result).toBe(observer)
       expect(protocol.run).toBeCalledWith(query, params, config)
+    })
+
+    it.each([
+      [undefined, { hints: { 'telemetry.enabled': true } }],
+      [false, { hints: { 'telemetry.enabled': true } }]
+    ])('should send telemetry when telemetryDisabled=%s and metadata=%o and telemetry configured', async (telemetryDisabled, metadata) => {
+      const observer = new ResultStreamObserver()
+
+      const protocol = {
+        telemetry: jest.fn(() => new CompletedObserver()),
+        run: jest.fn(() => observer),
+        initialize: jest.fn(observer => observer.onComplete(metadata))
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ protocolSupplier, telemetryDisabled })
+
+      await connection.connect('userAgent', 'boltAgent', {})
+
+      const config = {
+        bookmarks: Bookmarks.empty(),
+        txConfig: TxConfig.empty(),
+        database: 'neo4j',
+        mode: 'READ',
+        impersonatedUser: 'other cat',
+        notificationFilter: {
+          minimumSeverityLevel: 'WARNING'
+        },
+        apiTelemetryConfig: {
+          api: 2,
+          onTelemetrySuccess: jest.fn()
+        },
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const query = 'RETURN $x'
+      const params = { x: 1 }
+
+      const result = connection.run(query, params, config)
+
+      expect(result).toBe(observer)
+      expect(protocol.run).toBeCalledWith(query, params, config)
+
+      expect(protocol.telemetry).toBeCalled()
+      expect(protocol.telemetry).toHaveBeenCalledWith({ api: config.apiTelemetryConfig.api }, {
+        onCompleted: config.apiTelemetryConfig.onTelemetrySuccess,
+        onError: config.beforeError
+      })
+    })
+
+    it.each([
+      [true, { hints: { 'telemetry.enabled': true } }],
+      [undefined, { hints: { 'telemetry.enabled': false } }],
+      [false, { hints: { 'telemetry.enabled': false } }],
+      [true, { hints: { 'telemetry.enabled': false } }],
+      [undefined, { hints: { } }],
+      [false, { hints: { } }],
+      [true, { hints: { } }],
+      [undefined, { }],
+      [false, { }],
+      [true, { }],
+      [undefined, undefined],
+      [false, undefined],
+      [true, undefined]
+    ])('should not send telemetry when telemetryDisabled=%s and metadata=%o and telemetry configured', async (telemetryDisabled, metadata) => {
+      const observer = new ResultStreamObserver()
+
+      const protocol = {
+        telemetry: jest.fn(() => new CompletedObserver()),
+        run: jest.fn(() => observer),
+        initialize: jest.fn(observer => observer.onComplete(metadata))
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ protocolSupplier, telemetryDisabled })
+
+      await connection.connect('userAgent', 'boltAgent', {})
+
+      const config = {
+        bookmarks: Bookmarks.empty(),
+        txConfig: TxConfig.empty(),
+        database: 'neo4j',
+        mode: 'READ',
+        impersonatedUser: 'other cat',
+        notificationFilter: {
+          minimumSeverityLevel: 'WARNING'
+        },
+        apiTelemetryConfig: {
+          api: 2,
+          onTelemetrySuccess: jest.fn()
+        },
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const query = 'RETURN $x'
+      const params = { x: 1 }
+
+      const result = connection.run(query, params, config)
+
+      expect(result).toBe(observer)
+      expect(protocol.run).toBeCalledWith(query, params, config)
+
+      expect(protocol.telemetry).not.toBeCalled()
+    })
+
+    it.each([
+      [undefined, { hints: { 'telemetry.enabled': true } }],
+      [false, { hints: { 'telemetry.enabled': true } }],
+      [true, { hints: { 'telemetry.enabled': true } }],
+      [undefined, { hints: { 'telemetry.enabled': false } }],
+      [false, { hints: { 'telemetry.enabled': false } }],
+      [true, { hints: { 'telemetry.enabled': false } }],
+      [undefined, { hints: { } }],
+      [false, { hints: { } }],
+      [true, { hints: { } }],
+      [undefined, { }],
+      [false, { }],
+      [true, { }],
+      [undefined, undefined],
+      [false, undefined],
+      [true, undefined]
+    ])('should not send telemetry when telemetryDisabled=%s and metadata=%o and telemetry is not configured', async (telemetryDisabled, metadata) => {
+      const observer = new ResultStreamObserver()
+
+      const protocol = {
+        telemetry: jest.fn(() => new CompletedObserver()),
+        run: jest.fn(() => observer),
+        initialize: jest.fn(observer => observer.onComplete(metadata))
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ protocolSupplier, telemetryDisabled })
+
+      await connection.connect('userAgent', 'boltAgent', {})
+
+      const config = {
+        bookmarks: Bookmarks.empty(),
+        txConfig: TxConfig.empty(),
+        database: 'neo4j',
+        mode: 'READ',
+        impersonatedUser: 'other cat',
+        notificationFilter: {
+          minimumSeverityLevel: 'WARNING'
+        },
+        beforeError: () => console.log('my error'),
+        afterComplete: (metadata) => console.log('metadata', metadata)
+      }
+
+      const query = 'RETURN $x'
+      const params = { x: 1 }
+
+      const result = connection.run(query, params, config)
+
+      expect(result).toBe(observer)
+      expect(protocol.run).toBeCalledWith(query, params, config)
+
+      expect(protocol.telemetry).not.toBeCalled()
     })
   })
 
@@ -903,7 +1206,8 @@ describe('ChannelConnection', () => {
     serversideRouting,
     chuncker,
     notificationFilter,
-    protocolSupplier
+    protocolSupplier,
+    telemetryDisabled
   }) {
     address = address || ServerAddress.fromUrl('bolt://localhost')
     logger = logger || new Logger('info', () => {})
@@ -916,7 +1220,8 @@ describe('ChannelConnection', () => {
       serversideRouting,
       chuncker,
       notificationFilter,
-      protocolSupplier
+      protocolSupplier,
+      telemetryDisabled
     )
   }
 })

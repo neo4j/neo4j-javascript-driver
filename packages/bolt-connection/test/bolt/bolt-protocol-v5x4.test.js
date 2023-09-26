@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import BoltProtocolV5x2 from '../../src/bolt/bolt-protocol-v5x2'
+import BoltProtocolV5x4 from '../../src/bolt/bolt-protocol-v5x4'
 import RequestMessage from '../../src/bolt/request-message'
 import { v2, structure } from '../../src/packstream'
 import utils from '../test-utils'
@@ -51,14 +51,16 @@ const {
   temporalUtil
 } = internal
 
-describe('#unit BoltProtocolV5x2', () => {
+describe('#unit BoltProtocolV5x4', () => {
   beforeEach(() => {
     expect.extend(utils.matchers)
   })
 
+  telemetryBehaviour.protocolSupportsTelemetry(newProtocol)
+
   it('should request routing information', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
     const routingContext = { someContextParam: 'value' }
     const databaseName = 'name'
@@ -79,7 +81,7 @@ describe('#unit BoltProtocolV5x2', () => {
 
   it('should request routing information sending bookmarks', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
     const routingContext = { someContextParam: 'value' }
     const listOfBookmarks = ['a', 'b', 'c']
@@ -112,7 +114,7 @@ describe('#unit BoltProtocolV5x2', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const query = 'RETURN $x, $y'
@@ -152,7 +154,7 @@ describe('#unit BoltProtocolV5x2', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const query = 'RETURN $x, $y'
@@ -193,7 +195,7 @@ describe('#unit BoltProtocolV5x2', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
@@ -223,7 +225,7 @@ describe('#unit BoltProtocolV5x2', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
@@ -243,14 +245,14 @@ describe('#unit BoltProtocolV5x2', () => {
   })
 
   it('should return correct bolt version number', () => {
-    const protocol = new BoltProtocolV5x2(null, null, false)
+    const protocol = new BoltProtocolV5x4(null, null, false)
 
-    expect(protocol.version).toBe(5.2)
+    expect(protocol.version).toBe(5.4)
   })
 
   it('should update metadata', () => {
     const metadata = { t_first: 1, t_last: 2, db_hits: 3, some_other_key: 4 }
-    const protocol = new BoltProtocolV5x2(null, null, false)
+    const protocol = new BoltProtocolV5x4(null, null, false)
 
     const transformedMetadata = protocol.transformMetadata(metadata)
 
@@ -264,17 +266,22 @@ describe('#unit BoltProtocolV5x2', () => {
 
   it('should initialize connection', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const clientName = 'js-driver/1.2.3'
+    const boltAgent = {
+      product: 'neo4j-javascript/5.6',
+      platform: 'netbsd 1.1.1; Some arch',
+      languageDetails: 'Node/16.0.1 (v8 1.7.0)'
+    }
     const authToken = { username: 'neo4j', password: 'secret' }
 
-    const observer = protocol.initialize({ userAgent: clientName, authToken })
+    const observer = protocol.initialize({ userAgent: clientName, boltAgent, authToken })
 
     protocol.verifyMessageCount(2)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello5x1(clientName)
+      RequestMessage.hello5x3(clientName, boltAgent)
     )
     expect(protocol.messages[1]).toBeMessage(
       RequestMessage.logon(authToken)
@@ -302,17 +309,21 @@ describe('#unit BoltProtocolV5x2', () => {
     null
   ])('should always use the user agent set by the user', (userAgent) => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
-    const clientName = 'js-driver/1.2.3'
+    const boltAgent = {
+      product: 'neo4j-javascript/5.6',
+      platform: 'netbsd 1.1.1; Some arch',
+      languageDetails: 'Node/16.0.1 (v8 1.7.0)'
+    }
     const authToken = { username: 'neo4j', password: 'secret' }
 
-    const observer = protocol.initialize({ userAgent, boltAgent: clientName, authToken })
+    const observer = protocol.initialize({ userAgent, boltAgent, authToken })
 
     protocol.verifyMessageCount(2)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello5x1(userAgent)
+      RequestMessage.hello5x3(userAgent, boltAgent)
     )
     expect(protocol.messages[1]).toBeMessage(
       RequestMessage.logon(authToken)
@@ -337,7 +348,7 @@ describe('#unit BoltProtocolV5x2', () => {
     [true, false]
   )('should logon to the server [flush=%s]', (flush) => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const authToken = { username: 'neo4j', password: 'secret' }
@@ -358,7 +369,7 @@ describe('#unit BoltProtocolV5x2', () => {
     [true, false]
   )('should logoff from the server [flush=%s]', (flush) => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.logoff({ flush })
@@ -383,7 +394,7 @@ describe('#unit BoltProtocolV5x2', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
@@ -402,7 +413,7 @@ describe('#unit BoltProtocolV5x2', () => {
 
   it('should commit', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.commitTransaction()
@@ -415,7 +426,7 @@ describe('#unit BoltProtocolV5x2', () => {
 
   it('should rollback', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.rollbackTransaction()
@@ -428,7 +439,7 @@ describe('#unit BoltProtocolV5x2', () => {
 
   it('should support logoff', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x2(recorder, null, false)
+    const protocol = new BoltProtocolV5x4(recorder, null, false)
 
     expect(protocol.supportsReAuth).toBe(true)
   })
@@ -442,7 +453,7 @@ describe('#unit BoltProtocolV5x2', () => {
     ])(
       'should create unpacker with disableLosslessIntegers=%p and useBigInt=%p',
       (disableLosslessIntegers, useBigInt) => {
-        const protocol = new BoltProtocolV5x2(null, null, {
+        const protocol = new BoltProtocolV5x4(null, null, {
           disableLosslessIntegers,
           useBigInt
         })
@@ -464,7 +475,7 @@ describe('#unit BoltProtocolV5x2', () => {
     it('.run() should configure watermarks', () => {
       const recorder = new utils.MessageRecordingConnection()
       const protocol = utils.spyProtocolWrite(
-        new BoltProtocolV5x2(recorder, null, false)
+        new BoltProtocolV5x4(recorder, null, false)
       )
 
       const query = 'RETURN $x, $y'
@@ -483,12 +494,12 @@ describe('#unit BoltProtocolV5x2', () => {
 
   describe('packstream', () => {
     it('should configure v2 packer', () => {
-      const protocol = new BoltProtocolV5x2(null, null, false)
+      const protocol = new BoltProtocolV5x4(null, null, false)
       expect(protocol.packer()).toBeInstanceOf(v2.Packer)
     })
 
     it('should configure v2 unpacker', () => {
-      const protocol = new BoltProtocolV5x2(null, null, false)
+      const protocol = new BoltProtocolV5x4(null, null, false)
       expect(protocol.unpacker()).toBeInstanceOf(v2.Unpacker)
     })
   })
@@ -500,7 +511,7 @@ describe('#unit BoltProtocolV5x2', () => {
       ['UnboundRelationship', new UnboundRelationship(1, 'a', { b: 'c' }, '1')],
       ['Path', new Path(new Node(1, [], {}), new Node(2, [], {}), [])]
     ])('should resultant function not pack graph types (%s)', (_, graphType) => {
-      const protocol = new BoltProtocolV5x2(
+      const protocol = new BoltProtocolV5x4(
         new utils.MessageRecordingConnection(),
         null,
         false
@@ -537,7 +548,7 @@ describe('#unit BoltProtocolV5x2', () => {
       ['Point3D', new Point(1, 1, 1, 1)]
     ])('should pack spatial types and temporal types (%s)', (_, object) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x2(
+      const protocol = new BoltProtocolV5x4(
         new utils.MessageRecordingConnection(),
         buffer,
         {
@@ -656,7 +667,7 @@ describe('#unit BoltProtocolV5x2', () => {
     ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
       const buffer = alloc(256)
       const loggerFunction = jest.fn()
-      const protocol = new BoltProtocolV5x2(
+      const protocol = new BoltProtocolV5x4(
         new utils.MessageRecordingConnection(),
         buffer,
         {
@@ -719,7 +730,7 @@ describe('#unit BoltProtocolV5x2', () => {
             )
             const buffer = alloc(256)
             const loggerFunction = jest.fn()
-            const protocol = new BoltProtocolV5x2(
+            const protocol = new BoltProtocolV5x4(
               new utils.MessageRecordingConnection(),
               buffer,
               {
@@ -767,7 +778,7 @@ describe('#unit BoltProtocolV5x2', () => {
           const object = DateTime.fromStandardDate(date)
           const buffer = alloc(256)
           const loggerFunction = jest.fn()
-          const protocol = new BoltProtocolV5x2(
+          const protocol = new BoltProtocolV5x4(
             new utils.MessageRecordingConnection(),
             buffer,
             {
@@ -846,7 +857,7 @@ describe('#unit BoltProtocolV5x2', () => {
       ]
     ])('should unpack graph types (%s)', (_, struct, graphObject) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x2(
+      const protocol = new BoltProtocolV5x4(
         new utils.MessageRecordingConnection(),
         buffer,
         false
@@ -998,7 +1009,7 @@ describe('#unit BoltProtocolV5x2', () => {
       ]
     ])('should not unpack with wrong size (%s)', (_, struct) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x2(
+      const protocol = new BoltProtocolV5x4(
         new utils.MessageRecordingConnection(),
         buffer,
         false
@@ -1094,7 +1105,7 @@ describe('#unit BoltProtocolV5x2', () => {
       ]
     ])('should unpack spatial types and temporal types (%s)', (_, struct, object) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x2(
+      const protocol = new BoltProtocolV5x4(
         new utils.MessageRecordingConnection(),
         buffer,
         {
@@ -1123,7 +1134,7 @@ describe('#unit BoltProtocolV5x2', () => {
       ]
     ])('should unpack deprecated temporal types as unknown structs (%s)', (_, struct) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x2(
+      const protocol = new BoltProtocolV5x4(
         new utils.MessageRecordingConnection(),
         buffer,
         {
@@ -1140,13 +1151,9 @@ describe('#unit BoltProtocolV5x2', () => {
       const unpacked = protocol.unpack(buffer)
       expect(unpacked).toEqual(struct)
     })
-
-    describe('Bolt 5.4', () => {
-      telemetryBehaviour.protocolNotSupportsTelemetry(newProtocol)
-    })
   })
 
   function newProtocol (recorder) {
-    return new BoltProtocolV5x2(recorder, null, false, undefined, undefined, () => {})
+    return new BoltProtocolV5x4(recorder, null, false, undefined, undefined, () => {})
   }
 })

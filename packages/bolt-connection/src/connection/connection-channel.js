@@ -87,7 +87,8 @@ export function createChannelConnection (
         serversideRouting,
         chunker,
         config.notificationFilter,
-        createProtocol
+        createProtocol,
+        config.telemetryDisabled
       )
 
       // forward all pending bytes to the dechunker
@@ -121,7 +122,8 @@ export default class ChannelConnection extends Connection {
     serversideRouting = null,
     chunker, // to be removed,
     notificationFilter,
-    protocolSupplier
+    protocolSupplier,
+    telemetryDisabled
   ) {
     super(errorHandler)
     this._authToken = null
@@ -137,6 +139,8 @@ export default class ChannelConnection extends Connection {
     this._log = createConnectionLogger(this, log)
     this._serversideRouting = serversideRouting
     this._notificationFilter = notificationFilter
+    this._telemetryDisabledDriverConfig = telemetryDisabled === true
+    this._telemetryDisabledConnection = true
 
     // connection from the database, returned in response for HELLO message and might not be available
     this._dbConnectionId = null
@@ -157,11 +161,29 @@ export default class ChannelConnection extends Connection {
   }
 
   beginTransaction (config) {
+    this._sendTelemetryIfEnabled(config)
     return this._protocol.beginTransaction(config)
   }
 
   run (query, parameters, config) {
+    this._sendTelemetryIfEnabled(config)
     return this._protocol.run(query, parameters, config)
+  }
+
+  _sendTelemetryIfEnabled (config) {
+    if (this._telemetryDisabledConnection ||
+        this._telemetryDisabledDriverConfig ||
+        config == null ||
+        config.apiTelemetryConfig == null) {
+      return
+    }
+
+    this._protocol.telemetry({
+      api: config.apiTelemetryConfig.api
+    }, {
+      onCompleted: config.apiTelemetryConfig.onTelemetrySuccess,
+      onError: config.beforeError
+    })
   }
 
   commitTransaction (config) {
@@ -289,6 +311,11 @@ export default class ChannelConnection extends Connection {
                       'Please, verify the server configuration and status because this can be the symptom of a bigger issue.'
                   )
                 }
+              }
+
+              const telemetryEnabledHint = metadata.hints['telemetry.enabled']
+              if (telemetryEnabledHint === true) {
+                this._telemetryDisabledConnection = false
               }
             }
           }

@@ -526,6 +526,38 @@ class ResetObserver extends StreamObserver {
   }
 }
 
+class TelemetryObserver extends ResultStreamObserver {
+  /**
+   *
+   * @param {Object} param -
+   * @param {function(err: Error)} param.onError
+   * @param {function(metadata)} param.onCompleted
+   */
+  constructor ({ onError, onCompleted } = {}) {
+    super()
+    this._onError = onError
+    this._onCompleted = onCompleted
+  }
+
+  onNext (record) {
+    this.onError(
+      newError('Received RECORD when sending telemetry ' + json.stringify(record), PROTOCOL_ERROR)
+    )
+  }
+
+  onError (error) {
+    if (this._onError) {
+      this._onError(error)
+    }
+  }
+
+  onCompleted (metadata) {
+    if (this._onCompleted) {
+      this._onCompleted(metadata)
+    }
+  }
+}
+
 class FailedObserver extends ResultStreamObserver {
   constructor ({ error, onError }) {
     super({ beforeError: onError })
@@ -708,5 +740,6 @@ export {
   FailedObserver,
   CompletedObserver,
   RouteObserver,
-  ProcedureRouteObserver
+  ProcedureRouteObserver,
+  TelemetryObserver
 }

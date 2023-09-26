@@ -38,6 +38,9 @@ const GOODBYE = 0x02 // 0000 0010 // GOODBYE
 const BEGIN = 0x11 // 0001 0001 // BEGIN <metadata>
 const COMMIT = 0x12 // 0001 0010 // COMMIT
 const ROLLBACK = 0x13 // 0001 0011 // ROLLBACK
+
+const TELEMETRY = 0x54 // 0101 0100 // TELEMETRY <api>
+
 const ROUTE = 0x66 // 0110 0110 // ROUTE
 
 const LOGON = 0x6A // LOGON
@@ -61,6 +64,7 @@ const SIGNATURES = Object.freeze({
   BEGIN,
   COMMIT,
   ROLLBACK,
+  TELEMETRY,
   ROUTE,
   LOGON,
   LOGOFF,
@@ -364,6 +368,15 @@ export default class RequestMessage {
       DISCARD,
       [metadata],
       () => `DISCARD ${json.stringify(metadata)}`
+    )
+  }
+
+  static telemetry ({ api }) {
+    const parsedApi = int(api)
+    return new RequestMessage(
+      TELEMETRY,
+      [parsedApi],
+      () => `TELEMETRY ${parsedApi.toString()}`
     )
   }
 

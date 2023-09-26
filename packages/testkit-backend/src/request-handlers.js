@@ -30,10 +30,10 @@ export function NewDriver ({ neo4j }, context, data, wire) {
 
   const resolver = resolverRegistered
     ? address =>
-        new Promise((resolve, reject) => {
-          const id = context.addResolverRequest(resolve, reject)
-          wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
-        })
+      new Promise((resolve, reject) => {
+        const id = context.addResolverRequest(resolve, reject)
+        wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
+      })
     : undefined
 
   const config = {
@@ -78,6 +78,10 @@ export function NewDriver ({ neo4j }, context, data, wire) {
       disabledCategories: data.notificationsDisabledCategories
     }
   }
+  if ('telemetryDisabled' in data) {
+    config.telemetryDisabled = data.telemetryDisabled
+  }
+
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)

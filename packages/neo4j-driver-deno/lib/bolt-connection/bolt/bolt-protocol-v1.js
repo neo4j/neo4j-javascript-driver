@@ -27,6 +27,7 @@ import { Chunker } from '../channel/index.js'
 import { structure, v1 } from '../packstream/index.js'
 import RequestMessage, { SIGNATURES } from './request-message.js'
 import {
+  CompletedObserver,
   LoginObserver,
   LogoffObserver,
   ResetObserver,
@@ -451,6 +452,24 @@ export default class BoltProtocol {
 
     this.write(RequestMessage.reset(), observer, true)
 
+    return observer
+  }
+
+  /**
+   * Send a TELEMETRY through the underlying connection.
+   *
+   * @param {object} param0 Message params
+   * @param {number} param0.api The API called
+   * @param {object} param1 Configuration and callbacks
+   * @param {function()} param1.onCompleted Called when completed
+   * @param {function()} param1.onError Called when error
+   * @return {StreamObserver} the stream observer that monitors the corresponding server response.
+   */
+  telemetry ({ api }, { onError, onCompleted } = {}) {
+    const observer = new CompletedObserver()
+    if (onCompleted) {
+      onCompleted()
+    }
     return observer
   }
 

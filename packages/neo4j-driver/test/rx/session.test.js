@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { Notification, throwError } from 'rxjs'
+import { Notification, of, throwError, firstValueFrom } from 'rxjs'
 import { map, materialize, toArray, concatWith } from 'rxjs/operators'
 import neo4j, { ResultSummary, int } from '../../src'
 import RxSession from '../../src/session-rx'
@@ -31,7 +31,7 @@ import {
 } from 'neo4j-driver-core'
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
-const { bookmarks, logger } = internal
+const { bookmarks, logger, constants: { TELEMETRY_APIS } } = internal
 
 describe('#integration rx-session', () => {
   let driver
@@ -544,6 +544,138 @@ describe('#unit rx-session', () => {
         .subscribe()
 
       expect(capture.length).toEqual(0)
+    })
+  })
+
+  describe('.beginTransaction()', () => {
+    it(`should send telemetry configuration with API equals to ${TELEMETRY_APIS.UNMANAGED_TRANSACTION}`, () => {
+      const capture = []
+      const _session = {
+        _beginTransaction: async (...args) => {
+          capture.push(args)
+          return {}
+        }
+      }
+
+      const session = new RxSession({
+        session: _session
+      })
+
+      const timeout = 0.2
+
+      session.beginTransaction({ timeout })
+        .subscribe()
+
+      expect(capture[0][2]).toEqual({
+        api: TELEMETRY_APIS.UNMANAGED_TRANSACTION
+      })
+    })
+  })
+
+  ;[
+    'executeRead',
+    'executeWrite',
+    'readTransaction',
+    'writeTransaction'
+  ].forEach(txFun => {
+    describe(`.${txFun}()`, () => {
+      it(`should send telemetry configuration with API equals to ${TELEMETRY_APIS.MANAGED_TRANSACTION}`, async () => {
+        const capture = []
+        const _session = {
+          _beginTransaction: async (...args) => {
+            capture.push(args)
+            return {
+              commit: () => Promise.resolve(),
+              rollback: () => Promise.resolve(),
+              run: () => Promise.resolve(),
+              isOpen: () => true
+            }
+          }
+        }
+
+        const session = new RxSession({
+          session: _session
+        })
+
+        const fun = session[txFun].bind(session)
+        await firstValueFrom(fun(() => { return of(0) }))
+
+        expect(capture.length).toEqual(1)
+        expect(capture[0][2]).toEqual(jasmine.objectContaining({
+          api: TELEMETRY_APIS.MANAGED_TRANSACTION
+        }))
+      })
+
+      it('should send telemetry on retry original when telemetry doesn\'t succeeded', async () => {
+        const capture = []
+        const errors = [newError('message', SERVICE_UNAVAILABLE)]
+        const _session = {
+          _beginTransaction: async (...args) => {
+            capture.push(args)
+            const error = errors.pop()
+            if (error) {
+              throw error
+            }
+            return {
+              commit: () => Promise.resolve(),
+              rollback: () => Promise.resolve(),
+              run: () => Promise.resolve(),
+              isOpen: () => true
+            }
+          }
+        }
+
+        const session = new RxSession({
+          session: _session
+        })
+
+        const fun = session[txFun].bind(session)
+        await firstValueFrom(fun(() => { return of(0) }))
+
+        expect(capture.length).toEqual(2)
+        expect(capture[0][2]).toEqual(jasmine.objectContaining({
+          api: TELEMETRY_APIS.MANAGED_TRANSACTION
+        }))
+        expect(capture[1][2]).toEqual(jasmine.objectContaining({
+          api: TELEMETRY_APIS.MANAGED_TRANSACTION
+        }))
+      })
+
+      it('should not send telemetry on retry original when telemetry succeeded', async () => {
+        const capture = []
+        const errors = [newError('message', SERVICE_UNAVAILABLE)]
+        const _session = {
+          _beginTransaction: async (...args) => {
+            capture.push(args)
+            if (args[2] && args[2].onTelemetrySuccess) {
+              args[2].onTelemetrySuccess()
+            }
+            const error = errors.pop()
+            if (error) {
+              throw error
+            }
+            return {
+              commit: () => Promise.resolve(),
+              rollback: () => Promise.resolve(),
+              run: () => Promise.resolve(),
+              isOpen: () => true
+            }
+          }
+        }
+
+        const session = new RxSession({
+          session: _session
+        })
+
+        const fun = session[txFun].bind(session)
+        await firstValueFrom(fun(() => { return of(0) }))
+
+        expect(capture.length).toEqual(2)
+        expect(capture[0][2]).toEqual(jasmine.objectContaining({
+          api: TELEMETRY_APIS.MANAGED_TRANSACTION
+        }))
+        expect(capture[1][2]).toEqual(undefined)
+      })
     })
   })
 

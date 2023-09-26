@@ -22,6 +22,7 @@ import Session from '../session.ts'
 import Result from '../result.ts'
 import ManagedTransaction from '../transaction-managed.ts'
 import { Query } from '../types.ts'
+import { TELEMETRY_APIS } from './constants.ts'
 
 type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkManager, impersonatedUser?: string }) => Session
 
@@ -48,7 +49,7 @@ export default class QueryExecutor {
     })
 
     // @ts-expect-error The method is private for external users
-    session._setTxExecutorToPipelineBegin(true)
+    session._configureTransactionExecutor(true, TELEMETRY_APIS.EXECUTE_QUERY)
 
     try {
       const executeInTransaction: TransactionFunction<T> = config.routing === 'READ'

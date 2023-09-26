@@ -17,5 +17,8 @@
  * limitations under the License.
  */
 
-export * as notificationFilterBehaviour from './notification-filter'
-export * as telemetryBehaviour from './telemetry'
+import v5x3 from './bolt-protocol-v5x3.transformer.js'
+
+export default {
+  ...v5x3
+}
