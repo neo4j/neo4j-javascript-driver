@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defer, Observable, throwError } from 'rxjs'
+import { defer, Observable, of, throwError } from 'rxjs'
 import { mergeMap, catchError, concatWith } from 'rxjs/operators'
 import RxResult from './result-rx'
 // eslint-disable-next-line no-unused-vars
@@ -26,7 +26,7 @@ import RxManagedTransaction from './transaction-managed-rx'
 import RxRetryLogic from './internal/retry-logic-rx'
 
 const {
-  constants: { ACCESS_MODE_READ, ACCESS_MODE_WRITE },
+  constants: { ACCESS_MODE_READ, ACCESS_MODE_WRITE, TELEMETRY_APIS },
   txConfig: { TxConfig }
 } = internal
 
@@ -80,7 +80,7 @@ export default class RxSession {
    * @returns {Observable<RxTransaction>} - A reactive stream that will generate at most **one** RxTransaction instance.
    */
   beginTransaction (transactionConfig) {
-    return this._beginTransaction(this._session._mode, transactionConfig)
+    return this._beginTransaction(this._session._mode, transactionConfig, { api: TELEMETRY_APIS.UNMANAGED_TRANSACTION })
   }
 
   /**
@@ -198,7 +198,7 @@ export default class RxSession {
   /**
    * @private
    */
-  _beginTransaction (accessMode, transactionConfig) {
+  _beginTransaction (accessMode, transactionConfig, apiTelemetryConfig) {
     let txConfig = TxConfig.empty()
     if (transactionConfig) {
       txConfig = new TxConfig(transactionConfig, this._log)
@@ -206,7 +206,7 @@ export default class RxSession {
 
     return new Observable(observer => {
       try {
-        this._session._beginTransaction(accessMode, txConfig)
+        this._session._beginTransaction(accessMode, txConfig, apiTelemetryConfig)
           .then(tx => {
             observer.next(
               new RxTransaction(tx)
@@ -231,8 +231,18 @@ export default class RxSession {
       txConfig = new TxConfig(transactionConfig)
     }
 
+    const context = {
+      apiTelemetryConfig: {
+        api: TELEMETRY_APIS.MANAGED_TRANSACTION,
+        onTelemetrySuccess: () => {
+          context.apiTelemetryConfig = undefined
+        }
+      }
+    }
+
     return this._retryLogic.retry(
-      this._beginTransaction(accessMode, txConfig).pipe(
+      of(1).pipe(
+        mergeMap(() => this._beginTransaction(accessMode, txConfig, context.apiTelemetryConfig)),
         mergeMap(txc =>
           defer(() => {
             try {
