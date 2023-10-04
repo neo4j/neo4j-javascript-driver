@@ -34,6 +34,7 @@ function newWire(context: Context, reply: Reply): Wire {
             name: "DriverError",
             data: {
               id,
+              errorType: e.name,
               msg: e.message,
               // @ts-ignore Code Neo4jError does have code
               code: e.code,

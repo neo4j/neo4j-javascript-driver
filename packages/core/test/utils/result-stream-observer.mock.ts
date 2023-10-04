@@ -28,10 +28,18 @@ export default class ResultStreamObserverMock implements observer.ResultStreamOb
   private readonly _observers: ResultObserver[]
   private _error?: Error
   private _meta?: any
+  private readonly _beforeError?: (error: Error) => void
+  private readonly _afterComplete?: (metadata: any) => void
 
-  constructor () {
+  constructor (observers?: { beforeError?: (error: Error) => void, afterComplete?: (metadata: any) => void }) {
     this._queuedRecords = []
     this._observers = []
+    this._beforeError = observers?.beforeError
+    this._afterComplete = observers?.afterComplete
+  }
+
+  get error (): Error | undefined {
+    return this._error
   }
 
   cancel (): void {}
@@ -88,6 +96,9 @@ export default class ResultStreamObserverMock implements observer.ResultStreamOb
 
   onError (error: Error): void {
     this._error = error
+    if (this._beforeError != null) {
+      this._beforeError(error)
+    }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this._observers.filter(o => o.onError).forEach(o => o.onError!(error))
   }
@@ -98,6 +109,10 @@ export default class ResultStreamObserverMock implements observer.ResultStreamOb
       .filter(o => o.onCompleted)
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       .forEach(o => o.onCompleted!(meta))
+
+    if (this._afterComplete != null) {
+      this._afterComplete(meta)
+    }
   }
 
   pause (): void {

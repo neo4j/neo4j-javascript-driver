@@ -69,6 +69,7 @@ export default class LocalController extends Controller {
         const id = this._contexts.get(contextId).addError(e)
         this._writeResponse(contextId, newResponse('DriverError', {
           id,
+          errorType: e.name,
           msg: e.message,
           code: e.code,
           retryable: e.retriable
