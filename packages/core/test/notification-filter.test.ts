@@ -77,6 +77,8 @@ function getValidNotificationsCategories (): NotificationFilterDisabledCategory[
     'DEPRECATION',
     'GENERIC',
     'PERFORMANCE',
+    'TOPOLOGY',
+    'SECURITY',
     'UNRECOGNIZED',
     'UNSUPPORTED'
   ]

@@ -375,6 +375,8 @@ function getValidCategories (): NotificationCategory[] {
     'UNRECOGNIZED',
     'UNSUPPORTED',
     'PERFORMANCE',
+    'TOPOLOGY',
+    'SECURITY',
     'DEPRECATION',
     'GENERIC',
     'UNKNOWN'
