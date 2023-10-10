@@ -59,7 +59,7 @@ class Transaction {
   private readonly _onError: (error: Error) => Promise<Connection | null>
   private readonly _onComplete: (metadata: any, previousBookmarks?: Bookmarks) => void
   private readonly _fetchSize: number
-  private readonly _results: any[]
+  private readonly _results: Result[]
   private readonly _impersonatedUser?: string
   private readonly _lowRecordWatermak: number
   private readonly _highRecordWatermark: number
@@ -291,12 +291,22 @@ class Transaction {
     }
   }
 
-  _onErrorCallback (): Promise<Connection | null> {
+  _onErrorCallback (error: Error): Promise<Connection | null> {
     // error will be "acknowledged" by sending a RESET message
     // database will then forget about this transaction and cleanup all corresponding resources
     // it is thus safe to move this transaction to a FAILED state and disallow any further interactions with it
     this._state = _states.FAILED
     this._onClose()
+    this._results.forEach(result => {
+      if (result.isOpen()) {
+        // @ts-expect-error
+        result._streamObserverPromise
+          .then(resultStreamObserver => resultStreamObserver.onError(error))
+          // Nothing to do since we don't have a observer to notify the error
+          // the result will be already broke in other ways.
+          .catch((_: Error) => {})
+      }
+    })
 
     // release connection back to the pool
     return this._connectionHolder.releaseConnection()

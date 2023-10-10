@@ -18,13 +18,14 @@
  */
 
 import { ConnectionProvider, newError, NotificationFilter, Transaction, TransactionPromise } from '../src'
-import { BeginTransactionConfig } from '../src/connection'
+import { BeginTransactionConfig, RunQueryConfig } from '../src/connection'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { ConnectionHolder } from '../src/internal/connection-holder'
 import { Logger } from '../src/internal/logger'
 import { TxConfig } from '../src/internal/tx-config'
 import FakeConnection from './utils/connection.fake'
 import { validNotificationFilters } from './utils/notification-filters.fixtures'
+import ResultStreamObserverMock from './utils/result-stream-observer.mock'
 
 testTx('Transaction', newRegularTransaction)
 
@@ -391,6 +392,48 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
             notificationFilter
           })
         )
+      })
+
+      it('should cascade errors in a result to other open results', async () => {
+        const connection = newFakeConnection()
+        const expectedError = newError('Something right is not wrong, wut?')
+        const tx = newTransaction({
+          connection,
+          fetchSize: 1000,
+          highRecordWatermark: 700,
+          lowRecordWatermark: 300
+        })
+
+        const observers: ResultStreamObserverMock[] = []
+
+        jest.spyOn(connection, 'run')
+          .mockImplementation((query: string, parameters: any, config: RunQueryConfig) => {
+            const steamObserver = new ResultStreamObserverMock({
+              beforeError: config.beforeError,
+              afterComplete: config.afterComplete
+            })
+            if (query === 'should error') {
+              steamObserver.onError(expectedError)
+            } else if (query === 'finished result') {
+              steamObserver.onCompleted({})
+            }
+
+            observers.push(steamObserver)
+
+            return steamObserver
+          })
+
+        tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
+
+        const nonConsumedResult = tx.run('RETURN 1')
+        await tx.run('finished result')
+        const brokenResult = tx.run('should error')
+
+        await expect(brokenResult).rejects.toThrowError(expectedError)
+        await expect(nonConsumedResult).rejects.toThrowError(expectedError)
+        expect(observers[0].error).toEqual(expectedError)
+        expect(observers[1].error).not.toBeDefined()
+        expect(observers[2].error).toEqual(expectedError)
       })
     })
 

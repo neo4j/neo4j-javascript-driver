@@ -2,17 +2,6 @@ import skip, { ifEquals, ifEndsWith, endsWith, ifStartsWith, startsWith, not, or
 
 const skippedTests = [
   skip(
-    "Fixme: transactions don't prevent further actions after failure.",
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_discard_after_tx_termination_on_run'),
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_pull_after_tx_termination_on_pull'),
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_pull_after_tx_termination_on_run'),
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_run_after_tx_termination_on_run'),
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_run_after_tx_termination_on_pull'),
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_rollback_message_after_tx_termination'),
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_should_prevent_commit_after_tx_termination'),
-    ifEquals('stub.configuration_hints.test_connection_recv_timeout_seconds.TestDirectConnectionRecvTimeout.test_timeout_unmanaged_tx_should_fail_subsequent_usage_after_timeout')
-  ),
-  skip(
     'Driver does not return offset for old DateTime implementations',
     ifStartsWith('stub.types.test_temporal_types.TestTemporalTypes')
       .and(not(startsWith('stub.types.test_temporal_types.TestTemporalTypesV5')))
@@ -28,7 +17,7 @@ const skippedTests = [
     ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_duration_components')
   ),
   skip(
-    'Testkit implemenation is deprecated',
+    'Testkit implementation is deprecated',
     ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_node_only_element_id'),
     ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_path_element_ids_with_only_string'),
     ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_rel_only_element_id')
@@ -38,7 +27,7 @@ const skippedTests = [
     ifEndsWith('neo4j.test_summary.TestSummary.test_protocol_version_information')
   ),
   skip(
-    'Handle qid omission optmization can cause issues in nested queries',
+    'Handle qid omission optimization can cause issues in nested queries',
     ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments'),
     ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments_multi_query'),
     ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments_multi_query_nested')
@@ -81,7 +70,7 @@ const skippedTests = [
     ifEquals('stub.iteration.test_iteration_session_run.TestIterationSessionRun.test_nested')
   ),
   skip(
-    'Nested calls does not garauntee order in the records pulling',
+    'Nested calls does not guarantee order in the records pulling',
     ifEquals('stub.iteration.test_iteration_tx_run.TestIterationTxRun.test_nested')
   ),
   skip(
