@@ -41,7 +41,7 @@ Object.freeze(notificationFilterMinimumSeverityLevel)
 
 type NotificationFilterDisabledCategory = ExcludeUnknown<NotificationCategory>
 /**
- * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'DEPRECATION' | 'GENERIC' } NotificationFilterDisabledCategory
+ * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC'} NotificationFilterDisabledCategory
  */
 /**
  * Constants that represents the disabled categories in the {@link NotificationFilter}
@@ -51,6 +51,8 @@ const notificationFilterDisabledCategory: EnumRecord<NotificationFilterDisabledC
   UNRECOGNIZED: 'UNRECOGNIZED',
   UNSUPPORTED: 'UNSUPPORTED',
   PERFORMANCE: 'PERFORMANCE',
+  TOPOLOGY: 'TOPOLOGY',
+  SECURITY: 'SECURITY',
   DEPRECATION: 'DEPRECATION',
   GENERIC: 'GENERIC'
 }
