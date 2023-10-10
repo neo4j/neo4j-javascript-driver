@@ -299,7 +299,7 @@ class Transaction {
     this._onClose()
     this._results.forEach(result => {
       if (result.isOpen()) {
-        // @ts-expect-error 
+        // @ts-expect-error
         result._streamObserverPromise
           .then(resultStreamObserver => resultStreamObserver.onError(error))
           // Nothing to do since we don't have a observer to notify the error
