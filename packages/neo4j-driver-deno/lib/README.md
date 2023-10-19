@@ -30,7 +30,7 @@ Resources to get you started:
 Importing the driver:
 
 ```typescript
-import neo4j from "https://deno.land/x/neo4j_driver_deno@VERSION/mod.ts";
+import neo4j from "https://deno.land/x/neo4j_driver_lite@VERSION/mod.ts";
 ```
 
 Driver instance should be closed when application exits:
