@@ -177,6 +177,10 @@ await copyAndTransform("../neo4j-driver-lite/src", rootOutDir);
 await Deno.rename(join(rootOutDir, "index.ts"), join(rootOutDir, "mod.ts"))
 await setVersion(rootOutDir, version)
 
+// Copy README.md
+const readmeFileName = "README.md"
+await Deno.copyFile(join(`./`, readmeFileName), join(rootOutDir, readmeFileName))
+
 ////////////////////////////////////////////////////////////////////////////////
 // Warnings show up at the end
 if (!doTransform) {
