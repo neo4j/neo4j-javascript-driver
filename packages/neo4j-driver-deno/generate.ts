@@ -14,6 +14,7 @@ import * as log from "https://deno.land/std@0.119.0/log/mod.ts";
 import { parse } from "https://deno.land/std@0.119.0/flags/mod.ts";
 import { ensureDir } from "https://deno.land/std@0.119.0/fs/mod.ts";
 import { join, relative } from "https://deno.land/std@0.119.0/path/mod.ts";
+import { setVersion } from "./versioning.ts"
 
 const isDir = (path: string) => {
   try {
@@ -174,11 +175,7 @@ await copyAndTransform(
 await copyAndTransform("../neo4j-driver-lite/src", rootOutDir);
 // Deno convention is to use "mod.ts" not "index.ts", so let's do that at least for the main/root import:
 await Deno.rename(join(rootOutDir, "index.ts"), join(rootOutDir, "mod.ts"))
-const copyright = await Deno.readTextFile("./copyright.txt");
-await Deno.writeTextFile(
-  join(rootOutDir, "version.ts"),
-  [copyright, `export default "${version}" // Specified using --version when running generate.ts\n`].join('\n'),
-);
+await setVersion(rootOutDir, version)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Warnings show up at the end
