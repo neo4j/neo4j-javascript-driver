@@ -59,4 +59,29 @@ Deno.test('Test full bolt agent for mocked values', () => {
         languageDetails: `Deno/1.19.1 (v8 8.1.39)` 
     })
 });
+
+// @ts-ignore
+Deno.test('Test full bolt agent for mocked values', () => {
+    const originalConsoleWarn = console.warn
+    const consoleWarnCalls = [] as any[][]
+    const myConsoleWarn = (...args: any[]) => consoleWarnCalls.push(args)
+    
+    try {
+        console.warn = myConsoleWarn;
+
+        fromVersion('5.3')
+    
+        assertEquals(consoleWarnCalls.length, 1)
+        assertEquals(consoleWarnCalls[0].length, 1)
+
+        const [[message]] = consoleWarnCalls
+
+        assertEquals(message, "WARNING! neo4j-driver-deno stills in preview.")
+    } finally {
+        console.warn = originalConsoleWarn
+    }
+    
+});
+
+
 /* eslint-enable */

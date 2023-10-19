@@ -56,6 +56,8 @@ export function fromVersion (
   const DENO_VERSION = `Deno/${systemInfo.denoVersion}`
   const OS_NAME_VERSION = `${systemInfo.osVersion} ${systemInfo.osRelease}`.trim()
 
+  console.warn("WARNING! neo4j-driver-deno stills in preview.")
+
   return  {
     product: `neo4j-javascript/${version}`,
     platform: `${OS_NAME_VERSION}; ${systemInfo.hostArch}`,

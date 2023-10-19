@@ -14,6 +14,7 @@ import * as log from "https://deno.land/std@0.119.0/log/mod.ts";
 import { parse } from "https://deno.land/std@0.119.0/flags/mod.ts";
 import { ensureDir } from "https://deno.land/std@0.119.0/fs/mod.ts";
 import { join, relative } from "https://deno.land/std@0.119.0/path/mod.ts";
+import { setVersion } from "./versioning.ts"
 
 const isDir = (path: string) => {
   try {
@@ -45,7 +46,7 @@ const parsedArgs = parse(Deno.args, {
 // Should we rewrite imports or simply copy the files unmodified?
 // Copying without changes can be useful to later generate a diff of the transforms
 const doTransform = parsedArgs["transform"];
-const version = parsedArgs.version ?? "0.0.0dev";
+const version = parsedArgs.version;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Clear out the destination folder
@@ -174,21 +175,16 @@ await copyAndTransform(
 await copyAndTransform("../neo4j-driver-lite/src", rootOutDir);
 // Deno convention is to use "mod.ts" not "index.ts", so let's do that at least for the main/root import:
 await Deno.rename(join(rootOutDir, "index.ts"), join(rootOutDir, "mod.ts"))
-const copyright = await Deno.readTextFile("./copyright.txt");
-await Deno.writeTextFile(
-  join(rootOutDir, "version.ts"),
-  [copyright, `export default "${version}" // Specified using --version when running generate.ts\n`].join('\n'),
-);
+await setVersion(rootOutDir, version)
+
+// Copy README.md
+const readmeFileName = "README.md"
+await Deno.copyFile(join(`./`, readmeFileName), join(rootOutDir, readmeFileName))
 
 ////////////////////////////////////////////////////////////////////////////////
 // Warnings show up at the end
 if (!doTransform) {
   log.warning("Transform step was skipped.");
-}
-if (!parsedArgs.version) {
-  log.warning(
-    "No version specified. Specify a version like this: --version=4.4.0",
-  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
