@@ -46,7 +46,7 @@ const parsedArgs = parse(Deno.args, {
 // Should we rewrite imports or simply copy the files unmodified?
 // Copying without changes can be useful to later generate a diff of the transforms
 const doTransform = parsedArgs["transform"];
-const version = parsedArgs.version ?? "0.0.0dev";
+const version = parsedArgs.version;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Clear out the destination folder
@@ -185,11 +185,6 @@ await Deno.copyFile(join(`./`, readmeFileName), join(rootOutDir, readmeFileName)
 // Warnings show up at the end
 if (!doTransform) {
   log.warning("Transform step was skipped.");
-}
-if (!parsedArgs.version) {
-  log.warning(
-    "No version specified. Specify a version like this: --version=4.4.0",
-  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
