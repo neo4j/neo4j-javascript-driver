@@ -110,7 +110,7 @@ export default class RxResult {
   /**
    * Pauses the automatic streaming of records.
    *
-   * This method provides a way of controll the flow of records
+   * This method provides a way of control the flow of records
    *
    * @experimental
    */

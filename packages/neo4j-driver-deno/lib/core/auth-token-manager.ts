@@ -26,7 +26,6 @@ export type SecurityErrorCode = `Neo.ClientError.Security.${string}`
 /**
  * Interface for the piece of software responsible for keeping track of current active {@link AuthToken} across the driver.
  * @interface
- * @experimental Exposed as preview feature.
  * @since 5.8
  */
 export default class AuthTokenManager {
@@ -57,7 +56,6 @@ export default class AuthTokenManager {
 /**
  * Interface which defines an {@link AuthToken} with an expiration data time associated
  * @interface
- * @experimental Exposed as preview feature.
  * @since 5.8
  */
 export class AuthTokenAndExpiration {
@@ -102,7 +100,6 @@ class AuthTokenManagers {
    * @param {function(): Promise<AuthTokenAndExpiration>} param0.tokenProvider - Retrieves a new valid auth token.
    * Must only ever return auth information belonging to the same identity.
    * @returns {AuthTokenManager} The temporal auth data manager.
-   * @experimental Exposed as preview feature.
    */
   bearer ({ tokenProvider }: { tokenProvider: () => Promise<AuthTokenAndExpiration> }): AuthTokenManager {
     if (typeof tokenProvider !== 'function') {
@@ -124,7 +121,6 @@ class AuthTokenManagers {
    * @param {function(): Promise<AuthToken>} param0.tokenProvider - Retrieves a new valid auth token.
    * Must only ever return auth information belonging to the same identity.
    * @returns {AuthTokenManager} The basic auth data manager.
-   * @experimental Exposed as preview feature.
    */
   basic ({ tokenProvider }: { tokenProvider: () => Promise<AuthToken> }): AuthTokenManager {
     if (typeof tokenProvider !== 'function') {
@@ -138,9 +134,7 @@ class AuthTokenManagers {
 }
 
 /**
- * Holds the common {@link AuthTokenManagers} used in the Driver
- *
- * @experimental Exposed as preview feature.
+ * Holds the common {@link AuthTokenManagers} used in the Driver.
  */
 const authTokenManagers: AuthTokenManagers = new AuthTokenManagers()
 

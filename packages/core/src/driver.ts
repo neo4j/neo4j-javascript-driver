@@ -207,7 +207,6 @@ class SessionConfig {
      * which supports Bolt 5.1 and onwards.
      *
      * @type {AuthToken|undefined}
-     * @experimental Exposed as preview feature.
      * @see {@link driver}
      */
     this.auth = undefined
