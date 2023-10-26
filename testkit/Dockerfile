@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 ARG NODE_VERSION=10
-ARG DENO_VERSION=1.19.3
+ARG DENO_VERSION=1.37.2
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV NODE_OPTIONS --max_old_space_size=4096 --use-openssl-ca
