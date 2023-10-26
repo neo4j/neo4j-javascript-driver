@@ -1,0 +1,19 @@
+{
+  "name": "neo4j-driver-deno",
+  "version": "5.0.0-dev",
+  "description": "Package just used for running scripts",
+  "private": true,
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm run test::integration",
+    "test::integration": "deno test --allow-all ./test",
+    "set_version": "deno run --allow-read --allow-write ./versioning.ts --output=. --filename=current.version.ts",
+    "build": "deno run --allow-read --allow-write --allow-net ./generate.ts"
+  },
+  "author": "Neo4j",
+  "license": "Apache-2.0"
+}
