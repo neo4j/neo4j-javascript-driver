@@ -40,8 +40,8 @@
   "scripts": {
     "clean": "lerna clean -y && lerna run clean",
     "build": "lerna bootstrap --ci",
-    "set_version::deno": "lerna run set_version --scope neo4j-driver-deno --stream", 
-    "build::deno": "lerna run build --scope neo4j-driver-deno --stream",
+    "set_version::deno": "lerna run set_version --scope neo4j-driver-deno --stream -- ", 
+    "build::deno": "lerna run build --scope neo4j-driver-deno --stream --  ",
     "build::notci": "lerna bootstrap",
     "docs": "lerna run docs --stream --concurrency 1",
     "test::unit": "lerna run test::unit --stream",
