@@ -561,7 +561,8 @@ class Session {
     }
   }
 
-  // @ts-expect-error
+  // eslint-disable-next-line
+  // @ts-ignore
   [Symbol.asyncDispose] (): Promise<void> {
     console.log('calling async dispose')
     return this.close()

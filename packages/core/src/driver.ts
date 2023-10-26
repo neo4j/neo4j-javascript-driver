@@ -776,7 +776,8 @@ class Driver {
     return Promise.resolve()
   }
 
-  // @ts-expect-error
+  // eslint-disable-next-line
+  // @ts-ignore
   [Symbol.asyncDispose] (): Promise<void> {
     return this.close()
   }

@@ -163,7 +163,6 @@ export default class RxSession {
     })
   }
 
-  // @ts-expect-error
   [Symbol.asyncDispose] () {
     return this.close()
   }

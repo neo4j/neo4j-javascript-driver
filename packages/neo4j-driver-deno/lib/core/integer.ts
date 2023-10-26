@@ -695,7 +695,7 @@ class Integer {
    */
   shiftRight (numBits: number | Integer): Integer {
     let bitsCount: number = Integer.toNumber(numBits)
-    let numBitNum: number = Integer.toNumber(numBits)
+    const numBitNum: number = Integer.toNumber(numBits)
 
     if ((bitsCount &= 63) === 0) {
       return Integer.ZERO
