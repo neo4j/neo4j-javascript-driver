@@ -163,6 +163,10 @@ export default class RxSession {
     })
   }
 
+  [Symbol.asyncDispose] () {
+    return this.close()
+  }
+
   /**
    * Returns the bookmarks received following the last successfully completed query, which is executed
    * either in an {@link RxTransaction} obtained from this session instance or directly through one of

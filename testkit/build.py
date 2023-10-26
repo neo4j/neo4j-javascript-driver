@@ -19,7 +19,7 @@ def init_monorepo():
 def clean_and_build():
     run_in_driver_repo(["npm", "run", "clean"], env=os.environ)
     run_in_driver_repo(["npm", "run", "build"], env=os.environ)
-    run_in_driver_repo(["npm", "run", "build::deno", "--",
+    run_in_driver_repo(["npm", "run", "build::deno", "--", "--",
                         "--output=lib2/"], env=os.environ)
 
     if is_deno() and is_team_city():

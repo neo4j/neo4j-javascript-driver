@@ -561,6 +561,12 @@ class Session {
     }
   }
 
+  // eslint-disable-next-line
+  // @ts-ignore
+  [Symbol.asyncDispose] (): Promise<void> {
+    return this.close()
+  }
+
   _connectionHolderWithMode (mode: SessionMode): ConnectionHolder {
     if (mode === ACCESS_MODE_READ) {
       return this._readConnectionHolder

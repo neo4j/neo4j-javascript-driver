@@ -40,8 +40,8 @@
   "scripts": {
     "clean": "lerna clean -y && lerna run clean",
     "build": "lerna bootstrap --ci",
-    "set_version::deno": "cd ./packages/neo4j-driver-deno && deno run --allow-read --allow-write ./versioning.ts --output=. --filename=current.version.ts", 
-    "build::deno": "cd ./packages/neo4j-driver-deno && deno run --allow-read --allow-write --allow-net ./generate.ts",
+    "set_version::deno": "lerna run set_version --scope neo4j-driver-deno --stream -- ", 
+    "build::deno": "lerna run build --scope neo4j-driver-deno --stream --  ",
     "build::notci": "lerna bootstrap",
     "docs": "lerna run docs --stream --concurrency 1",
     "test::unit": "lerna run test::unit --stream",
