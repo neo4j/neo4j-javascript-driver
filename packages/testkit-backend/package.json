@@ -12,7 +12,7 @@
   "scripts": {
     "build": "rollup src/index.js --config rollup.config.js",
     "start": "node --version | grep -q v10. && node -r esm src/index.js || node --experimental-specifier-resolution=node src/index.js",
-    "start::deno": "deno run --allow-read --allow-write --allow-net --allow-sys --allow-run deno/index.ts",
+    "start::deno": "deno run --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run deno/index.ts",
     "clean": "rm -fr node_modules public/index.js",
     "prepare": "npm run build",
     "node": "node"
