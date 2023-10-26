@@ -776,6 +776,11 @@ class Driver {
     return Promise.resolve()
   }
 
+  // @ts-ignore
+  [Symbol.asyncDispose](): Promise<void> {
+    return this.close()
+  }
+
   /**
    * @protected
    * @returns {void}

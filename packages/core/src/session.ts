@@ -561,6 +561,12 @@ class Session {
     }
   }
 
+  // @ts-expect-error
+  [Symbol.asyncDispose] (): Promise<void> {
+    console.log('calling async dispose')
+    return this.close()
+  }
+
   _connectionHolderWithMode (mode: SessionMode): ConnectionHolder {
     if (mode === ACCESS_MODE_READ) {
       return this._readConnectionHolder

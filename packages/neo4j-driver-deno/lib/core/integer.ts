@@ -695,10 +695,11 @@ class Integer {
    */
   shiftRight (numBits: number | Integer): Integer {
     let bitsCount: number = Integer.toNumber(numBits)
+    let numBitNum: number = Integer.toNumber(numBits)
 
     if ((bitsCount &= 63) === 0) {
       return Integer.ZERO
-    } else if (numBits < 32) {
+    } else if (numBitNum < 32) {
       return Integer.fromBits(
         (this.low >>> bitsCount) | (this.high << (32 - bitsCount)),
         this.high >> bitsCount

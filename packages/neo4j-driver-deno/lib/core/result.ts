@@ -375,7 +375,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @param {function()|null} onfinally - function when the promise finished
    * @return {Promise} promise.
    */
-  [Symbol.toStringTag]: string
+  [Symbol.toStringTag]: string = 'Result'
   finally (onfinally?: (() => void) | null): Promise<QueryResult<R>> {
     return this._getOrCreatePromise().finally(onfinally)
   }
