@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 import neo4j from '../lib/mod.ts'
+//@ts-ignore
+import { assertEquals } from "https://deno.land/std@0.182.0/testing/asserts.ts";
 
 const env = Deno.env.toObject()
 
@@ -41,4 +43,43 @@ Deno.test('driver.session should be able to use explicity resource management', 
   await using session = driver.session()
 
   await session.executeRead(tx => "RETURN 1")
+})
+
+
+// Deno will fail with resource leaks
+Deno.test('session.beginTransaction should rollback the transaction if not committed', async () => {
+  await using driver = neo4j.driver(uri, authToken)
+  await using session = driver.session()
+  const name = "Must Be Conor"
+
+
+  {
+    await using tx = session.beginTransaction()
+    await tx.run('CREATE (p:Person { name:$name }) RETURN p', { name }).summary()
+  }
+
+  const { records } = await driver.executeQuery('MATCH (p:Person { name:$name }) RETURN p', { name })
+  assertEquals(records.length, 0) 
+})
+
+
+// Deno will fail with resource leaks
+Deno.test('session.beginTransaction should noop if resource committed', async () => {
+  await using driver = neo4j.driver(uri, authToken)
+  try {
+    await using session = driver.session()
+    const name = "Must Be Conor"
+  
+    {
+      await using tx = session.beginTransaction()
+      await tx.run('CREATE (p:Person { name:$name }) RETURN p', { name }).summary()
+      await tx.commit()
+    }
+  
+    const { records } = await driver.executeQuery('MATCH (p:Person { name:$name }) RETURN p', { name })
+    assertEquals(records.length, 1) 
+  } finally {
+    // cleaning up
+    await driver.executeQuery('MATCH (p:Person { name:$name }) DELETE(p)', { name })
+  }
 })

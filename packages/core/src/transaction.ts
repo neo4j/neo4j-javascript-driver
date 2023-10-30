@@ -291,6 +291,12 @@ class Transaction {
     }
   }
 
+  // eslint-disable-next-line
+  // @ts-ignore
+  [Symbol.asyncDispose] (): Promise<void> {
+    return this.close()
+  }
+
   _onErrorCallback (error: Error): Promise<Connection | null> {
     // error will be "acknowledged" by sending a RESET message
     // database will then forget about this transaction and cleanup all corresponding resources
