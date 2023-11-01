@@ -89,7 +89,10 @@ import {
   notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   AuthTokenAndExpiration,
-  types as coreTypes
+  types as coreTypes,
+  DehytrationHook,
+  DehydrationHooks,
+  HydatrationHooks
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -378,7 +381,10 @@ export type {
   NotificationFilterDisabledCategory,
   NotificationFilterMinimumSeverityLevel,
   AuthTokenManager,
-  AuthTokenAndExpiration
+  AuthTokenAndExpiration,
+  DehytrationHook,
+  DehydrationHooks,
+  HydatrationHooks
 }
 
 export default forExport

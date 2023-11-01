@@ -98,8 +98,8 @@ export function SessionClose (_, context, data, wire) {
 export function SessionRun (_, context, data, wire) {
   const { sessionId, cypher, timeout } = data
   const session = context.getSession(sessionId)
-  const params = context.binder.objectToNative(data.params)
-  const metadata = context.binder.objectToNative(data.txMeta)
+  const params = data.param
+  const metadata = data.txMeta
 
   let rxResult
   try {
@@ -138,7 +138,7 @@ export function ResultConsume (_, context, data, wire) {
 export function SessionBeginTransaction (_, context, data, wire) {
   const { sessionId, timeout } = data
   const session = context.getSession(sessionId)
-  const metadata = context.binder.objectToNative(data.txMeta)
+  const metadata = data.txMeta
 
   try {
     return session.beginTransaction({ metadata, timeout })
@@ -159,11 +159,6 @@ export function SessionBeginTransaction (_, context, data, wire) {
 export function TransactionRun (_, context, data, wire) {
   const { txId, cypher, params } = data
   const tx = context.getTx(txId)
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      params[key] = context.binder.cypherToNative(value)
-    }
-  }
 
   tx.tx.run(cypher, params)
     ._toObservable()
@@ -215,7 +210,7 @@ export function TransactionClose (_, context, data, wire) {
 export function SessionReadTransaction (_, context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
-  const metadata = context.binder.objectToNative(data.txMeta)
+  const metadata = data.txMeta
 
   try {
     return session.executeRead(tx => {
@@ -235,7 +230,7 @@ export function SessionReadTransaction (_, context, data, wire) {
 export function SessionWriteTransaction (_, context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
-  const metadata = context.binder.objectToNative(data.txMeta)
+  const metadata = data.txMeta
 
   try {
     return session.executeWrite(tx => {

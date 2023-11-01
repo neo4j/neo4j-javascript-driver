@@ -99,7 +99,10 @@ import {
   Transaction,
   TransactionPromise,
   types as coreTypes,
-  UnboundRelationship
+  UnboundRelationship,
+  DehytrationHook,
+  DehydrationHooks,
+  HydatrationHooks
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -517,6 +520,9 @@ export type {
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel
+  NotificationFilterMinimumSeverityLevel,
+  HydatrationHooks,
+  DehytrationHook,
+  DehydrationHooks
 }
 export default forExport

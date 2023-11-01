@@ -18,7 +18,7 @@
  */
 
 import { structure } from '../packstream/index.js'
-import { internal } from '../../core/index.ts'
+import { internal, isDate, isDateTime, isDuration, isInt, isLocalDateTime, isLocalTime, isPoint, isTime } from '../../core/index.ts'
 
 const { objectUtil } = internal
 
@@ -30,9 +30,26 @@ export default class Transformer {
   /**
    * Constructor
    * @param {TypeTransformer[]} transformers The type transformers
+   * @param {HydatrationHooks} hydration The hydration hooks
+   * @param {DehydrationHooks} dehydrationHooks the DehydrationHooks
    */
-  constructor (transformers) {
+  constructor (transformers, hydration, dehydrationHooks) {
     this._transformers = transformers
+    hydration = hydration || {}
+    this._hydrators = [
+      [isDuration, hydration.Duration],
+      [isLocalTime, hydration.LocalTime],
+      [isLocalDateTime, hydration.LocalDateTime],
+      [isTime, hydration.Time],
+      [isDate, hydration.Date],
+      [isDateTime, hydration.DateTime],
+      [isInt, hydration.Integer],
+      [isPoint, hydration.Point]
+    ]
+      .map(([isTypeInstance, hydrate]) => ({ isTypeInstance, hydrate }))
+      .filter(({ hydrate }) => hydrate != null)
+
+    this._dehydrationHooks = dehydrationHooks || []
     this._transformersPerSignature = new Map(transformers.map(typeTransformer => [typeTransformer.signature, typeTransformer]))
     this.fromStructure = this.fromStructure.bind(this)
     this.toStructure = this.toStructure.bind(this)
@@ -47,14 +64,23 @@ export default class Transformer {
    */
   fromStructure (struct) {
     try {
-      if (struct instanceof structure.Structure && this._transformersPerSignature.has(struct.signature)) {
-        const { fromStructure } = this._transformersPerSignature.get(struct.signature)
-        return fromStructure(struct)
+      const value = this._fromStructure(struct)
+      const hydrator = this._hydrators.find(({ isTypeInstance }) => isTypeInstance(value))
+      if (hydrator != null) {
+        return hydrator.hydrate(value)
       }
-      return struct
+      return value
     } catch (error) {
       return objectUtil.createBrokenObject(error)
     }
+  }
+
+  _fromStructure (struct) {
+    if (struct instanceof structure.Structure && this._transformersPerSignature.has(struct.signature)) {
+      const { fromStructure } = this._transformersPerSignature.get(struct.signature)
+      return fromStructure(struct)
+    }
+    return struct
   }
 
   /**
@@ -63,9 +89,18 @@ export default class Transformer {
    * @returns {<T>|structure.Structure} The structure or the object, if any transformer was found
    */
   toStructure (type) {
-    const transformer = this._transformers.find(({ isTypeInstance }) => isTypeInstance(type))
+    const dehydratedType = this._dehydrateType(type)
+    const transformer = this._transformers.find(({ isTypeInstance }) => isTypeInstance(dehydratedType))
     if (transformer !== undefined) {
-      return transformer.toStructure(type)
+      return transformer.toStructure(dehydratedType)
+    }
+    return dehydratedType
+  }
+
+  _dehydrateType (type) {
+    const dehydation = this._dehydrationHooks.find(({ isTypeInstance }) => isTypeInstance(type))
+    if (dehydation !== undefined) {
+      return dehydation.dehydrate(type)
     }
     return type
   }

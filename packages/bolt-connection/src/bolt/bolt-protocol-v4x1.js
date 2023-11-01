@@ -49,6 +49,8 @@ export default class BoltProtocol extends BoltProtocolV4 {
     createResponseHandler = () => null,
     log,
     onProtocolError,
+    hydrationHooks,
+    dehydrationHooks,
     serversideRouting
   ) {
     super(
@@ -57,7 +59,9 @@ export default class BoltProtocol extends BoltProtocolV4 {
       packstreamConfig,
       createResponseHandler,
       log,
-      onProtocolError
+      onProtocolError,
+      hydrationHooks,
+      dehydrationHooks
     )
     this._serversideRouting = serversideRouting
   }
@@ -68,7 +72,7 @@ export default class BoltProtocol extends BoltProtocolV4 {
 
   get transformer () {
     if (this._transformer === undefined) {
-      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)))
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)), this._hydrationHooks, this._dehydrationHooks)
     }
     return this._transformer
   }

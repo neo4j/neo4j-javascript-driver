@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 
+import { DehydrationHooks, HydatrationHooks } from './mapping.ts'
 import NotificationFilter from './notification-filter.ts'
 
 /**
@@ -81,6 +82,8 @@ export class Config {
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
   telemetryDisabled?: boolean
+  hydrationHooks?: HydatrationHooks
+  dehydrationHooks?: DehydrationHooks
 
   /**
    * @constructor
