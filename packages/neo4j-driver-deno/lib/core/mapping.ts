@@ -21,40 +21,38 @@ import Integer from './integer.ts'
 import { Point } from './spatial-types.ts'
 import { DateTime, Duration, LocalDateTime, LocalTime, Time } from './temporal-types.ts'
 
-
 /**
  * Defines methods for hydrate and dehydrate objects
- * 
+ *
  * @interface
  */
 export class HydatrationHooks {
-    public readonly Duration?: <V extends unknown> (duration: Duration) => V
-    public readonly LocalTime?: <V extends unknown> (localTime: LocalTime) => V
-    public readonly LocalDateTime?: <V extends unknown> (localDateTime: LocalDateTime) => V
-    public readonly Time?: <V extends unknown> (time: Time) => V
-    public readonly Date?: <V extends unknown> (date: Date) => V
-    public readonly DateTime?: <V extends unknown> (dateTime: DateTime) => V
-    public readonly Integer?: <V extends unknown> (integer: Integer) => V
-    public readonly Point?: <V extends unknown> (point: Point) => V
+  public readonly Duration?: <V extends unknown> (duration: Duration) => V
+  public readonly LocalTime?: <V extends unknown> (localTime: LocalTime) => V
+  public readonly LocalDateTime?: <V extends unknown> (localDateTime: LocalDateTime) => V
+  public readonly Time?: <V extends unknown> (time: Time) => V
+  public readonly Date?: <V extends unknown> (date: Date) => V
+  public readonly DateTime?: <V extends unknown> (dateTime: DateTime) => V
+  public readonly Integer?: <V extends unknown> (integer: Integer) => V
+  public readonly Point?: <V extends unknown> (point: Point) => V
 
-    constructor() {
-        throw new Error('This class should not be instantiated')
-    }
+  constructor () {
+    throw new Error('This class should not be instantiated')
+  }
 }
 
 export class DehytrationHook<I = unknown, O = unknown> {
-    
-    constructor() {
-        throw new Error('This class should not be instantiated')
-    }
+  constructor () {
+    throw new Error('This class should not be instantiated')
+  }
 
-    public isTypeInstance (value: unknown): value is I {
-        throw new Error('Not Implemented')
-    }
+  public isTypeInstance (value: unknown): value is I {
+    throw new Error('Not Implemented')
+  }
 
-    public dehydrate (value: I): O {
-        throw new Error('Not Implemented')
-    }
+  public dehydrate (value: I): O {
+    throw new Error('Not Implemented')
+  }
 }
 
 export type DehydrationHooks = DehytrationHook[]
