@@ -37,8 +37,16 @@ npm install neo4j-driver@next
 Please note that `@next` only points to pre-releases that are not suitable for production use.
 To get the latest stable release omit `@next` part altogether or use `@latest` instead.
 
+To use `neo4j` with Common JS, use the `require` syntax:
+
 ```javascript
 var neo4j = require('neo4j-driver')
+```
+
+If you are using ES6, use the `import` syntax:
+
+```javascript
+import neo4j from 'neo4j-driver'
 ```
 
 Driver instance should be closed when Node.js application exits:
