@@ -2777,6 +2777,7 @@ describe.each([
     })
 
     it.each(usersDataSet)('should call onDatabaseNameResolved with the resolved db acquiring named db [user=%s]', async (user) => {
+      // good template for a test
       const pool = newPool()
       const connectionProvider = newRoutingConnectionProvider(
         [],
