@@ -30,11 +30,11 @@ export type Rules = Record<string, Rule>
 const rulesRegistry: Record<string, Rules> = {}
 
 export function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
-    rulesRegistry[constructor.toString()] = rules
+  rulesRegistry[constructor.toString()] = rules
 }
 
 export const mapping = {
-    register
+  register
 }
 
 interface Gettable { get: <V>(key: string) => V }
@@ -80,12 +80,11 @@ export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
 
   return ((rule?.convert) != null) ? rule.convert(value, field) : value
 }
-function getRules<T extends {} = Object>(constructorOrRules: Rules | GenericConstructor<T>, rules: Rules | undefined): Rules | undefined {
-    const rulesDefined = typeof constructorOrRules === 'object' ? constructorOrRules : rules
-    if (rulesDefined != null) {
-        return rulesDefined
-    }
-    
-    return typeof constructorOrRules !== 'object' ? rulesRegistry[constructorOrRules.toString()] : undefined
-}
+function getRules<T extends {} = Object> (constructorOrRules: Rules | GenericConstructor<T>, rules: Rules | undefined): Rules | undefined {
+  const rulesDefined = typeof constructorOrRules === 'object' ? constructorOrRules : rules
+  if (rulesDefined != null) {
+    return rulesDefined
+  }
 
+  return typeof constructorOrRules !== 'object' ? rulesRegistry[constructorOrRules.toString()] : undefined
+}
