@@ -25,6 +25,7 @@ import { Query, PeekableAsyncIterator } from './types'
 import { observer, util, connectionHolder } from './internal'
 import { newError, PROTOCOL_ERROR } from './error'
 import { NumberOrInteger } from './graph-types'
+import { GenericConstructor, Rules } from './mapping.highlevel'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
@@ -151,6 +152,13 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
     this._watermarks = watermarks
   }
 
+  as <T extends {} = Object>(rules: Rules): Promise<{ records: T[], summary: ResultSummary }>
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): Promise<{ records: T[], summary: ResultSummary }>
+  as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): Promise<{ records: T[], summary: ResultSummary }> {
+    // @ts-expect-error
+    return this._getOrCreatePromise(r => r.as(constructorOrRules, rules))
+  }
+
   /**
    * Returns a promise for the field keys.
    *
@@ -212,13 +220,13 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise (): Promise<QueryResult<R>> {
+  private _getOrCreatePromise<O = Record> (mapper: (r: Record) => O = r => r as unknown as R): Promise<QueryResult<R>> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
         const records: Array<Record<R>> = []
         const observer = {
           onNext: (record: Record<R>) => {
-            records.push(record)
+            records.push(mapper(record) as unknown as Record)
           },
           onCompleted: (summary: ResultSummary) => {
             resolve({ records, summary })

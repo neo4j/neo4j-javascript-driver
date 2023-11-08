@@ -94,6 +94,8 @@ import * as types from './types.ts'
 import * as json from './json.ts'
 import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import * as internal from './internal/index.ts'
+import { Rule, Rules } from './mapping.highlevel.ts'
+import { RulesFactories } from './mapping.rulesfactories.ts'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -171,7 +173,8 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  RulesFactories
 }
 
 export {
@@ -240,7 +243,8 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  RulesFactories
 }
 
 export type {
@@ -265,7 +269,9 @@ export type {
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel
+  NotificationFilterMinimumSeverityLevel,
+  Rule,
+  Rules
 }
 
 export default forExport
