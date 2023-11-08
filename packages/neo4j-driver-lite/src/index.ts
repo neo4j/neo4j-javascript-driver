@@ -102,7 +102,8 @@ import {
   UnboundRelationship,
   Rule,
   Rules,
-  RulesFactories
+  RulesFactories,
+  mapping
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -429,7 +430,8 @@ const forExport = {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -497,7 +499,8 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 export type {
   QueryResult,

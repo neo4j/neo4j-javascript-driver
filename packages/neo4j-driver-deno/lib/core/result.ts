@@ -220,7 +220,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise<O = Record> (mapper: (r: Record) => O = r => r  as unknown as R ): Promise<QueryResult<R>> {
+  private _getOrCreatePromise<O = Record> (mapper: (r: Record) => O = r => r as unknown as R): Promise<QueryResult<R>> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
         const records: Array<Record<R>> = []

@@ -169,7 +169,7 @@ class ResultTransformers {
   hydratedResultTransformer <T extends {} = Object>(rules: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
   hydratedResultTransformer <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
   hydratedResultTransformer <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }> {
-      return result => result.as(constructorOrRules as unknown as GenericConstructor<T>, rules)
+    return async result => await result.as(constructorOrRules as unknown as GenericConstructor<T>, rules)
   }
 }
 

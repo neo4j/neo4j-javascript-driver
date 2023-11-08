@@ -94,7 +94,7 @@ import * as types from './types.ts'
 import * as json from './json.ts'
 import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import * as internal from './internal/index.ts'
-import { Rule, Rules } from './mapping.highlevel.ts'
+import { Rule, Rules, mapping } from './mapping.highlevel.ts'
 import { RulesFactories } from './mapping.rulesfactories.ts'
 
 /**
@@ -174,7 +174,8 @@ const forExport = {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -244,7 +245,8 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export type {

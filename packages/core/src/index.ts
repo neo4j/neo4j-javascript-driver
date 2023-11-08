@@ -94,7 +94,7 @@ import * as types from './types'
 import * as json from './json'
 import resultTransformers, { ResultTransformer } from './result-transformers'
 import * as internal from './internal' // todo: removed afterwards
-import { Rule, Rules } from './mapping.highlevel'
+import { Rule, Rules, mapping } from './mapping.highlevel'
 import { RulesFactories } from './mapping.rulesfactories'
 
 /**
@@ -174,7 +174,8 @@ const forExport = {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -244,7 +245,8 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export type {

@@ -20,7 +20,6 @@ import Integer from './integer.ts'
 import { stringify } from './json.ts'
 import { Rules, GenericConstructor, as } from './mapping.highlevel.ts'
 
-
 type StandardDate = Date
 /**
  * @typedef {number | Integer | bigint} NumberOrInteger
@@ -92,7 +91,7 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
   as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
     return as({
       get: (key) => this.properties[key]
-    }, constructorOrRules, rules) 
+    }, constructorOrRules, rules)
   }
 
   /**
@@ -218,7 +217,7 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
   as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
     return as({
       get: (key) => this.properties[key]
-    }, constructorOrRules, rules) 
+    }, constructorOrRules, rules)
   }
 
   /**
@@ -348,7 +347,7 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
   as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
     return as({
       get: (key) => this.properties[key]
-    }, constructorOrRules, rules) 
+    }, constructorOrRules, rules)
   }
 
   /**

@@ -102,7 +102,8 @@ import {
   UnboundRelationship,
   Rule,
   Rules,
-  RulesFactories
+  RulesFactories,
+  mapping
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -430,7 +431,8 @@ const forExport = {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -498,7 +500,8 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 export type {
   QueryResult,

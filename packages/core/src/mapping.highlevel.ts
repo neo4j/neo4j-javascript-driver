@@ -27,11 +27,21 @@ export interface Rule {
 
 export type Rules = Record<string, Rule>
 
+const rulesRegistry: Record<string, Rules> = {}
+
+export function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
+  rulesRegistry[constructor.toString()] = rules
+}
+
+export const mapping = {
+  register
+}
+
 interface Gettable { get: <V>(key: string) => V }
 
 export function as <T extends {} = Object> (gettable: Gettable, constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
   const GenericConstructor = typeof constructorOrRules === 'function' ? constructorOrRules : Object
-  const theRules = typeof constructorOrRules === 'object' ? constructorOrRules : rules
+  const theRules = getRules(constructorOrRules, rules)
   const vistedKeys: string[] = []
 
   const obj = new GenericConstructor()
@@ -69,4 +79,12 @@ export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
   }
 
   return ((rule?.convert) != null) ? rule.convert(value, field) : value
+}
+function getRules<T extends {} = Object> (constructorOrRules: Rules | GenericConstructor<T>, rules: Rules | undefined): Rules | undefined {
+  const rulesDefined = typeof constructorOrRules === 'object' ? constructorOrRules : rules
+  if (rulesDefined != null) {
+    return rulesDefined
+  }
+
+  return typeof constructorOrRules !== 'object' ? rulesRegistry[constructorOrRules.toString()] : undefined
 }

@@ -19,58 +19,73 @@
 export type GenericConstructor<T extends {}> = new (...args: any[]) => T
 
 export interface Rule {
-    optional?: boolean,
-    from?: string,
-    convert?: (recordValue: any, field: string) => any
-    validate?: (recordValue: any, field: string) => void 
+  optional?: boolean
+  from?: string
+  convert?: (recordValue: any, field: string) => any
+  validate?: (recordValue: any, field: string) => void
 }
 
 export type Rules = Record<string, Rule>
 
-type Gettable = { get<V>(key: string): V }
+const rulesRegistry: Record<string, Rules> = {}
 
+export function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
+    rulesRegistry[constructor.toString()] = rules
+}
 
-export function as <T extends {} = Object>(gettable: Gettable , constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
-    const GenericConstructor = typeof constructorOrRules === 'function' ? constructorOrRules : Object
-    const theRules = typeof constructorOrRules === 'object' ? constructorOrRules : rules
-    const vistedKeys: string[] = []
+export const mapping = {
+    register
+}
 
-    const obj = new GenericConstructor
+interface Gettable { get: <V>(key: string) => V }
 
-    for (const [key, rule] of Object.entries(theRules ?? {})) {
-        vistedKeys.push(key)
-        _apply(gettable, obj, key, rule)
+export function as <T extends {} = Object> (gettable: Gettable, constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
+  const GenericConstructor = typeof constructorOrRules === 'function' ? constructorOrRules : Object
+  const theRules = getRules(constructorOrRules, rules)
+  const vistedKeys: string[] = []
+
+  const obj = new GenericConstructor()
+
+  for (const [key, rule] of Object.entries(theRules ?? {})) {
+    vistedKeys.push(key)
+    _apply(gettable, obj, key, rule)
+  }
+
+  for (const key of Object.getOwnPropertyNames(obj)) {
+    if (!vistedKeys.includes(key)) {
+      _apply(gettable, obj, key, theRules?.[key])
     }
+  }
 
-    for (const key of Object.getOwnPropertyNames(obj)) {
-        if (!vistedKeys.includes(key)) {
-            _apply(gettable, obj, key, theRules?.[key])
-        }
-    }
-    
-    return obj as unknown as T
-} 
+  return obj as unknown as T
+}
 
+function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: Rule): void {
+  const value = gettable.get(rule?.from ?? key)
+  const field = `${obj.constructor.name}#${key}`
+  const processedValue = valueAs(value, field, rule)
 
-function _apply<T extends {}>(gettable: Gettable, obj: T, key: string, rule?: Rule): void {
-    const value = gettable.get(rule?.from ?? key)
-    const field = `${obj.constructor.name}#${key}`
-    const processedValue = valueAs(value, field, rule)
-
-    // @ts-ignore
-    obj[key] = processedValue ?? obj[key]
+  // @ts-expect-error
+  obj[key] = processedValue ?? obj[key]
 }
 
 export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
-    if (rule?.optional === true && value == null) {
-        return value
+  if (rule?.optional === true && value == null) {
+    return value
+  }
+
+  if (typeof rule?.validate === 'function') {
+    rule.validate(value, field)
+  }
+
+  return ((rule?.convert) != null) ? rule.convert(value, field) : value
+}
+function getRules<T extends {} = Object>(constructorOrRules: Rules | GenericConstructor<T>, rules: Rules | undefined): Rules | undefined {
+    const rulesDefined = typeof constructorOrRules === 'object' ? constructorOrRules : rules
+    if (rulesDefined != null) {
+        return rulesDefined
     }
     
-    if (typeof rule?.validate === 'function') {
-        rule.validate(value, field)
-    }
-
-    return rule?.convert ? rule.convert(value, field) : value
+    return typeof constructorOrRules !== 'object' ? rulesRegistry[constructorOrRules.toString()] : undefined
 }
-
 

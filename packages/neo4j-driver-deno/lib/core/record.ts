@@ -139,7 +139,7 @@ class Record<
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
   as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
-    return as(this, constructorOrRules, rules) 
+    return as(this, constructorOrRules, rules)
   }
 
   /**
