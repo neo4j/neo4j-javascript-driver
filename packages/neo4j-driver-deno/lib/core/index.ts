@@ -103,7 +103,7 @@ import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate.ts'
 import * as internal from './internal/index.ts'
 import Vector, { VectorType, vector } from './vector.ts'
-import { Rule, Rules } from './mapping.highlevel.ts'
+import { Rule, Rules, mapping } from './mapping.highlevel.ts'
 import { RulesFactories } from './mapping.rulesfactories.ts'
 
 /**
@@ -192,7 +192,8 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -273,7 +274,8 @@ export {
   resolveCertificateProvider,
   Vector,
   vector,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export type {

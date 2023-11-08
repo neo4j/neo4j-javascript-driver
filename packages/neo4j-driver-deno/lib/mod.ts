@@ -115,7 +115,8 @@ import {
   Vector,
   Rule,
   Rules,
-  RulesFactories
+  RulesFactories,
+  mapping
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -453,7 +454,8 @@ const forExport = {
   clientCertificateProviders,
   Vector,
   vector,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -527,7 +529,8 @@ export {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   vector,
-  RulesFactories
+  RulesFactories,
+  mapping
 }
 export type {
   QueryResult,
