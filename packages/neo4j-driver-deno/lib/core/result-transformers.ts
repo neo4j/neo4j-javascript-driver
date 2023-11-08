@@ -22,6 +22,8 @@ import ResultSummary from './result-summary.ts'
 import { newError } from './error.ts'
 import { NumberOrInteger } from './graph-types.ts'
 import Integer from './integer.ts'
+import { GenericConstructor, Rules } from './mapping.highlevel.ts'
+
 
 type ResultTransformer<T> = (result: Result) => Promise<T>
 /**
@@ -257,6 +259,12 @@ class ResultTransformers {
    */
   summary <T extends NumberOrInteger = Integer> (): ResultTransformer<ResultSummary<T>> {
     return summary
+  }
+
+  hydratedResultTransformer <T extends {} = Object>(rules: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
+  hydratedResultTransformer <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
+  hydratedResultTransformer <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }> {
+      return result => result.as(constructorOrRules as unknown as GenericConstructor<T>, rules)
   }
 }
 

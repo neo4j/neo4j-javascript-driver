@@ -112,7 +112,10 @@ import {
   resolveCertificateProvider,
   vector,
   VectorType,
-  Vector
+  Vector,
+  Rule,
+  Rules,
+  RulesFactories
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -449,7 +452,8 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   Vector,
-  vector
+  vector,
+  RulesFactories
 }
 
 export {
@@ -522,7 +526,8 @@ export {
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
-  vector
+  vector,
+  RulesFactories
 }
 export type {
   QueryResult,
@@ -555,6 +560,8 @@ export type {
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
   Vector,
-  VectorType
+  VectorType,
+  Rule,
+  Rules
 }
 export default forExport

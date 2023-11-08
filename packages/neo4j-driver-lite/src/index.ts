@@ -112,7 +112,10 @@ import {
   resolveCertificateProvider,
   vector,
   VectorType,
-  Vector
+  Vector,
+  Rule,
+  Rules,
+  RulesFactories
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -448,7 +451,8 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   Vector,
-  vector
+  vector,
+  RulesFactories
 }
 
 export {
@@ -521,7 +525,8 @@ export {
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
-  vector
+  vector,
+  RulesFactories
 }
 export type {
   QueryResult,
@@ -554,6 +559,8 @@ export type {
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
   Vector,
-  VectorType
+  VectorType,
+  Rule,
+  Rules
 }
 export default forExport
