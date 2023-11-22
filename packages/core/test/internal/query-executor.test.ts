@@ -28,6 +28,12 @@ type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
 describe('QueryExecutor', () => {
   const aBookmarkManager = bookmarkManager()
+  const aTransactionConfig: TransactionConfig = {
+    timeout: 1234,
+    metadata: {
+      key: 'value'
+    }
+  }
 
   it.each([
     ['bookmarkManager set', { bookmarkManager: aBookmarkManager }, { bookmarkManager: aBookmarkManager }],
@@ -85,6 +91,20 @@ describe('QueryExecutor', () => {
       expect(sessionsCreated.length).toBe(1)
       const [{ spyOnExecuteRead }] = sessionsCreated
       expect(spyOnExecuteRead).toHaveBeenCalled()
+    })
+
+    it.each([
+      [aTransactionConfig],
+      [undefined],
+      [null]
+    ])('should call executeRead with transactionConfig=%s', async (transactionConfig: TransactionConfig) => {
+      const { queryExecutor, sessionsCreated } = createExecutor()
+
+      await queryExecutor.execute({ ...baseConfig, transactionConfig }, 'query')
+
+      expect(sessionsCreated.length).toBe(1)
+      const [{ spyOnExecuteRead }] = sessionsCreated
+      expect(spyOnExecuteRead).toHaveBeenCalledWith(expect.any(Function), transactionConfig)
     })
 
     it('should configure the session with pipeline begin and correct api metrics', async () => {
@@ -227,6 +247,20 @@ describe('QueryExecutor', () => {
       expect(sessionsCreated.length).toBe(1)
       const [{ spyOnExecuteWrite }] = sessionsCreated
       expect(spyOnExecuteWrite).toHaveBeenCalled()
+    })
+
+    it.each([
+      [aTransactionConfig],
+      [undefined],
+      [null]
+    ])('should call executeWrite with transactionConfig=%s', async (transactionConfig: TransactionConfig) => {
+      const { queryExecutor, sessionsCreated } = createExecutor()
+
+      await queryExecutor.execute({ ...baseConfig, transactionConfig }, 'query')
+
+      expect(sessionsCreated.length).toBe(1)
+      const [{ spyOnExecuteWrite }] = sessionsCreated
+      expect(spyOnExecuteWrite).toHaveBeenCalledWith(expect.any(Function), transactionConfig)
     })
 
     it('should configure the session with pipeline begin and api telemetry', async () => {

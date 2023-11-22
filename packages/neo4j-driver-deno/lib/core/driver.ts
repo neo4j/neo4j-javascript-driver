@@ -30,7 +30,7 @@ import {
   DEFAULT_POOL_MAX_SIZE
 } from './internal/constants.ts'
 import { Logger } from './internal/logger.ts'
-import Session from './session.ts'
+import Session, { TransactionConfig } from './session.ts'
 import { ServerInfo } from './result-summary.ts'
 import { ENCRYPTION_ON } from './internal/util.ts'
 import {
@@ -357,6 +357,7 @@ class QueryConfig<T = EagerResult> {
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager | null
   resultTransformer?: ResultTransformer<T>
+  transactionConfig?: TransactionConfig
 
   /**
    * @constructor
@@ -402,9 +403,17 @@ class QueryConfig<T = EagerResult> {
      * By default, it uses the driver's non mutable driver level bookmark manager. See, {@link Driver.executeQueryBookmarkManager}
      *
      * Can be set to null to disable causal chaining.
-     * @type {BookmarkManager|null}
+     * @type {BookmarkManager|undefined|null}
      */
     this.bookmarkManager = undefined
+
+    /**
+     * Configuration for all transactions started to execute the query.
+     *
+     * @type {TransactionConfig|undefined}
+     *
+     */
+    this.transactionConfig = undefined
   }
 }
 
@@ -569,7 +578,8 @@ class Driver {
       bookmarkManager,
       routing: routingConfig,
       database: config.database,
-      impersonatedUser: config.impersonatedUser
+      impersonatedUser: config.impersonatedUser,
+      transactionConfig: config.transactionConfig
     }, query, parameters)
   }
 

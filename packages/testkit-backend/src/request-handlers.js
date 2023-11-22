@@ -676,11 +676,11 @@ export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, co
       }
     }
 
-    if ('database' in config) {
+    if (config.database != null) {
       configuration.database = config.database
     }
 
-    if ('impersonatedUser' in config) {
+    if (config.impersonatedUser != null) {
       configuration.impersonatedUser = config.impersonatedUser
     }
 
@@ -694,6 +694,13 @@ export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, co
         configuration.bookmarkManager = bookmarkManager
       } else {
         configuration.bookmarkManager = null
+      }
+    }
+
+    if (config.txMeta != null || config.timeout != null) {
+      configuration.transactionConfig = {
+        metadata: context.binder.objectToNative(config.txMeta),
+        timeout: config.timeout
       }
     }
   }
