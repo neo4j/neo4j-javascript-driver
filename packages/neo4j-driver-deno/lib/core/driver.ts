@@ -403,7 +403,7 @@ class QueryConfig<T = EagerResult> {
      * By default, it uses the driver's non mutable driver level bookmark manager. See, {@link Driver.executeQueryBookmarkManager}
      *
      * Can be set to null to disable causal chaining.
-     * @type {BookmarkManager|null}
+     * @type {BookmarkManager|undefined|null}
      */
     this.bookmarkManager = undefined
 
