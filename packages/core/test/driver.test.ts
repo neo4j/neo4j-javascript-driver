@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { bookmarkManager, ConnectionProvider, EagerResult, newError, NotificationFilter, Result, ResultSummary, ServerInfo, Session } from '../src'
+import { bookmarkManager, ConnectionProvider, EagerResult, newError, NotificationFilter, Result, ResultSummary, ServerInfo, Session, TransactionConfig } from '../src'
 import Driver, { QueryConfig, READ, routing } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
@@ -469,6 +469,12 @@ describe('Driver', () => {
 
     describe('when config is defined', () => {
       const theBookmarkManager = bookmarkManager()
+      const aTransactionConfig: TransactionConfig = {
+        timeout: 1234,
+        metadata: {
+          key: 'value'
+        }
+      }
       async function aTransformer (result: Result): Promise<string> {
         const summary = await result.summary()
         return summary.database.name ?? 'no-db-set'
@@ -482,7 +488,8 @@ describe('Driver', () => {
         ['config.impersonatedUser="the_user"', 'q', {}, { impersonatedUser: 'the_user' }, extendsDefaultWith({ impersonatedUser: 'the_user' })],
         ['config.bookmarkManager=null', 'q', {}, { bookmarkManager: null }, extendsDefaultWith({ bookmarkManager: undefined })],
         ['config.bookmarkManager set to non-null/empty', 'q', {}, { bookmarkManager: theBookmarkManager }, extendsDefaultWith({ bookmarkManager: theBookmarkManager })],
-        ['config.resultTransformer set', 'q', {}, { resultTransformer: aTransformer }, extendsDefaultWith({ resultTransformer: aTransformer })]
+        ['config.resultTransformer set', 'q', {}, { resultTransformer: aTransformer }, extendsDefaultWith({ resultTransformer: aTransformer })],
+        ['config.transactionConfig set', 'q', {}, { transactionConfig: aTransactionConfig }, extendsDefaultWith({ transactionConfig: aTransactionConfig })]
       ])('should handle the params for %s', async (_, query, params, config, buildExpectedConfig) => {
         const spiedExecute = jest.spyOn(queryExecutor, 'execute')
 

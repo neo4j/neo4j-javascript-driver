@@ -18,7 +18,7 @@
  */
 
 import BookmarkManager from '../bookmark-manager'
-import Session from '../session'
+import Session, { TransactionConfig } from '../session'
 import Result from '../result'
 import ManagedTransaction from '../transaction-managed'
 import { Query } from '../types'
@@ -26,13 +26,14 @@ import { TELEMETRY_APIS } from './constants'
 
 type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkManager, impersonatedUser?: string }) => Session
 
-type TransactionFunction<T> = (transactionWork: (tx: ManagedTransaction) => Promise<T>) => Promise<T>
+type TransactionFunction<T> = (transactionWork: (tx: ManagedTransaction) => Promise<T>, transactionConfig?: TransactionConfig) => Promise<T>
 
 interface ExecutionConfig<T> {
   routing: 'WRITE' | 'READ'
   database?: string
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
+  transactionConfig?: TransactionConfig
   resultTransformer: (result: Result) => Promise<T>
 }
 
@@ -59,7 +60,7 @@ export default class QueryExecutor {
       return await executeInTransaction(async (tx: ManagedTransaction) => {
         const result = tx.run(query, parameters)
         return await config.resultTransformer(result)
-      })
+      }, config.transactionConfig)
     } finally {
       await session.close()
     }
