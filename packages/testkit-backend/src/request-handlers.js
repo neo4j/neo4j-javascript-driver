@@ -697,7 +697,7 @@ export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, co
       }
     }
 
-    if ('txMeta' in config || 'timeout' in config) {
+    if (config.txMeta !== null || config.timeout !== null) {
       configuration.transactionConfig = {
         metadata: context.binder.objectToNative(config.txMeta),
         timeout: config.timeout
