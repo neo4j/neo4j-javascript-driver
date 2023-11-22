@@ -1,8 +1,6 @@
 /**
  * Copyright (c) "Neo4j"
- * Neo4j Sweden AB [http://neo4j.com]
- *
- * This file is part of Neo4j.
+ * Neo4j Sweden AB [https://neo4j.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,7 +244,7 @@ describe('#integration examples', () => {
       const session = driver.session({ defaultAccessMode: neo4j.WRITE })
 
       session
-        .run('CREATE (n:Person { name: $name })', { name: name })
+        .run('CREATE (n:Person { name: $name })', { name })
         .then(() => session.close())
         .then(() => driver.close())
     }
@@ -847,7 +845,7 @@ describe('#integration examples', () => {
 
     // Create a person node
     function addPerson (tx, name) {
-      return tx.run('CREATE (a:Person {name: $name}) RETURN a', { name: name })
+      return tx.run('CREATE (a:Person {name: $name}) RETURN a', { name })
     }
 
     // tag::transaction-timeout-config[]
@@ -877,7 +875,7 @@ describe('#integration examples', () => {
 
     // Create a person node
     function addPerson (tx, name) {
-      return tx.run('CREATE (a:Person {name: $name}) RETURN a', { name: name })
+      return tx.run('CREATE (a:Person {name: $name}) RETURN a', { name })
     }
 
     // tag::transaction-metadata-config[]
@@ -965,12 +963,12 @@ describe('#integration examples', () => {
     // tag::pass-bookmarks[]
     // Create a company node
     function addCompany (tx, name) {
-      return tx.run('CREATE (a:Company {name: $name})', { name: name })
+      return tx.run('CREATE (a:Company {name: $name})', { name })
     }
 
     // Create a person node
     function addPerson (tx, name) {
-      return tx.run('CREATE (a:Person {name: $name})', { name: name })
+      return tx.run('CREATE (a:Person {name: $name})', { name })
     }
 
     // Create an employment relationship to a pre-existing company node.
@@ -980,7 +978,7 @@ describe('#integration examples', () => {
         'MATCH (person:Person {name: $personName}) ' +
           'MATCH (company:Company {name: $companyName}) ' +
           'CREATE (person)-[:WORKS_FOR]->(company)',
-        { personName: personName, companyName: companyName }
+        { personName, companyName }
       )
     }
 
@@ -990,7 +988,7 @@ describe('#integration examples', () => {
         'MATCH (a:Person {name: $name1}) ' +
           'MATCH (b:Person {name: $name2}) ' +
           'MERGE (a)-[:KNOWS]->(b)',
-        { name1: name1, name2: name2 }
+        { name1, name2 }
       )
     }
 
@@ -1006,7 +1004,7 @@ describe('#integration examples', () => {
           const name1 = record.get(0)
           const name2 = record.get(1)
 
-          friends.push({ name1: name1, name2: name2 })
+          friends.push({ name1, name2 })
         }
       })
     }

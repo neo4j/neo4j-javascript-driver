@@ -1,8 +1,6 @@
 /**
  * Copyright (c) "Neo4j"
- * Neo4j Sweden AB [http://neo4j.com]
- *
- * This file is part of Neo4j.
+ * Neo4j Sweden AB [https://neo4j.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -625,7 +623,7 @@ describe('#integration session', () => {
           .then(result => {
             tx.commit()
               .then(() => {
-                resolve({ result: result, bookmarks: session.lastBookmarks() })
+                resolve({ result, bookmarks: session.lastBookmarks() })
               })
               .catch(error => reject(error))
           })
@@ -654,7 +652,7 @@ describe('#integration session', () => {
           .then(result => {
             tx.commit()
               .then(() => {
-                resolve({ result: result, bookmarks: session.lastBookmarks() })
+                resolve({ result, bookmarks: session.lastBookmarks() })
               })
               .catch(error => reject(error))
           })
@@ -1206,7 +1204,7 @@ describe('#integration session', () => {
     }
 
     const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
-    const config = { encrypted: encrypted, connectionTimeout: 1000 }
+    const config = { encrypted, connectionTimeout: 1000 }
 
     const localDriver = neo4j.driver(boltUri, sharedNeo4j.authToken, config)
     const session = localDriver.session()

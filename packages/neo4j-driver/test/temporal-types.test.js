@@ -1,8 +1,6 @@
 /**
  * Copyright (c) "Neo4j"
- * Neo4j Sweden AB [http://neo4j.com]
- *
- * This file is part of Neo4j.
+ * Neo4j Sweden AB [https://neo4j.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1454,7 +1452,7 @@ describe('#integration temporal-types', () => {
   async function testSendReceiveTemporalValue (value) {
     const result = await session.executeWrite(tx => tx.run(
       'CREATE (n:Node {value: $value}) RETURN n.value',
-      { value: value }
+      { value }
     ))
 
     const records = result.records
@@ -1488,7 +1486,7 @@ describe('#integration temporal-types', () => {
 
     try {
       const result = await session.run('UNWIND $durations AS d RETURN d', {
-        durations: durations
+        durations
       })
 
       const receivedDurationStrings = result.records
