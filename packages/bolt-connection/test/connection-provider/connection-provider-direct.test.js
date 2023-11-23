@@ -812,6 +812,22 @@ class FakeConnection extends Connection {
     return this._supportsReAuth
   }
 
+  set creationTimestamp (value) {
+    this._creationTimestamp = value
+  }
+
+  get creationTimestamp () {
+    return this._creationTimestamp
+  }
+
+  set idleTimestamp (value) {
+    this._idleTimestamp = value
+  }
+
+  get idleTimestamp () {
+    return this._idleTimestamp
+  }
+
   async close () {
     this._closed = true
   }

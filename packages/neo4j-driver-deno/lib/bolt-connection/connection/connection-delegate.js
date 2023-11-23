@@ -93,6 +93,18 @@ export default class DelegateConnection extends Connection {
     this._delegate.version = value
   }
 
+  get creationTimestamp () {
+    return this._delegate.creationTimestamp
+  }
+
+  set idleTimestamp (value) {
+    this._delegate.idleTimestamp = value
+  }
+
+  get idleTimestamp () {
+    return this._delegate.idleTimestamp
+  }
+
   isOpen () {
     return this._delegate.isOpen()
   }

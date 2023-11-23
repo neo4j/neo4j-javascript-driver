@@ -20,11 +20,11 @@ export default class LivenessCheckProvider {
   }
 
   /**
-     * Checks connection liveness with configured params.
-     *
-     * @param {Connection} connection
-     * @returns {Promise<true>} If liveness checks succeed, throws otherwise
-     */
+   * Checks connection liveness with configured params.
+   *
+   * @param {Connection} connection
+   * @returns {Promise<true>} If liveness checks succeed, throws otherwise
+   */
   async check (connection) {
     if (this._connectionLivenessCheckTimeout == null ||
             this._connectionLivenessCheckTimeout < 0 ||
@@ -32,9 +32,14 @@ export default class LivenessCheckProvider {
       return true
     }
 
-    if (this._connectionLivenessCheckTimeout === 0) {
+    const idleFor = Date.now() - connection.idleTimestamp
+
+    if (this._connectionLivenessCheckTimeout === 0 ||
+         idleFor > this._connectionLivenessCheckTimeout) {
       return await connection.resetAndFlush()
         .then(() => true)
     }
+
+    return true
   }
 }

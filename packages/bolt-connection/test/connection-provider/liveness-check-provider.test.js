@@ -20,20 +20,7 @@ import LivenessCheckProvider from '../../src/connection-provider/liveness-check-
 
 describe('LivenessCheckProvider', () => {
   describe('.check', () => {
-    describe.each([
-      [undefined, null],
-      [null, null],
-      [-1, undefined],
-      [undefined, undefined],
-      [null, undefined],
-      [-1, { scheme: 'none' }],
-      [undefined, { scheme: 'none' }],
-      [null, { scheme: 'none' }],
-      [0, undefined],
-      [0, null],
-      [123, undefined],
-      [3123, null]
-    ])('when connectionLivenessCheckTimeout=%s and connection.authToken=%s', (connectionLivenessCheckTimeout, authToken) => {
+    describe.each(noNetworkNeededFixture())('when connectionLivenessCheckTimeout=%s, connection.authToken=%s and idleFor=%s', (connectionLivenessCheckTimeout, authToken, idleFor) => {
       it('should return resolves with true', async () => {
         const { provider, connection } = scenario()
 
@@ -59,11 +46,7 @@ describe('LivenessCheckProvider', () => {
       }
     })
 
-    describe.each([
-      [0, { scheme: 'none' }, 0],
-      [0, { scheme: 'none' }, 1234],
-      [0, { scheme: 'none' }, 3234]
-    ])('when connectionLivenessCheckTimeout=%s, authToken=%s and connectionIdleFor=%s', (connectionLivenessCheckTimeout, authToken, connectionIdleFor) => {
+    describe.each(networkNeededFixture())('when connectionLivenessCheckTimeout=%s, connection.authToken=%s and idleFor=%s', (connectionLivenessCheckTimeout, authToken, idleFor) => {
       describe('and resetAndFlush succeed', () => {
         it('should return resolves with true', async () => {
           const { provider, connection } = scenario()
@@ -74,7 +57,7 @@ describe('LivenessCheckProvider', () => {
         it('should reset connection once', async () => {
           const { provider, connection } = scenario()
 
-          await provider.check(connection)
+          await provider.check(connection).catch(() => {})
 
           expect(connection.resetAndFlush).toHaveBeenCalledTimes(1)
         })
@@ -86,7 +69,7 @@ describe('LivenessCheckProvider', () => {
 
           const connection = mockConnection({
             authToken,
-            connectionIdleFor
+            idleFor
           })
 
           return { provider, connection }
@@ -117,7 +100,7 @@ describe('LivenessCheckProvider', () => {
 
           const connection = mockConnection({
             authToken,
-            connectionIdleFor,
+            idleFor,
             resetAndFlushPromise: Promise.reject(error)
           })
 
@@ -127,10 +110,43 @@ describe('LivenessCheckProvider', () => {
     })
   })
 
-  function mockConnection ({ resetAndFlushPromise, authToken } = {}) {
+  function noNetworkNeededFixture () {
+    //  [connectionLivenessCheckTimeout, authToken, idleFor]
+    return [
+      [undefined, null, 1245],
+      [null, null, 30000],
+      [-1, undefined, 30000],
+      [undefined, undefined, 30000],
+      [null, undefined, 30000],
+      [-1, { scheme: 'none' }, 30000],
+      [undefined, { scheme: 'none' }, 30000],
+      [null, { scheme: 'none' }, 30000],
+      [0, undefined, 30000],
+      [0, null, 30000],
+      [123, undefined, 30000],
+      [3123, null, 30000],
+      [30000, { scheme: 'none' }, 30000],
+      [29999, { scheme: 'none' }, 30000],
+      [1, { scheme: 'none' }, 30000]
+    ]
+  }
+
+  function networkNeededFixture () {
+    //  [connectionLivenessCheckTimeout, authToken, idleFor]
+    return [
+      [0, { scheme: 'none' }, 0],
+      [0, { scheme: 'none' }, 1234],
+      [0, { scheme: 'none' }, 3234],
+      [1000, { scheme: 'none' }, 3234],
+      [3233, { scheme: 'none' }, 3234]
+    ]
+  }
+
+  function mockConnection ({ resetAndFlushPromise, authToken, idleFor } = {}) {
     return {
       resetAndFlush: jest.fn(() => resetAndFlushPromise || Promise.resolve()),
-      authToken
+      authToken,
+      idleTimestamp: idleFor ? Date.now() - idleFor : undefined
     }
   }
 })

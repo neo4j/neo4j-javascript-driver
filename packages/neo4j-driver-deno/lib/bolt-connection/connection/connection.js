@@ -51,6 +51,18 @@ export default class Connection extends CoreConnection {
     throw new Error('not implemented')
   }
 
+  get creationTimestamp () {
+    throw new Error('not implemented')
+  }
+
+  set idleTimestamp (value) {
+    throw new Error('not implemented')
+  }
+
+  get idleTimestamp () {
+    throw new Error('not implemented')
+  }
+
   /**
    * @returns {BoltProtocol} the underlying bolt protocol assigned to this connection
    */
