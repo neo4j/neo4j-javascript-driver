@@ -26,9 +26,7 @@ export default class LivenessCheckProvider {
    * @returns {Promise<true>} If liveness checks succeed, throws otherwise
    */
   async check (connection) {
-    if (this._connectionLivenessCheckTimeout == null ||
-            this._connectionLivenessCheckTimeout < 0 ||
-            connection.authToken == null) {
+    if (this._isCheckDisabled || this._isNewlyCreatedConnection(connection)) {
       return true
     }
 
@@ -41,5 +39,13 @@ export default class LivenessCheckProvider {
     }
 
     return true
+  }
+
+  get _isCheckDisabled () {
+    return this._connectionLivenessCheckTimeout == null || this._connectionLivenessCheckTimeout < 0
+  }
+
+  _isNewlyCreatedConnection (connection) {
+    return connection.authToken == null
   }
 }
