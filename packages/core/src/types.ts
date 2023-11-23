@@ -71,6 +71,7 @@ export class Config {
   maxTransactionRetryTime?: number
   maxConnectionLifetime?: number
   connectionAcquisitionTimeout?: number
+  connectionLivenessCheckTimeout?: number
   connectionTimeout?: number
   disableLosslessIntegers?: boolean
   notificationFilter?: NotificationFilter
@@ -183,6 +184,33 @@ export class Config {
      * @type {number|undefined}
      */
     this.maxTransactionRetryTime = 30000 // 30 seconds
+
+    /**
+     * Specify the maximum time in milliseconds the connection can be idle without needing
+     * to perform a liveness check on acquire from the pool.
+     *
+     * Pooled connections that have been idle in the pool for longer than this
+     * timeout will be tested before they are used again, to ensure they are still live.
+     * If this option is set too low, an additional network call will be incurred
+     * when acquiring a connection, which causes a performance hit.
+     *
+     * If this is set high, you may receive sessions that are backed by no longer
+     * live connections, which will lead to exceptions in your application.
+     * Assuming the database is running, these exceptions will go away if you retry
+     * acquiring sessions.
+     *
+     * Hence, this parameter tunes a balance between the likelihood of your application
+     * seeing connection problems, and performance.
+     *
+     * You normally should not need to tune this parameter. No connection liveliness
+     * check is done by default. Value 0 means connections will always be tested for
+     * validity and negative values mean connections will never be tested.
+     *
+     * **Default**: ```undefined``` (Disabled)
+     *
+     * @type {number|undefined}
+     */
+    this.connectionLivenessCheckTimeout = undefined // Disabled
 
     /**
      * Specify socket connection timeout in milliseconds.
