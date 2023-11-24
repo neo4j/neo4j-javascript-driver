@@ -282,16 +282,23 @@ describe('constructor', () => {
       })
 
       it('should register the release function into the connection', async () => {
-        const { create } = setup()
-        const releaseResult = { property: 'some property' }
-        const release = jest.fn(() => releaseResult)
+        jest.useFakeTimers()
+        try {
+          const { create } = setup()
+          const releaseResult = { property: 'some property' }
+          const release = jest.fn(() => releaseResult)
 
-        const connection = await create({}, server0, release)
+          const connection = await create({}, server0, release)
+          connection.idleTimestamp = -1234
 
-        const released = connection.release()
+          const released = connection.release()
 
-        expect(released).toBe(releaseResult)
-        expect(release).toHaveBeenCalledWith(server0, connection)
+          expect(released).toBe(releaseResult)
+          expect(release).toHaveBeenCalledWith(server0, connection)
+          expect(connection.idleTimestamp).toBeCloseTo(Date.now())
+        } finally {
+          jest.useRealTimers()
+        }
       })
 
       it.each([
