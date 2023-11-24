@@ -106,7 +106,7 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
-  notificationFilter?: NotificationFilter,
+  notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
 }
 
@@ -909,7 +909,7 @@ function sanitizeConfig (config: any): void {
   )
   config.connectionTimeout = extractConnectionTimeout(config)
 
-  config.connectionLivenessCheckTimeout = 
+  config.connectionLivenessCheckTimeout =
     validateConnectionLivenessCheckTimeoutSizeValue(config.connectionLivenessCheckTimeout)
 }
 
@@ -980,7 +980,7 @@ function validateConnectionLivenessCheckTimeoutSizeValue (
     throw new Error(
       `The connectionLivenessCheckTimeout can only be a positive value or 0 for always. However connectionLivenessCheckTimeout = ${connectionLivenessCheckTimeout}`
     )
-  } 
+  }
   return connectionLivenessCheckTimeout
 }
 
