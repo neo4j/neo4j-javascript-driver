@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { bookmarkManager, ConnectionProvider, EagerResult, newError, NotificationFilter, Result, ResultSummary, ServerInfo, Session, TransactionConfig } from '../src'
+import { bookmarkManager, ConnectionProvider, EagerResult, int, newError, NotificationFilter, Result, ResultSummary, ServerInfo, Session, TransactionConfig } from '../src'
 import Driver, { QueryConfig, READ, routing } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
@@ -601,6 +601,64 @@ describe('Driver', () => {
         )
 
         await driver.close()
+      })
+    })
+
+    describe('config', () => {
+      describe('connectionLivenessCheckTimeout', () => {
+        it.each([
+          [undefined, undefined],
+          [null, undefined],
+          [0, 0],
+          [BigInt(0), 0],
+          [int(0), 0],
+          ['0', 0],
+          [3000, 3000],
+          [BigInt(3000), 3000],
+          [int(3000), 3000],
+          ['3000', 3000]
+        ])('should sanitize value % to %s', async (configured, expected) => {
+          const createConnectionProviderMock = jest.fn(mockCreateConnectonProvider(connectionProvider))
+          const driver = new Driver(
+            META_INFO,
+            // @ts-expect-error
+            { connectionLivenessCheckTimeout: configured },
+            createConnectionProviderMock,
+            createSession
+          )
+
+          driver._getOrCreateConnectionProvider()
+
+          expect(createConnectionProviderMock).toHaveBeenCalledWith(
+            expect.any(Number),
+            expect.objectContaining({ connectionLivenessCheckTimeout: expected }),
+            expect.any(Object),
+            expect.any(Object)
+          )
+
+          await driver.close()
+        })
+
+        it.each([
+          [-1, -1],
+          [int(-1), -1],
+          [BigInt(-1), -1],
+          ['-1', -1],
+          [{}, NaN],
+          ['a', NaN]
+        ])('should fail in invalid values', async (configured, expected) => {
+          const createConnectionProviderMock = jest.fn(mockCreateConnectonProvider(connectionProvider))
+
+          expect(() => new Driver(
+            META_INFO,
+            // @ts-expect-error
+            { connectionLivenessCheckTimeout: configured },
+            createConnectionProviderMock,
+            createSession
+          )).toThrow(new Error(`The connectionLivenessCheckTimeout can only be a positive value or 0 for always. However connectionLivenessCheckTimeout = ${expected}`))
+
+          expect(createConnectionProviderMock).not.toHaveBeenCalled()
+        })
       })
     })
   })

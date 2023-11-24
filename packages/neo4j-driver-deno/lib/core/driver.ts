@@ -106,7 +106,8 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
-  notificationFilter?: NotificationFilter
+  notificationFilter?: NotificationFilter,
+  connectionLivenessCheckTimeout?: number
 }
 
 /**
@@ -907,6 +908,9 @@ function sanitizeConfig (config: any): void {
     DEFAULT_FETCH_SIZE
   )
   config.connectionTimeout = extractConnectionTimeout(config)
+
+  config.connectionLivenessCheckTimeout = 
+    validateConnectionLivenessCheckTimeoutSizeValue(config.connectionLivenessCheckTimeout)
 }
 
 /**
@@ -960,6 +964,24 @@ function extractConnectionTimeout (config: any): number | null {
     // timeout configured, use the provided value
     return configuredTimeout
   }
+}
+
+/**
+ * @private
+ */
+function validateConnectionLivenessCheckTimeoutSizeValue (
+  rawValue: any
+): number | undefined {
+  if (rawValue == null) {
+    return undefined
+  }
+  const connectionLivenessCheckTimeout = parseInt(rawValue, 10)
+  if (connectionLivenessCheckTimeout < 0 || Number.isNaN(connectionLivenessCheckTimeout)) {
+    throw new Error(
+      `The connectionLivenessCheckTimeout can only be a positive value or 0 for always. However connectionLivenessCheckTimeout = ${connectionLivenessCheckTimeout}`
+    )
+  } 
+  return connectionLivenessCheckTimeout
 }
 
 /**
