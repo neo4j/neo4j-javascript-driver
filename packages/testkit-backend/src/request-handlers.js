@@ -82,6 +82,10 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     config.telemetryDisabled = data.telemetryDisabled
   }
 
+  if ('livenessCheckTimeoutMs' in data) {
+    config.connectionLivenessCheckTimeout = data.livenessCheckTimeoutMs
+  }
+
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)
