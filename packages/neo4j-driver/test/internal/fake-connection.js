@@ -38,7 +38,7 @@ export default class FakeConnection extends Connection {
     this._id = 0
     this._databaseId = null
     this._requestRoutingInformationMock = null
-    this.creationTimestamp = Date.now()
+    this._creationTimestamp = Date.now()
 
     this.resetInvoked = 0
     this.releaseInvoked = 0
@@ -83,6 +83,22 @@ export default class FakeConnection extends Connection {
 
   set authToken (authToken) {
     this._authToken = authToken
+  }
+
+  set creationTimestamp (value) {
+    this._creationTimestamp = value
+  }
+
+  get creationTimestamp () {
+    return this._creationTimestamp
+  }
+
+  set idleTimestamp (value) {
+    this._idleTimestamp = value
+  }
+
+  get idleTimestamp () {
+    return this._idleTimestamp
   }
 
   protocol () {
