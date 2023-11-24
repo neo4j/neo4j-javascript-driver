@@ -33,6 +33,7 @@ import RoutingConnectionProvider from '../../src/connection-provider/connection-
 import { DelegateConnection, Connection } from '../../src/connection'
 import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
 import { functional } from '../../src/lang'
+import LivenessCheckProvider from '../../src/connection-provider/liveness-check-provider'
 
 const {
   serverAddress: { ServerAddress },
@@ -3265,13 +3266,14 @@ describe.each([
           const connection = new FakeConnection(server0)
           connection.creationTimestamp = Date.now()
 
-          const { validateOnAcquire, authenticationProviderHook } = setup()
+          const { validateOnAcquire, authenticationProviderHook, livenessCheckProviderHook } = setup()
 
           await expect(validateOnAcquire({ auth }, connection)).resolves.toBe(true)
 
           expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
             connection, auth
           })
+          expect(livenessCheckProviderHook.check).toHaveBeenCalledWith(connection)
         })
 
         it.each([
@@ -3284,7 +3286,7 @@ describe.each([
           const authenticationProvider = jest.fn(() => Promise.reject(error))
           connection.creationTimestamp = Date.now()
 
-          const { validateOnAcquire, authenticationProviderHook, log } = setup({ authenticationProvider })
+          const { validateOnAcquire, authenticationProviderHook, log, livenessCheckProviderHook } = setup({ authenticationProvider })
 
           await expect(validateOnAcquire({ auth }, connection)).resolves.toBe(false)
 
@@ -3295,6 +3297,7 @@ describe.each([
           expect(log.debug).toHaveBeenCalledWith(
             `The connection ${connection.id} is not valid because of an error ${error.code} '${error.message}'`
           )
+          expect(livenessCheckProviderHook.check).toHaveBeenCalledWith(connection)
         })
 
         it.each([
@@ -3305,13 +3308,32 @@ describe.each([
           const auth = {}
           connection.creationTimestamp = Date.now()
 
-          const { validateOnAcquire, authenticationProviderHook } = setup()
+          const { validateOnAcquire, authenticationProviderHook, livenessCheckProviderHook } = setup()
 
           await expect(validateOnAcquire({ auth, skipReAuth }, connection)).resolves.toBe(true)
 
           expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
             connection, auth, skipReAuth
           })
+          expect(livenessCheckProviderHook.check).toHaveBeenCalledWith(connection)
+        })
+
+        it('should return false when liveness checks fails', async () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+          const error = newError('#themessage', '#thecode')
+
+          const { validateOnAcquire, authenticationProviderHook, log, livenessCheckProviderHook } = setup({
+            livenessCheckProvider: () => Promise.reject(error)
+          })
+
+          await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
+
+          expect(livenessCheckProviderHook.check).toBeCalledWith(connection)
+          expect(log.debug).toBeCalledWith(
+            `The connection ${connection.id} is not alive because of an error ${error.code} '${error.message}'`
+          )
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
         })
 
         it('should return false when connection is closed and within the lifetime', async () => {
@@ -3319,20 +3341,22 @@ describe.each([
           connection.creationTimestamp = Date.now()
           await connection.close()
 
-          const { validateOnAcquire, authenticationProviderHook } = setup()
+          const { validateOnAcquire, authenticationProviderHook, livenessCheckProviderHook } = setup()
 
           await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
           expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+          expect(livenessCheckProviderHook.check).not.toHaveBeenCalled()
         })
 
         it('should return false when connection is open and out of the lifetime', async () => {
           const connection = new FakeConnection(server0)
           connection.creationTimestamp = Date.now() - 4000
 
-          const { validateOnAcquire, authenticationProviderHook } = setup({ maxConnectionLifetime: 3000 })
+          const { validateOnAcquire, authenticationProviderHook, livenessCheckProviderHook } = setup({ maxConnectionLifetime: 3000 })
 
           await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
           expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+          expect(livenessCheckProviderHook.check).not.toHaveBeenCalled()
         })
 
         it('should return false when connection is closed and out of the lifetime', async () => {
@@ -3340,10 +3364,11 @@ describe.each([
           await connection.close()
           connection.creationTimestamp = Date.now() - 4000
 
-          const { validateOnAcquire, authenticationProviderHook } = setup({ maxConnectionLifetime: 3000 })
+          const { validateOnAcquire, authenticationProviderHook, livenessCheckProviderHook } = setup({ maxConnectionLifetime: 3000 })
 
           await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
           expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+          expect(livenessCheckProviderHook.check).not.toHaveBeenCalled()
         })
       })
 
@@ -3396,14 +3421,17 @@ describe.each([
         })
       })
 
-      function setup ({ createConnection, authenticationProvider, maxConnectionLifetime } = {}) {
+      function setup ({ createConnection, authenticationProvider, maxConnectionLifetime, livenessCheckProvider } = {}) {
         const newPool = jest.fn((...args) => new Pool(...args))
         const log = new Logger('debug', () => undefined)
         jest.spyOn(log, 'debug')
         const createChannelConnectionHook = createConnection || jest.fn(async (address) => new FakeConnection(address))
         const authenticationProviderHook = new AuthenticationProvider({})
+        const livenessCheckProviderHook = new LivenessCheckProvider({})
         jest.spyOn(authenticationProviderHook, 'authenticate')
           .mockImplementation(authenticationProvider || jest.fn(({ connection }) => Promise.resolve(connection)))
+        jest.spyOn(livenessCheckProviderHook, 'check')
+          .mockImplementation(livenessCheckProvider || jest.fn(() => Promise.resolve(true)))
         const provider = new RoutingConnectionProvider({
           newPool,
           config: {
@@ -3414,11 +3442,13 @@ describe.each([
         })
         provider._createChannelConnection = createChannelConnectionHook
         provider._authenticationProvider = authenticationProviderHook
+        provider._livenessCheckProvider = livenessCheckProviderHook
         return {
           provider,
           ...newPool.mock.calls[0][0],
           createChannelConnectionHook,
           authenticationProviderHook,
+          livenessCheckProviderHook,
           log
         }
       }
