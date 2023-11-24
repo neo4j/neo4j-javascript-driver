@@ -1,8 +1,6 @@
 /**
  * Copyright (c) "Neo4j"
- * Neo4j Sweden AB [http://neo4j.com]
- *
- * This file is part of Neo4j.
+ * Neo4j Sweden AB [https://neo4j.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +41,13 @@ describe('#integration session', () => {
     let count = 0
     const tx = session.beginTransaction()
     const results = []
-    tx.run('UNWIND range(1, $size) AS x RETURN x', { size: size }).subscribe({
+    tx.run('UNWIND range(1, $size) AS x RETURN x', { size }).subscribe({
       onNext: record => {
         const x = record.get('x').toInt()
         let index = 0
         const result = tx.run(
           'UNWIND range (1, $x) AS x CREATE (n:Node {id: x}) RETURN n.id',
-          { x: x }
+          { x }
         )
         results.push(result)
         result.subscribe({
@@ -81,13 +79,13 @@ describe('#integration session', () => {
   it('should give proper error when nesting queries within one session', done => {
     const size = 20
     const result = session.run('UNWIND range(1, $size) AS x RETURN x', {
-      size: size
+      size
     })
     result.subscribe({
       onNext: async record => {
         const x = record.get('x').toInt()
         await expectAsync(
-          session.run('CREATE (n:Node {id: $x}) RETURN n.id', { x: x })
+          session.run('CREATE (n:Node {id: $x}) RETURN n.id', { x })
         ).toBeRejectedWith(
           jasmine.objectContaining({
             message:
@@ -109,13 +107,13 @@ describe('#integration session', () => {
     const size = 20
     let count = 0
     session
-      .run('UNWIND range(1, $size) AS x RETURN x', { size: size })
+      .run('UNWIND range(1, $size) AS x RETURN x', { size })
       .then(async result => {
         for (const record of result.records) {
           const x = record.get('x')
           const innerResult = await session.run(
             'CREATE (n:Node {id: $x}) RETURN n.id',
-            { x: x }
+            { x }
           )
           expect(innerResult.records.length).toEqual(1)
           expect(innerResult.records[0].get('n.id')).toEqual(x)

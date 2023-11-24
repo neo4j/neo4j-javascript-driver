@@ -1,8 +1,6 @@
 /**
  * Copyright (c) "Neo4j"
- * Neo4j Sweden AB [http://neo4j.com]
- *
- * This file is part of Neo4j.
+ * Neo4j Sweden AB [https://neo4j.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +40,7 @@ describe('#stub-direct direct driver with stub server', () => {
       }
 
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {
-        logging: logging
+        logging
       })
       const session = driver.session()
 
