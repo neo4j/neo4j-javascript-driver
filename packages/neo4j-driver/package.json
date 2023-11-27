@@ -40,7 +40,7 @@
     "@rollup/plugin-commonjs": "^21.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@types/jasmine": "^4.3.1",
-    "async": "^3.2.4",
+    "async": "^3.2.5",
     "browserify-sign": "^4.2.2",
     "esdoc": "^1.1.0",
     "esdoc-importpath-plugin": "^1.0.2",
@@ -71,13 +71,13 @@
     "minimist": "^1.2.8",
     "rollup": "^2.77.4-1",
     "rollup-plugin-polyfill-node": "^0.11.0",
-    "semver": "^7.5.3",
+    "semver": "^7.5.4",
     "source-map": "0.7.4",
     "testcontainers": "^8.16.0",
     "tmp": "0.2.1",
     "typescript": "^4.9.5",
     "vinyl-buffer": "^1.0.1",
-    "webpack": "^5.88.0"
+    "webpack": "^5.89.0"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "5.0.0-dev",
