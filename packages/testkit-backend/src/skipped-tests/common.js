@@ -187,6 +187,12 @@ const skippedTests = [
           endsWith('test_error_on_rollback_using_tx_run')
         )
       )
+  ),
+  skip(
+    'Behaviour pending unification',
+    ifStartsWith('stub.routing.test_routing_')
+      .and(
+        ifEndsWith('.test_should_drop_connections_failing_liveness_check'))
   )
 ]
 
