@@ -32,6 +32,7 @@ const features = [
   'Feature:API:Driver.VerifyAuthentication',
   'Feature:API:Driver.VerifyConnectivity',
   'Feature:API:Session:NotificationsConfig',
+  'Feature:API:Liveness.Check',
   'Optimization:AuthPipelining',
   'Optimization:EagerTransactionBegin',
   'Optimization:ExecuteQueryPipelining',

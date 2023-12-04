@@ -130,7 +130,7 @@ export default class ChannelConnection extends Connection {
     this._id = idGenerator++
     this._address = address
     this._server = { address: address.asHostPort() }
-    this.creationTimestamp = Date.now()
+    this._creationTimestamp = Date.now()
     this._disableLosslessIntegers = disableLosslessIntegers
     this._ch = channel
     this._chunker = chunker
@@ -218,6 +218,18 @@ export default class ChannelConnection extends Connection {
 
   set databaseId (value) {
     this._dbConnectionId = value
+  }
+
+  set idleTimestamp (value) {
+    this._idleTimestamp = value
+  }
+
+  get idleTimestamp () {
+    return this._idleTimestamp
+  }
+
+  get creationTimestamp () {
+    return this._creationTimestamp
   }
 
   /**
