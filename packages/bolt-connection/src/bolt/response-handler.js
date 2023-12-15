@@ -76,7 +76,7 @@ export default class ResponseHandler {
     this._transformMetadata = transformMetadata || NO_OP_IDENTITY
     this._observer = Object.assign(
       {
-        onPendingObserversChange: NO_OP,
+        onObserversCountChange: NO_OP,
         onError: NO_OP,
         onFailure: NO_OP,
         onErrorApplyTransformation: NO_OP_IDENTITY
@@ -156,7 +156,11 @@ export default class ResponseHandler {
    */
   _updateCurrentObserver () {
     this._currentObserver = this._pendingObservers.shift()
-    this._observer.onPendingObserversChange(this._pendingObservers.length)
+    this._observer.onObserversCountChange(this._observersCount)
+  }
+
+  get _observersCount () {
+    return this._currentObserver == null ? this._pendingObservers.length : this._pendingObservers.length + 1
   }
 
   _queueObserver (observer) {
@@ -169,7 +173,7 @@ export default class ResponseHandler {
     } else {
       this._pendingObservers.push(observer)
     }
-    this._observer.onPendingObserversChange(this._pendingObservers.length)
+    this._observer.onObserversCountChange(this._observersCount)
     return true
   }
 

@@ -22,6 +22,7 @@ const {
   logger: { Logger }
 } = internal
 
+const SUCCESS = 0x70 // 0111 0000 // SUCCESS <metadata>
 const FAILURE = 0x7f // 0111 1111 // FAILURE <metadata>
 
 describe('response-handler', () => {
@@ -68,5 +69,37 @@ describe('response-handler', () => {
       expect(receivedError.message).toBe(expectedError.message)
       expect(receivedError.code).toBe(expectedError.code)
     })
+  })
+
+  it('should keep track of observers and notify onObserversCountChange()', () => {
+    const observer = {
+      onObserversCountChange: jest.fn()
+    }
+    const responseHandler = new ResponseHandler({ observer, log: Logger.noOp() })
+
+    responseHandler._queueObserver({})
+    expect(observer.onObserversCountChange).toHaveBeenLastCalledWith(1)
+
+    responseHandler._queueObserver({})
+    expect(observer.onObserversCountChange).toHaveBeenLastCalledWith(2)
+
+    responseHandler._queueObserver({})
+    expect(observer.onObserversCountChange).toHaveBeenLastCalledWith(3)
+
+    const success = {
+      signature: SUCCESS,
+      fields: [{}]
+    }
+
+    responseHandler.handleResponse(success)
+    expect(observer.onObserversCountChange).toHaveBeenLastCalledWith(2)
+
+    responseHandler.handleResponse(success)
+    expect(observer.onObserversCountChange).toHaveBeenLastCalledWith(1)
+
+    responseHandler.handleResponse(success)
+    expect(observer.onObserversCountChange).toHaveBeenLastCalledWith(0)
+
+    expect(observer.onObserversCountChange).toHaveBeenCalledTimes(6)
   })
 })
