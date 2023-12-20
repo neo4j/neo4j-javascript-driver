@@ -67,7 +67,7 @@ export function createChannelConnection (
           server: conn.server,
           log: conn.logger,
           observer: {
-            onPendingObserversChange: conn._handleOngoingRequestsNumberChange.bind(conn),
+            onObserversCountChange: conn._handleOngoingRequestsNumberChange.bind(conn),
             onError: conn._handleFatalError.bind(conn),
             onFailure: conn._resetOnFailure.bind(conn),
             onProtocolError: conn._handleProtocolError.bind(conn),
