@@ -39,7 +39,8 @@ export default class FakeConnection extends Connection {
     this._databaseId = null
     this._requestRoutingInformationMock = null
     this._creationTimestamp = Date.now()
-
+    this._idle = false
+    this._idleObserver = null
     this.resetInvoked = 0
     this.releaseInvoked = 0
     this.seenQueries = []
@@ -99,6 +100,16 @@ export default class FakeConnection extends Connection {
 
   get idleTimestamp () {
     return this._idleTimestamp
+  }
+
+  _setIdle (observer) {
+    this._idle = true
+    this._idleObserver = observer
+  }
+
+  _unsetIdle () {
+    this._idle = false
+    this._idleObserver = null
   }
 
   protocol () {

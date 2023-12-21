@@ -71,4 +71,29 @@ describe('#unit PooledConnectionProvider', () => {
       clock.uninstall()
     }
   })
+
+  it('_installIdleObserverOnConnection should set connection as idle', () => {
+    const connection = new FakeConnection()
+    const observer = { onCompleted: () => {} }
+
+    PooledConnectionProvider._installIdleObserverOnConnection(connection, observer)
+
+    expect(connection._idle).toBe(true)
+    expect(connection._idleObserver).toBe(observer)
+  })
+
+  it('_removeIdleObserverOnConnection should unset connection as idle', () => {
+    const connection = new FakeConnection()
+    const observer = { onCompleted: () => {} }
+
+    PooledConnectionProvider._installIdleObserverOnConnection(connection, observer)
+
+    expect(connection._idle).toBe(true)
+    expect(connection._idleObserver).toBe(observer)
+
+    PooledConnectionProvider._removeIdleObserverOnConnection(connection)
+
+    expect(connection._idle).toBe(false)
+    expect(connection._idleObserver).toBe(null)
+  })
 })
