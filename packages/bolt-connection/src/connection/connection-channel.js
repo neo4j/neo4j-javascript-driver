@@ -394,7 +394,7 @@ export default class ChannelConnection extends Connection {
   }
 
   /**
-   * This method still here because it's used by the {@link PooledConnectionProvider}
+   * This method is used by the {@link PooledConnectionProvider}
    *
    * @param {any} observer
    */
@@ -404,9 +404,22 @@ export default class ChannelConnection extends Connection {
     return this._protocol.queueObserverIfProtocolIsNotBroken(observer)
   }
 
+  /**
+   * This method is used by the {@link PooledConnectionProvider}
+   *
+   */
   _unsetIdle () {
     this._idle = false
     this._updateCurrentObserver()
+  }
+
+  /**
+   * This method still here because of the connection-channel.tests.js
+   *
+   * @param {any} observer
+   */
+  _queueObserver (observer) {
+    return this._protocol.queueObserverIfProtocolIsNotBroken(observer)
   }
 
   hasOngoingObservableRequests () {
