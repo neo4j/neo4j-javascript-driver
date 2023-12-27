@@ -54,6 +54,7 @@ export default class WebSocketChannel {
     this._receiveTimeout = null
     this._receiveTimeoutStarted = false
     this._receiveTimeoutId = null
+    this._closingPromise = null
 
     const { scheme, error } = determineWebSocketScheme(config, protocolSupplier)
     if (error) {
@@ -163,17 +164,23 @@ export default class WebSocketChannel {
    * @returns {Promise} A promise that will be resolved after channel is closed
    */
   close () {
-    return new Promise((resolve, reject) => {
-      this._clearConnectionTimeout()
-      if (this._ws && this._ws.readyState !== WS_CLOSED) {
-        this._open = false
-        this.stopReceiveTimeout()
-        this._ws.onclose = () => resolve()
-        this._ws.close()
-      } else {
-        resolve()
-      }
-    })
+    if (this._closingPromise === null) {
+      this._closingPromise = new Promise((resolve, reject) => {
+        this._clearConnectionTimeout()
+        if (this._ws && this._ws.readyState !== WS_CLOSED) {
+          this._open = false
+          this.stopReceiveTimeout()
+          this._ws.onclose = () => {
+            resolve()
+          }
+          this._ws.close()
+        } else {
+          resolve()
+        }
+      })
+    }
+
+    return this._closingPromise
   }
 
   /**
