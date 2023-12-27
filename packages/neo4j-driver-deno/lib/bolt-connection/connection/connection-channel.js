@@ -406,7 +406,6 @@ export default class ChannelConnection extends Connection {
 
   /**
    * This method is used by the {@link PooledConnectionProvider}
-   *
    */
   _unsetIdle () {
     this._idle = false

@@ -401,7 +401,7 @@ export default class ChannelConnection extends Connection {
   _setIdle (observer) {
     this._idle = true
     this._ch.stopReceiveTimeout()
-    return this._protocol.queueObserverIfProtocolIsNotBroken(observer)
+    this._protocol.queueObserverIfProtocolIsNotBroken(observer)
   }
 
   /**
