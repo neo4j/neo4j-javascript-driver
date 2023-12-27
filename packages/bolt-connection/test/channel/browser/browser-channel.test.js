@@ -323,6 +323,41 @@ describe('WebSocketChannel', () => {
         fakeSetTimeout.uninstall()
       }
     })
+
+    it('should return always the same promise', async () => {
+      const fakeSetTimeout = setTimeoutMock.install()
+      try {
+        // do not execute setTimeout callbacks
+        fakeSetTimeout.pause()
+        const address = ServerAddress.fromUrl('bolt://localhost:8989')
+        const driverConfig = { connectionTimeout: 4242 }
+        const channelConfig = new ChannelConfig(
+          address,
+          driverConfig,
+          SERVICE_UNAVAILABLE
+        )
+        webSocketChannel = new WebSocketChannel(
+          channelConfig,
+          undefined,
+          createWebSocketFactory(WS_OPEN)
+        )
+
+        const promise1 = webSocketChannel.close()
+        const promise2 = webSocketChannel.close()
+
+        expect(promise1).toBe(promise2)
+
+        await Promise.all([promise1, promise2])
+
+        const promise3 = webSocketChannel.close()
+
+        expect(promise3).toBe(promise2)
+
+        await promise3
+      } finally {
+        fakeSetTimeout.uninstall()
+      }
+    })
   })
 
   describe('.setupReceiveTimeout()', () => {
