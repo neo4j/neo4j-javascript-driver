@@ -226,11 +226,11 @@ export default class PooledConnectionProvider extends ConnectionProvider {
   }
 
   static _installIdleObserverOnConnection (conn, observer) {
-    conn._queueObserver(observer)
+    conn._setIdle(observer)
   }
 
   static _removeIdleObserverOnConnection (conn) {
-    conn._updateCurrentObserver()
+    conn._unsetIdle()
   }
 
   _handleSecurityError (error, address, connection) {

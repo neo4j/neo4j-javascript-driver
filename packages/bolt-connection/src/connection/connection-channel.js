@@ -125,6 +125,7 @@ export default class ChannelConnection extends Connection {
   ) {
     super(errorHandler)
     this._authToken = null
+    this._idle = false
     this._reseting = false
     this._resetObservers = []
     this._id = idGenerator++
@@ -393,7 +394,26 @@ export default class ChannelConnection extends Connection {
   }
 
   /**
-   * This method still here because it's used by the {@link PooledConnectionProvider}
+   * This method is used by the {@link PooledConnectionProvider}
+   *
+   * @param {any} observer
+   */
+  _setIdle (observer) {
+    this._idle = true
+    this._ch.stopReceiveTimeout()
+    this._protocol.queueObserverIfProtocolIsNotBroken(observer)
+  }
+
+  /**
+   * This method is used by the {@link PooledConnectionProvider}
+   */
+  _unsetIdle () {
+    this._idle = false
+    this._updateCurrentObserver()
+  }
+
+  /**
+   * This method still here because of the connection-channel.tests.js
    *
    * @param {any} observer
    */
@@ -402,7 +422,7 @@ export default class ChannelConnection extends Connection {
   }
 
   hasOngoingObservableRequests () {
-    return this._protocol.hasOngoingObservableRequests()
+    return !this._idle && this._protocol.hasOngoingObservableRequests()
   }
 
   /**
@@ -500,6 +520,9 @@ export default class ChannelConnection extends Connection {
    * @param {number} requestsNumber Ongoing requests number
    */
   _handleOngoingRequestsNumberChange (requestsNumber) {
+    if (this._idle) {
+      return
+    }
     if (requestsNumber === 0) {
       this._ch.stopReceiveTimeout()
     } else {

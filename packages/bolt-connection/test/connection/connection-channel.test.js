@@ -559,7 +559,7 @@ describe('ChannelConnection', () => {
   })
 
   describe('.__handleOngoingRequestsNumberChange()', () => {
-    it('should call channel.stopReceiveTimeout when requets number equals to 0', () => {
+    it('should call channel.stopReceiveTimeout when requests number equals to 0', () => {
       const channel = {
         stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
         startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
@@ -571,7 +571,7 @@ describe('ChannelConnection', () => {
       expect(channel.stopReceiveTimeout).toHaveBeenCalledTimes(1)
     })
 
-    it('should not call channel.startReceiveTimeout when requets number equals to 0', () => {
+    it('should not call channel.startReceiveTimeout when requests number equals to 0', () => {
       const channel = {
         stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
         startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
@@ -585,7 +585,7 @@ describe('ChannelConnection', () => {
 
     it.each([
       [1], [2], [3], [5], [8], [13], [3000]
-    ])('should call channel.startReceiveTimeout when requets number equals to %d', (requests) => {
+    ])('should call channel.startReceiveTimeout when requests number equals to %d', (requests) => {
       const channel = {
         stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
         startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
@@ -599,7 +599,7 @@ describe('ChannelConnection', () => {
 
     it.each([
       [1], [2], [3], [5], [8], [13], [3000]
-    ])('should not call channel.stopReceiveTimeout when requets number equals to %d', (requests) => {
+    ])('should not call channel.stopReceiveTimeout when requests number equals to %d', (requests) => {
       const channel = {
         stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
         startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
@@ -609,6 +609,68 @@ describe('ChannelConnection', () => {
       connection._handleOngoingRequestsNumberChange(requests)
 
       expect(channel.stopReceiveTimeout).toHaveBeenCalledTimes(0)
+    })
+
+    it.each([
+      [0], [1], [2], [3], [5], [8], [13], [3000]
+    ])('should not call channel.stopReceiveTimeout or startReceiveTimeout when requests number equals to %d and connection is idle', (requests) => {
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
+        startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
+      }
+      const protocol = {
+        queueObserverIfProtocolIsNotBroken: jest.fn(() => {})
+      }
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier: () => protocol })
+      connection._setIdle({})
+      channel.stopReceiveTimeout.mockClear()
+
+      connection._handleOngoingRequestsNumberChange(requests)
+
+      expect(channel.stopReceiveTimeout).toHaveBeenCalledTimes(0)
+      expect(channel.startReceiveTimeout).toHaveBeenCalledTimes(0)
+    })
+
+    it.each([
+      [1], [2], [3], [5], [8], [13], [3000]
+    ])('should  call channel.startReceiveTimeout when requests number equals to %d and connection is not idle anymore', (requests) => {
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
+        startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
+      }
+      const protocol = {
+        queueObserverIfProtocolIsNotBroken: jest.fn(() => {}),
+        updateCurrentObserver: jest.fn(() => {})
+      }
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier: () => protocol })
+      connection._setIdle({})
+      connection._unsetIdle()
+      channel.stopReceiveTimeout.mockClear()
+
+      connection._handleOngoingRequestsNumberChange(requests)
+
+      expect(channel.stopReceiveTimeout).toHaveBeenCalledTimes(0)
+      expect(channel.startReceiveTimeout).toHaveBeenCalledTimes(1)
+    })
+
+    it('should  call channel.stopReceiveTimeout when requests number equals to 0 and connection is not idle anymore', () => {
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
+        startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
+      }
+      const protocol = {
+        queueObserverIfProtocolIsNotBroken: jest.fn(() => {}),
+        updateCurrentObserver: jest.fn(() => {})
+      }
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier: () => protocol })
+      connection._setIdle({})
+      connection._unsetIdle()
+      channel.stopReceiveTimeout.mockClear()
+
+      connection._handleOngoingRequestsNumberChange(0)
+
+      expect(channel.stopReceiveTimeout).toHaveBeenCalledTimes(1)
+      expect(channel.startReceiveTimeout).toHaveBeenCalledTimes(0)
     })
   })
 
@@ -1181,6 +1243,44 @@ describe('ChannelConnection', () => {
   })
 
   describe('.hasOngoingObservableRequests()', () => {
+    it('should return false if connection is idle', () => {
+      const protocol = {
+        hasOngoingObservableRequests: jest.fn(() => true),
+        queueObserverIfProtocolIsNotBroken: jest.fn(() => {})
+      }
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout')
+      }
+
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol, channel })
+      connection._setIdle({})
+
+      const result = connection.hasOngoingObservableRequests()
+
+      expect(result).toBe(false)
+      expect(protocol.hasOngoingObservableRequests).not.toBeCalledWith()
+    })
+
+    it('should redirect request to the protocol when connection is not idle anymore', () => {
+      const protocol = {
+        hasOngoingObservableRequests: jest.fn(() => true),
+        queueObserverIfProtocolIsNotBroken: jest.fn(() => {}),
+        updateCurrentObserver: jest.fn(() => {})
+      }
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout')
+      }
+
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol, channel })
+      connection._setIdle({})
+      connection._unsetIdle()
+
+      const result = connection.hasOngoingObservableRequests()
+
+      expect(result).toBe(true)
+      expect(protocol.hasOngoingObservableRequests).toBeCalledWith()
+    })
+
     it('should call redirect request to the protocol', () => {
       const protocol = {
         hasOngoingObservableRequests: jest.fn(() => true)
@@ -1192,6 +1292,41 @@ describe('ChannelConnection', () => {
 
       expect(result).toBe(true)
       expect(protocol.hasOngoingObservableRequests).toBeCalledWith()
+    })
+  })
+
+  describe('._setIdle()', () => {
+    it('should stop receive timeout and enqueue observer', () => {
+      const protocol = {
+        queueObserverIfProtocolIsNotBroken: jest.fn(() => {})
+      }
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout')
+      }
+      const observer = {
+        onComplete: () => {}
+      }
+
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol, channel })
+
+      connection._setIdle(observer)
+
+      expect(channel.stopReceiveTimeout).toBeCalledTimes(1)
+      expect(protocol.queueObserverIfProtocolIsNotBroken).toBeCalledWith(observer)
+    })
+  })
+
+  describe('._unsetIdle()', () => {
+    it('should update current observer', () => {
+      const protocol = {
+        updateCurrentObserver: jest.fn(() => {})
+      }
+
+      const connection = spyOnConnectionChannel({ protocolSupplier: () => protocol })
+
+      connection._unsetIdle()
+
+      expect(protocol.updateCurrentObserver).toBeCalledTimes(1)
     })
   })
 
