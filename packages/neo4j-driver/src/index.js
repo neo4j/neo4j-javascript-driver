@@ -175,7 +175,7 @@ function driver (url, authToken, config = {}) {
 
   // Use default user agent or user agent specified by user.
   config.userAgent = config.userAgent || USER_AGENT
-  config.boltAgent = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
+  config.boltAgent = internal.boltAgent.fromVersion(VERSION)
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
   const meta = {
