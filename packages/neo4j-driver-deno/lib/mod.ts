@@ -215,7 +215,7 @@ function driver (
 
   // Use default user agent or user agent specified by user.
   _config.userAgent = _config.userAgent ?? USER_AGENT
-  _config.boltAgent = internal.boltAgent.fromVersion('neo4j-javascript/' + VERSION)
+  _config.boltAgent = internal.boltAgent.fromVersion(VERSION)
 
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
