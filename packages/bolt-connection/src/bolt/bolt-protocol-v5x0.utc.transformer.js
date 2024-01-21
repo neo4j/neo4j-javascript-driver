@@ -157,18 +157,30 @@ function getOffsetFromZoneId (timeZoneId, epochSecond, nanosecond) {
   return offset
 }
 
+const dateTimeFormatCache = new Map();
+
+function getDateTimeFormatForZoneId(timeZoneId) {
+  if (!dateTimeFormatCache.has(timeZoneId)) {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timeZoneId,
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: false,
+      era: 'narrow'
+    })
+
+    dateTimeFormatCache.set(timeZoneId, formatter)
+  }
+
+  return dateTimeFormatCache.get(timeZoneId)
+}
+
 function getTimeInZoneId (timeZoneId, epochSecond, nano) {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: timeZoneId,
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: false,
-    era: 'narrow'
-  })
+  const formatter = getDateTimeFormatForZoneId(timeZoneId)
 
   const utc = int(epochSecond)
     .multiply(1000)

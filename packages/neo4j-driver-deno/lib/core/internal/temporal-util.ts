@@ -428,13 +428,20 @@ export function assertValidNanosecond (
   )
 }
 
-export function assertValidZoneId (fieldName: string, zoneId: string): void {
+const timeZoneValidityCache = new Map();
+
+export function assertValidZoneId(fieldName: string, zoneId: string): void {
+  let result = false
+
   try {
-    Intl.DateTimeFormat(undefined, { timeZone: zoneId })
+    if (timeZoneValidityCache.get(zoneId)) return
+    result = !!Intl.DateTimeFormat(undefined, { timeZone: zoneId })
   } catch (e) {
     throw newError(
       `${fieldName} is expected to be a valid ZoneId but was: "${zoneId}"`
-    )
+    );
+  } finally {
+    timeZoneValidityCache.set(zoneId, result)
   }
 }
 
