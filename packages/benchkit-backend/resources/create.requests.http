@@ -1,0 +1,39 @@
+### Single query with default params
+POST http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "queries": [{
+        "text": "RETURN 1"
+    }]
+}
+
+#### Executing
+GET http://localhost:8080/workload/0
+
+
+### Updating
+PATCH http://localhost:8080/workload/0
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "mode": "parallel",
+    "queries": [{
+        "text": "RETURN 1"
+    },
+    {
+        "text": "RETURN 1"
+    },
+    {
+        "text": "RETURN 1"
+    }]
+}
+
+
+#### Executing
+GET http://localhost:8080/workload/0
+
+
+#### Executing
+DELETE  http://localhost:8080/workload/0
