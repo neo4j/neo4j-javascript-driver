@@ -6,8 +6,12 @@ export async function validate (workload) {
     throw new BadRequestError('workload.queries should be a list with at least 1 item.')
   }
 
-  if (workload.method === 'sessionRun' && workload.mode === 'parallel') {
-    throw new BadRequestError('workload.mode="parallel" can not be used with workload.method="sessionRun"')
+  workload.mode = workload.mode || 'sequentialSessions'
+
+  if ((workload.mode === 'sequentialTransactions' && workload.method === 'executeQuery') ||
+    (workload.mode === 'sequentialQueries' && (workload.method === 'executeQuery' || workload.method === 'sessionRun'))) {
+    throw new BadRequestError(`workload.mode="${workload.mode}" can not be used with workload.method="${workload.method}"`)
   }
+
   return workload
 }

@@ -1,21 +1,17 @@
 import { BadRequestError } from './error'
 
-function isSequentialWorkload (workload) {
-  return workload.mode == null || workload.mode === 'sequence'
-}
-
-async function execute (workload, exec) {
-  if (isSequentialWorkload(workload)) {
-    for (const query of workload.queries) {
-      await exec(query)
-    }
-  } else {
-    return await Promise.all(workload.queries.map(exec))
+async function executeSequential (queries, exec) {
+  for (const query of queries) {
+    await exec(query)
   }
 }
 
-async function executeQuery (driver, workload) {
-  await execute(workload, (query) => {
+async function executeParallel (queries, exec) {
+  return await Promise.all(queries.map(exec))
+}
+
+function executeQuery (executor) {
+  return async (driver, workload) => await executor(workload.queries, (query) => {
     return driver.executeQuery(query.text, query.parameters, {
       database: workload.database,
       routing: workload.routing
@@ -23,24 +19,63 @@ async function executeQuery (driver, workload) {
   })
 }
 
-async function sessionRun (driver, workload) {
+function sessionRunPerSession (executor) {
+  return async (driver, workload) => {
+    return await executor(workload.queries, async (query) => {
+      const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
+
+      try {
+        return await session.run(query.text, query.parameters)
+      } finally {
+        await session.close()
+      }
+    })
+  }
+}
+
+async function sessionRunSequentialTransactions (driver, workload) {
   const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
 
   try {
-    await execute(workload, (query) => {
-      return session.run(query.text, query.parameters)
+    return await executeSequential(workload.queries, async (query) => session.run(query.text, query.parameters))
+  } finally {
+    await session.close()
+  }
+}
+
+function executeReadPerSession (executor) {
+  return async (driver, workload) => {
+    return await executor(workload.queries, async (query) => {
+      const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
+      try {
+        await session.executeRead(async tx => {
+          return tx.run(query.text, query.parameters)
+        })
+      } finally {
+        await session.close()
+      }
+    })
+  }
+}
+
+async function executeReadSequentialTransactions (driver, workload) {
+  const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
+  try {
+    await executeSequential(workload.queries, async (query) => {
+      await session.executeRead(async tx => {
+        return tx.run(query.text, query.parameters)
+      })
     })
   } finally {
     await session.close()
   }
 }
 
-async function executeRead (driver, workload) {
+async function executeReadSequentialQueries (driver, workload) {
   const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
-
   try {
     await session.executeRead(async tx => {
-      await execute(workload, (query) => {
+      await executeSequential(workload.queries, async (query) => {
         return tx.run(query.text, query.parameters)
       })
     })
@@ -49,12 +84,39 @@ async function executeRead (driver, workload) {
   }
 }
 
-async function executeWrite (driver, workload) {
-  const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
+function executeWritePerSession (executor) {
+  return async (driver, workload) => {
+    return await executor(workload.queries, async (query) => {
+      const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
+      try {
+        await session.executeWrite(async tx => {
+          return tx.run(query.text, query.parameters)
+        })
+      } finally {
+        await session.close()
+      }
+    })
+  }
+}
 
+async function executeWriteSequentialTransactions (driver, workload) {
+  const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
+  try {
+    await executeSequential(workload.queries, async (query) => {
+      await session.executeWrite(async tx => {
+        return tx.run(query.text, query.parameters)
+      })
+    })
+  } finally {
+    await session.close()
+  }
+}
+
+async function executeWriteSequentialQueries (driver, workload) {
+  const session = driver.session({ database: workload.database, defaultAccessMode: workload.routing })
   try {
     await session.executeWrite(async tx => {
-      await execute(workload, (query) => {
+      await executeSequential(workload.queries, async (query) => {
         return tx.run(query.text, query.parameters)
       })
     })
@@ -63,21 +125,48 @@ async function executeWrite (driver, workload) {
   }
 }
 
-async function throwExecutorMethodNotAvailable () {
+async function throwBadRequest () {
   throw new BadRequestError('Workload executor method not available')
 }
 
-const workloadExecutorsByMethod = {
-  executeQuery,
-  executeRead,
-  executeWrite,
-  sessionRun
+function throwExecutorMethodNotAvailable () {
+  return {
+    sequentialSessions: throwBadRequest,
+    sequentialTransactions: throwBadRequest,
+    sequentialQueries: throwBadRequest,
+    parallelSessions: throwBadRequest
+  }
+}
+
+const workloadExecutorsByMethodByMode = {
+  executeQuery: {
+    sequentialSessions: executeQuery(executeSequential),
+    parallelSessions: executeQuery(executeParallel)
+  },
+  executeRead: {
+    sequentialSessions: executeReadPerSession(executeSequential),
+    sequentialTransactions: executeReadSequentialTransactions,
+    sequentialQueries: executeReadSequentialQueries,
+    parallelSessions: executeReadPerSession(executeParallel)
+  },
+  executeWrite: {
+    sequentialSessions: executeWritePerSession(executeSequential),
+    sequentialTransactions: executeWriteSequentialTransactions,
+    sequentialQueries: executeWriteSequentialQueries,
+    parallelSessions: executeWritePerSession(executeParallel)
+  },
+  sessionRun: {
+    sequentialSessions: sessionRunPerSession(executeSequential),
+    sequentialTransactions: sessionRunSequentialTransactions,
+    parallelSessions: sessionRunPerSession(executeParallel)
+  }
 }
 
 export default function WorkloadExecutor (driver) {
   return {
     execute (workload) {
-      const executor = workloadExecutorsByMethod[workload.method] || throwExecutorMethodNotAvailable
+      const workloadExecutorsByMode = workloadExecutorsByMethodByMode[workload.method] || throwExecutorMethodNotAvailable
+      const executor = workloadExecutorsByMode[workload.mode]
       return executor(driver, workload)
     }
   }

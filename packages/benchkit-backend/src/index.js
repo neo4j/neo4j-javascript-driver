@@ -16,7 +16,10 @@ app.use(express.json({
   type: 'application/json'
 }))
 app.use(config.workloadRoute, WorkloadRouter(executor.execute, config.workloadRoute))
-app.use((err, _req, res, _) => res.status(err.status || 500).end())
+app.use((err, _req, res, _) => {
+  console.log(err)
+  res.status(err.status || 500).end()
+})
 
 const server = app.listen(config.backendPort, () => {
   console.log(`index.js:${process.pid}:Listening on ${config.backendPort}`)
