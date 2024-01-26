@@ -13,5 +13,13 @@ export async function validate (workload) {
     throw new BadRequestError(`workload.mode="${workload.mode}" can not be used with workload.method="${workload.method}"`)
   }
 
+  workload.routing = workload.routing || 'write'
+
+  if (workload.routing !== 'read' && workload.routing !== 'write') {
+    throw new BadRequestError(`workload.routing="${workload.mode}" while expected "read" or "write"`)
+  }
+
+  workload.routing = workload.routing.toUpperCase()
+
   return workload
 }
