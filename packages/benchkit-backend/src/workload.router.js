@@ -10,7 +10,7 @@ export default function WorkloadRouter (executeWorkload, baseRoute) {
   router.put('/', (req, res) => {
     validate(req.body)
       .then(executeWorkload)
-      .then(() => res.end())
+      .then(() => res.status(StatusCodes.NO_CONTENT).end())
       .catch(ErrorHandler(res))
   })
 
@@ -28,7 +28,7 @@ export default function WorkloadRouter (executeWorkload, baseRoute) {
     Promise.resolve(req.params.id)
       .then(store.get)
       .then(executeWorkload)
-      .then(() => res.end())
+      .then(() => res.status(StatusCodes.NO_CONTENT).end())
       .catch(ErrorHandler(res))
   })
 
@@ -42,7 +42,7 @@ export default function WorkloadRouter (executeWorkload, baseRoute) {
   router.delete('/:id', (req, res) => {
     Promise.resolve(req.params.id)
       .then(store.delete)
-      .then(() => res.end())
+      .then(() => res.status(StatusCodes.NO_CONTENT).end())
       .catch(ErrorHandler(res))
   })
 
