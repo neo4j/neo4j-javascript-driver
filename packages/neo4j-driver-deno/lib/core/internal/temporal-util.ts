@@ -16,7 +16,7 @@
  */
 
 import Integer, { int, isInt } from '../integer.ts'
-import { newError } from '../error.ts'
+import { Neo4jError, newError } from '../error.ts'
 import { assertNumberOrInteger } from './util.ts'
 import { NumberOrInteger } from '../graph-types.ts'
 
@@ -428,20 +428,28 @@ export function assertValidNanosecond (
   )
 }
 
-const timeZoneValidityCache = new Map();
+const timeZoneValidityCache = new Map<string, boolean>()
+const newInvalidZoneIdError = (zoneId: string, fieldName: string): Neo4jError => newError(
+  `${fieldName} is expected to be a valid ZoneId but was: "${zoneId}"`
+)
 
-export function assertValidZoneId(fieldName: string, zoneId: string): void {
-  let result = false
+export function assertValidZoneId (fieldName: string, zoneId: string): void {
+  const cachedResult = timeZoneValidityCache.get(zoneId)
+
+  if (cachedResult === true) {
+    return
+  }
+
+  if (cachedResult === false) {
+    throw newInvalidZoneIdError(zoneId, fieldName)
+  }
 
   try {
-    if (timeZoneValidityCache.get(zoneId)) return
-    result = !!Intl.DateTimeFormat(undefined, { timeZone: zoneId })
+    Intl.DateTimeFormat(undefined, { timeZone: zoneId })
+    timeZoneValidityCache.set(zoneId, true)
   } catch (e) {
-    throw newError(
-      `${fieldName} is expected to be a valid ZoneId but was: "${zoneId}"`
-    );
-  } finally {
-    timeZoneValidityCache.set(zoneId, result)
+    timeZoneValidityCache.set(zoneId, false)
+    throw newInvalidZoneIdError(zoneId, fieldName)
   }
 }
 
