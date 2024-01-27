@@ -157,9 +157,9 @@ function getOffsetFromZoneId (timeZoneId, epochSecond, nanosecond) {
   return offset
 }
 
-const dateTimeFormatCache = new Map();
+const dateTimeFormatCache = new Map()
 
-function getDateTimeFormatForZoneId(timeZoneId) {
+function getDateTimeFormatForZoneId (timeZoneId) {
   if (!dateTimeFormatCache.has(timeZoneId)) {
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: timeZoneId,
