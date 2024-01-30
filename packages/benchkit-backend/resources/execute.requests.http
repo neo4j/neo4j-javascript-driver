@@ -29,7 +29,7 @@ PUT http://localhost:8080/workload/
 Content-Type: application/json
 
 {
-    "mode": "sequence",
+    "mode": "parallelSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -57,7 +57,7 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "mode": "sequence",
+    "mode": "sequentialSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -86,8 +86,8 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "READ",
-    "mode": "sequence",
+    "routing": "read",
+    "mode": "sequentialSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -116,8 +116,8 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
-    "mode": "sequence",
+    "routing": "write",
+    "mode": "sequentialQueries",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -146,9 +146,9 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
+    "routing": "write",
     "method": "executeQuery",
-    "mode": "sequence",
+    "mode": "sequentialSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -177,9 +177,9 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
+    "routing": "write",
     "method": "executeQuery",
-    "mode": "parallel",
+    "mode": "parallelSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -208,9 +208,9 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
+    "routing": "write",
     "method": "sessionRun",
-    "mode": "sequence",
+    "mode": "sequentialQueries",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -239,9 +239,9 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
+    "routing": "write",
     "method": "sessionRun",
-    "mode": "parallel",
+    "mode": "parallelSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -270,9 +270,9 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
+    "routing": "write",
     "method": "executeWrite",
-    "mode": "sequence",
+    "mode": "sequentialSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -301,9 +301,9 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
+    "routing": "write",
     "method": "executeWrite",
-    "mode": "parallel",
+    "mode": "parallelSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -332,9 +332,9 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
+    "routing": "write",
     "method": "executeRead",
-    "mode": "sequence",
+    "mode": "sequentialQueries",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
@@ -363,9 +363,9 @@ Content-Type: application/json
 
 {
     "database": "neo4j",
-    "routing": "WRITE",
+    "routing": "write",
     "method": "executeRead",
-    "mode": "parallel",
+    "mode": "parallelSessions",
     "queries": [{
         "text": "RETURN $a",
         "parameters": {
