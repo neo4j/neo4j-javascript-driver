@@ -10,20 +10,19 @@ const driver = neo4j.driver(neo4jUrl, neo4j.auth.basic(config.username, config.p
 })
 const executor = WorkloadExecutor(driver)
 
-const app = express()
-
-app.use(express.json({
-  type: 'application/json'
-}))
-app.use(config.workloadRoute, WorkloadRouter(executor.execute, config.workloadRoute))
-app.use((err, _req, res, _) => {
-  console.log(err)
-  res.status(err.status || 500).end()
-})
-
-const server = app.listen(config.backendPort, () => {
-  console.log(`index.js:${process.pid}:Listening on ${config.backendPort}`)
-})
+const server = express()
+  .disable('x-powered-by')
+  .use(express.json({
+    type: 'application/json'
+  }))
+  .use(config.workloadRoute, WorkloadRouter(executor.execute, config.workloadRoute))
+  .use((err, _req, res, _) => {
+    console.log(err)
+    res.status(err.status || 500).end()
+  })
+  .listen(config.backendPort, () => {
+    console.log(`index.js:${process.pid}:Listening on ${config.backendPort}`)
+  })
 
 process.on('SIGTERM', () => {
   console.debug('SIGTERM signal received: closing HTTP server')
