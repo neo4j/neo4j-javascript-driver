@@ -6,7 +6,7 @@ import WorkloadRouter from './workload.router'
 
 const neo4jUrl = `${config.scheme}://${config.hostname}:${config.boltPort}`
 const driver = neo4j.driver(neo4jUrl, neo4j.auth.basic(config.username, config.password), {
-  logging: neo4j.logging.console(config.logLevel)
+  logging: config.logLevel != null ? neo4j.logging.console(config.logLevel) : undefined
 })
 const executor = WorkloadExecutor(driver)
 
