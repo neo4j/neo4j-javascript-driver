@@ -707,6 +707,10 @@ export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, co
         timeout: config.timeout
       }
     }
+
+    if (config.auth != null) {
+      configuration.auth = context.binder.parseAuthToken(config.auth.data)
+    }
   }
 
   driver.executeQuery(cypher, params, configuration)

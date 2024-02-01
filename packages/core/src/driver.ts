@@ -357,6 +357,7 @@ class QueryConfig<T = EagerResult> {
   bookmarkManager?: BookmarkManager | null
   resultTransformer?: ResultTransformer<T>
   transactionConfig?: TransactionConfig
+  auth?: AuthToken
 
   /**
    * @constructor
@@ -413,6 +414,21 @@ class QueryConfig<T = EagerResult> {
      *
      */
     this.transactionConfig = undefined
+
+    /**
+     * The {@link AuthToken} which will be used for executing the query.
+     *
+     * By default, the query executor will use connections authenticated with {@link AuthToken} configured in the
+     * driver creation. This configuration allows switch user and/or authorization information for the
+     * execution lifetime.
+     *
+     * **Warning**: This option is only enable when the driver is connected with Neo4j Database servers
+     * which supports Bolt 5.1 and onwards.
+     *
+     * @type {AuthToken|undefined}
+     * @see {@link driver}
+     */
+    this.auth = undefined
   }
 }
 
@@ -578,7 +594,8 @@ class Driver {
       routing: routingConfig,
       database: config.database,
       impersonatedUser: config.impersonatedUser,
-      transactionConfig: config.transactionConfig
+      transactionConfig: config.transactionConfig,
+      auth: config.auth
     }, query, parameters)
   }
 

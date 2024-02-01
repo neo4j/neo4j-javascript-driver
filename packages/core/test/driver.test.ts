@@ -484,6 +484,7 @@ describe('Driver', () => {
         ['config.routing=READ', 'create num $d', { d: 1 }, { routing: routing.READ }, extendsDefaultWith({ routing: routing.READ })],
         ['config.database="dbname"', 'q', {}, { database: 'dbname' }, extendsDefaultWith({ database: 'dbname' })],
         ['config.impersonatedUser="the_user"', 'q', {}, { impersonatedUser: 'the_user' }, extendsDefaultWith({ impersonatedUser: 'the_user' })],
+        ['config.auth={ scheme: "none", credentials: "" }', 'q', {}, { auth: { scheme: 'none', credentials: '' } }, extendsDefaultWith({ auth: { scheme: 'none', credentials: '' } })],
         ['config.bookmarkManager=null', 'q', {}, { bookmarkManager: null }, extendsDefaultWith({ bookmarkManager: undefined })],
         ['config.bookmarkManager set to non-null/empty', 'q', {}, { bookmarkManager: theBookmarkManager }, extendsDefaultWith({ bookmarkManager: theBookmarkManager })],
         ['config.resultTransformer set', 'q', {}, { resultTransformer: aTransformer }, extendsDefaultWith({ resultTransformer: aTransformer })],
