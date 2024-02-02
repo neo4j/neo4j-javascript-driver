@@ -198,12 +198,12 @@ class SessionConfig {
     /**
      * The {@link AuthToken} which will be used for the duration of the session.
      *
-     * By default, the session will use connections authenticated with {@link AuthToken} configured in the
-     * driver creation. This configuration allows switch user and/or authorization information for the
+     * By default, the session will use connections authenticated with the {@link AuthToken} configured on
+     * driver creation. This configuration allows switching user and/or authorization information for the
      * session lifetime.
      *
-     * **Warning**: This option is only enable when the driver is connected with Neo4j Database servers
-     * which supports Bolt 5.1 and onwards.
+     * **Warning**: This option is only available when the driver is connected to Neo4j Database servers
+     * which supports Bolt 5.1 or newer.
      *
      * @type {AuthToken|undefined}
      * @see {@link driver}
