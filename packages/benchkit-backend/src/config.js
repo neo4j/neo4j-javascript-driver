@@ -7,5 +7,6 @@ export default {
   scheme: process.env.TEST_NEO4J_SCHEME || 'neo4j',
   boltPort: process.env.TEST_NEO4J_BOLT_PORT || 7687,
   logLevel: process.env.TEST_NEO4J_LOG_LEVEL,
-  workloadRoute: '/workload'
+  workloadRoute: '/workload',
+  readyRoute: '/ready'
 }

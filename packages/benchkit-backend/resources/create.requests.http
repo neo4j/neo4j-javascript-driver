@@ -37,3 +37,6 @@ GET http://localhost:8080/workload/0
 
 #### Executing
 DELETE  http://localhost:8080/workload/0
+
+#### 
+GET http://localhost:9000/ready
