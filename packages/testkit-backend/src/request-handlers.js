@@ -708,8 +708,8 @@ export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, co
       }
     }
 
-    if (config.auth != null) {
-      configuration.auth = context.binder.parseAuthToken(config.auth.data)
+    if (config.authorizationToken != null) {
+      configuration.auth = context.binder.parseAuthToken(config.authorizationToken.data)
     }
   }
 
