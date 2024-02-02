@@ -418,12 +418,12 @@ class QueryConfig<T = EagerResult> {
     /**
      * The {@link AuthToken} which will be used for executing the query.
      *
-     * By default, the query executor will use connections authenticated with {@link AuthToken} configured in the
-     * driver creation. This configuration allows switch user and/or authorization information for the
-     * execution lifetime.
+     * By default, the query executor will use connections authenticated with the {@link AuthToken} configured on
+     * driver creation. This configuration allows switching user and/or authorization information for the
+     * underlying transaction's lifetime.
      *
-     * **Warning**: This option is only enable when the driver is connected with Neo4j Database servers
-     * which supports Bolt 5.1 and onwards.
+     * **Warning**: This option is only available when the driver is connected to Neo4j Database servers
+     * which support Bolt 5.1 or newer.
      *
      * @type {AuthToken|undefined}
      * @see {@link driver}
