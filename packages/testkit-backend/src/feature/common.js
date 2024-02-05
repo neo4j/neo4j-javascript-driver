@@ -26,6 +26,7 @@ const features = [
   'Feature:Bolt:Patch:UTC',
   'Feature:API:ConnectionAcquisitionTimeout',
   'Feature:API:Driver.ExecuteQuery',
+  'Feature:API:Driver.ExecuteQuery:WithAuth',
   'Feature:API:Driver:NotificationsConfig',
   'Feature:API:Driver:GetServerInfo',
   'Feature:API:Driver.SupportsSessionAuth',

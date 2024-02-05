@@ -19,10 +19,10 @@ import BookmarkManager from '../bookmark-manager.ts'
 import Session, { TransactionConfig } from '../session.ts'
 import Result from '../result.ts'
 import ManagedTransaction from '../transaction-managed.ts'
-import { Query } from '../types.ts'
+import { AuthToken, Query } from '../types.ts'
 import { TELEMETRY_APIS } from './constants.ts'
 
-type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkManager, impersonatedUser?: string }) => Session
+type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkManager, impersonatedUser?: string, auth?: AuthToken }) => Session
 
 type TransactionFunction<T> = (transactionWork: (tx: ManagedTransaction) => Promise<T>, transactionConfig?: TransactionConfig) => Promise<T>
 
@@ -32,6 +32,7 @@ interface ExecutionConfig<T> {
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
   transactionConfig?: TransactionConfig
+  auth?: AuthToken
   resultTransformer: (result: Result) => Promise<T>
 }
 
@@ -44,7 +45,8 @@ export default class QueryExecutor {
     const session = this._createSession({
       database: config.database,
       bookmarkManager: config.bookmarkManager,
-      impersonatedUser: config.impersonatedUser
+      impersonatedUser: config.impersonatedUser,
+      auth: config.auth
     })
 
     // @ts-expect-error The method is private for external users

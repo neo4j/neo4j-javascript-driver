@@ -39,7 +39,9 @@ describe('QueryExecutor', () => {
     ['database set', { database: 'adb' }, { database: 'adb' }],
     ['database undefined', { database: undefined }, { database: undefined }],
     ['impersonatedUser set', { impersonatedUser: 'anUser' }, { impersonatedUser: 'anUser' }],
-    ['impersonatedUser undefined', { impersonatedUser: undefined }, { impersonatedUser: undefined }]
+    ['impersonatedUser undefined', { impersonatedUser: undefined }, { impersonatedUser: undefined }],
+    ['auth set', { auth: { scheme: 'none', credentials: '' } }, { auth: { scheme: 'none', credentials: '' } }],
+    ['auth undefined', { auth: undefined }, { auth: undefined }]
   ])('should redirect % to the session creation', async (_, executorConfig, expectConfig) => {
     const { queryExecutor, createSession } = createExecutor()
 
