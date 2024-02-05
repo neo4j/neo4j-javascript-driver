@@ -21,6 +21,7 @@ RUN apt-get update && \
         python3 \
         nodejs \
         firefox \
+        wget \
         nodejs \
         unzip \
     && rm -rf /var/lib/apt/lists/*
