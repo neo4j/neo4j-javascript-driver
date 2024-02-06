@@ -1,4 +1,4 @@
-import { BadRequestError } from './error'
+import { NotFoundError } from './error'
 
 export default function WorkloadStore () {
   let index = 0
@@ -13,7 +13,7 @@ export default function WorkloadStore () {
     },
     patchValidated (key, patch, validate) {
       if (!map.has(key)) {
-        throw new BadRequestError(`workload ${key} doesn't exist.`)
+        throw new NotFoundError(`workload ${key} doesn't exist.`)
       }
 
       const patched = {
@@ -27,12 +27,15 @@ export default function WorkloadStore () {
     },
     get (key) {
       if (!map.has(key)) {
-        throw new BadRequestError(`workload ${key} doesn't exist.`)
+        throw new NotFoundError(`workload ${key} doesn't exist.`)
       }
 
       return map.get(key)
     },
     delete (key) {
+      if (!map.has(key)) {
+        throw new NotFoundError(`workload ${key} doesn't exist.`)
+      }
       map.delete(key)
     }
   }

@@ -6,3 +6,10 @@ export class BadRequestError extends Error {
     this.statusCode = StatusCodes.BAD_REQUEST
   }
 }
+
+export class NotFoundError extends Error {
+  constructor (message) {
+    super(message)
+    this.statusCode = StatusCodes.NOT_FOUND
+  }
+}
