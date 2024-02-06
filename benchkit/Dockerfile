@@ -43,7 +43,6 @@ RUN update-ca-certificates --verbose
 RUN useradd -m driver && echo "driver:driver" | chpasswd && adduser driver sudo
 VOLUME /driver
 RUN chown -Rh driver:driver /home/driver
-WORKDIR /home/driver
 
 USER driver
 WORKDIR /home/driver
