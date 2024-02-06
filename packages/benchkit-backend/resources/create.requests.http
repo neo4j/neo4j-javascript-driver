@@ -35,8 +35,8 @@ Content-Type: application/json
 GET http://localhost:8080/workload/0
 
 
-#### Executing
+#### Deleting
 DELETE  http://localhost:8080/workload/0
 
-#### 
+#### Health probe endpoint
 GET http://localhost:9000/ready

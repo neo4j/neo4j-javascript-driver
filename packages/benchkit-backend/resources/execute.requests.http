@@ -24,7 +24,7 @@ Content-Type: application/json
     }]
 }
 
-### Mutiple queries with in sequence params
+### Mutiple queries in sequence with params
 PUT http://localhost:8080/workload/
 Content-Type: application/json
 
