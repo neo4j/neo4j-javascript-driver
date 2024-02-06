@@ -166,7 +166,7 @@ export default function WorkloadExecutor (driver) {
   return {
     execute (workload) {
       const workloadExecutorsByMode = workloadExecutorsByMethodByMode[workload.method] || throwExecutorMethodNotAvailable
-      const executor = workloadExecutorsByMode[workload.mode]
+      const executor = workloadExecutorsByMode[workload.mode] || throwBadRequest
       return executor(driver, workload)
     }
   }
