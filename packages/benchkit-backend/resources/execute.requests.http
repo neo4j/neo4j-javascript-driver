@@ -1,0 +1,376 @@
+### Single query with default params
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "queries": [{
+        "text": "RETURN 1"
+    }]
+}
+
+### Mutiple queries with default params
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "queries": [{
+        "text": "RETURN 1"
+    },
+    {
+        "text": "RETURN 1"
+    },
+    {
+        "text": "RETURN 1"
+    }]
+}
+
+### Mutiple queries in sequence with params
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "mode": "parallelSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in sequence params in db neo4j
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "mode": "sequentialSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in sequence params in db neo4j
+### and routing READ
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "read",
+    "mode": "sequentialSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in sequence params in db neo4j
+### and routing WRITE
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "mode": "sequentialQueries",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in sequence params in db neo4j
+### and routing WRITE using executeQuery
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "method": "executeQuery",
+    "mode": "sequentialSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in parallel params in db neo4j
+### and routing WRITE using executeQuery
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "method": "executeQuery",
+    "mode": "parallelSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in sequence params in db neo4j
+### and routing WRITE using sessionRun
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "method": "sessionRun",
+    "mode": "sequentialQueries",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in parallel params in db neo4j
+### and routing WRITE using sessionRun
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "method": "sessionRun",
+    "mode": "parallelSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in sequence params in db neo4j
+### and routing WRITE using executeWrite
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "method": "executeWrite",
+    "mode": "sequentialSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in parallel params in db neo4j
+### and routing WRITE using executeWrite
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "method": "executeWrite",
+    "mode": "parallelSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in sequence params in db neo4j
+### and routing WRITE using executeRead
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "method": "executeRead",
+    "mode": "sequentialQueries",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
+
+### Mutiple queries with in parallel params in db neo4j
+### and routing WRITE using executeRead
+PUT http://localhost:8080/workload/
+Content-Type: application/json
+
+{
+    "database": "neo4j",
+    "routing": "write",
+    "method": "executeRead",
+    "mode": "parallelSessions",
+    "queries": [{
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    },
+    {
+        "text": "RETURN $a",
+        "parameters": {
+            "a": 1
+        }
+    }]
+}
