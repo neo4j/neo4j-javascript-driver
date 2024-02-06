@@ -16,7 +16,7 @@ export async function validate (workload) {
   workload.routing = workload.routing || 'write'
 
   if (workload.routing !== 'read' && workload.routing !== 'write') {
-    throw new BadRequestError(`workload.routing="${workload.mode}" but expected "read" or "write"`)
+    throw new BadRequestError(`workload.routing="${workload.routing}" but expected "read" or "write"`)
   }
 
   workload.routing = workload.routing.toUpperCase()
