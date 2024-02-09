@@ -76,7 +76,7 @@ import NotificationFilter, {
 } from './notification-filter'
 import Result, { QueryResult, ResultObserver } from './result'
 import EagerResult from './result-eager'
-import ConnectionProvider from './connection-provider'
+import ConnectionProvider, { Releasable } from './connection-provider'
 import Connection from './connection'
 import Transaction from './transaction'
 import ManagedTransaction from './transaction-managed'
@@ -159,6 +159,7 @@ const forExport = {
   Session,
   Driver,
   Connection,
+  Releasable,
   types,
   driver,
   json,
@@ -221,6 +222,7 @@ export {
   Result,
   EagerResult,
   ConnectionProvider,
+  Releasable,
   Connection,
   Transaction,
   ManagedTransaction,
