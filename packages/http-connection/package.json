@@ -1,10 +1,16 @@
 {
-  "name": "http-connection",
+  "name": "neo4j-driver-http-connection",
   "version": "5.0.0-dev",
   "description": "Implement the connection with the Neo4j Database using HTTP protocol.",
   "main": "lib/index.js",
+  "types": "types/index.d.ts",
   "scripts": {
-    "test": "jest --passWithNoTests"
+    "build": "tsc -p tsconfig.build.json",
+    "test": "jest --passWithNoTests",
+    "test::watch": "jest --watch",
+    "test::unit": "npm run test",
+    "prepare": "npm run build",
+    "clean": "rm -fr node_modules lib types"
   },
   "repository": {
     "type": "git",

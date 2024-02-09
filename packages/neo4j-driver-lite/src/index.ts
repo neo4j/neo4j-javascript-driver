@@ -106,6 +106,7 @@ import {
   resolveCertificateProvider
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
+import { HttpConnectionProvider } from 'neo4j-driver-http-connection'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -176,6 +177,7 @@ function driver (
   let routing = false
   let encrypted = false
   let trust: TrustStrategy | undefined
+  let http = false
   switch (parsedUrl.scheme) {
     case 'bolt':
       break
@@ -199,6 +201,10 @@ function driver (
       encrypted = true
       trust = 'TRUST_ALL_CERTIFICATES'
       routing = true
+      break
+    case 'http':
+    case 'https':
+      http = true
       break
     default:
       throw new Error(`Unknown scheme: ${parsedUrl.scheme ?? 'null'}`)
@@ -227,14 +233,32 @@ function driver (
 
   const meta = {
     address,
-    typename: routing ? 'Routing' : 'Direct',
+    typename: routing ? 'Routing' : (http ? 'HTTP' : 'Direct'),
     routing
   }
 
   return new Driver(meta, _config, createConnectionProviderFunction())
 
   function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
-    if (routing) {
+    if (http) {
+      return (
+        id: number,
+        config: InternalConfig,
+        log: Logger,
+        hostNameResolver: ConfiguredCustomResolver
+      ): ConnectionProvider => new HttpConnectionProvider({
+        id,
+        config,
+        log,
+        hostNameResolver,
+        authTokenManager,
+        scheme: parsedUrl.scheme as unknown as 'http' | 'https',
+        address,
+        userAgent: config.userAgent,
+        boltAgent: config.boltAgent,
+        routingContext: parsedUrl.query
+      })
+    } else if (routing) {
       return (
         id: number,
         config: InternalConfig,
