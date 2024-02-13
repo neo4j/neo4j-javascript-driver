@@ -16,6 +16,7 @@
  */
 import { ConnectionProvider, internal, AuthTokenManager, Connection, Releasable, auth, types, ServerInfo } from "neo4j-driver-core"
 import HttpConnection from "./connection.http"
+import { InternalConfig } from "neo4j-driver-core/types/types"
 
 type HttpScheme = 'http' | 'https'
 
@@ -25,6 +26,7 @@ export interface HttpConnectionProviderConfig {
     address: internal.serverAddress.ServerAddress
     scheme: HttpScheme
     authTokenManager: AuthTokenManager
+    config: types.InternalConfig
     [rec: string]: any
 }
 
@@ -34,6 +36,8 @@ export default class HttpConnectionProvider extends ConnectionProvider {
     private _address: internal.serverAddress.ServerAddress
     private _scheme: HttpScheme
     private _authTokenManager: AuthTokenManager
+    private _config: types.InternalConfig
+
 
     constructor(config: HttpConnectionProviderConfig) {
         super()
@@ -42,12 +46,13 @@ export default class HttpConnectionProvider extends ConnectionProvider {
         this._address = config.address
         this._scheme = config.scheme
         this._authTokenManager = config.authTokenManager
+        this._config = config.config
     }
 
     async acquireConnection(param?: { accessMode?: string | undefined; database?: string | undefined; bookmarks: internal.bookmarks.Bookmarks; impersonatedUser?: string | undefined; onDatabaseNameResolved?: ((databaseName?: string | undefined) => void) | undefined; auth?: types.AuthToken | undefined } | undefined): Promise<Connection & Releasable> {
         const auth = param?.auth ?? await this._authTokenManager.getToken()
         
-        return new HttpConnection({ release: async () => console.log('release'), auth, address: this._address, database: (param?.database ?? 'neo4j'), scheme: this._scheme }) 
+        return new HttpConnection({ release: async () => console.log('release'), auth, address: this._address, database: (param?.database ?? 'neo4j'), scheme: this._scheme, config: this._config }) 
     }
 
 
