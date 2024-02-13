@@ -18,7 +18,7 @@
 import { Connection, types, internal } from "neo4j-driver-core"
 import { RunQueryConfig } from "neo4j-driver-core/types/connection"
 import { ResultStreamObserver } from "./stream-observers"
-import { JoltProcessor, RawJoltResponse } from "./jolt"
+import { NewFormatResponseCodec, RawNewFormatResponse } from "./newformat.codec"
 
 type HttpScheme = 'http' | 'https'
 
@@ -28,6 +28,7 @@ export interface HttpConnectionConfig {
     scheme: HttpScheme
     address: internal.serverAddress.ServerAddress
     database: string
+    config: types.InternalConfig
 }
 
 
@@ -37,6 +38,7 @@ export default class HttpConnection extends Connection {
     private _scheme: HttpScheme
     private _address: internal.serverAddress.ServerAddress
     private _database: string
+    private _config: types.InternalConfig
 
     constructor(config: HttpConnectionConfig) {
         super()
@@ -45,6 +47,7 @@ export default class HttpConnection extends Connection {
         this._scheme = config.scheme
         this._address = config.address
         this._database = config.database
+        this._config = config.config
     }
 
     run(query: string, parameters?: Record<string, unknown> | undefined, config?: RunQueryConfig | undefined): internal.observer.ResultStreamObserver {
@@ -54,37 +57,46 @@ export default class HttpConnection extends Connection {
             afterComplete: config?.afterComplete,
             server: this._address
         })
+
+        const body: Record<string, unknown> = {
+            statement: query,
+            //include_stats: true,
+            //max_execution_time: config?.txConfig.timeout,
+            //impersonated_user: config?.impersonatedUser,
+            //bookmarks: config?.bookmarks
+        }
+
+        if (Object.getOwnPropertyNames(parameters).length !== 0) {
+            body.parameters = parameters
+        }
+
+        console.log('Body', body)
         
         fetch(this._getTransactionApi(), {
             method: 'POST',
             mode: 'cors',
             headers: {
                 'Content-Type': 'application/json',
-                Accept: 'application/json',
+                Accept: 'application/vnd.neo4j.newformat',
                 Authorization: `Basic ${btoa(`${this._auth.principal}:${this._auth.credentials}`)}`,
             },
-            body: JSON.stringify({
-                statements: [
-                    {
-                        statement: query,
-                        includeStats: true,
-                        parameters: parameters,
-                        resultDataContents: ['row', 'graph'],
-                    },
-                ],
-            }),
-        }).then(async (res) => (await res.json()) as RawJoltResponse)
+            body: JSON.stringify(body)
+        }).then(async (res) => (await res.json()) as RawNewFormatResponse)
             .catch((error) => observer.onError(error))
-            .then(async (rawJoltResponse) => {
-                console.log(JSON.stringify(rawJoltResponse, undefined, 4))
-                if (rawJoltResponse == null) {
+            .then(async (rawNewFormatResponse) => {
+                console.log(JSON.stringify(rawNewFormatResponse, undefined, 4))
+                if (rawNewFormatResponse == null) {
                     // is already dead
                     return
                 }
                 const batchSize = config?.fetchSize ?? Number.MAX_SAFE_INTEGER
-                const processor = new JoltProcessor(rawJoltResponse);
-                observer.onKeys(processor.keys)
-                const stream = processor.stream()
+                const codec = new NewFormatResponseCodec(this._config, rawNewFormatResponse);
+
+                if (codec.hasError) {
+                    throw codec.error
+                }
+                observer.onKeys(codec.keys)
+                const stream = codec.stream()
 
                 while (!observer.completed) {
                     if (observer.paused) {
@@ -100,7 +112,7 @@ export default class HttpConnection extends Connection {
                         } else {
                             iterate = false
                             console.log('completed')
-                            observer.onCompleted(processor.meta)
+                            observer.onCompleted(codec.meta)
                         }
                     }
                 }
@@ -111,7 +123,7 @@ export default class HttpConnection extends Connection {
     }
 
     private _getTransactionApi():string {
-        const address = `${this._scheme}://${this._address.asHostPort()}/db/${this._database}/tx/commit`
+        const address = `${this._scheme}://${this._address.asHostPort()}/db/v2/query/${this._database}`
         console.log('calling', address)
         return address
     }
