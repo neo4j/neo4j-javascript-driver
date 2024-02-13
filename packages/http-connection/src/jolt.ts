@@ -15,10 +15,36 @@
  * limitations under the License.
  */
 
+import { newError, Node, Relationship, int, error } from "neo4j-driver-core"
+
+
+type RawJoltNode = {
+    id: string,
+    elementId: string,
+    labels: string[]
+    properties: object
+}
+
+type RawJoltRelationship = {
+    id: string,
+    elementId: string,
+    type: string,
+    startNode: string,
+    startNodeElementId: string,
+    endNode: string,
+    endNodeElementId: string,
+    properties: object
+}
+
+type RawJoltGraph = {
+    nodes: RawJoltNode[]
+    relationships: RawJoltRelationship[]
+}
+
 type RawJoltData = {
     row: unknown[]
     meta: unknown[]
-    graph: unknown // object with nodes list and relationship list
+    graph: RawJoltGraph
 }
 
 type RawJoltResults = {
@@ -31,6 +57,7 @@ export type RawJoltResponse = {
     results: RawJoltResults[]
     lastBookmarks: string[]
     errors: []
+    notifications?: unknown[]
     [str: string]: unknown
 }
 
@@ -45,8 +72,41 @@ export class JoltProcessor {
 
     *stream (): Generator<any[]> {
         for (const data of this._rawJoltResponse.results[0].data) {
-            console.log('yielding row',  data.row)
-            yield  data.row
+            const row: unknown[] = []
+            for (const i in data.row) {
+                console.log()
+                const element = data.row[i]
+                const meta = data.meta[i]
+                // @ts-expect-error // fix it
+                if (meta?.type === 'node') {
+                    // @ts-expect-error
+                    const elementId = meta.elementId
+                    const node = data.graph.nodes.find(n => n.elementId === elementId)
+
+                    if (node == null) {
+                        throw newError(`Node '${elementId}' expected, but not found`, error.PROTOCOL_ERROR)
+                    }
+
+                    row.push(new Node<number>(int(node.id).toNumber(), node.labels, node.properties, node.elementId ))
+                // @ts-expect-error // fix it
+                } else if (meta?.type === 'relationship'){
+                    // @ts-expect-error
+                    const elementId = meta.elementId
+                    const relationship = data.graph.relationships.find(n => n.elementId === elementId)
+
+                    if (relationship == null) {
+                        throw newError(`Relationship '${elementId}' expected, but not found`, error.PROTOCOL_ERROR)
+                    }
+
+                    row.push(new Relationship<number>(
+                        int(relationship.id).toNumber(), int(relationship.startNode).toNumber(), int(relationship.endNode).toNumber(), 
+                        relationship.type, relationship.properties, relationship.elementId, relationship.startNodeElementId, relationship.endNodeElementId))
+                } else  {
+                    row.push(element)
+                }   
+            }
+            console.log('yielding row',  row)
+            yield  row
         }
         console.log('returning')
         return
@@ -54,6 +114,10 @@ export class JoltProcessor {
 
     get meta(): Record<string, unknown> {
         console.log('meta', this._rawJoltResponse.results[0].stats)
-        return { ...this._rawJoltResponse.results[0].stats, bookmark: this._rawJoltResponse.lastBookmarks }
+        const meta: Record<string, unknown> = { ...this._rawJoltResponse.results[0].stats, bookmark: this._rawJoltResponse.lastBookmarks }
+        if (this._rawJoltResponse.notifications != null) {
+            meta.notifications = this._rawJoltResponse.notifications
+        }
+        return meta
     }
 }
