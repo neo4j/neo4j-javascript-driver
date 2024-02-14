@@ -18,7 +18,7 @@
 import { Connection, types, internal } from "neo4j-driver-core"
 import { RunQueryConfig } from "neo4j-driver-core/types/connection"
 import { ResultStreamObserver } from "./stream-observers"
-import { NewFormatResponseCodec, RawNewFormatResponse } from "./newformat.codec"
+import { NewFormatRequestCodec, NewFormatResponseCodec, RawNewFormatResponse } from "./newformat.codec"
 
 type HttpScheme = 'http' | 'https'
 
@@ -58,35 +58,24 @@ export default class HttpConnection extends Connection {
             server: this._address
         })
 
-        const body: Record<string, unknown> = {
-            statement: query,
-            //include_stats: true,
-            bookmarks: config?.bookmarks?.values()
-        }
+        const requestCodec = new NewFormatRequestCodec(
+            this._auth,
+            query,
+            parameters, 
+            config
+        )
 
-        if (Object.getOwnPropertyNames(parameters).length !== 0) {
-            body.parameters = parameters
-        }
-
-        if (config?.txConfig.timeout != null) {
-            body.max_execution_time = config?.txConfig.timeout
-        }
-
-        if (config?.impersonatedUser != null) {
-            body.impersonated_user = config?.impersonatedUser
-        }
-
-        console.log('Body', body)
+        console.log('Body', requestCodec.body)
         
         fetch(this._getTransactionApi(), {
             method: 'POST',
             mode: 'cors',
             headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/vnd.neo4j.newformat',
-                Authorization: `Basic ${btoa(`${this._auth.principal}:${this._auth.credentials}`)}`,
+                'Content-Type': requestCodec.contentType,
+                Accept: requestCodec.accept,
+                Authorization: requestCodec.authorization,
             },
-            body: JSON.stringify(body)
+            body: JSON.stringify(requestCodec.body)
         }).
             then(async (res) => {
                 return (await res.json()) as RawNewFormatResponse

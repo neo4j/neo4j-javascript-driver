@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { newError, Node, Relationship, int, error, types, Integer, Time, Date, LocalTime, Point, DateTime, LocalDateTime, Duration } from "neo4j-driver-core"
+import { newError, Node, Relationship, int, error, types, Integer, Time, Date, LocalTime, Point, DateTime, LocalDateTime, Duration, isInt, isPoint, isDuration, isLocalTime, isTime, isDate, isLocalDateTime, isDateTime, isRelationship, isPath, isNode, isPathSegment } from "neo4j-driver-core"
+import { RunQueryConfig } from "neo4j-driver-core/types/connection"
 
 type RawNewFormatValueTypes = 'Null' | 'Boolean' | 'Integer' | 'Float' | 'String' |
     'Time' | 'Date' | 'LocalTime' | 'ZonedDateTime' | 'OffsetDateTime' | 'LocalDateTime' |
@@ -399,3 +400,124 @@ export class NewFormatResponseCodec {
         return integer
     }
 }
+
+export class NewFormatRequestCodec {
+    private _body?: Record<string, unknown>
+
+    constructor(
+        private _auth: types.AuthToken,
+        private _query: string,
+        private _parameters?: Record<string, unknown> | undefined,
+        private _config?: RunQueryConfig | undefined
+    ) {
+
+    }
+
+    get contentType (): string {
+        return 'application/json'
+    }
+
+    get accept (): string {
+
+        return 'application/vnd.neo4j.newformat'
+    }
+
+    get authorization (): string {
+        return `Basic ${btoa(`${this._auth.principal}:${this._auth.credentials}`)}`
+    }
+
+    get body (): Record<string, unknown> {
+        if (this._body != null) {
+            return this._body
+        }
+
+        this._body = {
+            statement: this._query,
+            //include_stats: true,
+            bookmarks: this._config?.bookmarks?.values()
+        }
+
+        if (Object.getOwnPropertyNames(this._parameters).length !== 0) {
+            this._body.parameters = this._encodeParameters(this._parameters!)
+        }
+
+        if (this._config?.txConfig.timeout != null) {
+            this._body.max_execution_time = this._config?.txConfig.timeout
+        }
+
+        if (this._config?.impersonatedUser != null) {
+            this._body.impersonated_user = this._config?.impersonatedUser
+        }
+
+        return this._body
+    }
+
+    _encodeParameters(parameters: Record<string, unknown>): Record<string, RawNewFormatValue> {
+        const encodedParams: Record<string, RawNewFormatValue> = {}
+        for (const k of Object.keys(parameters)) {
+            if (Object.prototype.hasOwnProperty.call(parameters, k)) {
+                encodedParams[k] = this._encodeValue(parameters[k])
+            }
+        }
+        return encodedParams
+    }
+
+    _encodeValue(value: unknown): RawNewFormatValue {
+        if (value === null ) {
+            return { $type: 'Null', _value: null }
+        } else if (value === true || value === false) {
+            return { $type: 'Boolean', _value: value }
+        } else if (typeof value === 'number') {
+            return { $type: 'Float', _value: value.toString() }
+        } else if (typeof value === 'string') {
+            return { $type: 'String', _value: value }
+        } else if (typeof value === 'bigint') {
+            return { $type: 'Integer', _value: value.toString()}
+        } else if (isInt(value)) {
+            return { $type: 'Integer', _value: value.toString() }
+        } else if (value instanceof Int8Array) {
+            return { $type: 'Base64', _value: btoa(String.fromCharCode.apply(null, value))}
+        } else if (value instanceof Array) {
+            return { $type: 'List', _value: value.map(this._encodeValue)}
+        } else if (isIterable(value)) {
+            return this._encodeValue(Array.from(value)) 
+        } else if (isPoint(value)) {
+            return { $type: 'Point', _value: {
+                srid: int(value.srid).toNumber(),
+                x: value.x.toString(),
+                y: value.y.toString(),
+                z: value.z?.toString()
+            }}
+        } else if (isDuration(value)) {
+            return { $type: 'Duration', _value: value.toString()}
+        } else if (isLocalTime(value)) {
+            return { $type: 'LocalTime', _value: value.toString()}
+        } else if (isTime(value)) {
+            return { $type: 'Time', _value: value.toString()}
+        } else if (isDate(value)) {
+            return { $type: 'Date', _value: value.toString()}
+        } else if (isLocalDateTime(value)) {
+            return { $type: 'LocalDateTime', _value:  value.toString() }
+        } else if (isDateTime(value)) {
+            if (value.timeZoneId != null) {
+                return { $type: 'ZonedDateTime', _value: value.toString()}
+            }
+            return { $type: 'OffsetDateTime', _value: value.toString()}
+        } else if (isRelationship(value) || isNode(value) || isPath(value) || isPathSegment(value) ) {
+            throw newError('Graph types can not be ingested to the server', error.PROTOCOL_ERROR)
+        } else if (typeof value === 'object') {
+            return { $type: "Map", _value: this._encodeParameters(value as Record<string, unknown>)}
+        } else {
+            throw newError(`Unable to convert parameter to http request. Value: ${value}`, error.PROTOCOL_ERROR)
+        }
+    }
+}
+
+function isIterable<T extends unknown = unknown> (obj: unknown): obj is Iterable<T> {
+    if (obj == null) {
+      return false
+    }
+    // @ts-expect-error
+    return typeof obj[Symbol.iterator] === 'function'
+}
+  
