@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { newError, Node, Relationship, int, error, types, Integer, Time, Date, LocalTime, Point } from "neo4j-driver-core"
+import { newError, Node, Relationship, int, error, types, Integer, Time, Date, LocalTime, Point, DateTime, LocalDateTime, Duration } from "neo4j-driver-core"
 
 type RawNewFormatValueTypes = 'Null' | 'Boolean' | 'Integer' | 'Float' | 'String' |
     'Time' | 'Date' | 'LocalTime' | 'ZonedDateTime' | 'OffsetDateTime' | 'LocalDateTime' |
@@ -133,11 +133,17 @@ export class NewFormatResponseCodec {
             case "LocalTime":
                 return this._decodeLocalTime(value._value as string)
             case "ZonedDateTime":
+                return this._decodeZonedDateTime(value._value as string)
             case "OffsetDateTime":
+                return this._decodeOffsetDateTime(value._value as string)
             case "LocalDateTime":
+                return this._decodeLocalDateTime(value._value as string)
             case "Duration":
+                return this._decodeDuration(value._value as string)
             case "Point":
+                return this._decodePoint(value._value as PointShape)
             case "Base64":
+                return this._decodeBase64(value._value as string)
             case "Map":
                 return this._decodeMap(value._value as Record<string, RawNewFormatValue>)
             case "List":
@@ -168,9 +174,14 @@ export class NewFormatResponseCodec {
         // 12:50:35.556+01:00
         const [hourStr, minuteString, secondMillisecondAndOffsetString, offsetMinuteString] = value.split(':')
         const [secondStr, millisecondAndOffsetString] = secondMillisecondAndOffsetString.split('.')
+
         // @ts-expect-error
-        const [millisecondString, offsetHourString, isPositive]: [string, string, boolean] = millisecondAndOffsetString.indexOf('+') ?
-            [...millisecondAndOffsetString.split('+'), true] : [...millisecondAndOffsetString.split('-'), false]
+        const [millisecondString, offsetHourString, isPositive]: [string, string, boolean] = millisecondAndOffsetString.indexOf('+') >= 0 ?
+            [...millisecondAndOffsetString.split('+'), true] : (
+                millisecondAndOffsetString.indexOf('-') >= 0 ?  
+                    [...millisecondAndOffsetString.split('-'), false] :
+                    [millisecondAndOffsetString.slice(0, millisecondAndOffsetString.length - 1), '0', true]
+            )
 
 
         let nanosecond = int(millisecondString).multiply(1000000)
@@ -207,6 +218,116 @@ export class NewFormatResponseCodec {
             this._normalizeInteger(nanosecond))
     }
 
+    _decodeZonedDateTime(value: string): DateTime<Integer | bigint | number> {
+        // 2015-11-21T21:40:32.142Z[Antarctica/Troll]
+        const [dateTimeStr, timeZoneIdEndWithAngleBrackets] = value.split('[')
+        const timeZoneId = timeZoneIdEndWithAngleBrackets.slice(0, timeZoneIdEndWithAngleBrackets.length -1)
+        const dateTime = this._decodeOffsetDateTime(dateTimeStr)
+        
+        return new DateTime(
+            dateTime.year,
+            dateTime.month,
+            dateTime.day,
+            dateTime.hour,
+            dateTime.minute,
+            dateTime.second,
+            dateTime.nanosecond,
+            dateTime.timeZoneOffsetSeconds,
+            timeZoneId
+        )
+    }
+
+    _decodeOffsetDateTime(value: string): DateTime<Integer | bigint | number> {
+        // 2015-06-24T12:50:35.556+01:00
+        const [dateStr, timeStr] = value.split('T')
+        const date = this._decodeDate(dateStr)
+        const time = this._decodeTime(timeStr)
+        return new DateTime(
+            date.year,
+            date.month,
+            date.day,
+            time.hour,
+            time.minute,
+            time.second,
+            time.nanosecond,
+            time.timeZoneOffsetSeconds
+        )
+    }
+
+    _decodeLocalDateTime(value: string): LocalDateTime<Integer | bigint | number > {
+       // 2015-06-24T12:50:35.556
+       const [dateStr, timeStr] = value.split('T')
+       const date = this._decodeDate(dateStr)
+       const time = this._decodeLocalTime(timeStr)
+       return new LocalDateTime(
+           date.year,
+           date.month,
+           date.day,
+           time.hour,
+           time.minute,
+           time.second,
+           time.nanosecond
+       ) 
+    }
+
+    _decodeDuration(value: string): Duration<Integer | bigint | number > {
+        // P14DT16H12M
+        // Duration is PnW
+
+        const durationStringWithP = value.slice(1, value.length)
+        
+        if (durationStringWithP.endsWith('W')) {
+            const weeksString = durationStringWithP.slice(0, durationStringWithP.length - 1)
+            const weeks = this._decodeInteger(weeksString)
+            throw newError('Duration in weeks are not supported yet', error.PROTOCOL_ERROR)
+        }
+
+        let month = '0'
+        let day = 'O'
+        let second = '0'
+        let currentNumber = ''
+        let timePart = false
+
+        for (const ch of durationStringWithP) {
+            if (ch >= '0' && ch <= '9') {
+                currentNumber = currentNumber + ch
+            } else {
+                switch(ch) {
+                    case 'M':
+                        if (timePart) {
+                            throw newError(`Unexpected Duration component ${ch} in date part`, error.PROTOCOL_ERROR)
+                        }
+                        month = currentNumber
+                        break;
+                    case 'D':
+                        if (!timePart) {
+                            throw newError(`Unexpected Duration component ${ch} in time part`, error.PROTOCOL_ERROR)
+                        }
+                        day = currentNumber
+                        break
+                    case 'S':
+                        if (!timePart) {
+                            throw newError(`Unexpected Duration component ${ch} in time part`, error.PROTOCOL_ERROR)
+                        }
+                        second = currentNumber
+                    case 'T':
+                        timePart = true
+                    default:
+                        throw newError(`Unexpected Duration component ${ch}`, error.PROTOCOL_ERROR)
+                }
+                currentNumber = ''
+            }
+        }
+
+        return new Duration(
+            this._decodeInteger(month),
+            this._decodeInteger(day),
+            this._decodeInteger(second),
+            // nano not present
+            this._decodeInteger('0')
+        )
+    }
+
     _decodeMap(value: Record<string, RawNewFormatValue>): Record<string, unknown> {
         const result: Record<string, unknown> = {}
         for (const k in value) {
@@ -224,6 +345,12 @@ export class NewFormatResponseCodec {
             this._decodeFloat(value.y),
             value.z != null ? this._decodeFloat(value.z) : undefined
         )
+    }
+
+    _decodeBase64(value: string): Uint8Array {
+        const binaryString: string = atob(value)
+        // @ts-expect-error See https://developer.mozilla.org/en-US/docs/Glossary/Base64
+        return Uint8Array.from(binaryString, (b) => b.codePointAt(0))
     }
 
     _decodeList(value: RawNewFormatValue[]): unknown[] {
