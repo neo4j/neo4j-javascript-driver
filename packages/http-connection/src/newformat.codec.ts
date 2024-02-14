@@ -19,10 +19,11 @@ import { newError, Node, Relationship, int, error, types, Integer, Time, Date, L
 
 type RawNewFormatValueTypes = 'Null' | 'Boolean' | 'Integer' | 'Float' | 'String' |
     'Time' | 'Date' | 'LocalTime' | 'ZonedDateTime' | 'OffsetDateTime' | 'LocalDateTime' |
-    'Duration' | 'Point' | 'Base64' | 'Map' | 'List'
+    'Duration' | 'Point' | 'Base64' | 'Map' | 'List' | 'Node' | 'Relationship'
 
 type PointShape = { srid: number, x: string, y: string, z?: string }
-
+type NodeShape = { _element_id: string, _labels: string[], _props?:  Record<string, RawNewFormatValue>}
+type RelationshipShape = { _element_id: string, _start_node_element_id: string, _end_node_element_id: string, _type: string,  _props?:  Record<string, RawNewFormatValue>  }
 type RawNewFormatValueDef<T extends RawNewFormatValueTypes, V extends unknown> = { $type: T, _value: V }
 
 type RawNewFormatNull = RawNewFormatValueDef<'Null', null>
@@ -41,12 +42,14 @@ type RawNewFormatPoint = RawNewFormatValueDef<'Point', PointShape>
 type RawNewFormatBinary = RawNewFormatValueDef<'Base64', string>
 interface RawNewFormatMap extends RawNewFormatValueDef<'Map', Record<string, RawNewFormatValue>> { }
 interface RawNewFormatList extends RawNewFormatValueDef<'List', RawNewFormatValue[]> { }
+type RawNewFormatNode = RawNewFormatValueDef<'Node', NodeShape>
+type RawNewFormatRelationship = RawNewFormatValueDef<'Relationship', RelationshipShape>
 
 
 type RawNewFormatValue = RawNewFormatNull | RawNewFormatBoolean | RawNewFormatInteger | RawNewFormatFloat |
     RawNewFormatString | RawNewFormatTime | RawNewFormatDate | RawNewFormatLocalTime | RawNewFormatZonedDateTime |
     RawNewFormatOffsetDateTime | RawNewFormatLocalDateTime | RawNewFormatDuration | RawNewFormatPoint |
-    RawNewFormatBinary | RawNewFormatMap | RawNewFormatList
+    RawNewFormatBinary | RawNewFormatMap | RawNewFormatList | RawNewFormatNode | RawNewFormatRelationship 
 
 
 type RawNewFormatData = {
@@ -148,7 +151,15 @@ export class NewFormatResponseCodec {
                 return this._decodeMap(value._value as Record<string, RawNewFormatValue>)
             case "List":
                 return this._decodeList(value._value as RawNewFormatValue[])
+            case "Node":
+                return this._decodeNode(value._value as NodeShape)
+            case "Relationship":
+                return this._decodeRelationship(value._value as RelationshipShape)
             default:
+                // TODO REMOVE, THIS IS A WORKAROUND A BUG
+                if (Array.isArray(value)) {
+                    return this._decodeList(value)
+                }
                 // @ts-expect-error It should never happen
                 throw newError(`Unknown type: ${value.$type}`, error.PROTOCOL_ERROR)
         }
@@ -330,8 +341,8 @@ export class NewFormatResponseCodec {
 
     _decodeMap(value: Record<string, RawNewFormatValue>): Record<string, unknown> {
         const result: Record<string, unknown> = {}
-        for (const k in value) {
-            if (Object.hasOwnProperty.apply(value, k)) {
+        for (const k of Object.keys(value)) {
+            if (Object.prototype.hasOwnProperty.call(value, k)) {
                 result[k] = this._decodeValue(value[k])
             }
         }
@@ -355,6 +366,30 @@ export class NewFormatResponseCodec {
 
     _decodeList(value: RawNewFormatValue[]): unknown[] {
         return value.map(v => this._decodeValue(v))
+    }
+
+    _decodeNode(value: NodeShape): Node<bigint | number | Integer> {
+        return new Node(
+            // @ts-expect-error identity doesn't return
+            undefined, 
+            value._labels, 
+            this._decodeMap(value._props ?? {}),
+            value._element_id
+        )
+    }
+
+    _decodeRelationship(value: RelationshipShape): Relationship<bigint | number | Integer> {
+        return new Relationship(
+            // @ts-expect-error identity doesn't return
+            undefined,
+            undefined,
+            undefined,
+            value._type,
+            this._decodeMap(value._props ?? {}),
+            value._element_id,
+            value._start_node_element_id,
+            value._end_node_element_id
+        )
     }
 
     _normalizeInteger(integer: Integer): Integer | number | bigint {
