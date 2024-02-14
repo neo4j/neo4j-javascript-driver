@@ -61,13 +61,19 @@ export default class HttpConnection extends Connection {
         const body: Record<string, unknown> = {
             statement: query,
             //include_stats: true,
-            //max_execution_time: config?.txConfig.timeout,
-            //impersonated_user: config?.impersonatedUser,
-            //bookmarks: config?.bookmarks
+            bookmarks: config?.bookmarks?.values()
         }
 
         if (Object.getOwnPropertyNames(parameters).length !== 0) {
             body.parameters = parameters
+        }
+
+        if (config?.txConfig.timeout != null) {
+            body.max_execution_time = config?.txConfig.timeout
+        }
+
+        if (config?.impersonatedUser != null) {
+            body.impersonated_user = config?.impersonatedUser
         }
 
         console.log('Body', body)
@@ -81,7 +87,10 @@ export default class HttpConnection extends Connection {
                 Authorization: `Basic ${btoa(`${this._auth.principal}:${this._auth.credentials}`)}`,
             },
             body: JSON.stringify(body)
-        }).then(async (res) => (await res.json()) as RawNewFormatResponse)
+        }).
+            then(async (res) => {
+                return (await res.json()) as RawNewFormatResponse
+            })
             .catch((error) => observer.onError(error))
             .then(async (rawNewFormatResponse) => {
                 console.log(JSON.stringify(rawNewFormatResponse, undefined, 4))
