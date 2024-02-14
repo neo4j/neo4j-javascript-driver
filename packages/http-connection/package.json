@@ -36,5 +36,8 @@
   },
   "dependencies": {
     "neo4j-driver-core": "5.0.0-dev"
+  },
+  "engines" : { 
+    "node" : ">=18.0.0"
   }
 }
