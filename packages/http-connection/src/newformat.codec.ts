@@ -114,7 +114,9 @@ export class NewFormatResponseCodec {
         // if (this._rawNewFormatResponse.notifications != null) {
         //     meta.notifications = this._rawNewFormatResponse.notifications
         // }
-        return {}
+        return {
+            bookmark: this._rawNewFormatResponse.bookmarks
+        }
     }
 
     private _decodeValue(value: RawNewFormatValue): unknown {
@@ -156,10 +158,6 @@ export class NewFormatResponseCodec {
             case "Relationship":
                 return this._decodeRelationship(value._value as RelationshipShape)
             default:
-                // TODO REMOVE, THIS IS A WORKAROUND A BUG
-                if (Array.isArray(value)) {
-                    return this._decodeList(value)
-                }
                 // @ts-expect-error It should never happen
                 throw newError(`Unknown type: ${value.$type}`, error.PROTOCOL_ERROR)
         }
