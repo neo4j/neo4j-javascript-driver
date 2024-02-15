@@ -193,6 +193,10 @@ const skippedTests = [
     ifStartsWith('stub.routing.test_routing_')
       .and(
         ifEndsWith('.test_should_drop_connections_failing_liveness_check'))
+  ),
+  skip(
+    'Needs trying all DNS resolved addresses for hosts in the routing table',
+    ifEndsWith('.test_ipv6_read').and(startsWith('stub.routing.test_routing_'))
   )
 ]
 
