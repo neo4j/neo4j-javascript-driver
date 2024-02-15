@@ -25,7 +25,7 @@ const binder = new CypherNativeBinders(neo4j);
 const descriptor = ["async", "deno"];
 const shouldRunTest = getShouldRunTest(descriptor);
 const getFeatures = createGetFeatures(descriptor);
-const logLevel = Deno.env.get("LOG_LEVEL");
+const logLevel = Deno.env.get("TEST_LOG_LEVEL");
 const createContext = () =>
   new Context(shouldRunTest, getFeatures, binder, logLevel);
 

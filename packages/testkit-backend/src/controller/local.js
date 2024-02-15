@@ -22,7 +22,7 @@ export default class LocalController extends Controller {
   }
 
   openContext (contextId) {
-    this._contexts.set(contextId, new Context(this._shouldRunTest, this._getFeatures, this._binder, process.env.LOG_LEVEL))
+    this._contexts.set(contextId, new Context(this._shouldRunTest, this._getFeatures, this._binder, process.env.TEST_LOG_LEVEL))
   }
 
   closeContext (contextId) {
