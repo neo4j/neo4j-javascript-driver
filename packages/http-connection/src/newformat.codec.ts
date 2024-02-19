@@ -52,6 +52,22 @@ type RawNewFormatValue = RawNewFormatNull | RawNewFormatBoolean | RawNewFormatIn
     RawNewFormatOffsetDateTime | RawNewFormatLocalDateTime | RawNewFormatDuration | RawNewFormatPoint |
     RawNewFormatBinary | RawNewFormatMap | RawNewFormatList | RawNewFormatNode | RawNewFormatRelationship 
 
+type QueryStatistics = {
+    containsUpdates: boolean
+    nodesCreated: number
+    nodesDeleted: number
+    propertiesSet: number
+    relationshipsCreated: number
+    relationshipsDeleted: number
+    labelsAdded: number
+    labelsRemoved: number
+    indexesAdded: number
+    indexesRemoved: number
+    constraintsAdded: number
+    constraintsRemoved: number
+    containsSystemUpdates: boolean
+    systemUpdates: number
+}
 
 type RawNewFormatData = {
     fields: string[]
@@ -60,6 +76,7 @@ type RawNewFormatData = {
 
 export type RawNewFormatResponse = {
     data: RawNewFormatData
+    queryStatistics: QueryStatistics
     bookmarks: string[]
     errors?: []
     notifications?: unknown[]
@@ -116,8 +133,16 @@ export class NewFormatResponseCodec {
         //     meta.notifications = this._rawNewFormatResponse.notifications
         // }
         return {
-            bookmark: this._rawNewFormatResponse.bookmarks
+            bookmark: this._rawNewFormatResponse.bookmarks,
+            stats: this._decodeStats(this._rawNewFormatResponse.queryStatistics)
         }
+    }
+
+    private _decodeStats(queryStatistics: QueryStatistics): Record<string, unknown> {
+        return Object.fromEntries(
+                Object.entries(queryStatistics)
+                    .map(([key, value]) => [key, typeof value === 'number' ? this._normalizeInteger(int(value)): value])
+        )
     }
 
     private _decodeValue(value: RawNewFormatValue): unknown {
@@ -434,6 +459,7 @@ export class NewFormatRequestCodec {
         this._body = {
             statement: this._query,
             //include_stats: true,
+            includeQueryStatistics: true,
             bookmarks: this._config?.bookmarks?.values()
         }
 
