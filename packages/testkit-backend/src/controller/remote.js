@@ -2,6 +2,7 @@ import Controller from './interface'
 import { WebSocketServer } from 'ws'
 import { createServer } from 'http'
 import { HttpStaticServer } from '../infrastructure'
+import consoleRemote from '../console.remote'
 
 /**
  * RemoteController handles the requests by sending them a remote client.
@@ -81,7 +82,11 @@ export default class RemoteController extends Controller {
     this._ws = ws
     this._ws.on('message', safeRun(buffer => {
       const message = JSON.parse(buffer.toString())
-      console.debug('[RemoteController] Received messsage', message)
+
+      if (consoleRemote.handleConsole(message)) {
+        return
+      }
+
       const { contextId, response } = message
       this._writeResponse(contextId, response)
     }))
