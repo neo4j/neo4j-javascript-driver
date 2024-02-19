@@ -160,6 +160,6 @@ export function FakeTimeAck () {
   return response('FakeTimeAck', {})
 }
 
-function response (name, data) {
+export function response (name, data) {
   return { name, data }
 }

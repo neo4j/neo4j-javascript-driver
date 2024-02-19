@@ -7,6 +7,7 @@ import { getShouldRunTest } from './skipped-tests'
 import { createGetFeatures } from './feature'
 import * as REQUEST_HANDLERS from './request-handlers.js'
 import * as RX_REQUEST_HANDLERS from './request-handlers-rx.js'
+import remoteConsole from './console.remote.js'
 
 const SUPPORTED_TLS = (() => {
   if (tls.DEFAULT_MAX_VERSION) {
@@ -40,7 +41,9 @@ function main () {
 
   const newChannel = () => {
     if (channelType.toUpperCase() === 'WEBSOCKET') {
-      return new WebSocketChannel(new URL(`ws://localhost:${backendPort}`))
+      const channel = new WebSocketChannel(new URL(`ws://localhost:${backendPort}`))
+      remoteConsole.install(channel)
+      return channel
     }
     return new SocketChannel(backendPort)
   }

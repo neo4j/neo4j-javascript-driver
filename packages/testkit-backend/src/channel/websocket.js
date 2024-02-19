@@ -17,8 +17,7 @@ export default class WebSocketChannel extends Channel {
     if (!this._ws) {
       this._ws = new WebSocket(this._adddress)
       this._ws.onmessage = ({ data: message }) => {
-        console.log(message)
-        console.debug('[WebSocketChannel] Received messsage', message)
+        console.debug('[WebSocketChannel] Received message', message)
         const { messageType, contextId, data } = JSON.parse(message)
 
         switch (messageType) {
@@ -45,12 +44,16 @@ export default class WebSocketChannel extends Channel {
     }
   }
 
-  writeResponse (contextId, response) {
+  writeResponse (contextId, response, skipLogging) {
     if (this._ws) {
-      console.debug('[WebSocketChannel] Writing response', { contextId, response })
+      if (!skipLogging) {
+        console.debug('[WebSocketChannel] Writing response', { contextId, response })
+      }
       return this._ws.send(this._serialize({ contextId, response }))
     }
-    console.error('[WebSocketChannel] Websocket is not connected')
+    if (!skipLogging) {
+      console.error('[WebSocketChannel] Websocket is not connected')
+    }
   }
 
   _serialize (val) {
