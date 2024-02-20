@@ -69,6 +69,21 @@ type QueryStatistics = {
     systemUpdates: number
 }
 
+type ProfiledQueryPlan = {
+    dbHits: number
+    records: number
+    hasPageCacheStats: boolean
+    pageCacheHits: number
+    pageCacheMisses: number
+    pageCacheHitRatio: number
+    time: number
+    operatorType: string
+    arguments: Record<string, unknown>
+    identifiers: string[]
+    children: ProfiledQueryPlan[]
+}
+
+
 type RawNewFormatData = {
     fields: string[]
     values: RawNewFormatValue[]
@@ -78,6 +93,7 @@ export type RawNewFormatResponse = {
     data: RawNewFormatData
     queryStatistics: QueryStatistics
     bookmarks: string[]
+    profiledQueryPlan: ProfiledQueryPlan
     errors?: []
     notifications?: unknown[]
     [str: string]: unknown
@@ -134,7 +150,8 @@ export class NewFormatResponseCodec {
         // }
         return {
             bookmark: this._rawNewFormatResponse.bookmarks,
-            stats: this._decodeStats(this._rawNewFormatResponse.queryStatistics)
+            stats: this._decodeStats(this._rawNewFormatResponse.queryStatistics),
+            profile: this._decodeProfile(this._rawNewFormatResponse.profiledQueryPlan)
         }
     }
 
@@ -144,6 +161,31 @@ export class NewFormatResponseCodec {
                     .map(([key, value]) => [key, typeof value === 'number' ? this._normalizeInteger(int(value)): value])
         )
     }
+
+    private _decodeProfile(queryPlan: ProfiledQueryPlan): Record<string, unknown> {
+        return Object.fromEntries(
+                Object.entries(queryPlan)
+                    .map(([key, value]) => {
+                        let actualKey: string = key
+                        let actualValue: unknown = value
+                        switch(key) {
+                            case 'children':
+                                actualValue = (value as ProfiledQueryPlan[]).map(this._decodeProfile.bind(this))
+                                break
+                            case 'arguments':
+                                actualKey = 'args'
+                                break
+                            case 'records':
+                                actualKey = 'row'
+                                break 
+                            default:
+                                break
+                        }
+                        return [actualKey, actualValue]
+                    })
+        )
+    }
+
 
     private _decodeValue(value: RawNewFormatValue): unknown {
         switch (value.$type) {
