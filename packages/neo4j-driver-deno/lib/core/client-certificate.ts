@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as json from './json.ts'
+
 /**
  * Holds the Client TLS certificate information.
  *
@@ -28,26 +30,26 @@ export default class ClientCertificate {
   public readonly keyfile: string
   public readonly password?: string
 
-  private constructor () {
+  private constructor() {
     /**
-         * The path to client certificate file.
-         *
-         * @type {string}
-         */
+     * The path to client certificate file.
+     *
+     * @type {string}
+     */
     this.certfile = ''
 
     /**
-         * The path to the key file.
-         *
-         * @type {string}
-         */
+     * The path to the key file.
+     *
+     * @type {string}
+     */
     this.keyfile = ''
 
     /**
-         * The certificate's password.
-         *
-         * @type {string|undefined}
-         */
+     * The certificate's password.
+     *
+     * @type {string|undefined}
+     */
     this.password = undefined
   }
 }
@@ -71,24 +73,23 @@ export default class ClientCertificate {
  */
 export class ClientCertificateProvider {
   /**
-     * Indicates whether the client wants the driver to update the certificate.
-     *
-     * @returns {Promise<boolean>|boolean} true if the client wants the driver to update the certificate
-     */
-
-  hasUpdate (): boolean | Promise<boolean> {
+   * Indicates whether the client wants the driver to update the certificate.
+   *
+   * @returns {Promise<boolean>|boolean} true if the client wants the driver to update the certificate
+   */
+  hasUpdate(): boolean | Promise<boolean> {
     throw new Error('Not Implemented')
   }
 
   /**
-     * Returns the certificate to use for new connections.
-     *
-     * Will be called by the driver after {@link ClientCertificateProvider#hasUpdate()} returned true
-     * or when the driver establishes the first connection.
-     *
-     * @returns {Promise<ClientCertificate>|ClientCertificate} the certificate to use for new connections
-     */
-  getClientCertificate (): ClientCertificate | Promise<ClientCertificate> {
+   * Returns the certificate to use for new connections.
+   *
+   * Will be called by the driver after {@link ClientCertificateProvider#hasUpdate()} returned true
+   * or when the driver establishes the first connection.
+   *
+   * @returns {Promise<ClientCertificate>|ClientCertificate} the certificate to use for new connections
+   */
+  getClientCertificate(): ClientCertificate | Promise<ClientCertificate> {
     throw new Error('Not Implemented')
   }
 }
@@ -99,13 +100,13 @@ export class ClientCertificateProvider {
  */
 export class RotatingClientCertificateProvider extends ClientCertificateProvider {
   /**
-     * Updates the certificate stored in the provider.
-     *
-     * To be called by user-code when a new client certificate is available.
-     *
-     * @param {ClientCertificate} certificate - the new certificate
-     */
-  updateCertificate (certificate: ClientCertificate): void {
+   * Updates the certificate stored in the provider.
+   *
+   * To be called by user-code when a new client certificate is available.
+   *
+   * @param {ClientCertificate} certificate - the new certificate
+   */
+  updateCertificate(certificate: ClientCertificate): void {
     throw new Error('Not implemented')
   }
 }
@@ -115,14 +116,19 @@ export class RotatingClientCertificateProvider extends ClientCertificateProvider
  */
 class ClientCertificateProviders {
   /**
-     *
-     * @param {object} param0 - The params
-     * @param {ClientCertificate} param0.initialCertificate - The certificated used by the driver until {@link RotatingClientCertificateProvider#updateCertificate} get called.
-     *
-     * @returns {RotatingClientCertificateProvider} The rotating client certificate provider
-     */
-  rotating ({ initialCertificate }: { initialCertificate: ClientCertificate }): RotatingClientCertificateProvider {
-    throw new Error('Not implemented')
+   *
+   * @param {object} param0 - The params
+   * @param {ClientCertificate} param0.initialCertificate - The certificated used by the driver until {@link RotatingClientCertificateProvider#updateCertificate} get called.
+   *
+   * @returns {RotatingClientCertificateProvider} The rotating client certificate provider
+   */
+  rotating({ initialCertificate }: { initialCertificate: ClientCertificate }): RotatingClientCertificateProvider {
+    if (initialCertificate == null || typeof initialCertificate !== 'object') {
+      throw new TypeError(`initialCertificate should be ClientCertificate, but got ${json.stringify(initialCertificate)}`)
+    }
+
+    const certificate = { ...initialCertificate }
+    return new InternalRotatingClientCertificateProvider(certificate)
   }
 }
 
@@ -139,4 +145,33 @@ export {
 
 export type {
   ClientCertificateProviders
+}
+
+/**
+ * Internal implementation
+ *
+ * @private
+ */
+class InternalRotatingClientCertificateProvider {
+  constructor(
+    private _certificate: ClientCertificate,
+    private _updated: boolean = false) {
+  }
+
+  hasUpdate(): boolean | Promise<boolean> {
+    try {
+      return this._updated
+    } finally {
+      this._updated = false
+    }
+  }
+
+  getClientCertificate(): ClientCertificate | Promise<ClientCertificate> {
+    return this._certificate
+  }
+
+  updateCertificate(certificate: ClientCertificate): void {
+    this._certificate = { ...certificate }
+    this._updated = true
+  }
 }
