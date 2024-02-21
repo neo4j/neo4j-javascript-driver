@@ -73,7 +73,8 @@ import {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  staticAuthTokenManager
+  staticAuthTokenManager,
+  clientCertificateProviders
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -394,7 +395,8 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  clientCertificateProviders
 }
 
 export {
@@ -462,6 +464,7 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  clientCertificateProviders
 }
 export default forExport

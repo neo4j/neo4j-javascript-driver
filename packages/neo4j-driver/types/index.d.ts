@@ -87,6 +87,11 @@ import {
   notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   AuthTokenAndExpiration,
+  ClientCertificate,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  RotatingClientCertificateProvider,
+  clientCertificateProviders,
   types as coreTypes
 } from 'neo4j-driver-core'
 import {
@@ -283,6 +288,7 @@ declare const forExport: {
   notificationFilterDisabledCategory: typeof notificationFilterDisabledCategory
   notificationFilterMinimumSeverityLevel: typeof notificationFilterMinimumSeverityLevel
   logging: typeof logging
+  clientCertificateProviders: typeof clientCertificateProviders
 }
 
 export {
@@ -358,7 +364,8 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  logging
+  logging,
+  clientCertificateProviders
 }
 
 export type {
@@ -376,7 +383,11 @@ export type {
   NotificationFilterDisabledCategory,
   NotificationFilterMinimumSeverityLevel,
   AuthTokenManager,
-  AuthTokenAndExpiration
+  AuthTokenAndExpiration,
+  ClientCertificate,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  RotatingClientCertificateProvider
 }
 
 export default forExport

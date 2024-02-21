@@ -91,6 +91,7 @@ import { Config } from './types.ts'
 import * as types from './types.ts'
 import * as json from './json.ts'
 import resultTransformers, { ResultTransformer } from './result-transformers.ts'
+import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider } from './client-certificate.ts'
 import * as internal from './internal/index.ts'
 
 /**
@@ -169,7 +170,8 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  clientCertificateProviders
 }
 
 export {
@@ -238,7 +240,8 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  clientCertificateProviders
 }
 
 export type {
@@ -263,7 +266,11 @@ export type {
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel
+  NotificationFilterMinimumSeverityLevel,
+  ClientCertificate,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  RotatingClientCertificateProvider
 }
 
 export default forExport

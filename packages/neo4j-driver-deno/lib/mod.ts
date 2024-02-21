@@ -97,7 +97,12 @@ import {
   Transaction,
   TransactionPromise,
   types as coreTypes,
-  UnboundRelationship
+  UnboundRelationship,
+  ClientCertificate,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  RotatingClientCertificateProvider,
+  clientCertificateProviders
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -424,7 +429,8 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  clientCertificateProviders
 }
 
 export {
@@ -491,7 +497,8 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  clientCertificateProviders
 }
 export type {
   QueryResult,
@@ -516,6 +523,10 @@ export type {
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel
+  NotificationFilterMinimumSeverityLevel,
+  ClientCertificate,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  RotatingClientCertificateProvider
 }
 export default forExport
