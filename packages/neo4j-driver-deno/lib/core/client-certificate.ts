@@ -30,7 +30,7 @@ export default class ClientCertificate {
   public readonly keyfile: string
   public readonly password?: string
 
-  private constructor() {
+  private constructor () {
     /**
      * The path to client certificate file.
      *
@@ -77,7 +77,7 @@ export class ClientCertificateProvider {
    *
    * @returns {Promise<boolean>|boolean} true if the client wants the driver to update the certificate
    */
-  hasUpdate(): boolean | Promise<boolean> {
+  hasUpdate (): boolean | Promise<boolean> {
     throw new Error('Not Implemented')
   }
 
@@ -89,7 +89,7 @@ export class ClientCertificateProvider {
    *
    * @returns {Promise<ClientCertificate>|ClientCertificate} the certificate to use for new connections
    */
-  getClientCertificate(): ClientCertificate | Promise<ClientCertificate> {
+  getClientCertificate (): ClientCertificate | Promise<ClientCertificate> {
     throw new Error('Not Implemented')
   }
 }
@@ -106,7 +106,7 @@ export class RotatingClientCertificateProvider extends ClientCertificateProvider
    *
    * @param {ClientCertificate} certificate - the new certificate
    */
-  updateCertificate(certificate: ClientCertificate): void {
+  updateCertificate (certificate: ClientCertificate): void {
     throw new Error('Not implemented')
   }
 }
@@ -122,7 +122,7 @@ class ClientCertificateProviders {
    *
    * @returns {RotatingClientCertificateProvider} The rotating client certificate provider
    */
-  rotating({ initialCertificate }: { initialCertificate: ClientCertificate }): RotatingClientCertificateProvider {
+  rotating ({ initialCertificate }: { initialCertificate: ClientCertificate }): RotatingClientCertificateProvider {
     if (initialCertificate == null || typeof initialCertificate !== 'object') {
       throw new TypeError(`initialCertificate should be ClientCertificate, but got ${json.stringify(initialCertificate)}`)
     }
@@ -147,18 +147,40 @@ export type {
   ClientCertificateProviders
 }
 
+export function resolveCertificateProvider (input: unknown): ClientCertificateProvider | undefined {
+  if (input == null) {
+    return undefined
+  }
+
+  if (typeof input === 'object' && 'hasUpdate' in input && 'getClientCertificate' in input
+      && typeof input.getClientCertificate === 'function' && typeof input.hasUpdate === 'function') {
+    return input as ClientCertificateProvider
+  }
+
+  if (typeof input === 'object' && 'certfile' in input && 'keyfile' in input && 
+    typeof input.certfile === 'string' && typeof input.keyfile === 'string') {
+    const certificate = { ...input } as unknown as ClientCertificate
+    return {
+      getClientCertificate: () => certificate,
+      hasUpdate: () => false
+    }
+  }
+
+  throw new TypeError(`clientCertificate should be configured with ClientCertificate or ClientCertificateProvider, but got ${json.stringify(input)}`)
+}
+
 /**
  * Internal implementation
  *
  * @private
  */
 class InternalRotatingClientCertificateProvider {
-  constructor(
+  constructor (
     private _certificate: ClientCertificate,
     private _updated: boolean = false) {
   }
 
-  hasUpdate(): boolean | Promise<boolean> {
+  hasUpdate (): boolean | Promise<boolean> {
     try {
       return this._updated
     } finally {
@@ -166,11 +188,11 @@ class InternalRotatingClientCertificateProvider {
     }
   }
 
-  getClientCertificate(): ClientCertificate | Promise<ClientCertificate> {
+  getClientCertificate (): ClientCertificate | Promise<ClientCertificate> {
     return this._certificate
   }
 
-  updateCertificate(certificate: ClientCertificate): void {
+  updateCertificate (certificate: ClientCertificate): void {
     this._certificate = { ...certificate }
     this._updated = true
   }

@@ -147,6 +147,28 @@ export type {
   ClientCertificateProviders
 }
 
+export function resolveCertificateProvider (input: unknown): ClientCertificateProvider | undefined {
+  if (input == null) {
+    return undefined
+  }
+
+  if (typeof input === 'object' && 'hasUpdate' in input && 'getClientCertificate' in input &&
+      typeof input.getClientCertificate === 'function' && typeof input.hasUpdate === 'function') {
+    return input as ClientCertificateProvider
+  }
+
+  if (typeof input === 'object' && 'certfile' in input && 'keyfile' in input &&
+    typeof input.certfile === 'string' && typeof input.keyfile === 'string') {
+    const certificate = { ...input } as unknown as ClientCertificate
+    return {
+      getClientCertificate: () => certificate,
+      hasUpdate: () => false
+    }
+  }
+
+  throw new TypeError(`clientCertificate should be configured with ClientCertificate or ClientCertificateProvider, but got ${json.stringify(input)}`)
+}
+
 /**
  * Internal implementation
  *

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { clientCertificateProviders } from '../src/client-certificate'
+import { clientCertificateProviders, resolveCertificateProvider } from '../src/client-certificate'
 
 describe('clientCertificateProviders', () => {
   describe('.rotating()', () => {
@@ -125,5 +125,36 @@ describe('clientCertificateProviders', () => {
         await expect(Promise.resolve(provider.hasUpdate())).resolves.toBe(false)
       })
     })
+  })
+})
+
+describe('resolveCertificateProvider', () => {
+  const rotatingProvider = clientCertificateProviders.rotating({ initialCertificate: { certfile: 'certfile', keyfile: 'keyfile' } })
+
+  it.each([
+    [undefined, undefined],
+    [undefined, null],
+    [rotatingProvider, rotatingProvider]
+  ])('should return %o when called with %o', (expectedResult, input) => {
+    expect(resolveCertificateProvider(input)).toBe(expectedResult)
+  })
+
+  it('should a static provider when configured with ClientCertificate ', async () => {
+    const certificate = { certfile: 'certfile', keyfile: 'keyfile' }
+
+    const maybeProvider = resolveCertificateProvider(certificate)
+
+    expect(maybeProvider).toBeDefined()
+
+    expect(maybeProvider?.getClientCertificate).toBeInstanceOf(Function)
+    expect(maybeProvider?.hasUpdate).toBeInstanceOf(Function)
+    // @ts-expect-error
+    expect(maybeProvider?.updateCertificate).toBeUndefined()
+
+    for (let i = 0; i < 100; i++) {
+      await expect(Promise.resolve(maybeProvider?.getClientCertificate())).resolves.toEqual(certificate)
+      await expect(Promise.resolve(maybeProvider?.getClientCertificate())).resolves.not.toBe(certificate)
+      await expect(Promise.resolve(maybeProvider?.hasUpdate())).resolves.toBe(false)
+    }
   })
 })
