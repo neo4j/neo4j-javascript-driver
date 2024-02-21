@@ -93,7 +93,7 @@ export type RawNewFormatResponse = {
     data: RawNewFormatData
     queryStatistics: QueryStatistics
     bookmarks: string[]
-    profiledQueryPlan: ProfiledQueryPlan
+    profiledQueryPlan?: ProfiledQueryPlan
     errors?: []
     notifications?: unknown[]
     [str: string]: unknown
@@ -151,7 +151,8 @@ export class NewFormatResponseCodec {
         return {
             bookmark: this._rawNewFormatResponse.bookmarks,
             stats: this._decodeStats(this._rawNewFormatResponse.queryStatistics),
-            profile: this._decodeProfile(this._rawNewFormatResponse.profiledQueryPlan)
+            profile: this._rawNewFormatResponse.profiledQueryPlan != null ? 
+                this._decodeProfile(this._rawNewFormatResponse.profiledQueryPlan): null
         }
     }
 
