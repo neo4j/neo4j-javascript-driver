@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as json from './json'
+
 /**
  * Holds the Client TLS certificate information.
  *
@@ -30,24 +32,24 @@ export default class ClientCertificate {
 
   private constructor () {
     /**
-         * The path to client certificate file.
-         *
-         * @type {string}
-         */
+             * The path to client certificate file.
+             *
+             * @type {string}
+             */
     this.certfile = ''
 
     /**
-         * The path to the key file.
-         *
-         * @type {string}
-         */
+             * The path to the key file.
+             *
+             * @type {string}
+             */
     this.keyfile = ''
 
     /**
-         * The certificate's password.
-         *
-         * @type {string|undefined}
-         */
+             * The certificate's password.
+             *
+             * @type {string|undefined}
+             */
     this.password = undefined
   }
 }
@@ -74,8 +76,7 @@ export class ClientCertificateProvider {
      * Indicates whether the client wants the driver to update the certificate.
      *
      * @returns {Promise<boolean>|boolean} true if the client wants the driver to update the certificate
-     */
-
+    */
   hasUpdate (): boolean | Promise<boolean> {
     throw new Error('Not Implemented')
   }
@@ -122,7 +123,12 @@ class ClientCertificateProviders {
      * @returns {RotatingClientCertificateProvider} The rotating client certificate provider
      */
   rotating ({ initialCertificate }: { initialCertificate: ClientCertificate }): RotatingClientCertificateProvider {
-    throw new Error('Not implemented')
+    if (initialCertificate == null || typeof initialCertificate !== 'object') {
+      throw new TypeError(`initialCertificate should be ClientCertificate, but got ${json.stringify(initialCertificate)}`)
+    }
+
+    const certificate = { ...initialCertificate }
+    return new InternalRotatingClientCertificateProvider(certificate)
   }
 }
 
@@ -139,4 +145,33 @@ export {
 
 export type {
   ClientCertificateProviders
+}
+
+/**
+ * Internal implementation
+ *
+ * @private
+ */
+class InternalRotatingClientCertificateProvider {
+  constructor (
+    private _certificate: ClientCertificate,
+    private _updated: boolean = false) {
+  }
+
+  hasUpdate (): boolean | Promise<boolean> {
+    try {
+      return this._updated
+    } finally {
+      this._updated = false
+    }
+  }
+
+  getClientCertificate (): ClientCertificate | Promise<ClientCertificate> {
+    return this._certificate
+  }
+
+  updateCertificate (certificate: ClientCertificate): void {
+    this._certificate = { ...certificate }
+    this._updated = true
+  }
 }
