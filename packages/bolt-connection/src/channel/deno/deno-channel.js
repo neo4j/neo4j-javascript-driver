@@ -239,6 +239,8 @@ const TrustStrategy = {
       );
     }
 
+    assertNotClientCertificates(config)
+
     const caCerts = await Promise.all(
       config.trustedCertificates.map(f => Deno.readTextFile(f))
     )
@@ -250,6 +252,8 @@ const TrustStrategy = {
     })
   },
   TRUST_SYSTEM_CA_SIGNED_CERTIFICATES: function (config) {
+    assertNotClientCertificates(config)
+    
     return Deno.connectTls({ 
       hostname: config.address.resolvedHost(), 
       port: config.address.port()
@@ -263,6 +267,13 @@ const TrustStrategy = {
       'See, https://deno.com/blog/v1.13#disable-tls-verification'
     )
   }
+}
+
+async function assertNotClientCertificates (config) {
+  if (config.clientCertificate != null) {
+    throw newError('clientCertificates are not supported in DenoJS since the API does not ' +
+      'support its configuration. See, https://deno.land/api@v1.29.0?s=Deno.ConnectTlsOptions.')
+  } 
 }
 
 async function _connect (config) {

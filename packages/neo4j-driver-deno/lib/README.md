@@ -48,6 +48,8 @@ For Deno versions bellow `1.27.1`, you should use the flag `--allow-env` instead
 For using system certificates, the `DENO_TLS_CA_STORE` should be set to `"system"`.
 `TRUST_ALL_CERTIFICATES` should be handle by `--unsafely-ignore-certificate-errors` and not by driver configuration. See, https://deno.com/blog/v1.13#disable-tls-verification;
 
+Client certificates are not support in this version of the driver since there is no support for this feature in the DenoJS API. See, https://deno.land/api@v1.29.0?s=Deno.ConnectTlsOptions.
+
 ### Basic Example
 
 ```typescript
