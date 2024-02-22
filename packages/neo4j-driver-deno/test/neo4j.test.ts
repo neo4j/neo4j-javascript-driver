@@ -64,9 +64,10 @@ Deno.test('session.beginTransaction should rollback the transaction if not commi
 // Deno will fail with resource leaks
 Deno.test('session.beginTransaction should noop if resource committed', async () => {
   await using driver = neo4j.driver(uri, authToken)
+  const name = "Must Be Conor"
+  
   try {
     await using session = driver.session()
-    const name = "Must Be Conor"
   
     {
       await using tx = session.beginTransaction()
