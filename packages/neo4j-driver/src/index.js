@@ -74,7 +74,8 @@ import {
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
   staticAuthTokenManager,
-  clientCertificateProviders
+  clientCertificateProviders,
+  resolveCertificateProvider
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -170,6 +171,7 @@ function driver (url, authToken, config = {}) {
     }
     config.encrypted = ENCRYPTION_ON
     config.trust = trust
+    config.clientCertificate = resolveCertificateProvider(config.clientCertificate)
   }
 
   const authTokenManager = createAuthManager(authToken)

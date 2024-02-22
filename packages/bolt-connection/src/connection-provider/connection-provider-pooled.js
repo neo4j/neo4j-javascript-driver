@@ -40,18 +40,21 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._id = id
     this._config = config
     this._log = log
+    this._clientCertificate = null
     this._authenticationProvider = new AuthenticationProvider({ authTokenManager, userAgent, boltAgent })
     this._livenessCheckProvider = new LivenessCheckProvider({ connectionLivenessCheckTimeout: config.connectionLivenessCheckTimeout })
     this._userAgent = userAgent
     this._boltAgent = boltAgent
     this._createChannelConnection =
       createChannelConnectionHook ||
-      (address => {
+      (async address => {
+        await this._updateClientCertificateWhenNeeded()
         return createChannelConnection(
           address,
           this._config,
           this._createConnectionErrorHandler(),
-          this._log
+          this._log,
+          await this._clientCertificate
         )
       })
     this._connectionPool = newPool({
@@ -73,6 +76,18 @@ export default class PooledConnectionProvider extends ConnectionProvider {
 
   _createConnectionErrorHandler () {
     return new ConnectionErrorHandler(SERVICE_UNAVAILABLE)
+  }
+
+  async _updateClientCertificateWhenNeeded () {
+    if (this._config.clientCertificate == null) {
+      return
+    }
+    if (this._clientCertificate == null || await this._config.clientCertificate.hasUpdate()) {
+      this._clientCertificate = this._config.clientCertificate.getClientCertificate()
+        .then(clientCertificate => {
+          this._clientCertificate = clientCertificate
+        })
+    }
   }
 
   /**

@@ -46,8 +46,9 @@ export default class ChannelConfig {
    * @param {ServerAddress} address the address for the channel to connect to.
    * @param {Object} driverConfig the driver config provided by the user when driver is created.
    * @param {string} connectionErrorCode the default error code to use on connection errors.
+   * @param {object} clientCertificate the client certificate
    */
-  constructor (address, driverConfig, connectionErrorCode) {
+  constructor (address, driverConfig, connectionErrorCode, clientCertificate) {
     this.address = address
     this.encrypted = extractEncrypted(driverConfig)
     this.trust = extractTrust(driverConfig)
@@ -55,6 +56,7 @@ export default class ChannelConfig {
     this.knownHostsPath = extractKnownHostsPath(driverConfig)
     this.connectionErrorCode = connectionErrorCode || SERVICE_UNAVAILABLE
     this.connectionTimeout = driverConfig.connectionTimeout
+    this.clientCertificate = clientCertificate
   }
 }
 

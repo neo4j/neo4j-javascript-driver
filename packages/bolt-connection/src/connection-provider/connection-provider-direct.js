@@ -17,7 +17,6 @@
 
 import PooledConnectionProvider from './connection-provider-pooled'
 import {
-  createChannelConnection,
   DelegateConnection,
   ConnectionErrorHandler
 } from '../connection'
@@ -75,12 +74,7 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
   }
 
   async _hasProtocolVersion (versionPredicate) {
-    const connection = await createChannelConnection(
-      this._address,
-      this._config,
-      this._createConnectionErrorHandler(),
-      this._log
-    )
+    const connection = await this._createChannelConnection(this._address)
 
     const protocolVersion = connection.protocol()
       ? connection.protocol().version

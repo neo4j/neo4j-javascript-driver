@@ -126,7 +126,6 @@ describe('clientCertificateProviders', () => {
 
         await expect(Promise.resolve(provider.getClientCertificate())).resolves.toEqual(config.initialCertificate)
 
-        // @ts-expect-error
         expect(() => provider.updateCertificate(invalidCertificate)).toThrow(TypeError)
       })
 

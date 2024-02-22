@@ -102,7 +102,8 @@ import {
   ClientCertificateProvider,
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
-  clientCertificateProviders
+  clientCertificateProviders,
+  resolveCertificateProvider
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -214,6 +215,7 @@ function driver (
     }
     _config.encrypted = ENCRYPTION_ON
     _config.trust = trust
+    _config.clientCertificate = resolveCertificateProvider(config.clientCertificate)
   }
 
   const authTokenManager = createAuthManager(authToken)

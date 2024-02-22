@@ -102,7 +102,8 @@ import {
   ClientCertificateProvider,
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
-  clientCertificateProviders
+  clientCertificateProviders,
+  resolveCertificateProvider
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -213,6 +214,7 @@ function driver (
     }
     _config.encrypted = ENCRYPTION_ON
     _config.trust = trust
+    _config.clientCertificate = resolveCertificateProvider(config.clientCertificate)
   }
 
   const authTokenManager = createAuthManager(authToken)

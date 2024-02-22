@@ -91,7 +91,7 @@ import { Config } from './types'
 import * as types from './types'
 import * as json from './json'
 import resultTransformers, { ResultTransformer } from './result-transformers'
-import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider } from './client-certificate'
+import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -171,7 +171,8 @@ const forExport = {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  clientCertificateProviders
+  clientCertificateProviders,
+  resolveCertificateProvider
 }
 
 export {
@@ -241,7 +242,8 @@ export {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  clientCertificateProviders
+  clientCertificateProviders,
+  resolveCertificateProvider
 }
 
 export type {
