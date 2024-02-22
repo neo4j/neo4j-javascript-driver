@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { clientCertificateProviders, resolveCertificateProvider } from '../src/client-certificate'
+import { ClientCertificateProvider, RotatingClientCertificateProvider, clientCertificateProviders, resolveCertificateProvider } from '../src/client-certificate'
 
 describe('clientCertificateProviders', () => {
   describe('.rotating()', () => {
@@ -30,7 +30,8 @@ describe('clientCertificateProviders', () => {
           keyfile: 'some_file',
           password: 'pass'
         }
-      }
+      },
+      ...invalidCertificates().map(initialCertificate => ({ initialCertificate }))
     ])('when invalid configuration (%o)', (config) => {
       it('should thrown TypeError', () => {
         // @ts-expect-error
@@ -51,6 +52,19 @@ describe('clientCertificateProviders', () => {
         initialCertificate: {
           certfile: 'other_file',
           keyfile: 'some_file'
+        }
+      },
+      {
+        initialCertificate: {
+          get certfile () { return 'other_file' },
+          get keyfile () { return 'some_file' },
+          get password () { return 'pass' }
+        }
+      },
+      {
+        initialCertificate: {
+          get certfile () { return 'other_file' },
+          get keyfile () { return 'some_file' }
         }
       }
     ])('when valid configuration (%o)', (config) => {
@@ -103,6 +117,19 @@ describe('clientCertificateProviders', () => {
         }
       })
 
+      it.each([
+        ...invalidCertificates(),
+        null,
+        undefined
+      ])('should updateCertificate change certificate for a new one', async (invalidCertificate) => {
+        const provider = clientCertificateProviders.rotating(config)
+
+        await expect(Promise.resolve(provider.getClientCertificate())).resolves.toEqual(config.initialCertificate)
+
+        // @ts-expect-error
+        expect(() => provider.updateCertificate(invalidCertificate)).toThrow(TypeError)
+      })
+
       it('should hasUpdate Return false, unless updateCertificate() was called since the last call of hasUpdate', async () => {
         const provider = clientCertificateProviders.rotating(config)
 
@@ -130,18 +157,42 @@ describe('clientCertificateProviders', () => {
 
 describe('resolveCertificateProvider', () => {
   const rotatingProvider = clientCertificateProviders.rotating({ initialCertificate: { certfile: 'certfile', keyfile: 'keyfile' } })
+  const customProvider: ClientCertificateProvider = {
+    getClientCertificate () {
+      return { certfile: 'certfile', keyfile: 'keyfile' }
+    },
+    hasUpdate () {
+      return false
+    }
+  }
+
+  const customRotatingProvider: RotatingClientCertificateProvider = {
+    getClientCertificate () {
+      return { certfile: 'certfile', keyfile: 'keyfile' }
+    },
+    hasUpdate () {
+      return false
+    },
+    updateCertificate (certificate) {
+    }
+  }
 
   it.each([
     [undefined, undefined],
     [undefined, null],
-    [rotatingProvider, rotatingProvider]
+    [rotatingProvider, rotatingProvider],
+    [customProvider, customProvider],
+    [customRotatingProvider, customRotatingProvider]
   ])('should return %o when called with %o', (expectedResult, input) => {
     expect(resolveCertificateProvider(input)).toBe(expectedResult)
   })
 
-  it('should a static provider when configured with ClientCertificate ', async () => {
-    const certificate = { certfile: 'certfile', keyfile: 'keyfile' }
-
+  it.each([
+    { certfile: 'certfile', keyfile: 'keyfile' },
+    { certfile: 'certfile', keyfile: 'keyfile', password: 'password' },
+    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' } },
+    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' }, get password () { return 'the password' } }
+  ])('should a static provider when configured with ClientCertificate ', async (certificate) => {
     const maybeProvider = resolveCertificateProvider(certificate)
 
     expect(maybeProvider).toBeDefined()
@@ -157,4 +208,34 @@ describe('resolveCertificateProvider', () => {
       await expect(Promise.resolve(maybeProvider?.hasUpdate())).resolves.toBe(false)
     }
   })
+
+  it.each([
+    ...invalidCertificates(),
+    { getClientCertificate () {} },
+    { hasUpdate () {} },
+    { updateCertificate () {} },
+    { getClientCertificate () {}, hasUpdate: true },
+    { getClientCertificate () {}, get hasUpdate () { return true } },
+    { getClientCertificate: 'certificate', hasUpdate () {} }
+  ])('should thrown when object is not a ClientCertificate, ClientCertificateProvider or absent (%o)', (value) => {
+    expect(() => resolveCertificateProvider(value)).toThrow(TypeError)
+  })
 })
+
+function invalidCertificates (): any[] {
+  return [
+    [],
+    ['certfile', 'file', 'keyfile', 'the key file'],
+    { certfile: 'file' },
+    { keyfile: 'file' },
+    { password: 'password_123' },
+    { certfile: 123, keyfile: 'file' },
+    { certfile: 'file', keyfile: 3.4 },
+    { certfile: 3.5, keyfile: 3.4 },
+    { certfile: 'sAED', keyfile: Symbol.asyncIterator },
+    { certfile: '123', keyfile: 'file', password: 123 },
+    { certfile () { return 'the cert file' }, get keyfile () { return 'the key file' } },
+    { get certfile () { return 'the cert file' }, keyfile () { return 'the key file' } },
+    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' }, password () { return 'the password' } }
+  ]
+}

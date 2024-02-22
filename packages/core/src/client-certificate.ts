@@ -105,6 +105,7 @@ export class RotatingClientCertificateProvider extends ClientCertificateProvider
    * To be called by user-code when a new client certificate is available.
    *
    * @param {ClientCertificate} certificate - the new certificate
+   * @throws {TypeError} If initialCertificate is not a ClientCertificate.
    */
   updateCertificate (certificate: ClientCertificate): void {
     throw new Error('Not implemented')
@@ -121,9 +122,10 @@ class ClientCertificateProviders {
    * @param {ClientCertificate} param0.initialCertificate - The certificated used by the driver until {@link RotatingClientCertificateProvider#updateCertificate} get called.
    *
    * @returns {RotatingClientCertificateProvider} The rotating client certificate provider
+   * @throws {TypeError} If initialCertificate is not a ClientCertificate.
    */
   rotating ({ initialCertificate }: { initialCertificate: ClientCertificate }): RotatingClientCertificateProvider {
-    if (initialCertificate == null || typeof initialCertificate !== 'object') {
+    if (initialCertificate == null || !isClientClientCertificate(initialCertificate)) {
       throw new TypeError(`initialCertificate should be ClientCertificate, but got ${json.stringify(initialCertificate)}`)
     }
 
@@ -147,6 +149,16 @@ export type {
   ClientCertificateProviders
 }
 
+/**
+ * Resolves ClientCertificate or ClientCertificateProvider to a ClientCertificateProvider
+ *
+ * Method validates the input.
+ *
+ * @private
+ * @param input
+ * @returns {ClientCertificateProvider?} A client certificate provider if provided a ClientCertificate or a ClientCertificateProvider
+ * @throws {TypeError} If input is not a ClientCertificate, ClientCertificateProvider, undefined or null.
+ */
 export function resolveCertificateProvider (input: unknown): ClientCertificateProvider | undefined {
   if (input == null) {
     return undefined
@@ -157,8 +169,7 @@ export function resolveCertificateProvider (input: unknown): ClientCertificatePr
     return input as ClientCertificateProvider
   }
 
-  if (typeof input === 'object' && 'certfile' in input && 'keyfile' in input &&
-    typeof input.certfile === 'string' && typeof input.keyfile === 'string') {
+  if (isClientClientCertificate(input)) {
     const certificate = { ...input } as unknown as ClientCertificate
     return {
       getClientCertificate: () => certificate,
@@ -167,6 +178,21 @@ export function resolveCertificateProvider (input: unknown): ClientCertificatePr
   }
 
   throw new TypeError(`clientCertificate should be configured with ClientCertificate or ClientCertificateProvider, but got ${json.stringify(input)}`)
+}
+
+/**
+ * Verify if object is a client certificate
+ * @private
+ * @param maybeClientCertificate - Maybe the certificate
+ * @returns {boolean} if maybeClientCertificate is a client certificate object
+ *
+ */
+function isClientClientCertificate (maybeClientCertificate: unknown): maybeClientCertificate is ClientCertificate {
+  return maybeClientCertificate != null &&
+    typeof maybeClientCertificate === 'object' &&
+    'certfile' in maybeClientCertificate && typeof maybeClientCertificate.certfile === 'string' &&
+    'keyfile' in maybeClientCertificate && typeof maybeClientCertificate.keyfile === 'string' &&
+    (!('password' in maybeClientCertificate) || maybeClientCertificate.password == null || typeof maybeClientCertificate.password === 'string')
 }
 
 /**
@@ -193,6 +219,9 @@ class InternalRotatingClientCertificateProvider {
   }
 
   updateCertificate (certificate: ClientCertificate): void {
+    if (!isClientClientCertificate(certificate)) {
+      throw new TypeError(`certificate should be ClientCertificate, but got ${json.stringify(certificate)}`)
+    }
     this._certificate = { ...certificate }
     this._updated = true
   }
