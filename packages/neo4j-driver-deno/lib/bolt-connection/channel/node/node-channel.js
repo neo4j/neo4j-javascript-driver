@@ -51,7 +51,7 @@ const TrustStrategy = {
       config.address.host(),
       config.trustedCertificates.map(f => fs.readFileSync(f)),
       config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.certfile) : undefined,
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.key) : undefined,
+      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.keyfile) : undefined,
       config.clientCertificate != null ? config.clientCertificate.password : undefined
     )
     const socket = tls.connect(
@@ -86,7 +86,7 @@ const TrustStrategy = {
       config.address.host(),
       undefined,
       config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.certfile) : undefined,
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.key) : undefined,
+      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.keyfile) : undefined,
       config.clientCertificate != null ? config.clientCertificate.password : undefined
     )
     const socket = tls.connect(
@@ -122,7 +122,7 @@ const TrustStrategy = {
       config.address.host(),
       undefined,
       config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.certfile) : undefined,
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.key) : undefined,
+      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.keyfile) : undefined,
       config.clientCertificate != null ? config.clientCertificate.password : undefined
     )
     const socket = tls.connect(

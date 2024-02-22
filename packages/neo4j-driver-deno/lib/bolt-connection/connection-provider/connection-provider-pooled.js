@@ -83,11 +83,15 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       return
     }
     if (this._clientCertificate == null || await this._config.clientCertificate.hasUpdate()) {
-      this._clientCertificate = this._config.clientCertificate.getClientCertificate()
+      this._clientCertificate = this._getClientCertificate()
         .then(clientCertificate => {
           this._clientCertificate = clientCertificate
         })
     }
+  }
+
+  async _getClientCertificate () {
+    return this._config.clientCertificate.getClientCertificate()
   }
 
   /**

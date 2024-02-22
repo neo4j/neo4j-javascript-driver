@@ -71,12 +71,14 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     routingTablePurgeDelay,
     newPool
   }) {
-    super({ id, config, log, userAgent, boltAgent, authTokenManager, newPool }, address => {
+    super({ id, config, log, userAgent, boltAgent, authTokenManager, newPool }, async address => {
+      await this._updateClientCertificateWhenNeeded()
       return createChannelConnection(
         address,
         this._config,
         this._createConnectionErrorHandler(),
         this._log,
+        await this._clientCertificate,
         this._routingContext
       )
     })
@@ -212,12 +214,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     let lastError
     for (let i = 0; i < addresses.length; i++) {
       try {
-        const connection = await createChannelConnection(
-          addresses[i],
-          this._config,
-          this._createConnectionErrorHandler(),
-          this._log
-        )
+        const connection = await this._createChannelConnection(addresses[i])
         const protocolVersion = connection.protocol()
           ? connection.protocol().version
           : null
