@@ -17,31 +17,46 @@
 
 import * as json from './json.ts'
 
+type KeyFile = string | { path: string, password?: string }
+
 /**
  * Holds the Client TLS certificate information.
  *
  * Browser instances of the driver should configure the certificate
  * in the system.
  *
+ * Files defined in the {@link ClientCertificate#certfile}
+ * and {@link ClientCertificate#keyfile} will read and loaded to
+ * memory to fill the fields `cert` and `key` in security context.
+ *
  * @interface
+ * @see https://nodejs.org/api/tls.html#tlscreatesecurecontextoptions
+ */
+/**
+ * Represents KeyFile represented as file.
+ *
+ * @typedef {object} KeyFileObject
+ * @property {string} path - The path of the file
+ * @property {string?} password - the password of the key. If none,
+ * the password defined at {@link ClientCertificate} will be used.
  */
 export default class ClientCertificate {
-  public readonly certfile: string
-  public readonly keyfile: string
+  public readonly certfile: string | string[]
+  public readonly keyfile: KeyFile | KeyFile[]
   public readonly password?: string
 
   private constructor () {
     /**
      * The path to client certificate file.
      *
-     * @type {string}
+     * @type {string | string}
      */
     this.certfile = ''
 
     /**
      * The path to the key file.
      *
-     * @type {string}
+     * @type {string | string[] | KeyFileObject | KeyFileObject[] }
      */
     this.keyfile = ''
 
@@ -190,9 +205,75 @@ export function resolveCertificateProvider (input: unknown): ClientCertificatePr
 function isClientClientCertificate (maybeClientCertificate: unknown): maybeClientCertificate is ClientCertificate {
   return maybeClientCertificate != null &&
     typeof maybeClientCertificate === 'object' &&
-    'certfile' in maybeClientCertificate && typeof maybeClientCertificate.certfile === 'string' &&
-    'keyfile' in maybeClientCertificate && typeof maybeClientCertificate.keyfile === 'string' &&
-    (!('password' in maybeClientCertificate) || maybeClientCertificate.password == null || typeof maybeClientCertificate.password === 'string')
+    'certfile' in maybeClientCertificate && isCertFile(maybeClientCertificate.certfile) &&
+    'keyfile' in maybeClientCertificate && isKeyFile(maybeClientCertificate.keyfile) &&
+    isStringOrNotPresent('password', maybeClientCertificate)
+}
+
+/**
+ * Check value is a cert file
+ * @private
+ * @param {any} value the value
+ * @returns {boolean} is a cert file
+ */
+function isCertFile (value: unknown): value is string | string [] {
+  return isString(value) || isArrayOf(value, isString)
+}
+
+/**
+ * Check if the value is a keyfile.
+ *
+ * @private
+ * @param {any} maybeKeyFile might be a keyfile value
+ * @returns {boolean} the value is a KeyFile
+ */
+function isKeyFile (maybeKeyFile: unknown): maybeKeyFile is KeyFile {
+  function check (obj: unknown): obj is KeyFile {
+    return typeof obj === 'string' ||
+      (obj != null &&
+      typeof obj === 'object' &&
+      'path' in obj && typeof obj.path === 'string' &&
+      isStringOrNotPresent('password', obj))
+  }
+
+  return check(maybeKeyFile) || isArrayOf(maybeKeyFile, check)
+}
+
+/**
+ * Verify if value is string
+ *
+ * @private
+ * @param {any} value the value
+ * @returns {boolean} is string
+ */
+function isString (value: unknown): value is string {
+  return typeof value === 'string'
+}
+
+/**
+ * Verifies if value is a array of type
+ *
+ * @private
+ * @param {any} value the value
+ * @param {function} isType the type checker
+ * @returns {boolean} value is array of type
+ */
+function isArrayOf<T> (value: unknown, isType: (val: unknown) => val is T, allowEmpty: boolean = false): value is T[] {
+  return Array.isArray(value) &&
+    (allowEmpty || value.length > 0) &&
+    value.filter(isType).length === value.length
+}
+
+/**
+ * Verify if valueName is present in the object and is a string, or not present at all.
+ *
+ * @private
+ * @param {string} valueName The value in the object
+ * @param {object} obj The object
+ * @returns {boolean} if the value is present in object as string or not present
+ */
+function isStringOrNotPresent (valueName: string, obj: Record<string, any>): boolean {
+  return !(valueName in obj) || obj[valueName] == null || typeof obj[valueName] === 'string'
 }
 
 /**

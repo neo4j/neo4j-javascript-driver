@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ClientCertificateProvider, RotatingClientCertificateProvider, clientCertificateProviders, resolveCertificateProvider } from '../src/client-certificate'
+import ClientCertificate, { ClientCertificateProvider, RotatingClientCertificateProvider, clientCertificateProviders, resolveCertificateProvider } from '../src/client-certificate'
 
 describe('clientCertificateProviders', () => {
   describe('.rotating()', () => {
@@ -40,34 +40,9 @@ describe('clientCertificateProviders', () => {
       })
     })
 
-    describe.each([
-      {
-        initialCertificate: {
-          certfile: 'other_file',
-          keyfile: 'some_file',
-          password: 'pass'
-        }
-      },
-      {
-        initialCertificate: {
-          certfile: 'other_file',
-          keyfile: 'some_file'
-        }
-      },
-      {
-        initialCertificate: {
-          get certfile () { return 'other_file' },
-          get keyfile () { return 'some_file' },
-          get password () { return 'pass' }
-        }
-      },
-      {
-        initialCertificate: {
-          get certfile () { return 'other_file' },
-          get keyfile () { return 'some_file' }
-        }
-      }
-    ])('when valid configuration (%o)', (config) => {
+    describe.each(validCertificates()
+      .map(initialCertificate => ({ initialCertificate }))
+    )('when valid configuration (%o)', (config) => {
       it('should return a RotatingClientCertificateProvider', () => {
         const provider = clientCertificateProviders.rotating(config)
 
@@ -186,12 +161,7 @@ describe('resolveCertificateProvider', () => {
     expect(resolveCertificateProvider(input)).toBe(expectedResult)
   })
 
-  it.each([
-    { certfile: 'certfile', keyfile: 'keyfile' },
-    { certfile: 'certfile', keyfile: 'keyfile', password: 'password' },
-    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' } },
-    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' }, get password () { return 'the password' } }
-  ])('should a static provider when configured with ClientCertificate ', async (certificate) => {
+  it.each(validCertificates())('should a static provider when configured with ClientCertificate ', async (certificate) => {
     const maybeProvider = resolveCertificateProvider(certificate)
 
     expect(maybeProvider).toBeDefined()
@@ -235,6 +205,49 @@ function invalidCertificates (): any[] {
     { certfile: '123', keyfile: 'file', password: 123 },
     { certfile () { return 'the cert file' }, get keyfile () { return 'the key file' } },
     { get certfile () { return 'the cert file' }, keyfile () { return 'the key file' } },
-    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' }, password () { return 'the password' } }
+    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' }, password () { return 'the password' } },
+    // key file as object
+    { certfile: 'certfile', keyfile: { } },
+    { certfile: 'certfile', keyfile: { path: null, password: 142 } },
+    { certfile: 'certfile', keyfile: { path: 1123 }, password: 'the password' },
+    { certfile: 'certfile', keyfile: { path: 'the key path', password: 456 }, password: 'the password' },
+    // key file as object and getter
+    { certfile: 'certfile', get keyfile () { return { path: 1919 } } },
+    { certfile: 'certfile', get keyfile () { return { path: 'the key path', password: {} } } },
+    { certfile: 'certfile', get keyfile () { return { path: { path: 'path' } } }, password: 'the password' },
+    { certfile: 'certfile', get keyfile () { return { path: ['123'], password: 'password' } }, password: 'the password' },
+    // multiple certificates
+    { certfile: ['certfile'], keyfile: [] },
+    { certfile: [], keyfile: ['keyfile'], password: 'password' },
+    { certfile: [1234], keyfile: ['keyfile'] },
+    { certfile: ['certfile'], keyfile: [1234], password: 'password' },
+    { certfile: ['certfile'], keyfile: [{ path: 1234 }] },
+    { certfile: ['certfile'], keyfile: [{ path: 'the key path', password: 1234 }], password: 'password' }
+  ]
+}
+
+function validCertificates (): ClientCertificate[] {
+  return [
+    // strings
+    { certfile: 'certfile', keyfile: 'keyfile' },
+    { certfile: 'certfile', keyfile: 'keyfile', password: 'password' },
+    // string getters
+    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' } },
+    { get certfile () { return 'the cert file' }, get keyfile () { return 'the key file' }, get password () { return 'the password' } },
+    // key file as object
+    { certfile: 'certfile', keyfile: { path: 'the key path' } },
+    { certfile: 'certfile', keyfile: { path: 'the key path', password: 'password' } },
+    { certfile: 'certfile', keyfile: { path: 'the key path' }, password: 'the password' },
+    { certfile: 'certfile', keyfile: { path: 'the key path', password: 'password' }, password: 'the password' },
+    // key file as object and getter
+    { certfile: 'certfile', get keyfile () { return { path: 'the key path' } } },
+    { certfile: 'certfile', get keyfile () { return { path: 'the key path', password: 'password' } } },
+    { certfile: 'certfile', get keyfile () { return { path: 'the key path' } }, password: 'the password' },
+    { certfile: 'certfile', get keyfile () { return { path: 'the key path', password: 'password' } }, password: 'the password' },
+    // multiple certificates
+    { certfile: ['certfile'], keyfile: ['keyfile'] },
+    { certfile: ['certfile'], keyfile: ['keyfile'], password: 'password' },
+    { certfile: ['certfile'], keyfile: [{ path: 'the key path' }] },
+    { certfile: ['certfile'], keyfile: [{ path: 'the key path', password: 'password' }], password: 'password' }
   ]
 }
