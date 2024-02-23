@@ -20,6 +20,14 @@ import * as json from './json.ts'
 type KeyFile = string | { path: string, password?: string }
 
 /**
+ * Represents KeyFile represented as file.
+ *
+ * @typedef {object} KeyFileObject
+ * @property {string} path - The path of the file
+ * @property {string|undefined} password - the password of the key. If none,
+ * the password defined at {@link ClientCertificate} will be used.
+ */
+/**
  * Holds the Client TLS certificate information.
  *
  * Browser instances of the driver should configure the certificate
@@ -32,14 +40,6 @@ type KeyFile = string | { path: string, password?: string }
  * @interface
  * @see https://nodejs.org/api/tls.html#tlscreatesecurecontextoptions
  */
-/**
- * Represents KeyFile represented as file.
- *
- * @typedef {object} KeyFileObject
- * @property {string} path - The path of the file
- * @property {string?} password - the password of the key. If none,
- * the password defined at {@link ClientCertificate} will be used.
- */
 export default class ClientCertificate {
   public readonly certfile: string | string[]
   public readonly keyfile: KeyFile | KeyFile[]
@@ -49,14 +49,14 @@ export default class ClientCertificate {
     /**
      * The path to client certificate file.
      *
-     * @type {string | string}
+     * @type {string|string[]}
      */
     this.certfile = ''
 
     /**
      * The path to the key file.
      *
-     * @type {string | string[] | KeyFileObject | KeyFileObject[] }
+     * @type {string|string[]|KeyFileObject|KeyFileObject[]}
      */
     this.keyfile = ''
 
@@ -200,7 +200,6 @@ export function resolveCertificateProvider (input: unknown): ClientCertificatePr
  * @private
  * @param maybeClientCertificate - Maybe the certificate
  * @returns {boolean} if maybeClientCertificate is a client certificate object
- *
  */
 function isClientClientCertificate (maybeClientCertificate: unknown): maybeClientCertificate is ClientCertificate {
   return maybeClientCertificate != null &&
@@ -287,6 +286,11 @@ class InternalRotatingClientCertificateProvider {
     private _updated: boolean = false) {
   }
 
+  /**
+   *
+   * @returns {boolean|Promise<boolean>}
+   */
+
   hasUpdate (): boolean | Promise<boolean> {
     try {
       return this._updated
@@ -295,10 +299,19 @@ class InternalRotatingClientCertificateProvider {
     }
   }
 
+  /**
+   *
+   * @returns {ClientCertificate|Promise<ClientCertificate>}
+   */
   getClientCertificate (): ClientCertificate | Promise<ClientCertificate> {
     return this._certificate
   }
 
+  /**
+   *
+   * @param certificate
+   * @returns {void}
+   */
   updateCertificate (certificate: ClientCertificate): void {
     if (!isClientClientCertificate(certificate)) {
       throw new TypeError(`certificate should be ClientCertificate, but got ${json.stringify(certificate)}`)

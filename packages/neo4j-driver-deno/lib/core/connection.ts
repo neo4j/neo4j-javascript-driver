@@ -72,34 +72,72 @@ interface RunQueryConfig extends BeginTransactionConfig {
  * @interface
  */
 class Connection {
+  /**
+   *
+   * @param config
+   * @returns {ResultStreamObserver}
+   */
   beginTransaction (config: BeginTransactionConfig): ResultStreamObserver {
     throw new Error('Not implemented')
   }
 
+  /**
+   *
+   * @param query
+   * @param parameters
+   * @param config
+   * @returns {ResultStreamObserver}
+   */
   run (query: string, parameters?: Record<string, unknown>, config?: RunQueryConfig): ResultStreamObserver {
     throw new Error('Not implemented')
   }
 
+  /**
+   *
+   * @param config
+   * @returns {ResultStreamObserver}
+   */
   commitTransaction (config: CommitTransactionConfig): ResultStreamObserver {
     throw new Error('Not implemented')
   }
 
+  /**
+   *
+   * @param config
+   * @returns {ResultStreamObserver}
+   */
   rollbackTransaction (config: RollbackConnectionConfig): ResultStreamObserver {
     throw new Error('Not implemented')
   }
 
+  /**
+   *
+   * @returns {Promise<void>}
+   */
   resetAndFlush (): Promise<void> {
     throw new Error('Not implemented')
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   isOpen (): boolean {
     throw new Error('Not implemented')
   }
 
+  /**
+   *
+   * @returns {number}
+   */
   getProtocolVersion (): number {
     throw new Error('Not implemented')
   }
 
+  /**
+   *
+   * @returns {boolean}
+   */
   hasOngoingObservableRequests (): boolean {
     throw new Error('Not implemented')
   }
