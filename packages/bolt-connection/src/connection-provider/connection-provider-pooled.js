@@ -21,7 +21,7 @@ import { error, ConnectionProvider, ServerInfo, newError } from 'neo4j-driver-co
 import AuthenticationProvider from './authentication-provider'
 import { object } from '../lang'
 import LivenessCheckProvider from './liveness-check-provider'
-import { ClientCertificatesLoader } from '../channel'
+import ClientCertificateHolder from './client-certificate-holder'
 
 const { SERVICE_UNAVAILABLE } = error
 const AUTHENTICATION_ERRORS = [
@@ -41,7 +41,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._id = id
     this._config = config
     this._log = log
-    this._clientCertificate = null
+    this._clientCertificateHolder = new ClientCertificateHolder({ clientCertificateProvider: this._config.clientCertificate })
     this._authenticationProvider = new AuthenticationProvider({ authTokenManager, userAgent, boltAgent })
     this._livenessCheckProvider = new LivenessCheckProvider({ connectionLivenessCheckTimeout: config.connectionLivenessCheckTimeout })
     this._userAgent = userAgent
@@ -55,7 +55,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
           this._config,
           this._createConnectionErrorHandler(),
           this._log,
-          await this._clientCertificate
+          await this._clientCertificateHolder.getClientCertificate()
         )
       })
     this._connectionPool = newPool({
@@ -77,19 +77,6 @@ export default class PooledConnectionProvider extends ConnectionProvider {
 
   _createConnectionErrorHandler () {
     return new ConnectionErrorHandler(SERVICE_UNAVAILABLE)
-  }
-
-  async _updateClientCertificateWhenNeeded () {
-    if (this._config.clientCertificate == null) {
-      return
-    }
-    if (this._clientCertificate == null || await this._config.clientCertificate.hasUpdate()) {
-      this._clientCertificate = this._getClientCertificate()
-        .then(ClientCertificatesLoader.load)
-        .then(clientCertificate => {
-          this._clientCertificate = clientCertificate
-        })
-    }
   }
 
   async _getClientCertificate () {

@@ -86,6 +86,10 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     config.connectionLivenessCheckTimeout = data.livenessCheckTimeoutMs
   }
 
+  if ('clientCertificate' in data) {
+    config.clientCertificate = data.clientCertificate
+  }
+
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)

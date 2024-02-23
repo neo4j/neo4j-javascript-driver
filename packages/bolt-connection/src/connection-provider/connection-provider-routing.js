@@ -72,13 +72,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     newPool
   }) {
     super({ id, config, log, userAgent, boltAgent, authTokenManager, newPool }, async address => {
-      await this._updateClientCertificateWhenNeeded()
       return createChannelConnection(
         address,
         this._config,
         this._createConnectionErrorHandler(),
         this._log,
-        await this._clientCertificate,
+        await this._clientCertificateHolder.getClientCertificate(),
         this._routingContext
       )
     })
