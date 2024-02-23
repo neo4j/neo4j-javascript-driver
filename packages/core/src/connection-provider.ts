@@ -28,6 +28,9 @@ import { AuthToken } from './types'
  * @interface
  */
 class Releasable {
+  /**
+   * @returns {Promise<void>}
+   */
   release (): Promise<void> {
     throw new Error('Not implemented')
   }
