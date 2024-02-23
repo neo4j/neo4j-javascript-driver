@@ -50,9 +50,7 @@ const TrustStrategy = {
     const tlsOpts = newTlsOptions(
       config.address.host(),
       config.trustedCertificates.map(f => fs.readFileSync(f)),
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.certfile) : undefined,
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.keyfile) : undefined,
-      config.clientCertificate != null ? config.clientCertificate.password : undefined
+      config.clientCertificate
     )
     const socket = tls.connect(
       config.address.port(),
@@ -85,9 +83,7 @@ const TrustStrategy = {
     const tlsOpts = newTlsOptions(
       config.address.host(),
       undefined,
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.certfile) : undefined,
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.keyfile) : undefined,
-      config.clientCertificate != null ? config.clientCertificate.password : undefined
+      config.clientCertificate
     )
     const socket = tls.connect(
       config.address.port(),
@@ -121,9 +117,7 @@ const TrustStrategy = {
     const tlsOpts = newTlsOptions(
       config.address.host(),
       undefined,
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.certfile) : undefined,
-      config.clientCertificate != null ? fs.readFileSync(config.clientCertificate.keyfile) : undefined,
-      config.clientCertificate != null ? config.clientCertificate.password : undefined
+      config.clientCertificate
     )
     const socket = tls.connect(
       config.address.port(),
@@ -218,14 +212,12 @@ function trustStrategyName (config) {
  * @param {string|undefined} passphrase an optional client cert passphrase
  * @return {Object} a new options object.
  */
-function newTlsOptions (hostname, ca = undefined, cert = undefined, key = undefined, passphrase = undefined) {
+function newTlsOptions (hostname, ca = undefined, clientCertificate = undefined) {
   return {
     rejectUnauthorized: false, // we manually check for this in the connect callback, to give a more helpful error to the user
     servername: hostname, // server name for the SNI (Server Name Indication) TLS extension
     ca, // optional CA useful for TRUST_CUSTOM_CA_SIGNED_CERTIFICATES trust mode,
-    cert,
-    key,
-    passphrase
+    ...clientCertificate
   }
 }
 

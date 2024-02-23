@@ -17,7 +17,7 @@
 
 import DenoChannel from './deno-channel.js'
 import DenoHostNameResolver from './deno-host-name-resolver.js'
-
+import DenoClientCertificatesLoader from './deno-client-certificates-loader.js'
 /*
 
  This module exports a set of components to be used in deno environment.
@@ -30,3 +30,4 @@ import DenoHostNameResolver from './deno-host-name-resolver.js'
   */
 export const Channel = DenoChannel
 export const HostNameResolver = DenoHostNameResolver
+export const ClientCertificatesLoader = DenoClientCertificatesLoader

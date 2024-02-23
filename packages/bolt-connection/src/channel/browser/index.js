@@ -17,7 +17,7 @@
 
 import WebSocketChannel from './browser-channel'
 import BrowserHosNameResolver from './browser-host-name-resolver'
-
+import BrowserClientCertificatesLoader from './browser-client-certificates-loader'
 /*
 
 This module exports a set of components to be used in browser environment.
@@ -30,3 +30,4 @@ NOTE: exports in this module should have exactly the same names/structure as exp
  */
 export const Channel = WebSocketChannel
 export const HostNameResolver = BrowserHosNameResolver
+export const ClientCertificatesLoader = BrowserClientCertificatesLoader

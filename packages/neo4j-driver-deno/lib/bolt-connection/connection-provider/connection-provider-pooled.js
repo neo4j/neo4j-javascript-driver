@@ -21,6 +21,7 @@ import { error, ConnectionProvider, ServerInfo, newError } from '../../core/inde
 import AuthenticationProvider from './authentication-provider.js'
 import { object } from '../lang/index.js'
 import LivenessCheckProvider from './liveness-check-provider.js'
+import { ClientCertificatesLoader } from '../channel/index.js'
 
 const { SERVICE_UNAVAILABLE } = error
 const AUTHENTICATION_ERRORS = [
@@ -84,6 +85,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     }
     if (this._clientCertificate == null || await this._config.clientCertificate.hasUpdate()) {
       this._clientCertificate = this._getClientCertificate()
+        .then(ClientCertificatesLoader.load)
         .then(clientCertificate => {
           this._clientCertificate = clientCertificate
         })

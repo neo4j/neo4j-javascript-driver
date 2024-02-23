@@ -21,6 +21,7 @@ import { error, ConnectionProvider, ServerInfo, newError } from 'neo4j-driver-co
 import AuthenticationProvider from './authentication-provider'
 import { object } from '../lang'
 import LivenessCheckProvider from './liveness-check-provider'
+import { ClientCertificatesLoader } from '../channel'
 
 const { SERVICE_UNAVAILABLE } = error
 const AUTHENTICATION_ERRORS = [
@@ -84,6 +85,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     }
     if (this._clientCertificate == null || await this._config.clientCertificate.hasUpdate()) {
       this._clientCertificate = this._getClientCertificate()
+        .then(ClientCertificatesLoader.load)
         .then(clientCertificate => {
           this._clientCertificate = clientCertificate
         })
