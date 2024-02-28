@@ -49,7 +49,6 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._createChannelConnection =
       createChannelConnectionHook ||
       (async address => {
-        await this._updateClientCertificateWhenNeeded()
         return createChannelConnection(
           address,
           this._config,
