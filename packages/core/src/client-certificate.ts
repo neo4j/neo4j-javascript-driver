@@ -39,6 +39,8 @@ type KeyFile = string | { path: string, password?: string }
  *
  * @interface
  * @see https://nodejs.org/api/tls.html#tlscreatesecurecontextoptions
+ * @experimental Exposed as preview feature.
+ * @since 5.19
  */
 export default class ClientCertificate {
   public readonly certfile: string | string[]
@@ -85,6 +87,8 @@ export default class ClientCertificate {
  * Should fetching the certificate be particularly slow, it might be necessary to increase the timeout.
  *
  * @interface
+ * @experimental Exposed as preview feature.
+ * @since 5.19
  */
 export class ClientCertificateProvider {
   /**
@@ -112,6 +116,8 @@ export class ClientCertificateProvider {
 /**
  * Interface for  {@link ClientCertificateProvider} which provides update certificate function.
  * @interface
+ * @experimental Exposed as preview feature.
+ * @since 5.19
  */
 export class RotatingClientCertificateProvider extends ClientCertificateProvider {
   /**
@@ -129,6 +135,9 @@ export class RotatingClientCertificateProvider extends ClientCertificateProvider
 
 /**
  * Defines the object which holds the common {@link ClientCertificateProviders} used in the Driver
+ *
+ * @experimental Exposed as preview feature.
+ * @since 5.19
  */
 class ClientCertificateProviders {
   /**
@@ -151,6 +160,9 @@ class ClientCertificateProviders {
 
 /**
  * Holds the common {@link ClientCertificateProviders} used in the Driver.
+ *
+ * @experimental Exposed as preview feature.
+ * @since 5.19
  */
 const clientCertificateProviders: ClientCertificateProviders = new ClientCertificateProviders()
 
