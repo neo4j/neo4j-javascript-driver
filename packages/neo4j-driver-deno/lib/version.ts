@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export default "5.18.0" // Specified using --version when running generate.ts
+export default "5.19.0" // Specified using --version when running generate.ts
