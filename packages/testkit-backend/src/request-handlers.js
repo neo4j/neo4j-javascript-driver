@@ -87,7 +87,7 @@ export function NewDriver ({ neo4j }, context, data, wire) {
   }
 
   if ('clientCertificate' in data) {
-    config.clientCertificate = data.clientCertificate
+    config.clientCertificate = data.clientCertificate.data
   }
 
   let driver
