@@ -7,6 +7,7 @@ const features = [
   'Feature:API:BookmarkManager',
   'Feature:API:RetryableExceptions',
   'Feature:API:Session:AuthConfig',
+  'Feature:API:SSLClientCertificate',
   'Feature:API:SSLConfig',
   'Feature:API:SSLSchemes',
   'Feature:API:Type.Temporal',

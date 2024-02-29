@@ -86,7 +86,7 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     config.connectionLivenessCheckTimeout = data.livenessCheckTimeoutMs
   }
 
-  if ('clientCertificate' in data) {
+  if (data.clientCertificate != null) {
     config.clientCertificate = data.clientCertificate.data
   }
 
