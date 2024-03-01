@@ -97,7 +97,11 @@ import {
   Transaction,
   TransactionPromise,
   types as coreTypes,
-  UnboundRelationship
+  UnboundRelationship,
+  Rule,
+  Rules,
+  RulesFactories,
+  mapping
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -423,7 +427,9 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -490,7 +496,9 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  RulesFactories,
+  mapping
 }
 export type {
   QueryResult,
@@ -515,6 +523,8 @@ export type {
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel
+  NotificationFilterMinimumSeverityLevel,
+  Rule,
+  Rules
 }
 export default forExport

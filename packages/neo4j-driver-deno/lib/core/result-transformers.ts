@@ -20,6 +20,7 @@ import Result from './result.ts'
 import EagerResult from './result-eager.ts'
 import ResultSummary from './result-summary.ts'
 import { newError } from './error.ts'
+import { GenericConstructor, Rules } from './mapping.highlevel.ts'
 
 async function createEagerResultFromResult<Entries extends RecordShape> (result: Result): Promise<EagerResult<Entries>> {
   const { summary, records } = await result
@@ -161,6 +162,12 @@ class ResultTransformers {
         })
       })
     }
+  }
+
+  hydratedResultTransformer <T extends {} = Object>(rules: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
+  hydratedResultTransformer <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
+  hydratedResultTransformer <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }> {
+    return async result => await result.as(constructorOrRules as unknown as GenericConstructor<T>, rules)
   }
 }
 

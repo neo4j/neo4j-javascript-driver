@@ -97,7 +97,11 @@ import {
   Transaction,
   TransactionPromise,
   types as coreTypes,
-  UnboundRelationship
+  UnboundRelationship,
+  Rule,
+  Rules,
+  RulesFactories,
+  mapping
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -424,7 +428,9 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -491,7 +497,9 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  RulesFactories,
+  mapping
 }
 export type {
   QueryResult,
@@ -516,6 +524,8 @@ export type {
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel
+  NotificationFilterMinimumSeverityLevel,
+  Rule,
+  Rules
 }
 export default forExport
