@@ -1,13 +1,9 @@
-
 export default function CypherNativeBinders (neo4j) {
   function valueResponse (name, value) {
-    return { name: name, data: { value: value } }
+    return { name, data: { value } }
   }
   function objectToCypher (obj) {
     return objectMapper(obj, nativeToCypher)
-  }
-  function objectToNative (obj) {
-    return objectMapper(obj, cypherToNative)
   }
 
   function objectMemberBitIntToNumber (obj, recursive = false) {
@@ -171,88 +167,6 @@ export default function CypherNativeBinders (neo4j) {
     return { name, data: map }
   }
 
-  function cypherToNative (c) {
-    const {
-      name,
-      data
-    } = c
-    switch (name) {
-      case 'CypherString':
-        return data.value
-      case 'CypherInt':
-        return BigInt(data.value)
-      case 'CypherFloat':
-        return data.value
-      case 'CypherNull':
-        return data.value
-      case 'CypherBool':
-        return data.value
-      case 'CypherList':
-        return data.value.map(cypherToNative)
-      case 'CypherDateTime':
-        if (data.utc_offset_s == null && data.timezone_id == null) {
-          return new neo4j.LocalDateTime(
-            data.year,
-            data.month,
-            data.day,
-            data.hour,
-            data.minute,
-            data.second,
-            data.nanosecond
-          )
-        }
-        return new neo4j.DateTime(
-          data.year,
-          data.month,
-          data.day,
-          data.hour,
-          data.minute,
-          data.second,
-          data.nanosecond,
-          data.utc_offset_s,
-          data.timezone_id
-        )
-      case 'CypherTime':
-        if (data.utc_offset_s == null) {
-          return new neo4j.LocalTime(
-            data.hour,
-            data.minute,
-            data.second,
-            data.nanosecond
-          )
-        }
-        return new neo4j.Time(
-          data.hour,
-          data.minute,
-          data.second,
-          data.nanosecond,
-          data.utc_offset_s
-        )
-      case 'CypherDate':
-        return new neo4j.Date(
-          data.year,
-          data.month,
-          data.day
-        )
-      case 'CypherDuration':
-        return new neo4j.Duration(
-          data.months,
-          data.days,
-          data.seconds,
-          data.nanoseconds
-        )
-      case 'CypherMap':
-        return Object.entries(data.value).reduce((acc, [key, val]) => {
-          acc[key] = cypherToNative(val)
-          return acc
-        }, {})
-    }
-    console.log(`Type ${name} is not handle by cypherToNative`, c)
-    const err = 'Unable to convert ' + c + ' to native type'
-    console.log(err)
-    throw Error(err)
-  }
-
   function parseAuthToken (authToken) {
     switch (authToken.scheme) {
       case 'basic':
@@ -276,11 +190,108 @@ export default function CypherNativeBinders (neo4j) {
     }
   }
 
+  function isTestkitTypeWithName (...names) {
+    return value => value != null && typeof value === 'object' && names.includes(value.name)
+  }
+
+  this.dehydrationHooks = [
+    {
+      isTypeInstance: isTestkitTypeWithName(
+        'CypherString',
+        'CypherFloat',
+        'CypherNull',
+        'CypherBool',
+        'CypherList',
+        'CypherMap'
+      ),
+      dehydrate: ({ data: { value } }) => value
+    },
+    {
+      isTypeInstance: isTestkitTypeWithName('CypherInt'),
+      dehydrate: ({ data: { value } }) => BigInt(value)
+    },
+    {
+      isTypeInstance: isTestkitTypeWithName('CypherDateTime'),
+      dehydrate: ({ data }) => {
+        if (data.utc_offset_s == null && data.timezone_id == null) {
+          return new neo4j.LocalDateTime(
+            data.year,
+            data.month,
+            data.day,
+            data.hour,
+            data.minute,
+            data.second,
+            data.nanosecond
+          )
+        }
+        return new neo4j.DateTime(
+          data.year,
+          data.month,
+          data.day,
+          data.hour,
+          data.minute,
+          data.second,
+          data.nanosecond,
+          data.utc_offset_s,
+          data.timezone_id
+        )
+      }
+    },
+    {
+      isTypeInstance: isTestkitTypeWithName('CypherTime'),
+      dehydrate: ({ data }) => {
+        if (data.utc_offset_s == null) {
+          return new neo4j.LocalTime(
+            data.hour,
+            data.minute,
+            data.second,
+            data.nanosecond
+          )
+        }
+        return new neo4j.Time(
+          data.hour,
+          data.minute,
+          data.second,
+          data.nanosecond,
+          data.utc_offset_s
+        )
+      }
+    },
+    {
+      isTypeInstance: isTestkitTypeWithName('CypherDate'),
+      dehydrate: ({ data }) => new neo4j.Date(
+        data.year,
+        data.month,
+        data.day
+      )
+    },
+    {
+      isTypeInstance: isTestkitTypeWithName('CypherDuration'),
+      dehydrate: ({ data }) => new neo4j.Duration(
+        data.months,
+        data.days,
+        data.seconds,
+        data.nanoseconds
+      )
+    },
+    {
+      isTypeInstance: value => value != null && typeof value === 'object' && typeof value.name === 'string',
+      dehydrate: (value) => {
+        console.log(`Type ${value.name} is not handle by dehydrationHooks`, value)
+        const err = 'Unable to convert ' + value + ' to native type'
+        console.log(err)
+        throw Error(err)
+      }
+    }
+  ]
+
+  this.hydrationHooks = {
+
+  }
+
   this.valueResponse = valueResponse
   this.objectToCypher = objectToCypher
-  this.objectToNative = objectToNative
   this.objectMemberBitIntToNumber = objectMemberBitIntToNumber
   this.nativeToCypher = nativeToCypher
-  this.cypherToNative = cypherToNative
   this.parseAuthToken = parseAuthToken
 }

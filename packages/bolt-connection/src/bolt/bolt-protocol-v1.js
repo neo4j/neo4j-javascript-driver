@@ -72,7 +72,9 @@ export default class BoltProtocol {
     { disableLosslessIntegers, useBigInt } = {},
     createResponseHandler = () => null,
     log,
-    onProtocolError
+    onProtocolError,
+    hydrationHooks,
+    dehydrationHooks
   ) {
     this._server = server || {}
     this._chunker = chunker
@@ -84,11 +86,13 @@ export default class BoltProtocol {
     this._fatalError = null
     this._lastMessageSignature = null
     this._config = { disableLosslessIntegers, useBigInt }
+    this._hydrationHooks = hydrationHooks
+    this._dehydrationHooks = dehydrationHooks
   }
 
   get transformer () {
     if (this._transformer === undefined) {
-      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)))
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)), this._hydrationHooks, this._dehydrationHooks)
     }
     return this._transformer
   }

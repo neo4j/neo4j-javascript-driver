@@ -53,7 +53,7 @@ export function nativeToTestkitSummary (summary, binder) {
     database: summary.database.name,
     query: {
       text: summary.query.text,
-      parameters: binder.objectToCypher(summary.query.parameters)
+      parameters: summary.query.parameters
     },
     serverInfo: {
       agent: summary.server.agent,

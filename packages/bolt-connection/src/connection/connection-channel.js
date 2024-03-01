@@ -73,7 +73,9 @@ export function createChannelConnection (
             onProtocolError: conn._handleProtocolError.bind(conn),
             onErrorApplyTransformation: error =>
               conn.handleAndTransformError(error, conn._address)
-          }
+          },
+          hydrationHooks: config.hydrationHooks,
+          dehydrationHooks: config.dehydrationHooks
         })
 
       const connection = new ChannelConnection(

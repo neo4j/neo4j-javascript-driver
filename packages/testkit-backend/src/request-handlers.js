@@ -40,6 +40,7 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     userAgent,
     resolver,
     useBigInt: true,
+    dehydrationHooks: context.binder.dehydrationHooks,
     logging: neo4j.logging.console(context.logLevel || context.environmentLogLevel)
   }
   if ('encrypted' in data) {
@@ -169,8 +170,8 @@ export function SessionClose (_, context, data, wire) {
 export function SessionRun (_, context, data, wire) {
   const { sessionId, cypher, timeout } = data
   const session = context.getSession(sessionId)
-  const params = context.binder.objectToNative(data.params)
-  const metadata = context.binder.objectToNative(data.txMeta)
+  const params = data.params
+  const metadata = data.txMeta
 
   let result
   try {
@@ -245,7 +246,7 @@ export function ResultList (_, context, data, wire) {
 export function SessionReadTransaction (_, context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
-  const metadata = context.binder.objectToNative(data.txMeta)
+  const metadata = data.txMeta
 
   return session
     .executeRead(
@@ -262,11 +263,6 @@ export function SessionReadTransaction (_, context, data, wire) {
 export function TransactionRun (_, context, data, wire) {
   const { txId, cypher, params } = data
   const tx = context.getTx(txId)
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      params[key] = context.binder.cypherToNative(value)
-    }
-  }
   const result = tx.tx.run(cypher, params)
   const id = context.addResult(result)
 
@@ -291,7 +287,7 @@ export function RetryableNegative (_, context, data, wire) {
 export function SessionBeginTransaction (_, context, data, wire) {
   const { sessionId, timeout } = data
   const session = context.getSession(sessionId)
-  const metadata = context.binder.objectToNative(data.txMeta)
+  const metadata = data.txMeta
 
   try {
     return session.beginTransaction({ metadata, timeout })
@@ -345,7 +341,7 @@ export function SessionLastBookmarks (_, context, data, wire) {
 export function SessionWriteTransaction (_, context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
-  const metadata = context.binder.objectToNative(data.txMeta)
+  const metadata = data.txMeta
 
   return session
     .executeWrite(
@@ -658,11 +654,6 @@ export function ForcedRoutingTableUpdate (_, context, { driverId, database, book
 
 export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, config }, wire) {
   const driver = context.getDriver(driverId)
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      params[key] = context.binder.cypherToNative(value)
-    }
-  }
   const configuration = {}
 
   if (config) {

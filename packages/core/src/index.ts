@@ -74,6 +74,11 @@ import NotificationFilter, {
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel
 } from './notification-filter'
+import {
+  HydatrationHooks,
+  DehytrationHook,
+  DehydrationHooks
+} from './mapping'
 import Result, { QueryResult, ResultObserver } from './result'
 import EagerResult from './result-eager'
 import ConnectionProvider from './connection-provider'
@@ -263,7 +268,10 @@ export type {
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel
+  NotificationFilterMinimumSeverityLevel,
+  HydatrationHooks,
+  DehytrationHook,
+  DehydrationHooks
 }
 
 export default forExport

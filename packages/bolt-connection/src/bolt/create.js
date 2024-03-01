@@ -46,6 +46,8 @@ import ResponseHandler from './response-handler'
  * @param {boolean} config.disableLosslessIntegers Disable the lossless integers
  * @param {boolean} packstreamConfig.useBigInt if this connection should convert all received integers to native BigInt numbers.
  * @param {boolean} config.serversideRouting It's using server side routing
+ * @param {HydatrationHooks} config.hydrationHooks Hydatration hooks used to map types
+ * @param {DehydrationHooks} config.dehydrationHooks Hydatration hooks used to map types
  */
 export default function create ({
   version,
@@ -57,7 +59,9 @@ export default function create ({
   serversideRouting,
   server, // server info
   log,
-  observer
+  observer,
+  hydrationHooks,
+  dehydrationHooks
 } = {}) {
   const createResponseHandler = protocol => {
     const responseHandler = new ResponseHandler({
@@ -92,7 +96,9 @@ export default function create ({
     serversideRouting,
     createResponseHandler,
     observer.onProtocolError.bind(observer),
-    log
+    log,
+    hydrationHooks,
+    dehydrationHooks
   )
 }
 
@@ -104,7 +110,9 @@ function createProtocol (
   serversideRouting,
   createResponseHandler,
   onProtocolError,
-  log
+  log,
+  hydrationHooks,
+  dehydrationHooks
 ) {
   switch (version) {
     case 1:
@@ -114,7 +122,9 @@ function createProtocol (
         packingConfig,
         createResponseHandler,
         log,
-        onProtocolError
+        onProtocolError,
+        hydrationHooks,
+        dehydrationHooks
       )
     case 2:
       return new BoltProtocolV2(
@@ -123,7 +133,9 @@ function createProtocol (
         packingConfig,
         createResponseHandler,
         log,
-        onProtocolError
+        onProtocolError,
+        hydrationHooks,
+        dehydrationHooks
       )
     case 3:
       return new BoltProtocolV3(
@@ -132,7 +144,9 @@ function createProtocol (
         packingConfig,
         createResponseHandler,
         log,
-        onProtocolError
+        onProtocolError,
+        hydrationHooks,
+        dehydrationHooks
       )
     case 4.0:
       return new BoltProtocolV4x0(
@@ -141,7 +155,9 @@ function createProtocol (
         packingConfig,
         createResponseHandler,
         log,
-        onProtocolError
+        onProtocolError,
+        hydrationHooks,
+        dehydrationHooks
       )
     case 4.1:
       return new BoltProtocolV4x1(
@@ -151,6 +167,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting
       )
     case 4.2:
@@ -161,6 +179,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting
       )
     case 4.3:
@@ -171,6 +191,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting
       )
     case 4.4:
@@ -181,6 +203,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting
       )
     case 5.0:
@@ -191,6 +215,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting
       )
     case 5.1:
@@ -201,6 +227,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting
       )
     case 5.2:
@@ -211,6 +239,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting
       )
     case 5.3:
@@ -220,6 +250,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting)
     case 5.4:
       return new BoltProtocolV5x4(server,
@@ -228,6 +260,8 @@ function createProtocol (
         createResponseHandler,
         log,
         onProtocolError,
+        hydrationHooks,
+        dehydrationHooks,
         serversideRouting)
     default:
       throw newError('Unknown Bolt protocol version: ' + version)
