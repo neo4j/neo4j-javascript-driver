@@ -86,8 +86,15 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     config.connectionLivenessCheckTimeout = data.livenessCheckTimeoutMs
   }
 
-  if (data.clientCertificate != null) {
+  if (data.clientCertificate != null && data.clientCertificateProviderId != null) {
+    throw new Error('Can not set clientCertificate and clientCertificateProviderId')
+  } if (data.clientCertificate != null) {
     config.clientCertificate = data.clientCertificate.data
+  } else if (data.clientCertificateProviderId != null) {
+    config.clientCertificate = context.getClientCertificate(data.clientCertificateProviderId)
+    if (config.clientCertificate == null) {
+      throw new Error('Invalid ClientCertificateProvider')
+    }
   }
 
   let driver
@@ -615,6 +622,52 @@ export function BasicAuthTokenProviderCompleted (_, context, { requestId, auth }
   const request = context.getBasicAuthTokenProviderRequest(requestId)
   request.resolve(context.binder.parseAuthToken(auth.data))
   context.removeBasicAuthTokenProviderRequest(requestId)
+}
+
+export function NewClientCertificateProvider (_, context, _data, wire) {
+  const id = context.addClientCertificate((id) => {
+    const state = {
+      clientCertificate: undefined,
+      hasUpdate: undefined
+    }
+    const requestCertificate = () => new Promise((resolve, reject) => {
+      const requestId = context.addClientCertificateProviderRequest(resolve, reject)
+      wire.writeResponse(responses.ClientCertificateProviderRequest({
+        id: requestId,
+        clientCertificateProviderId: id
+      }))
+    })
+
+    return {
+      hasUpdate: async () => {
+        const { hasUpdate, clientCertificate } = await requestCertificate()
+        state.clientCertificate = clientCertificate
+        state.hasUpdate = hasUpdate
+        return hasUpdate
+      },
+      getClientCertificate: async () => {
+        if (state.clientCertificate != null) {
+          return state.clientCertificate
+        }
+        const { clientCertificate } = await requestCertificate()
+        state.clientCertificate = clientCertificate
+        return clientCertificate
+      }
+    }
+  })
+
+  wire.writeResponse(responses.ClientCertificateProvider({ id }))
+}
+
+export function ClientCertificateProviderClose (_, context, { id }, wire) {
+  context.removeClientCertificate(id)
+  wire.writeResponse(responses.ClientCertificateProvider({ id }))
+}
+
+export function ClientCertificateProviderCompleted (_, context, { requestId, clientCertificate, hasUpdate }) {
+  const request = context.getClientCertificateProviderRequest(requestId)
+  request.resolve({ hasUpdate, clientCertificate: clientCertificate.data })
+  context.removeClientCertificateProviderRequest(requestId)
 }
 
 export function GetRoutingTable (_, context, { driverId, database }, wire) {

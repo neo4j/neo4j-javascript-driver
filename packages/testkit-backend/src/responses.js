@@ -139,6 +139,14 @@ export function DriverIsAuthenticated ({ id, authenticated }) {
   return response('DriverIsAuthenticated', { id, authenticated })
 }
 
+export function ClientCertificateProvider ({ id }) {
+  return response('ClientCertificateProvider', { id })
+}
+
+export function ClientCertificateProviderRequest ({ id, clientCertificateProviderId }) {
+  return response('ClientCertificateProviderRequest', { id, clientCertificateProviderId })
+}
+
 // Testkit controller messages
 export function RunTest () {
   return response('RunTest', null)

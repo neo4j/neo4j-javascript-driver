@@ -33,6 +33,9 @@ export {
   BearerAuthTokenProviderCompleted,
   NewBasicAuthTokenManager,
   BasicAuthTokenProviderCompleted,
+  NewClientCertificateProvider,
+  ClientCertificateProviderClose,
+  ClientCertificateProviderCompleted,
   FakeTimeInstall,
   FakeTimeTick,
   FakeTimeUninstall
