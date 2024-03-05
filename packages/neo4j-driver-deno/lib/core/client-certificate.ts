@@ -63,7 +63,7 @@ export default class ClientCertificate {
     this.keyfile = ''
 
     /**
-     * The certificate's password.
+     * The key's password.
      *
      * @type {string|undefined}
      */
@@ -135,7 +135,7 @@ export class RotatingClientCertificateProvider extends ClientCertificateProvider
 
 /**
  * Defines the object which holds the common {@link ClientCertificateProviders} used in the Driver
- * 
+ *
  * @experimental Exposed as preview feature.
  * @since 5.19
  */
@@ -160,7 +160,7 @@ class ClientCertificateProviders {
 
 /**
  * Holds the common {@link ClientCertificateProviders} used in the Driver.
- * 
+ *
  * @experimental Exposed as preview feature.
  * @since 5.19
  */

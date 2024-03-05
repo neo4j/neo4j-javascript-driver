@@ -63,7 +63,7 @@ export default class ClientCertificate {
     this.keyfile = ''
 
     /**
-     * The certificate's password.
+     * The key's password.
      *
      * @type {string|undefined}
      */
