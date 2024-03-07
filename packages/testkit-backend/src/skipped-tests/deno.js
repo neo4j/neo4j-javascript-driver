@@ -8,6 +8,9 @@ const skippedTests = [
     ifEndsWith('test_untrusted_ca_correct_hostname'),
     ifEndsWith('test_1_1')
   ),
+  skip('DenoJS does not support client certificates',
+    ifStartsWith('tls.test_client_certificate.')
+  ),
   skip('Trust All is not available as configuration',
     ifStartsWith('tls.test_self_signed_scheme.TestTrustAllCertsConfig.'),
     ifStartsWith('tls.test_self_signed_scheme.TestSelfSignedScheme.')

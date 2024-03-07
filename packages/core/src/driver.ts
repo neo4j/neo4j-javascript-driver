@@ -906,6 +906,7 @@ function validateConfig (config: any, log: Logger): any {
 
 /**
  * @private
+ * @returns {void}
  */
 function sanitizeConfig (config: any): void {
   config.maxConnectionLifetime = sanitizeIntValue(
@@ -932,6 +933,7 @@ function sanitizeConfig (config: any): void {
 
 /**
  * @private
+ * @returns {number}
  */
 function sanitizeIntValue (rawValue: any, defaultWhenAbsent: number): number {
   const sanitizedValue = parseInt(rawValue, 10)

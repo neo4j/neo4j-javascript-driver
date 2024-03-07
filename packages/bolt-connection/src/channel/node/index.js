@@ -17,7 +17,7 @@
 
 import NodeChannel from './node-channel'
 import NodeHostNameResolver from './node-host-name-resolver'
-
+import NodeClientCertificatesLoader from './node-client-certificates-loader'
 /*
 
 This module exports a set of components to be used in NodeJS environment.
@@ -31,3 +31,4 @@ NOTE: exports in this module should have exactly the same names/structure as exp
 
 export const Channel = NodeChannel
 export const HostNameResolver = NodeHostNameResolver
+export const ClientCertificatesLoader = NodeClientCertificatesLoader

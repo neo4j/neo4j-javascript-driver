@@ -97,7 +97,13 @@ import {
   Transaction,
   TransactionPromise,
   types as coreTypes,
-  UnboundRelationship
+  UnboundRelationship,
+  ClientCertificate,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  RotatingClientCertificateProvider,
+  clientCertificateProviders,
+  resolveCertificateProvider
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -209,6 +215,7 @@ function driver (
     }
     _config.encrypted = ENCRYPTION_ON
     _config.trust = trust
+    _config.clientCertificate = resolveCertificateProvider(config.clientCertificate)
   }
 
   const authTokenManager = createAuthManager(authToken)
@@ -424,7 +431,8 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  clientCertificateProviders
 }
 
 export {
@@ -491,7 +499,8 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  clientCertificateProviders
 }
 export type {
   QueryResult,
@@ -516,6 +525,10 @@ export type {
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
-  NotificationFilterMinimumSeverityLevel
+  NotificationFilterMinimumSeverityLevel,
+  ClientCertificate,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  RotatingClientCertificateProvider
 }
 export default forExport

@@ -157,6 +157,7 @@ describe('#integration ChannelConnection', () => {
       new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
       Logger.noOp(),
       null,
+      null,
       () => channel
     )
       .then(c => {

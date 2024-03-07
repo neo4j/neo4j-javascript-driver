@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import ClientCertificate, { ClientCertificateProvider } from './client-certificate.ts'
 import NotificationFilter from './notification-filter.ts'
 
 /**
@@ -80,6 +81,7 @@ export class Config {
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
   telemetryDisabled?: boolean
+  clientCertificate?: ClientCertificate | ClientCertificateProvider
 
   /**
    * @constructor
@@ -340,6 +342,18 @@ export class Config {
      * @type {boolean}
      */
     this.telemetryDisabled = false
+
+    /**
+     * Client Certificate used for mutual TLS.
+     *
+     * A {@link ClientCertificateProvider} can be configure for scenarios
+     * where the {@link ClientCertificate} might change over time.
+     *
+     * @type {ClientCertificate|ClientCertificateProvider|undefined}
+     * @experimental Exposed as preview feature.
+     * @since 5.19
+     */
+    this.clientCertificate = undefined
   }
 }
 

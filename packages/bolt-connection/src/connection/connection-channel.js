@@ -33,6 +33,7 @@ let idGenerator = 0
  * @param {Object} config - the driver configuration.
  * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
  * @param {Logger} log - configured logger.
+ * @param {clientCertificate} clientCertificate - configured client certificate
  * @return {Connection} - new connection.
  */
 export function createChannelConnection (
@@ -40,13 +41,15 @@ export function createChannelConnection (
   config,
   errorHandler,
   log,
+  clientCertificate,
   serversideRouting = null,
   createChannel = channelConfig => new Channel(channelConfig)
 ) {
   const channelConfig = new ChannelConfig(
     address,
     config,
-    errorHandler.errorCode()
+    errorHandler.errorCode(),
+    clientCertificate
   )
 
   const channel = createChannel(channelConfig)

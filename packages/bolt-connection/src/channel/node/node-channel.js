@@ -49,7 +49,8 @@ const TrustStrategy = {
 
     const tlsOpts = newTlsOptions(
       config.address.host(),
-      config.trustedCertificates.map(f => fs.readFileSync(f))
+      config.trustedCertificates.map(f => fs.readFileSync(f)),
+      config.clientCertificate
     )
     const socket = tls.connect(
       config.address.port(),
@@ -79,7 +80,11 @@ const TrustStrategy = {
     return configureSocket(socket)
   },
   TRUST_SYSTEM_CA_SIGNED_CERTIFICATES: function (config, onSuccess, onFailure) {
-    const tlsOpts = newTlsOptions(config.address.host())
+    const tlsOpts = newTlsOptions(
+      config.address.host(),
+      undefined,
+      config.clientCertificate
+    )
     const socket = tls.connect(
       config.address.port(),
       config.address.resolvedHost(),
@@ -109,7 +114,11 @@ const TrustStrategy = {
     return configureSocket(socket)
   },
   TRUST_ALL_CERTIFICATES: function (config, onSuccess, onFailure) {
-    const tlsOpts = newTlsOptions(config.address.host())
+    const tlsOpts = newTlsOptions(
+      config.address.host(),
+      undefined,
+      config.clientCertificate
+    )
     const socket = tls.connect(
       config.address.port(),
       config.address.resolvedHost(),
@@ -198,13 +207,17 @@ function trustStrategyName (config) {
  * Create a new configuration options object for the {@code tls.connect()} call.
  * @param {string} hostname the target hostname.
  * @param {string|undefined} ca an optional CA.
+ * @param {string|undefined} cert an optional client cert.
+ * @param {string|undefined} key an optional client cert key.
+ * @param {string|undefined} passphrase an optional client cert passphrase
  * @return {Object} a new options object.
  */
-function newTlsOptions (hostname, ca = undefined) {
+function newTlsOptions (hostname, ca = undefined, clientCertificate = undefined) {
   return {
     rejectUnauthorized: false, // we manually check for this in the connect callback, to give a more helpful error to the user
     servername: hostname, // server name for the SNI (Server Name Indication) TLS extension
-    ca // optional CA useful for TRUST_CUSTOM_CA_SIGNED_CERTIFICATES trust mode
+    ca, // optional CA useful for TRUST_CUSTOM_CA_SIGNED_CERTIFICATES trust mode,
+    ...clientCertificate
   }
 }
 

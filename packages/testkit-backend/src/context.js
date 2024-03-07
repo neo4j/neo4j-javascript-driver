@@ -19,6 +19,8 @@ export default class Context {
     this._basicAuthTokenProviderRequests = {}
     this._binder = binder
     this._environmentLogLevel = environmentLogLevel
+    this._clientCertificateProviders = {}
+    this._clientCertificateProviderRequests = {}
   }
 
   get binder () {
@@ -224,6 +226,32 @@ export default class Context {
 
   removeBasicAuthTokenProviderRequest (id) {
     delete this._basicAuthTokenProviderRequests[id]
+  }
+
+  addClientCertificate (clientCertificateFactory) {
+    this._id++
+    this._clientCertificateProviders[this._id] = clientCertificateFactory(this._id)
+    return this._id
+  }
+
+  getClientCertificate (id) {
+    return this._clientCertificateProviders[id]
+  }
+
+  removeClientCertificate (id) {
+    delete this._clientCertificateProviders[id]
+  }
+
+  addClientCertificateProviderRequest (resolve, reject) {
+    return this._add(this._clientCertificateProviderRequests, { resolve, reject })
+  }
+
+  getClientCertificateProviderRequest (id) {
+    return this._clientCertificateProviderRequests[id]
+  }
+
+  removeClientCertificateProviderRequest (id) {
+    delete this._clientCertificateProviderRequests[id]
   }
 
   _add (map, object) {
