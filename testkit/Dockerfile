@@ -13,7 +13,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y curl
 
-RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:=10}.x | sh
+RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:=10}.x | bash -
 
 RUN apt-get update && \
     apt-get upgrade -y && \
