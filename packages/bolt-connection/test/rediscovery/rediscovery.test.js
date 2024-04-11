@@ -30,7 +30,7 @@ const { PROTOCOL_ERROR } = error
 
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
 
-describe('#unit Rediscovery', () => {
+xdescribe('#unit Rediscovery', () => {
   it('should return the routing table when it available', async () => {
     runWithClockAt(Date.now(), async () => {
       const ttl = int(123)

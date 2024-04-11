@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 import RoutingTable from './routing-table.js'
-// eslint-disable-next-line no-unused-vars
-import { Session } from '../../core/index.ts'
 
 export default class Rediscovery {
   /**
@@ -29,48 +27,41 @@ export default class Rediscovery {
 
   /**
    * Try to fetch new routing table from the given router.
-   * @param {Session} session the session to use.
+   * @param {Connection} connection the session to use.
    * @param {string} database the database for which to lookup routing table.
    * @param {ServerAddress} routerAddress the URL of the router.
    * @param {string} impersonatedUser The impersonated user
    * @return {Promise<RoutingTable>} promise resolved with new routing table or null when connection error happened.
    */
-  lookupRoutingTableOnRouter (session, database, routerAddress, impersonatedUser) {
-    return session._acquireConnection(connection => {
-      return this._requestRawRoutingTable(
-        connection,
-        session,
+  lookupRoutingTableOnRouter (connection, sessionContext, database, routerAddress, impersonatedUser) {
+    return this._requestRawRoutingTable(
+      connection,
+      sessionContext,
+      database,
+      routerAddress,
+      impersonatedUser
+    ).then(rawRoutingTable => {
+      if (rawRoutingTable.isNull) {
+        return null
+      }
+      return RoutingTable.fromRawRoutingTable(
         database,
         routerAddress,
-        impersonatedUser
-      ).then(rawRoutingTable => {
-        if (rawRoutingTable.isNull) {
-          return null
-        }
-        return RoutingTable.fromRawRoutingTable(
-          database,
-          routerAddress,
-          rawRoutingTable
-        )
-      })
+        rawRoutingTable
+      )
     })
   }
 
-  _requestRawRoutingTable (connection, session, database, routerAddress, impersonatedUser) {
+  _requestRawRoutingTable (connection, sessionContext, database, routerAddress, impersonatedUser) {
     return new Promise((resolve, reject) => {
       connection.protocol().requestRoutingInformation({
         routingContext: this._routingContext,
         databaseName: database,
         impersonatedUser,
-        sessionContext: {
-          bookmarks: session._lastBookmarks,
-          mode: session._mode,
-          database: session._database,
-          afterComplete: session._onComplete
-        },
+        sessionContext,
         onCompleted: resolve,
         onError: reject
       })
-    })
+    }).finally(async () => await connection.release())
   }
 }

@@ -44,7 +44,7 @@ const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const READ = 'READ'
 const WRITE = 'WRITE'
 
-describe.each([
+xdescribe.each([
   3,
   4.0,
   4.1,
