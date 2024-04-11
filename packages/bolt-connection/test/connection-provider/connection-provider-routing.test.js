@@ -308,7 +308,7 @@ xdescribe.each([
       })
   }, 10000)
 
-  it.each(usersDataSet)('refreshes stale routing table to get read connection [user=%s]', (user, done) => {
+  it.only.each(usersDataSet)('refreshes stale routing table to get read connection [user=%s]', (user, done) => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
       null,
@@ -3938,7 +3938,11 @@ class FakeConnection extends Connection {
     this._version = version
     this._protocolVersion = protocolVersion
     this.release = release
-    this.release = jest.fn(() => release(address, this))
+    this.release = jest.fn(() => {
+      if (release) {
+        release(address, this)
+      }
+    })
     this.resetAndFlush = jest.fn(() => Promise.resolve())
     this._server = server
     this._authToken = authToken

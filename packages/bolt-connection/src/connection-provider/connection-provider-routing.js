@@ -540,8 +540,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
           auth
         )
         if (session) {
+          const [connection, sessionContext] = session
           try {
-            const [connection, sessionContext] = session
             return [await this._rediscovery.lookupRoutingTableOnRouter(
               connection,
               sessionContext,
@@ -552,7 +552,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
           } catch (error) {
             return this._handleRediscoveryError(error, currentRouter)
           } finally {
-            session.close()
+            connection.release().then(() => null)
           }
         } else {
           // unable to acquire connection and create session towards the current router
@@ -587,7 +587,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
       const protocolVersion = connection.protocol().version
       if (protocolVersion < 4.0) {
-        return [[delegateConnection, { mode: WRITE, bookmarks: Bookmarks.empty() }], null]
+        return [[delegateConnection, {
+          mode: WRITE, bookmarks: Bookmarks.empty()
+        }], null]
       }
 
       return [[delegateConnection, {

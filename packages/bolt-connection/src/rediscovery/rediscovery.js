@@ -27,7 +27,8 @@ export default class Rediscovery {
 
   /**
    * Try to fetch new routing table from the given router.
-   * @param {Connection} connection the session to use.
+   * @param {Connection} connection the connection to use.
+   * @param {any} sessionContext the session context to be used
    * @param {string} database the database for which to lookup routing table.
    * @param {ServerAddress} routerAddress the URL of the router.
    * @param {string} impersonatedUser The impersonated user
@@ -62,6 +63,6 @@ export default class Rediscovery {
         onCompleted: resolve,
         onError: reject
       })
-    }).finally(async () => await connection.release())
+    })
   }
 }

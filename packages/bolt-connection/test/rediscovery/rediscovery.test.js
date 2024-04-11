@@ -29,8 +29,13 @@ const {
 const { PROTOCOL_ERROR } = error
 
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
+const DEFAULT_SESSION_CONTEXT = {
+  bookmarks: ['lastBook'],
+  mode: 'READ',
+  database: 'session db'
+}
 
-xdescribe('#unit Rediscovery', () => {
+describe('#unit Rediscovery', () => {
   it('should return the routing table when it available', async () => {
     runWithClockAt(Date.now(), async () => {
       const ttl = int(123)
@@ -90,7 +95,6 @@ xdescribe('#unit Rediscovery', () => {
     const connection = new FakeConnection().withRequestRoutingInformationMock(
       fakeOnError(rawRoutingTable)
     )
-    const session = new FakeSession(connection)
 
     await lookupRoutingTableOnRouter({
       database,
@@ -104,23 +108,18 @@ xdescribe('#unit Rediscovery', () => {
     const requestParams = connection.seenRequestRoutingInformation[0]
     expect(requestParams.routingContext).toEqual(routingContext)
     expect(requestParams.databaseName).toEqual(database)
-    expect(requestParams.sessionContext).toEqual({
-      bookmarks: session._lastBookmarks,
-      mode: session._mode,
-      database: session._database,
-      afterComplete: session._onComplete
-    })
+    expect(requestParams.sessionContext).toEqual(DEFAULT_SESSION_CONTEXT)
   })
 
   it('should reject with DATABASE_NOT_FOUND_CODE when it happens ', async () => {
     const expectedError = newError('Laia', DATABASE_NOT_FOUND_CODE)
+    const connection = new FakeConnection().withRequestRoutingInformationMock(
+      fakeOnError(expectedError)
+    )
     try {
       const initialAddress = '127.0.0.1'
       const routingContext = { context: '1234 ' }
 
-      const connection = new FakeConnection().withRequestRoutingInformationMock(
-        fakeOnError(expectedError)
-      )
       await lookupRoutingTableOnRouter({
         initialAddress,
         routingContext,
@@ -211,11 +210,11 @@ function lookupRoutingTableOnRouter ({
   routerAddress = ServerAddress.fromUrl('bolt://localhost:7687'),
   routingContext = {},
   initialAddress = 'localhost:1235',
-  session,
+  sessionContext,
   connection = new FakeConnection(),
   rawRoutingTable
 } = {}) {
-  const _session = session || new FakeSession(connection)
+  const _sessionContext = sessionContext || DEFAULT_SESSION_CONTEXT
 
   if (connection && rawRoutingTable) {
     connection.withRequestRoutingInformationMock(
@@ -226,25 +225,11 @@ function lookupRoutingTableOnRouter ({
   const rediscovery = new Rediscovery(routingContext, initialAddress)
 
   return rediscovery.lookupRoutingTableOnRouter(
-    _session,
+    connection,
+    _sessionContext,
     database,
     routerAddress
   )
-}
-class FakeSession {
-  constructor (connection) {
-    this._connection = connection
-    this._called = 0
-    this._lastBookmarks = ['lastBook']
-    this._mode = 'READ'
-    this._database = 'session db'
-    this._onComplete = 'moked'
-  }
-
-  _acquireConnection (callback) {
-    this._called++
-    return callback(this._connection)
-  }
 }
 
 function fakeOnCompleted (raw = null) {
