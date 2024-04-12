@@ -552,7 +552,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
           } catch (error) {
             return this._handleRediscoveryError(error, currentRouter)
           } finally {
-            connection.release().then(() => null)
+            await connection.release().then(() => null)
           }
         } else {
           // unable to acquire connection and create session towards the current router
