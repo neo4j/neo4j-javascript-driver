@@ -593,7 +593,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       }
 
       return [[delegateConnection, {
-        bookmarks,
+        bookmarks: bookmarks || Bookmarks.empty(),
         mode: READ,
         database: SYSTEM_DB_NAME
       }], null]
