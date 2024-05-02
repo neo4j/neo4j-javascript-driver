@@ -18,41 +18,41 @@
 import { newError, Node, Relationship, int, error, types, Integer, Time, Date, LocalTime, Point, DateTime, LocalDateTime, Duration, isInt, isPoint, isDuration, isLocalTime, isTime, isDate, isLocalDateTime, isDateTime, isRelationship, isPath, isNode, isPathSegment } from "neo4j-driver-core"
 import { RunQueryConfig } from "neo4j-driver-core/types/connection"
 
-type RawNewFormatValueTypes = 'Null' | 'Boolean' | 'Integer' | 'Float' | 'String' |
+type RawQueryValueTypes = 'Null' | 'Boolean' | 'Integer' | 'Float' | 'String' |
     'Time' | 'Date' | 'LocalTime' | 'ZonedDateTime' | 'OffsetDateTime' | 'LocalDateTime' |
     'Duration' | 'Point' | 'Base64' | 'Map' | 'List' | 'Node' | 'Relationship'
 
 type PointShape = { srid: number, x: string, y: string, z?: string }
-type NodeShape = { _element_id: string, _labels: string[], _props?:  Record<string, RawNewFormatValue>}
-type RelationshipShape = { _element_id: string, _start_node_element_id: string, _end_node_element_id: string, _type: string,  _props?:  Record<string, RawNewFormatValue>  }
-type RawNewFormatValueDef<T extends RawNewFormatValueTypes, V extends unknown> = { $type: T, _value: V }
+type NodeShape = { _element_id: string, _labels: string[], _props?:  Record<string, RawQueryValue>}
+type RelationshipShape = { _element_id: string, _start_node_element_id: string, _end_node_element_id: string, _type: string,  _props?:  Record<string, RawQueryValue>  }
+type RawQueryValueDef<T extends RawQueryValueTypes, V extends unknown> = { $type: T, _value: V }
 
-type RawNewFormatNull = RawNewFormatValueDef<'Null', null>
-type RawNewFormatBoolean = RawNewFormatValueDef<'Boolean', boolean>
-type RawNewFormatInteger = RawNewFormatValueDef<'Integer', string>
-type RawNewFormatFloat = RawNewFormatValueDef<'Float', string>
-type RawNewFormatString = RawNewFormatValueDef<'String', string>
-type RawNewFormatTime = RawNewFormatValueDef<'Time', string>
-type RawNewFormatDate = RawNewFormatValueDef<'Date', string>
-type RawNewFormatLocalTime = RawNewFormatValueDef<'LocalTime', string>
-type RawNewFormatZonedDateTime = RawNewFormatValueDef<'ZonedDateTime', string>
-type RawNewFormatOffsetDateTime = RawNewFormatValueDef<'OffsetDateTime', string>
-type RawNewFormatLocalDateTime = RawNewFormatValueDef<'LocalDateTime', string>
-type RawNewFormatDuration = RawNewFormatValueDef<'Duration', string>
-type RawNewFormatPoint = RawNewFormatValueDef<'Point', PointShape>
-type RawNewFormatBinary = RawNewFormatValueDef<'Base64', string>
-interface RawNewFormatMap extends RawNewFormatValueDef<'Map', Record<string, RawNewFormatValue>> { }
-interface RawNewFormatList extends RawNewFormatValueDef<'List', RawNewFormatValue[]> { }
-type RawNewFormatNode = RawNewFormatValueDef<'Node', NodeShape>
-type RawNewFormatRelationship = RawNewFormatValueDef<'Relationship', RelationshipShape>
+type RawQueryNull = RawQueryValueDef<'Null', null>
+type RawQueryBoolean = RawQueryValueDef<'Boolean', boolean>
+type RawQueryInteger = RawQueryValueDef<'Integer', string>
+type RawQueryFloat = RawQueryValueDef<'Float', string>
+type RawQueryString = RawQueryValueDef<'String', string>
+type RawQueryTime = RawQueryValueDef<'Time', string>
+type RawQueryDate = RawQueryValueDef<'Date', string>
+type RawQueryLocalTime = RawQueryValueDef<'LocalTime', string>
+type RawQueryZonedDateTime = RawQueryValueDef<'ZonedDateTime', string>
+type RawQueryOffsetDateTime = RawQueryValueDef<'OffsetDateTime', string>
+type RawQueryLocalDateTime = RawQueryValueDef<'LocalDateTime', string>
+type RawQueryDuration = RawQueryValueDef<'Duration', string>
+type RawQueryPoint = RawQueryValueDef<'Point', PointShape>
+type RawQueryBinary = RawQueryValueDef<'Base64', string>
+interface RawQueryMap extends RawQueryValueDef<'Map', Record<string, RawQueryValue>> { }
+interface RawQueryList extends RawQueryValueDef<'List', RawQueryValue[]> { }
+type RawQueryNode = RawQueryValueDef<'Node', NodeShape>
+type RawQueryRelationship = RawQueryValueDef<'Relationship', RelationshipShape>
 
 
-type RawNewFormatValue = RawNewFormatNull | RawNewFormatBoolean | RawNewFormatInteger | RawNewFormatFloat |
-    RawNewFormatString | RawNewFormatTime | RawNewFormatDate | RawNewFormatLocalTime | RawNewFormatZonedDateTime |
-    RawNewFormatOffsetDateTime | RawNewFormatLocalDateTime | RawNewFormatDuration | RawNewFormatPoint |
-    RawNewFormatBinary | RawNewFormatMap | RawNewFormatList | RawNewFormatNode | RawNewFormatRelationship 
+type RawQueryValue = RawQueryNull | RawQueryBoolean | RawQueryInteger | RawQueryFloat |
+    RawQueryString | RawQueryTime | RawQueryDate | RawQueryLocalTime | RawQueryZonedDateTime |
+    RawQueryOffsetDateTime | RawQueryLocalDateTime | RawQueryDuration | RawQueryPoint |
+    RawQueryBinary | RawQueryMap | RawQueryList | RawQueryNode | RawQueryRelationship 
 
-type QueryStatistics = {
+type Counters = {
     containsUpdates: boolean
     nodesCreated: number
     nodesDeleted: number
@@ -84,14 +84,14 @@ type ProfiledQueryPlan = {
 }
 
 
-type RawNewFormatData = {
+type RawQueryData = {
     fields: string[]
-    values: RawNewFormatValue[]
+    values: RawQueryValue[]
 }
 
-export type RawNewFormatResponse = {
-    data: RawNewFormatData
-    queryStatistics: QueryStatistics
+export type RawQueryResponse = {
+    data: RawQueryData
+    counters: Counters
     bookmarks: string[]
     profiledQueryPlan?: ProfiledQueryPlan
     errors?: []
@@ -99,36 +99,36 @@ export type RawNewFormatResponse = {
     [str: string]: unknown
 }
 
-export class NewFormatResponseCodec {
+export class QueryResponseCodec {
     constructor(
         private _config: types.InternalConfig,
-        private _rawNewFormatResponse: RawNewFormatResponse) {
+        private _rawQueryResponse: RawQueryResponse) {
 
     }
 
     get hasError(): boolean {
-        if (this._rawNewFormatResponse.errors == null) {
+        if (this._rawQueryResponse.errors == null) {
             return false
         }
-        return this._rawNewFormatResponse.errors.length !== 0
+        return this._rawQueryResponse.errors.length !== 0
     }
 
     get error(): Error {
         return new Error(
             // @ts-expect-error
-            this._rawNewFormatResponse.errors[0].message,
+            this._rawQueryResponse.errors[0].message,
             // @ts-expect-error
-            this._rawNewFormatResponse.errors[0].error
+            this._rawQueryResponse.errors[0].error
         )
     }
 
     get keys(): string[] {
-        return this._rawNewFormatResponse.data.fields
+        return this._rawQueryResponse.data.fields
     }
 
     *stream(): Generator<any[]> {
         let rawRecord: unknown[] = []
-        for (const value of this._rawNewFormatResponse.data.values) {
+        for (const value of this._rawQueryResponse.data.values) {
             rawRecord.push(this._decodeValue(value))
 
             if (rawRecord.length === this.keys.length) {
@@ -143,22 +143,22 @@ export class NewFormatResponseCodec {
     }
 
     get meta(): Record<string, unknown> {
-        // console.log('meta', this._rawNewFormatResponse.results[0].stats)
-        // const meta: Record<string, unknown> = { ...this._rawNewFormatResponse.results[0].stats, bookmark: this._rawNewFormatResponse.lastBookmarks }
-        // if (this._rawNewFormatResponse.notifications != null) {
-        //     meta.notifications = this._rawNewFormatResponse.notifications
+        // console.log('meta', this._rawQueryResponse.results[0].stats)
+        // const meta: Record<string, unknown> = { ...this._rawQueryResponse.results[0].stats, bookmark: this._rawQueryResponse.lastBookmarks }
+        // if (this._rawQueryResponse.notifications != null) {
+        //     meta.notifications = this._rawQueryResponse.notifications
         // }
         return {
-            bookmark: this._rawNewFormatResponse.bookmarks,
-            stats: this._decodeStats(this._rawNewFormatResponse.queryStatistics),
-            profile: this._rawNewFormatResponse.profiledQueryPlan != null ? 
-                this._decodeProfile(this._rawNewFormatResponse.profiledQueryPlan): null
+            bookmark: this._rawQueryResponse.bookmarks,
+            stats: this._decodeStats(this._rawQueryResponse.counters),
+            profile: this._rawQueryResponse.profiledQueryPlan != null ? 
+                this._decodeProfile(this._rawQueryResponse.profiledQueryPlan): null
         }
     }
 
-    private _decodeStats(queryStatistics: QueryStatistics): Record<string, unknown> {
+    private _decodeStats(counters: Counters): Record<string, unknown> {
         return Object.fromEntries(
-                Object.entries(queryStatistics)
+                Object.entries(counters)
                     .map(([key, value]) => [key, typeof value === 'number' ? this._normalizeInteger(int(value)): value])
         )
     }
@@ -188,7 +188,7 @@ export class NewFormatResponseCodec {
     }
 
 
-    private _decodeValue(value: RawNewFormatValue): unknown {
+    private _decodeValue(value: RawQueryValue): unknown {
         switch (value.$type) {
             case "Null":
                 return value._value
@@ -219,9 +219,9 @@ export class NewFormatResponseCodec {
             case "Base64":
                 return this._decodeBase64(value._value as string)
             case "Map":
-                return this._decodeMap(value._value as Record<string, RawNewFormatValue>)
+                return this._decodeMap(value._value as Record<string, RawQueryValue>)
             case "List":
-                return this._decodeList(value._value as RawNewFormatValue[])
+                return this._decodeList(value._value as RawQueryValue[])
             case "Node":
                 return this._decodeNode(value._value as NodeShape)
             case "Relationship":
@@ -406,7 +406,7 @@ export class NewFormatResponseCodec {
         )
     }
 
-    _decodeMap(value: Record<string, RawNewFormatValue>): Record<string, unknown> {
+    _decodeMap(value: Record<string, RawQueryValue>): Record<string, unknown> {
         const result: Record<string, unknown> = {}
         for (const k of Object.keys(value)) {
             if (Object.prototype.hasOwnProperty.call(value, k)) {
@@ -431,7 +431,7 @@ export class NewFormatResponseCodec {
         return Uint8Array.from(binaryString, (b) => b.codePointAt(0))
     }
 
-    _decodeList(value: RawNewFormatValue[]): unknown[] {
+    _decodeList(value: RawQueryValue[]): unknown[] {
         return value.map(v => this._decodeValue(v))
     }
 
@@ -469,7 +469,7 @@ export class NewFormatResponseCodec {
     }
 }
 
-export class NewFormatRequestCodec {
+export class QueryRequestCodec {
     private _body?: Record<string, unknown>
 
     constructor(
@@ -487,7 +487,7 @@ export class NewFormatRequestCodec {
 
     get accept (): string {
 
-        return 'application/vnd.neo4j.newformat'
+        return 'application/vnd.neo4j.query'
     }
 
     get authorization (): string {
@@ -501,8 +501,7 @@ export class NewFormatRequestCodec {
 
         this._body = {
             statement: this._query,
-            //include_stats: true,
-            includeQueryStatistics: true,
+            includeCounters: true,
             bookmarks: this._config?.bookmarks?.values()
         }
 
@@ -521,8 +520,8 @@ export class NewFormatRequestCodec {
         return this._body
     }
 
-    _encodeParameters(parameters: Record<string, unknown>): Record<string, RawNewFormatValue> {
-        const encodedParams: Record<string, RawNewFormatValue> = {}
+    _encodeParameters(parameters: Record<string, unknown>): Record<string, RawQueryValue> {
+        const encodedParams: Record<string, RawQueryValue> = {}
         for (const k of Object.keys(parameters)) {
             if (Object.prototype.hasOwnProperty.call(parameters, k)) {
                 encodedParams[k] = this._encodeValue(parameters[k])
@@ -531,7 +530,7 @@ export class NewFormatRequestCodec {
         return encodedParams
     }
 
-    _encodeValue(value: unknown): RawNewFormatValue {
+    _encodeValue(value: unknown): RawQueryValue {
         if (value === null ) {
             return { $type: 'Null', _value: null }
         } else if (value === true || value === false) {

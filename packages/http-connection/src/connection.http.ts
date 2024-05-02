@@ -18,7 +18,7 @@
 import { Connection, types, internal } from "neo4j-driver-core"
 import { RunQueryConfig } from "neo4j-driver-core/types/connection"
 import { ResultStreamObserver } from "./stream-observers"
-import { NewFormatRequestCodec, NewFormatResponseCodec, RawNewFormatResponse } from "./newformat.codec"
+import { QueryRequestCodec, QueryResponseCodec, RawQueryResponse } from "./query.codec"
 
 type HttpScheme = 'http' | 'https'
 
@@ -58,7 +58,7 @@ export default class HttpConnection extends Connection {
             server: this._address
         })
 
-        const requestCodec = new NewFormatRequestCodec(
+        const requestCodec = new QueryRequestCodec(
             this._auth,
             query,
             parameters, 
@@ -78,17 +78,17 @@ export default class HttpConnection extends Connection {
             body: JSON.stringify(requestCodec.body)
         }).
             then(async (res) => {
-                return (await res.json()) as RawNewFormatResponse
+                return (await res.json()) as RawQueryResponse
             })
             .catch((error) => observer.onError(error))
-            .then(async (rawNewFormatResponse) => {
-                console.log(JSON.stringify(rawNewFormatResponse, undefined, 4))
-                if (rawNewFormatResponse == null) {
+            .then(async (rawQueryResponse) => {
+                console.log(JSON.stringify(rawQueryResponse, undefined, 4))
+                if (rawQueryResponse == null) {
                     // is already dead
                     return
                 }
                 const batchSize = config?.fetchSize ?? Number.MAX_SAFE_INTEGER
-                const codec = new NewFormatResponseCodec(this._config, rawNewFormatResponse);
+                const codec = new QueryResponseCodec(this._config, rawQueryResponse);
 
                 if (codec.hasError) {
                     throw codec.error
@@ -121,7 +121,7 @@ export default class HttpConnection extends Connection {
     }
 
     private _getTransactionApi():string {
-        const address = `${this._scheme}://${this._address.asHostPort()}/db/v2/query/${this._database}`
+        const address = `${this._scheme}://${this._address.asHostPort()}/db/${this._database}/query/v2`
         console.log('calling', address)
         return address
     }
