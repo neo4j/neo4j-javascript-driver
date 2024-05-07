@@ -482,7 +482,7 @@ export class QueryRequestCodec {
     }
 
     get contentType (): string {
-        return 'application/json'
+        return 'application/vnd.neo4j.query'
     }
 
     get accept (): string {
