@@ -64,8 +64,6 @@ export default class HttpConnection extends Connection {
             parameters, 
             config
         )
-
-        console.log('Body', requestCodec.body)
         
         fetch(this._getTransactionApi(), {
             method: 'POST',
@@ -78,17 +76,17 @@ export default class HttpConnection extends Connection {
             body: JSON.stringify(requestCodec.body)
         }).
             then(async (res) => {
-                return (await res.json()) as RawQueryResponse
+                return [res.headers.get('content-type'), (await res.json()) as RawQueryResponse]
             })
             .catch((error) => observer.onError(error))
-            .then(async (rawQueryResponse) => {
+            .then(async ([contentType, rawQueryResponse]: [string, RawQueryResponse]) => {
                 console.log(JSON.stringify(rawQueryResponse, undefined, 4))
                 if (rawQueryResponse == null) {
                     // is already dead
                     return
                 }
                 const batchSize = config?.fetchSize ?? Number.MAX_SAFE_INTEGER
-                const codec = new QueryResponseCodec(this._config, rawQueryResponse);
+                const codec = new QueryResponseCodec(this._config, contentType, rawQueryResponse);
 
                 if (codec.hasError) {
                     throw codec.error
@@ -109,7 +107,6 @@ export default class HttpConnection extends Connection {
                             observer.onNext(rawRecord)
                         } else {
                             iterate = false
-                            console.log('completed')
                             observer.onCompleted(codec.meta)
                         }
                     }
@@ -121,8 +118,7 @@ export default class HttpConnection extends Connection {
     }
 
     private _getTransactionApi():string {
-        const address = `${this._scheme}://${this._address.asHostPort()}/db/${this._database}/query/v2`
-        console.log('calling', address)
+        const address = `${this._scheme}://${this._address.asHostPort()}/db/${this._database === '' ? 'neo4j' : this._database}/query/v2`
         return address
     }
 

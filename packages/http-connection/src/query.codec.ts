@@ -15,16 +15,18 @@
  * limitations under the License.
  */
 
-import { newError, Node, Relationship, int, error, types, Integer, Time, Date, LocalTime, Point, DateTime, LocalDateTime, Duration, isInt, isPoint, isDuration, isLocalTime, isTime, isDate, isLocalDateTime, isDateTime, isRelationship, isPath, isNode, isPathSegment } from "neo4j-driver-core"
+import { newError, Node, Relationship, int, error, types, Integer, Time, Date, LocalTime, Point, DateTime, LocalDateTime, Duration, isInt, isPoint, isDuration, isLocalTime, isTime, isDate, isLocalDateTime, isDateTime, isRelationship, isPath, isNode, isPathSegment, Path, PathSegment } from "neo4j-driver-core"
 import { RunQueryConfig } from "neo4j-driver-core/types/connection"
 
 type RawQueryValueTypes = 'Null' | 'Boolean' | 'Integer' | 'Float' | 'String' |
     'Time' | 'Date' | 'LocalTime' | 'ZonedDateTime' | 'OffsetDateTime' | 'LocalDateTime' |
-    'Duration' | 'Point' | 'Base64' | 'Map' | 'List' | 'Node' | 'Relationship'
+    'Duration' | 'Point' | 'Base64' | 'Map' | 'List' | 'Node' | 'Relationship' |
+    'Path'
 
 type PointShape = { srid: number, x: string, y: string, z?: string }
-type NodeShape = { _element_id: string, _labels: string[], _props?:  Record<string, RawQueryValue>}
-type RelationshipShape = { _element_id: string, _start_node_element_id: string, _end_node_element_id: string, _type: string,  _props?:  Record<string, RawQueryValue>  }
+type NodeShape = { _element_id: string, _labels: string[], _properties?:  Record<string, RawQueryValue>}
+type RelationshipShape = { _element_id: string, _start_node_element_id: string, _end_node_element_id: string, _type: string,  _properties?:  Record<string, RawQueryValue>  }
+type PathShape = (RawQueryRelationship | RawQueryNode)[]
 type RawQueryValueDef<T extends RawQueryValueTypes, V extends unknown> = { $type: T, _value: V }
 
 type RawQueryNull = RawQueryValueDef<'Null', null>
@@ -45,12 +47,14 @@ interface RawQueryMap extends RawQueryValueDef<'Map', Record<string, RawQueryVal
 interface RawQueryList extends RawQueryValueDef<'List', RawQueryValue[]> { }
 type RawQueryNode = RawQueryValueDef<'Node', NodeShape>
 type RawQueryRelationship = RawQueryValueDef<'Relationship', RelationshipShape>
+type RawQueryPath = RawQueryValueDef<'Path', PathShape>
 
 
 type RawQueryValue = RawQueryNull | RawQueryBoolean | RawQueryInteger | RawQueryFloat |
     RawQueryString | RawQueryTime | RawQueryDate | RawQueryLocalTime | RawQueryZonedDateTime |
     RawQueryOffsetDateTime | RawQueryLocalDateTime | RawQueryDuration | RawQueryPoint |
-    RawQueryBinary | RawQueryMap | RawQueryList | RawQueryNode | RawQueryRelationship 
+    RawQueryBinary | RawQueryMap | RawQueryList | RawQueryNode | RawQueryRelationship |
+    RawQueryPath
 
 type Counters = {
     containsUpdates: boolean
@@ -102,6 +106,7 @@ export type RawQueryResponse = {
 export class QueryResponseCodec {
     constructor(
         private _config: types.InternalConfig,
+        private _contentType: string,
         private _rawQueryResponse: RawQueryResponse) {
 
     }
@@ -114,7 +119,7 @@ export class QueryResponseCodec {
     }
 
     get error(): Error {
-        return new Error(
+        return newError(
             // @ts-expect-error
             this._rawQueryResponse.errors[0].message,
             // @ts-expect-error
@@ -132,13 +137,11 @@ export class QueryResponseCodec {
             rawRecord.push(this._decodeValue(value))
 
             if (rawRecord.length === this.keys.length) {
-                console.log('yielding', rawRecord)
                 yield rawRecord
                 // erasing raw records
                 rawRecord = []
             }
         }
-        console.log('returning')
         return
     }
 
@@ -226,6 +229,8 @@ export class QueryResponseCodec {
                 return this._decodeNode(value._value as NodeShape)
             case "Relationship":
                 return this._decodeRelationship(value._value as RelationshipShape)
+            case "Path":
+                return this._decodePath(value._value as PathShape)
             default:
                 // @ts-expect-error It should never happen
                 throw newError(`Unknown type: ${value.$type}`, error.PROTOCOL_ERROR)
@@ -440,7 +445,7 @@ export class QueryResponseCodec {
             // @ts-expect-error identity doesn't return
             undefined, 
             value._labels, 
-            this._decodeMap(value._props ?? {}),
+            this._decodeMap(value._properties ?? {}),
             value._element_id
         )
     }
@@ -452,10 +457,29 @@ export class QueryResponseCodec {
             undefined,
             undefined,
             value._type,
-            this._decodeMap(value._props ?? {}),
+            this._decodeMap(value._properties ?? {}),
             value._element_id,
             value._start_node_element_id,
             value._end_node_element_id
+        )
+    }
+
+    _decodePath(value: PathShape): Path<bigint | number | Integer> {
+        const decoded = value.map(v => this._decodeValue(v))
+        type SegmentAccumulator = [] | [Node] | [Node, Relationship]
+        type Accumulator = { acc: SegmentAccumulator, segments: PathSegment[]}
+
+        return new Path(
+            decoded[0] as Node,
+            decoded[decoded.length - 1] as Node,
+            // @ts-expect-error
+            decoded.reduce((previous: Accumulator, current: Node | Relationship): Accumulator => {
+                if (previous.acc.length === 2) {
+                    return { acc: [], segments: [...previous.segments,
+                     new PathSegment(previous.acc[0], previous.acc[1], current as Node)]}
+                }
+                return { ...previous, acc: [...previous.acc, current] as SegmentAccumulator}
+            }, { acc: [], segments: []}).segments
         )
     }
 
@@ -486,8 +510,7 @@ export class QueryRequestCodec {
     }
 
     get accept (): string {
-
-        return 'application/vnd.neo4j.query'
+        return 'application/vnd.neo4j.query, application/json'
     }
 
     get authorization (): string {
