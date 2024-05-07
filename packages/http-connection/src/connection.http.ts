@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Connection, types, internal } from "neo4j-driver-core"
+import { Connection, types, internal, newError } from "neo4j-driver-core"
 import { RunQueryConfig } from "neo4j-driver-core/types/connection"
 import { ResultStreamObserver } from "./stream-observers"
 import { QueryRequestCodec, QueryResponseCodec, RawQueryResponse } from "./query.codec"
@@ -39,6 +39,7 @@ export default class HttpConnection extends Connection {
     private _address: internal.serverAddress.ServerAddress
     private _database: string
     private _config: types.InternalConfig
+    private _abortController?: AbortController
 
     constructor(config: HttpConnectionConfig) {
         super()
@@ -64,7 +65,9 @@ export default class HttpConnection extends Connection {
             parameters, 
             config
         )
-        
+
+        this._abortController =  new AbortController()
+
         fetch(this._getTransactionApi(), {
             method: 'POST',
             mode: 'cors',
@@ -73,6 +76,7 @@ export default class HttpConnection extends Connection {
                 Accept: requestCodec.accept,
                 Authorization: requestCodec.authorization,
             },
+            signal: this._abortController.signal,
             body: JSON.stringify(requestCodec.body)
         }).
             then(async (res) => {
@@ -113,6 +117,9 @@ export default class HttpConnection extends Connection {
                 }
             })
             .catch(error => observer.onError(error))
+            .finally(() => {
+                this._abortController = undefined
+            })
 
         return observer
     }
@@ -131,7 +138,11 @@ export default class HttpConnection extends Connection {
     }
 
     hasOngoingObservableRequests(): boolean {
-        return false // TODO: VERIFY
+        return this._abortController != null
+    }
+
+    async resetAndFlush(): Promise<void> {
+        this._abortController?.abort(newError('User aborted operation.'))
     }
 
     release(): Promise<void> {
