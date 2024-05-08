@@ -153,6 +153,17 @@ function createAuthManager (authTokenOrProvider: AuthToken | AuthTokenManager): 
   return staticAuthTokenManager({ authToken })
 }
 
+type BoltUrl = `bolt://${string}` | `bolt+s://${string}` | `bolt+ssc://${string}`
+type Neo4jUrl = `neo4j://${string}` | `neo4j+s://${string}` | `neo4j+ssc://${string}`
+type HttpUrl = `http://${string}` | `https://${string}`
+type BinUrl = BoltUrl | Neo4jUrl
+type ValidUrl = BinUrl | HttpUrl
+
+type HttpSession = Pick<Session, 'run' | 'lastBookmarks' | 'lastBookmark' | 'close'>
+type HttpDriver = Pick<Driver, 'close' | 'verifyConnectivity'> & {
+  session: (config: SessionConfig) => HttpSession
+}
+
 /**
  * Construct a new Neo4j Driver. This is your main entry point for this
  * library.
@@ -162,11 +173,18 @@ function createAuthManager (authTokenOrProvider: AuthToken | AuthTokenManager): 
  * @param {Config} config Configuration object. See the configuration section above for details.
  * @returns {Driver}
  */
+
+function driver (url: HttpUrl,
+  authToken: AuthToken | AuthTokenManager,
+  config?: Config): HttpDriver
+function driver (url: ValidUrl | string,
+  authToken: AuthToken | AuthTokenManager,
+  config?: Config): Driver
 function driver (
-  url: string,
+  url: ValidUrl | string,
   authToken: AuthToken | AuthTokenManager,
   config: Config = {}
-): Driver {
+): Driver | HttpDriver {
   assertString(url, 'Bolt URL')
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
 
@@ -552,6 +570,10 @@ export type {
   ClientCertificate,
   ClientCertificateProvider,
   ClientCertificateProviders,
-  RotatingClientCertificateProvider
+  RotatingClientCertificateProvider,
+  HttpDriver,
+  HttpSession,
+  ValidUrl,
+  BinUrl
 }
 export default forExport
