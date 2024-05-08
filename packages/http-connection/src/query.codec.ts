@@ -475,7 +475,7 @@ export class QueryResponseCodec {
             // @ts-expect-error
             decoded.reduce((previous: Accumulator, current: Node | Relationship): Accumulator => {
                 if (previous.acc.length === 2) {
-                    return { acc: [], segments: [...previous.segments,
+                    return { acc: [current as Node], segments: [...previous.segments,
                      new PathSegment(previous.acc[0], previous.acc[1], current as Node)]}
                 }
                 return { ...previous, acc: [...previous.acc, current] as SegmentAccumulator}
@@ -569,7 +569,7 @@ export class QueryRequestCodec {
         } else if (value instanceof Int8Array) {
             return { $type: 'Base64', _value: btoa(String.fromCharCode.apply(null, value))}
         } else if (value instanceof Array) {
-            return { $type: 'List', _value: value.map(this._encodeValue)}
+            return { $type: 'List', _value: value.map(this._encodeValue.bind(this))}
         } else if (isIterable(value)) {
             return this._encodeValue(Array.from(value)) 
         } else if (isPoint(value)) {
