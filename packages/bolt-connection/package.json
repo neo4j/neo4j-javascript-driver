@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "scripts": {
+    "postinstall": "npm run build",
     "build": "tsc",
     "test": "jest --passWithNoTests",
     "test::watch": "jest --watch",
@@ -31,7 +32,7 @@
   },
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "devDependencies": {
-    "@types/jest": "^29.5.3",
+    "@types/jest": "^29.5.10",
     "fast-check": "^3.10.0",
     "jest": "^29.6.2",
     "lolex": "^6.0.0",

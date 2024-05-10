@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "scripts": {
+    "postinstall": "npm run build",
     "build": "tsc -p tsconfig.build.json",
     "build::es6": "tsc -p tsconfig.build.json --target ES6 --outdir lib6",
     "test": "jest",

@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "scripts": {
+    "postinstall": "npm run build",
     "build": "tsc -p tsconfig.build.json",
     "build::browser": "rollup --config rollup.config.js && npm run minify",
     "uglify": "uglifyjs --mangle --compress",

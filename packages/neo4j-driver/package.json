@@ -9,6 +9,7 @@
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
   },
   "scripts": {
+    "postinstall": "npm run build",
     "lint": "eslint --fix --ext .js ./",
     "test": "gulp test",
     "test::unit": "gulp test-nodejs-unit && gulp run-ts-declaration-tests",
