@@ -11,7 +11,7 @@ RUN apt-get clean
 
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y curl gnupg
+    apt-get install -y curl
 
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:=10}.x | bash -
 
@@ -72,4 +72,4 @@ RUN npm install -g yarn
 RUN node --version
 RUN npm --version
 RUN /home/driver/.npm_global/bin/yarn --version
-#RUN deno --version
+RUN deno --version
