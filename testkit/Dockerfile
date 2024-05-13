@@ -69,4 +69,5 @@ RUN npm install -g yarn
 ## Versions
 RUN node --version
 RUN npm --version
+RUN yarn --version
 RUN deno --version
