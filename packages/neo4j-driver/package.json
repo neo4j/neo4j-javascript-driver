@@ -9,7 +9,7 @@
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
   },
   "scripts": {
-    "postinstall": "npm run build",
+    "postinstall": "yarn run build",
     "lint": "eslint --fix --ext .js ./",
     "test": "gulp test",
     "test::unit": "gulp test-nodejs-unit && gulp run-ts-declaration-tests",
@@ -22,9 +22,9 @@
     "run-stress-tests": "gulp run-stress-tests-without-jasmine",
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "esdoc -c esdoc.json",
-    "versionRelease": "gulp set --x $VERSION && npm version $VERSION --no-git-tag-version",
+    "versionRelease": "gulp set --x $VERSION && yarn version $VERSION --no-git-tag-version",
     "browser": "gulp browser && gulp test-browser",
-    "prepare": "npm run build",
+    "prepare": "yarn run build",
     "clean": "rm -fr node_modules lib build"
   },
   "main": "lib/index.js",

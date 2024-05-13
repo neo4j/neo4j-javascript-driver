@@ -9,7 +9,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run test::integration",
+    "test": "yarn run test::integration",
     "test::integration": "deno test --allow-all ./test",
     "set_version": "deno run --allow-read --allow-write ./versioning.ts --output=. --filename=current.version.ts",
     "build": "deno run --allow-read --allow-write --allow-net ./generate.ts"

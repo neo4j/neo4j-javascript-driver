@@ -5,16 +5,16 @@
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "scripts": {
-    "postinstall": "npm run build",
+    "postinstall": "yarn run build",
     "build": "tsc -p tsconfig.build.json",
     "build::es6": "tsc -p tsconfig.build.json --target ES6 --outdir lib6",
     "test": "jest",
     "test::watch": "jest --watch",
-    "test::unit": "npm run test",
+    "test::unit": "yarn run test",
     "test::deno": "deno test --allow-all ./test/deno/",
-    "predocs": "npm run build && npm run build::es6",
+    "predocs": "yarn run build && yarn run build::es6",
     "docs": "esdoc -c esdoc.json",
-    "prepare": "npm run build",
+    "prepare": "yarn run build",
     "clean": "rm -fr node_modules lib types"
   },
   "repository": {

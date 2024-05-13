@@ -13,8 +13,6 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y curl gnupg
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:=10}.x | bash -
 
 RUN apt-get update && \
@@ -27,7 +25,6 @@ RUN apt-get update && \
         firefox \
         nodejs \
         unzip \
-        yarn \
     && rm -rf /var/lib/apt/lists/*
 
 RUN /bin/bash -c "hash -d npm"
@@ -66,10 +63,13 @@ USER driver
 WORKDIR /home/driver
 CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
+
+ENV PATH="${PATH}:/home/driver/.npm_global/bin"
 RUN npm config set prefix /home/driver/.npm_global
+RUN npm install -g yarn
 
 ## Versions
 RUN node --version
 RUN npm --version
-RUN yarn --version
-RUN deno --version
+RUN /home/driver/.npm_global/bin/yarn --version
+#RUN deno --version

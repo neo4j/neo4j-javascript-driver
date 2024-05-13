@@ -5,12 +5,12 @@
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "scripts": {
-    "postinstall": "npm run build",
+    "postinstall": "yarn run build",
     "build": "tsc",
     "test": "jest --passWithNoTests",
     "test::watch": "jest --watch",
-    "test::unit": "npm run test",
-    "prepare": "npm run build",
+    "test::unit": "yarn run test",
+    "prepare": "yarn run build",
     "clean": "rm -fr node_modules lib"
   },
   "repository": {

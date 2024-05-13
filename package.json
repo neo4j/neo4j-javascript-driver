@@ -21,23 +21,23 @@
   },
   "lint-staged": {
     "*.{js,md,html}": [
-      "npm run standard",
+      "yarn run standard",
       "git add"
     ],
     "packages/core/**/*.ts": [
-      "npm run ts-standard::core",
+      "yarn run ts-standard::core",
       "git add"
     ],
     "packages/bolt-connection/**/*.ts": [
-      "npm run ts-standard::bolt-connection",
+      "yarn run ts-standard::bolt-connection",
       "git add"
     ],
     "packages/neo4j-driver-lite/**/*.ts": [
-      "npm run ts-standard::neo4j-driver-lite",
+      "yarn run ts-standard::neo4j-driver-lite",
       "git add"
     ],
     "packages/neo4j-driver/**/*.ts": [
-      "npm run ts-standard::neo4j-driver",
+      "yarn run ts-standard::neo4j-driver",
       "git add"
     ],
     "packages/testkit-backend/deno/**/*.{ts,js}": [
@@ -67,14 +67,14 @@
     "lerna": "lerna",
     "prepare": "husky install",
     "lint-staged": "lint-staged",
-    "lint": "npm run lint::core && npm run lint::bolt-connection && npm run lint::bolt-connection && npm run lint::neo4j-driver-lite && npm run lint::neo4j-driver && npm run lint::testkit-backend && npm run lint::benchkit-backend",
-    "lint::core": "npm run ts-standard::core -- packages/core/src/ && npm run ts-standard::core -- packages/core/test/",
-    "lint::bolt-connection": "npm run ts-standard::bolt-connection -- packages/bolt-connection/types/ && npm run standard -- packages/bolt-connection/src/ && npm run standard -- packages/bolt-connection/test/",
-    "lint::neo4j-driver-lite": "npm run ts-standard::neo4j-driver-lite -- packages/neo4j-driver-lite/src/ && npm run ts-standard::neo4j-driver-lite -- packages/neo4j-driver-lite/test/",
-    "lint::neo4j-driver": "npm run ts-standard::neo4j-driver -- packages/neo4j-driver/types/ && npm run ts-standard::neo4j-driver -- packages/neo4j-driver/test/types/ && npm run standard -- packages/neo4j-driver/src/ && npm run standard -- packages/neo4j-driver/test/**/*.js",
-    "lint::testkit-backend": "npm run standard -- packages/testkit-backend/src/**/*.js",
-    "lint::benchkit-backend": "npm run standard -- packages/benchkit-backend/src/**/*.js",
-    "ts-standard": "npm run ts-standard::core && npm run ts-standard::bolt-connection && npm run ts-standard::neo4j-driver-lite && npm run ts-standard::neo4j-driver",
+    "lint": "yarn run lint::core && yarn run lint::bolt-connection && yarn run lint::bolt-connection && yarn run lint::neo4j-driver-lite && yarn run lint::neo4j-driver && yarn run lint::testkit-backend && yarn run lint::benchkit-backend",
+    "lint::core": "yarn run ts-standard::core -- packages/core/src/ && yarn run ts-standard::core -- packages/core/test/",
+    "lint::bolt-connection": "yarn run ts-standard::bolt-connection -- packages/bolt-connection/types/ && yarn run standard -- packages/bolt-connection/src/ && yarn run standard -- packages/bolt-connection/test/",
+    "lint::neo4j-driver-lite": "yarn run ts-standard::neo4j-driver-lite -- packages/neo4j-driver-lite/src/ && yarn run ts-standard::neo4j-driver-lite -- packages/neo4j-driver-lite/test/",
+    "lint::neo4j-driver": "yarn run ts-standard::neo4j-driver -- packages/neo4j-driver/types/ && yarn run ts-standard::neo4j-driver -- packages/neo4j-driver/test/types/ && yarn run standard -- packages/neo4j-driver/src/ && yarn run standard -- packages/neo4j-driver/test/**/*.js",
+    "lint::testkit-backend": "yarn run standard -- packages/testkit-backend/src/**/*.js",
+    "lint::benchkit-backend": "yarn run standard -- packages/benchkit-backend/src/**/*.js",
+    "ts-standard": "yarn run ts-standard::core && yarn run ts-standard::bolt-connection && yarn run ts-standard::neo4j-driver-lite && yarn run ts-standard::neo4j-driver",
     "ts-standard::core": "ts-standard --fix --project ./packages/core/tsconfig.json",
     "ts-standard::bolt-connection": "ts-standard --fix --project ./packages/bolt-connection/tsconfig.json",
     "ts-standard::neo4j-driver-lite": "ts-standard --fix --project ./packages/neo4j-driver-lite/tsconfig.json",
