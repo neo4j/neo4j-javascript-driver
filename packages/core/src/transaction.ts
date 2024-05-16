@@ -299,6 +299,12 @@ class Transaction {
     // error will be "acknowledged" by sending a RESET message
     // database will then forget about this transaction and cleanup all corresponding resources
     // it is thus safe to move this transaction to a FAILED state and disallow any further interactions with it
+
+    if (this._state === _states.FAILED) {
+      // already failed, nothing to do
+      // if we call onError for each result again, we might run into an infinite loop, that causes an OOM eventually
+      return Promise.resolve(null)
+    }
     this._state = _states.FAILED
     this._onClose()
     this._results.forEach(result => {
