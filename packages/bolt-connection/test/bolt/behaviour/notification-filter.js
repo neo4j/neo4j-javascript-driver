@@ -141,6 +141,50 @@ export function shouldSupportNotificationFilterOnInitialize (createProtocol) {
 /**
  * @param {function(recorder:MessageRecorder):BoltProtocolV1} createProtocol The protocol factory
  */
+export function shouldSupportGqlNotificationFilterOnInitialize (createProtocol) {
+  it.each(
+    notificationFilterFixture()
+  )('should send notificationsFilter=%o on initialize', (notificationFilter) => {
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = createProtocol(recorder)
+    utils.spyProtocolWrite(protocol)
+    const userAgent = 'js-driver-123'
+    const authToken = { type: 'none' }
+
+    const observer = protocol.initialize({ userAgent, authToken, notificationFilter })
+
+    protocol.verifyMessageCount(2)
+
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.hello5x5(userAgent, undefined, notificationFilter)
+    )
+    expect(protocol.messages[1]).toBeMessage(
+      RequestMessage.logon(authToken)
+    )
+
+    verifyObserversAndFlushes(protocol, observer)
+  })
+
+  function verifyObserversAndFlushes (protocol, observer) {
+    expect(protocol.observers.length).toBe(2)
+
+    // hello observer
+    const helloObserver = protocol.observers[0]
+    expect(helloObserver).toBeInstanceOf(LoginObserver)
+    expect(helloObserver).not.toBe(observer)
+
+    // login observer
+    const loginObserver = protocol.observers[1]
+    expect(loginObserver).toBeInstanceOf(LoginObserver)
+    expect(loginObserver).toBe(observer)
+
+    expect(protocol.flushes).toEqual([false, true])
+  }
+}
+
+/**
+ * @param {function(recorder:MessageRecorder):BoltProtocolV1} createProtocol The protocol factory
+ */
 export function shouldSupportNotificationFilterOnBeginTransaction (createProtocol) {
   it.each(
     notificationFilterFixture()
@@ -171,6 +215,46 @@ export function shouldSupportNotificationFilterOnBeginTransaction (createProtoco
 
     expect(protocol.messages[0]).toBeMessage(
       RequestMessage.begin({ bookmarks, txConfig, database, mode: WRITE, notificationFilter })
+    )
+
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
+  })
+}
+
+/**
+ * @param {function(recorder:MessageRecorder):BoltProtocolV1} createProtocol The protocol factory
+ */
+export function shouldSupportGqlNotificationFilterOnBeginTransaction (createProtocol) {
+  it.each(
+    notificationFilterFixture()
+  )('should send notificationsFilter=%o on begin a transaction', (notificationFilter) => {
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = createProtocol(recorder)
+    utils.spyProtocolWrite(protocol)
+
+    const database = 'testdb'
+    const bookmarks = new Bookmarks([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2'
+    ])
+    const txConfig = new TxConfig({
+      timeout: 5000,
+      metadata: { x: 1, y: 'something' }
+    })
+
+    const observer = protocol.beginTransaction({
+      bookmarks,
+      txConfig,
+      database,
+      notificationFilter,
+      mode: WRITE
+    })
+
+    protocol.verifyMessageCount(1)
+
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.begin5x5({ bookmarks, txConfig, database, mode: WRITE, notificationFilter })
     )
 
     expect(protocol.observers).toEqual([observer])
@@ -227,6 +311,55 @@ export function shouldSupportNotificationFilterOnRun (createProtocol) {
   })
 }
 
+/**
+ * @param {function(recorder:MessageRecorder):BoltProtocolV1} createProtocol The protocol factory
+ */
+export function shouldSupportGqlNotificationFilterOnRun (createProtocol) {
+  it.each(
+    notificationFilterFixture()
+  )('should send notificationsFilter=%o on run', (notificationFilter) => {
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = createProtocol(recorder)
+    utils.spyProtocolWrite(protocol)
+
+    const database = 'testdb'
+    const bookmarks = new Bookmarks([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2'
+    ])
+    const txConfig = new TxConfig({
+      timeout: 5000,
+      metadata: { x: 1, y: 'something' }
+    })
+    const query = 'RETURN $x, $y'
+    const parameters = { x: 'x', y: 'y' }
+
+    const observer = protocol.run(query, parameters, {
+      bookmarks,
+      txConfig,
+      database,
+      mode: WRITE,
+      notificationFilter
+    })
+
+    protocol.verifyMessageCount(2)
+
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.runWithMetadata5x5(query, parameters, {
+        bookmarks,
+        txConfig,
+        database,
+        mode: WRITE,
+        notificationFilter
+      })
+    )
+
+    expect(protocol.messages[1]).toBeMessage(RequestMessage.pull())
+    expect(protocol.observers).toEqual([observer, observer])
+    expect(protocol.flushes).toEqual([false, true])
+  })
+}
+
 export function notificationFilterFixture () {
   return [
     undefined,
@@ -242,7 +375,11 @@ export function notificationFilterFixture () {
 function notificationFilterSetFixture () {
   const minimumSeverityLevelSet = Object.values(notificationFilterMinimumSeverityLevel)
   const disabledCategories = Object.values(notificationFilterDisabledCategory)
+  // TODO: Fix the type
+  const disabledClassifications = Object.values(notificationFilterDisabledCategory)
   const disabledCategoriesSet = [...disabledCategories.keys()]
+    .map(length => disabledCategories.slice(0, length + 1))
+  const disabledClassificationsSet = [...disabledCategories.keys()]
     .map(length => disabledCategories.slice(0, length + 1))
 
   /** Polyfill flatMap for Node10 tests */
@@ -256,9 +393,14 @@ function notificationFilterSetFixture () {
     {},
     ...minimumSeverityLevelSet.map(minimumSeverityLevel => ({ minimumSeverityLevel })),
     ...disabledCategoriesSet.map(disabledCategories => ({ disabledCategories })),
+    ...disabledClassificationsSet.map(disabledClassifications => ({ disabledClassifications })),
     ...minimumSeverityLevelSet.flatMap(
       minimumSeverityLevel => disabledCategories.map(
-        disabledCategories => ({ minimumSeverityLevel, disabledCategories })))
+        disabledCategories => ({ minimumSeverityLevel, disabledCategories }))),
+    ...minimumSeverityLevelSet.flatMap(
+      minimumSeverityLevel => disabledClassifications.map(
+        disabledClassifications => ({ minimumSeverityLevel, disabledClassifications })))
+
   ]
 }
 

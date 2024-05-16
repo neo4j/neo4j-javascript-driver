@@ -67,6 +67,8 @@ Object.freeze(notificationFilterDisabledCategory)
 class NotificationFilter {
   minimumSeverityLevel?: NotificationFilterMinimumSeverityLevel
   disabledCategories?: NotificationFilterDisabledCategory[]
+  // TODO: Fix the type
+  disabledClassifications?: NotificationFilterDisabledCategory[]
 
   /**
    * @constructor
@@ -83,9 +85,27 @@ class NotificationFilter {
 
     /**
      * Categories the user would like to opt-out of receiving.
+     * 
+     * 
+     * This property is equivalent to {@link NotificationFilter#disabledClassifications}
+     * and it should not be enabled at same time. 
+     * 
      * @type {?NotificationFilterDisabledCategory[]}
      */
     this.disabledCategories = undefined
+
+
+    /**
+     * Classifications the user would like to opt-out of receiving.
+     * 
+     * This property is equivalent to {@link NotificationFilter#disabledCategories}
+     * and it should not be enabled at same time. 
+     * 
+     * // TODO: Fix the type
+     * @type {?NotificationFilterDisabledCategory[]}
+     * @experimental 
+     */
+    this.disabledClassifications = undefined
 
     throw new Error('Not implemented')
   }

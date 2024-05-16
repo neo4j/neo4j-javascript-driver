@@ -172,15 +172,7 @@ export default class RequestMessage {
   static hello5x2 (userAgent, notificationFilter = null, routing = null) {
     const metadata = { user_agent: userAgent }
 
-    if (notificationFilter) {
-      if (notificationFilter.minimumSeverityLevel) {
-        metadata.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
-      }
-
-      if (notificationFilter.disabledCategories) {
-        metadata.notifications_disabled_categories = notificationFilter.disabledCategories
-      }
-    }
+    appendLegacyNotificationFilterToMetadata(metadata, notificationFilter)
 
     if (routing) {
       metadata.routing = routing
@@ -217,15 +209,44 @@ export default class RequestMessage {
       }
     }
 
-    if (notificationFilter) {
-      if (notificationFilter.minimumSeverityLevel) {
-        metadata.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
-      }
+    appendLegacyNotificationFilterToMetadata(metadata, notificationFilter)
 
-      if (notificationFilter.disabledCategories) {
-        metadata.notifications_disabled_categories = notificationFilter.disabledCategories
+    if (routing) {
+      metadata.routing = routing
+    }
+
+    return new RequestMessage(
+      HELLO,
+      [metadata],
+      () => `HELLO ${json.stringify(metadata)}`
+    )
+  }
+
+  /**
+   * Create a new HELLO message.
+   * @param {string} userAgent the user agent.
+   * @param {string} boltAgent the bolt agent.
+   * @param {NotificationFilter} notificationFilter the notification filter configured
+   * @param {Object} routing server side routing, set to routing context to turn on server side routing (> 4.1)
+   * @return {RequestMessage} new HELLO message.
+   */
+  static hello5x5 (userAgent, boltAgent, notificationFilter = null, routing = null) {
+    const metadata = { }
+
+    if (userAgent) {
+      metadata.user_agent = userAgent
+    }
+
+    if (boltAgent) {
+      metadata.bolt_agent = {
+        product: boltAgent.product,
+        platform: boltAgent.platform,
+        language: boltAgent.language,
+        language_details: boltAgent.languageDetails
       }
     }
+
+    appendGqlNotificationFilterToMetadata(metadata, notificationFilter)
 
     if (routing) {
       metadata.routing = routing
@@ -285,6 +306,27 @@ export default class RequestMessage {
   }
 
   /**
+   * Create a new BEGIN message.
+   * @param {Bookmarks} bookmarks the bookmarks.
+   * @param {TxConfig} txConfig the configuration.
+   * @param {string} database the database name.
+   * @param {string} mode the access mode.
+   * @param {string} impersonatedUser the impersonated user.
+   * @param {NotificationFilter} notificationFilter the notification filter
+   * @return {RequestMessage} new BEGIN message.
+   */
+  static begin5x5 ({ bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter } = {}) {
+    const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter, {
+      appendNotificationFilter: appendGqlNotificationFilterToMetadata
+    })
+    return new RequestMessage(
+      BEGIN,
+      [metadata],
+      () => `BEGIN ${json.stringify(metadata)}`
+    )
+  }
+
+  /**
    * Get a COMMIT message.
    * @return {RequestMessage} the COMMIT message.
    */
@@ -317,6 +359,33 @@ export default class RequestMessage {
     { bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter } = {}
   ) {
     const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter)
+    return new RequestMessage(
+      RUN,
+      [query, parameters, metadata],
+      () =>
+        `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}`
+    )
+  }
+
+  /**
+   * Create a new RUN message with additional metadata.
+   * @param {string} query the cypher query.
+   * @param {Object} parameters the query parameters.
+   * @param {Bookmarks} bookmarks the bookmarks.
+   * @param {TxConfig} txConfig the configuration.
+   * @param {string} database the database name.
+   * @param {string} mode the access mode.
+   * @param {string} impersonatedUser the impersonated user.
+   * @return {RequestMessage} new RUN message with additional metadata.
+   */
+  static runWithMetadata5x5 (
+    query,
+    parameters,
+    { bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter } = {}
+  ) {
+    const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter, {
+      appendNotificationFilter: appendGqlNotificationFilterToMetadata
+    })
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
@@ -439,7 +508,7 @@ export default class RequestMessage {
  * @param {notificationFilter} notificationFilter the notification filter
  * @return {Object} a metadata object.
  */
-function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter) {
+function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter, functions = {}) {
   const metadata = {}
   if (!bookmarks.isEmpty()) {
     metadata.bookmarks = bookmarks.values()
@@ -459,15 +528,9 @@ function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser,
   if (mode === ACCESS_MODE_READ) {
     metadata.mode = READ_MODE
   }
-  if (notificationFilter) {
-    if (notificationFilter.minimumSeverityLevel) {
-      metadata.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
-    }
 
-    if (notificationFilter.disabledCategories) {
-      metadata.notifications_disabled_categories = notificationFilter.disabledCategories
-    }
-  }
+  const appendNotificationFilter = functions.appendNotificationFilter ?? appendLegacyNotificationFilterToMetadata
+  appendNotificationFilter(metadata, notificationFilter)
   return metadata
 }
 
@@ -483,6 +546,38 @@ function buildStreamMetadata (stmtId, n) {
     metadata.qid = int(stmtId)
   }
   return metadata
+}
+
+function appendLegacyNotificationFilterToMetadata (metadata, notificationFilter) {
+  if (notificationFilter) {
+    if (notificationFilter.minimumSeverityLevel) {
+      metadata.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
+    }
+
+    if (notificationFilter.disabledCategories) {
+      metadata.notifications_disabled_categories = notificationFilter.disabledCategories
+    }
+
+    if (notificationFilter.disabledClassifications) {
+      metadata.notifications_disabled_categories = notificationFilter.disabledClassifications
+    }
+  }
+}
+
+function appendGqlNotificationFilterToMetadata (metadata, notificationFilter) {
+  if (notificationFilter) {
+    if (notificationFilter.minimumSeverityLevel) {
+      metadata.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
+    }
+
+    if (notificationFilter.disabledCategories) {
+      metadata.notifications_disabled_classifications = notificationFilter.disabledCategories
+    }
+
+    if (notificationFilter.disabledClassifications) {
+      metadata.notifications_disabled_classifications = notificationFilter.disabledClassifications
+    }
+  }
 }
 
 // constants for messages that never change
