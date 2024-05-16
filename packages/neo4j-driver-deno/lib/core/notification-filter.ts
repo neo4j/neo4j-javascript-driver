@@ -85,25 +85,24 @@ class NotificationFilter {
 
     /**
      * Categories the user would like to opt-out of receiving.
-     * 
-     * 
+     *
+     *
      * This property is equivalent to {@link NotificationFilter#disabledClassifications}
-     * and it should not be enabled at same time. 
-     * 
+     * and it should not be enabled at same time.
+     *
      * @type {?NotificationFilterDisabledCategory[]}
      */
     this.disabledCategories = undefined
 
-
     /**
      * Classifications the user would like to opt-out of receiving.
-     * 
+     *
      * This property is equivalent to {@link NotificationFilter#disabledCategories}
-     * and it should not be enabled at same time. 
-     * 
+     * and it should not be enabled at same time.
+     *
      * // TODO: Fix the type
      * @type {?NotificationFilterDisabledCategory[]}
-     * @experimental 
+     * @experimental
      */
     this.disabledClassifications = undefined
 
