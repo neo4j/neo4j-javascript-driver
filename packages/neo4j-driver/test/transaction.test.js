@@ -499,4 +499,29 @@ describe('#integration transaction', () => {
           .catch(done.fail.bind(done))
       )
   }
+
+  /**
+     * This test is to verify that the driver does not run out of memory when one of the queries fails,
+     * while others are concurrently running and the transaction is being committed/closed.
+     *
+     * Because this causes an infinite loop in the failure case, the test has a timeout of 50 seconds, in order to actualy
+     * trip the OOM error, and not run into a timeout error prematurely.
+     */
+  it('transactions should not run OOM when one of the queries fails', async () => {
+    const transaction = await session.beginTransaction()
+    const queries = Array.from(
+      { length: 10 },
+      (_, i) => () => transaction.run(`RETURN ${i}`)
+    )
+    const destroy = () => transaction.close()
+
+    const calls = [...queries, destroy, ...queries]
+    const promises = calls.map(call => call())
+    try {
+      await Promise.all(promises)
+    } catch (e) {
+      // This is the success case, as we god an exception, not run into an OOM
+      expect(e.message).toBe('Cannot run query in this transaction, because it has already been rolled back.')
+    }
+  }, 50000)
 })
