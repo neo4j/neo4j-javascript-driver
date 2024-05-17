@@ -64,7 +64,7 @@ type NotificationFilterDisabledClassification = ExcludeUnknown<NotificationClass
  */
 /**
  * Constants that represents the disabled classifications in the {@link NotificationFilter}
- * 
+ *
  * @type {notificationFilterDisabledCategory}
  * @experimental
  */
