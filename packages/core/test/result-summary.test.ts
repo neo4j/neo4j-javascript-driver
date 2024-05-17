@@ -25,7 +25,8 @@ import {
   notificationCategory,
   ProfiledPlan,
   QueryStatistics,
-  Stats
+  Stats,
+  notificationClassification
 } from '../src/result-summary'
 
 import fc from 'fast-check'
@@ -159,6 +160,30 @@ describe('notificationCategory', () => {
   it.each(getValidCategories())('should have %s as key', (category) => {
     const keys = Object.keys(notificationCategory)
     expect(keys.includes(category)).toBe(true)
+  })
+})
+
+describe('notificationClassification', () => {
+  it('should have keys equals to values', () => {
+    for (const [key, value] of Object.entries(notificationClassification)) {
+      expect(key).toEqual(value)
+    }
+  })
+
+  it('should values be assignable to NotificationClassification', () => {
+    for (const [, value] of Object.entries(notificationClassification)) {
+      const assignableValue: NotificationCategory = value
+      expect(assignableValue).toBeDefined()
+    }
+  })
+
+  it.each(getValidCategories())('should have %s as key', (category) => {
+    const keys = Object.keys(notificationClassification)
+    expect(keys.includes(category)).toBe(true)
+  })
+
+  it('should be notificationCategory', () => {
+    expect(notificationClassification).toBe(notificationCategory)
   })
 })
 

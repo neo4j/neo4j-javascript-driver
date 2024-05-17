@@ -30,6 +30,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   plan: Plan | false
   profile: ProfiledPlan | false
   notifications: Notification[]
+  gqlStatusObjects: GqlStatusObject[]
   server: ServerInfo
   resultConsumedAfter: T
   resultAvailableAfter: T
@@ -106,6 +107,13 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @public
      */
     this.notifications = this._buildNotifications(metadata.notifications)
+
+    /**
+     * @type {Array<GqlStatusObject>}
+     * @public
+     * @experimental
+     */
+    this.gqlStatusObjects = []
 
     /**
      * The basic information of the server where the result is obtained from.
@@ -456,6 +464,17 @@ const notificationCategory: { [key in NotificationCategory]: key } = {
 Object.freeze(notificationCategory)
 const categories = Object.values(notificationCategory)
 
+type NotificationClassification = NotificationCategory
+/**
+ * @typedef {NotificationCategory} NotificationClassification
+ * @experimental
+ */
+/**
+ * Constants that represents the Classification in the {@link GqlStatusObject}
+ * @experimental
+ */
+const notificationClassification = notificationCategory
+
 /**
  * Class for Cypher notifications
  * @access public
@@ -601,6 +620,51 @@ class Notification {
 }
 
 /**
+ * Representation for GqlStatusObject found when executing a query.
+ * <p>
+ * This object represents a status of query execution.
+ * This status is a superset of {@link Notification}.
+ *
+ * @experimental
+ */
+class GqlStatusObject {
+  /**
+   * The GQLSTATUS
+   */
+  getGqlStatus (): String {
+    return ''
+  }
+
+  /**
+   * Retrieve the severity from the diagnostic record.
+   */
+  getSeverity (): NotificationSeverityLevel {
+    return notificationSeverityLevel.UNKNOWN
+  }
+
+  /**
+   * Retrieve the severity from the diagnostic record as string.
+   */
+  getRawSeverity (): String {
+    return ''
+  }
+
+  /**
+     * Retrieve the classification from the diagnostic record.
+     */
+  getClassification (): NotificationClassification {
+    return notificationClassification.UNKNOWN
+  }
+
+  /**
+   * Retrieve the classification from the diagnostic record as string
+   */
+  getRawClassification (): String {
+    return ''
+  }
+}
+
+/**
  * Class for exposing server info from a result.
  * @access public
  */
@@ -685,12 +749,14 @@ export {
   QueryStatistics,
   Stats,
   notificationSeverityLevel,
-  notificationCategory
+  notificationCategory,
+  notificationClassification
 }
 export type {
   NotificationPosition,
   NotificationSeverityLevel,
-  NotificationCategory
+  NotificationCategory,
+  NotificationClassification
 }
 
 export default ResultSummary

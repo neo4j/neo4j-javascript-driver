@@ -70,8 +70,10 @@ import {
   routing,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   staticAuthTokenManager,
   clientCertificateProviders,
@@ -464,8 +466,10 @@ export {
   bookmarkManager,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders
 }

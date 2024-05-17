@@ -64,13 +64,17 @@ import ResultSummary, {
   QueryStatistics,
   Stats,
   NotificationSeverityLevel,
+  NotificationClassification,
   NotificationCategory,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel
 } from './result-summary'
 import NotificationFilter, {
   notificationFilterDisabledCategory,
   NotificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
+  NotificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel
 } from './notification-filter'
@@ -168,8 +172,10 @@ const forExport = {
   routing,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider
@@ -239,8 +245,10 @@ export {
   routing,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider
@@ -265,9 +273,11 @@ export type {
   RecordShape,
   ResultTransformer,
   NotificationCategory,
+  NotificationClassification,
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification,
   NotificationFilterMinimumSeverityLevel,
   ClientCertificate,
   ClientCertificateProvider,

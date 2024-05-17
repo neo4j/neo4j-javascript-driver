@@ -16,6 +16,7 @@
  */
 import {
   NotificationCategory,
+  NotificationClassification,
   NotificationSeverityLevel
 } from './result-summary.ts'
 
@@ -56,6 +57,17 @@ const notificationFilterDisabledCategory: EnumRecord<NotificationFilterDisabledC
 }
 Object.freeze(notificationFilterDisabledCategory)
 
+type NotificationFilterDisabledClassification = ExcludeUnknown<NotificationClassification>
+/**
+ * @typedef {NotificationFilterDisabledCategory} NotificationFilterDisabledClassification
+ * @experimental
+ */
+/**
+ * Constants that represents the disabled classifications in the {@link NotificationFilter}
+ * @experimental
+ */
+const notificationFilterDisabledClassification: EnumRecord<NotificationFilterDisabledClassification> = notificationFilterDisabledCategory
+
 /**
  * The notification filter object which can be configured in
  * the session and driver creation.
@@ -67,8 +79,7 @@ Object.freeze(notificationFilterDisabledCategory)
 class NotificationFilter {
   minimumSeverityLevel?: NotificationFilterMinimumSeverityLevel
   disabledCategories?: NotificationFilterDisabledCategory[]
-  // TODO: Fix the type
-  disabledClassifications?: NotificationFilterDisabledCategory[]
+  disabledClassifications?: NotificationFilterDisabledClassification[]
 
   /**
    * @constructor
@@ -100,8 +111,8 @@ class NotificationFilter {
      * This property is equivalent to {@link NotificationFilter#disabledCategories}
      * and it should not be enabled at same time.
      *
-     * // TODO: Fix the type
-     * @type {?NotificationFilterDisabledCategory[]}
+     * 
+     * @type {?NotificationFilterDisabledClassification[]}
      * @experimental
      */
     this.disabledClassifications = undefined
@@ -114,10 +125,12 @@ export default NotificationFilter
 
 export {
   notificationFilterMinimumSeverityLevel,
-  notificationFilterDisabledCategory
+  notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification
 }
 
 export type {
   NotificationFilterMinimumSeverityLevel,
-  NotificationFilterDisabledCategory
+  NotificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification
 }
