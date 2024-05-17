@@ -64,6 +64,8 @@ type NotificationFilterDisabledClassification = ExcludeUnknown<NotificationClass
  */
 /**
  * Constants that represents the disabled classifications in the {@link NotificationFilter}
+ * 
+ * @type {notificationFilterDisabledCategory}
  * @experimental
  */
 const notificationFilterDisabledClassification: EnumRecord<NotificationFilterDisabledClassification> = notificationFilterDisabledCategory
@@ -111,7 +113,7 @@ class NotificationFilter {
      * This property is equivalent to {@link NotificationFilter#disabledCategories}
      * and it should not be enabled at same time.
      *
-     * 
+     *
      * @type {?NotificationFilterDisabledClassification[]}
      * @experimental
      */

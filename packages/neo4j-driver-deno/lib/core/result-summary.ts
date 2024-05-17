@@ -464,7 +464,6 @@ const notificationCategory: { [key in NotificationCategory]: key } = {
 Object.freeze(notificationCategory)
 const categories = Object.values(notificationCategory)
 
-
 type NotificationClassification = NotificationCategory
 /**
  * @typedef {NotificationCategory} NotificationClassification
@@ -472,6 +471,7 @@ type NotificationClassification = NotificationCategory
  */
 /**
  * Constants that represents the Classification in the {@link GqlStatusObject}
+ * @type {notificationCategory}
  * @experimental
  */
 const notificationClassification = notificationCategory
@@ -624,44 +624,44 @@ class Notification {
  * Representation for GqlStatusObject found when executing a query.
  * <p>
  * This object represents a status of query execution.
- * This status is a superset of {@link Notification}. 
- * 
+ * This status is a superset of {@link Notification}.
+ *
  * @experimental
  */
 class GqlStatusObject {
   /**
    * The GQLSTATUS
    */
-  getGqlStatus(): String {
-    return ""
+  getGqlStatus (): String {
+    return ''
   }
 
   /**
    * Retrieve the severity from the diagnostic record.
    */
-  getSeverity(): NotificationSeverityLevel {
+  getSeverity (): NotificationSeverityLevel {
     return notificationSeverityLevel.UNKNOWN
-  } 
+  }
 
   /**
    * Retrieve the severity from the diagnostic record as string.
    */
-  getRawSeverity(): String {
-    return "";
+  getRawSeverity (): String {
+    return ''
   }
 
   /**
      * Retrieve the classification from the diagnostic record.
      */
-  getClassification(): NotificationClassification {
+  getClassification (): NotificationClassification {
     return notificationClassification.UNKNOWN
   }
 
   /**
    * Retrieve the classification from the diagnostic record as string
    */
-  getRawClassification(): String {
-    return ""
+  getRawClassification (): String {
+    return ''
   }
 }
 

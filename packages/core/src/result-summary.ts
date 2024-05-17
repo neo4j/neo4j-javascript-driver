@@ -471,6 +471,7 @@ type NotificationClassification = NotificationCategory
  */
 /**
  * Constants that represents the Classification in the {@link GqlStatusObject}
+ * @type {notificationCategory}
  * @experimental
  */
 const notificationClassification = notificationCategory
