@@ -18,7 +18,7 @@
 import Integer from './integer'
 import { NumberOrInteger } from './graph-types'
 import { util } from './internal'
-import Notification, { GqlStatusObject } from './notification'
+import Notification, { GqlStatusObject, buildGqlStatusObjectFromMetadata } from './notification'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.
@@ -32,7 +32,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   plan: Plan | false
   profile: ProfiledPlan | false
   notifications: Notification[]
-  gqlStatusObjects: GqlStatusObject[]
+  gqlStatusObjects: [GqlStatusObject, ...GqlStatusObject[]]
   server: ServerInfo
   resultConsumedAfter: T
   resultAvailableAfter: T
@@ -125,7 +125,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @public
      * @experimental
      */
-    this.gqlStatusObjects = []
+    this.gqlStatusObjects = buildGqlStatusObjectFromMetadata(metadata)
 
     /**
      * The basic information of the server where the result is obtained from.

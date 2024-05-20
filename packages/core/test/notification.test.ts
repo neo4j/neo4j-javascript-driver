@@ -25,7 +25,8 @@ import {
   notificationCategory,
   notificationClassification,
   NotificationClassification,
-  polyfillGqlStatusObject
+  polyfillGqlStatusObject,
+  buildGqlStatusObjectFromMetadata
 } from '../src/notification'
 
 describe('Notification', () => {
@@ -416,6 +417,313 @@ describe('GqlStatusObject', () => {
   })
 })
 
+describe('buildGqlStatusObjectFromMetadata', () => {
+  it.each([
+    {
+      statuses: [
+        {
+          gql_status: '00000',
+          status_description: 'successful completion — omitted',
+          diagnostic_record: {
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          }
+        },
+        {
+          gql_status: '01N00',
+          status_description: 'warning - feature deprecated',
+          neo4j_code: 'Neo.Some.Warning.Code',
+          title: 'the title',
+          diagnostic_record: {
+            OPERATION: '',
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: 'WARNING',
+            _classification: 'DEPRECATION'
+          }
+        },
+        {
+          gql_status: '03N60',
+          status_description: 'informational - subquery variable shadowing',
+          neo4j_code: 'Neo.Some.Informational.Code',
+          title: 'the title',
+          diagnostic_record: {
+            OPERATION: '',
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: 'INFORMATION',
+            _classification: 'HINT'
+          }
+        }
+      ],
+      notifications: [{
+        severity: 'WARNING',
+        description: 'Some description',
+        code: 'Neo.Notification.Warning.Code',
+        title: 'The title',
+        category: 'DEPRECATION',
+        position: {
+          offset: 10,
+          line: 13,
+          column: 123
+        }
+      }]
+    },
+    {
+      statuses: [
+        {
+          gql_status: '00000',
+          status_description: 'successful completion — omitted',
+          diagnostic_record: {
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          }
+        }
+      ],
+      notifications: [{
+        severity: 'WARNING',
+        description: 'Some description',
+        code: 'Neo.Notification.Warning.Code',
+        title: 'The title',
+        category: 'DEPRECATION',
+        position: {
+          offset: 10,
+          line: 13,
+          column: 123
+        }
+      }]
+    },
+    {
+      statuses: [
+        {
+          gql_status: '00000',
+          status_description: 'successful completion — omitted',
+          diagnostic_record: {
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          }
+        }
+      ]
+    },
+    {
+      statuses: []
+    },
+    {
+      statuses: [],
+      notifications: [
+        {
+          severity: 'WARNING',
+          description: 'Some description',
+          code: 'Neo.Notification.Warning.Code',
+          title: 'The title',
+          category: 'DEPRECATION',
+          position: {
+            offset: 10,
+            line: 13,
+            column: 123
+          }
+        }
+      ]
+    }
+  ])('should build from statuses when available', (metadata: any) => {
+    const expectedStatuses = metadata.statuses.map((status: any) => new GqlStatusObject(status))
+
+    expect(buildGqlStatusObjectFromMetadata(metadata)).toEqual(expectedStatuses)
+  })
+
+  it.each([
+    // SUCCESS
+    [
+      getSuccessStatusObject(), {
+        stream_summary: {
+          have_records_streamed: true
+        }
+      }
+    ],
+    [
+      getSuccessStatusObject(), {
+        stream_summary: {
+          have_records_streamed: true
+        },
+        notifications: []
+      }
+    ],
+    [
+      getSuccessStatusObject(), {
+        stream_summary: {
+          have_records_streamed: true
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    // NO DATA
+    [
+      getNoDataStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: true,
+          has_keys: true
+        }
+      }
+    ],
+    [
+      getNoDataStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: true,
+          has_keys: true
+        },
+        notifications: []
+      }
+    ],
+    [
+      getNoDataStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: true,
+          has_keys: true
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    // OMITTED RESULT
+    [
+      getOmittedResultStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: true,
+          has_keys: false
+        }
+      }
+    ],
+    [
+      getOmittedResultStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: false,
+          has_keys: false
+        },
+        notifications: []
+      }
+    ],
+    [
+      getOmittedResultStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: true,
+          has_keys: false
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    // NO DATA - UNKNOWN SUBCONDITION
+    [
+      getNoDataUnknownSubconditionStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: false,
+          has_keys: true
+        }
+      }
+    ],
+    [
+      getNoDataUnknownSubconditionStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: false,
+          has_keys: true
+        },
+        notifications: []
+      }
+    ],
+    [
+      getNoDataUnknownSubconditionStatusObject(), {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: false,
+          has_keys: true
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ]
+  ])('should build from notifications when not available', (firstGqlObject: GqlStatusObject, metadata: any) => {
+    const notifications = metadata.notifications != null ? metadata.notifications : []
+    const expectedStatuses = [firstGqlObject, ...notifications.map(polyfillGqlStatusObject)]
+
+    expect(buildGqlStatusObjectFromMetadata(metadata)).toEqual(expectedStatuses)
+  })
+})
+
 describe('notificationSeverityLevel', () => {
   it('should have keys equals to values', () => {
     for (const [key, value] of Object.entries(notificationSeverityLevel)) {
@@ -514,4 +822,84 @@ function getValidClassifications (): NotificationClassification[] {
     'GENERIC',
     'UNKNOWN'
   ]
+}
+
+function getSuccessStatusObject (): GqlStatusObject {
+  return new GqlStatusObject({
+    gql_status: '00000',
+    status_description: 'successful completion',
+    diagnostic_record: {
+      OPERATION: '',
+      OPERATION_CODE: '0',
+      CURRENT_SCHEMA: '/',
+      _status_parameters: {},
+      _severity: '',
+      _classification: '',
+      _position: {
+        offset: -1,
+        line: -1,
+        column: -1
+      }
+    }
+  })
+}
+
+function getNoDataStatusObject (): GqlStatusObject {
+  return new GqlStatusObject({
+    gql_status: '02000',
+    status_description: 'no data',
+    diagnostic_record: {
+      OPERATION: '',
+      OPERATION_CODE: '0',
+      CURRENT_SCHEMA: '/',
+      _status_parameters: {},
+      _severity: '',
+      _classification: '',
+      _position: {
+        offset: -1,
+        line: -1,
+        column: -1
+      }
+    }
+  })
+}
+
+function getOmittedResultStatusObject (): GqlStatusObject {
+  return new GqlStatusObject({
+    gql_status: '00001',
+    status_description: 'successful completion - omitted',
+    diagnostic_record: {
+      OPERATION: '',
+      OPERATION_CODE: '0',
+      CURRENT_SCHEMA: '/',
+      _status_parameters: {},
+      _severity: '',
+      _classification: '',
+      _position: {
+        offset: -1,
+        line: -1,
+        column: -1
+      }
+    }
+  })
+}
+
+function getNoDataUnknownSubconditionStatusObject (): GqlStatusObject {
+  return new GqlStatusObject({
+    gql_status: '02N42',
+    status_description: 'no data - unknown subcondition',
+    diagnostic_record: {
+      OPERATION: '',
+      OPERATION_CODE: '0',
+      CURRENT_SCHEMA: '/',
+      _status_parameters: {},
+      _severity: '',
+      _classification: '',
+      _position: {
+        offset: -1,
+        line: -1,
+        column: -1
+      }
+    }
+  })
 }

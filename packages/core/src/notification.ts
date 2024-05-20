@@ -355,6 +355,11 @@ class GqlStatusObject {
   }
 }
 
+/**
+ * @private
+ * @param notification
+ * @returns {GqlStatusObject}
+ */
 function polyfillGqlStatusObject (notification: any): GqlStatusObject {
   return new GqlStatusObject({
     gql_status: notification.severity === notificationSeverityLevel.WARNING ? unknownGqlStatus.WARNING : unknownGqlStatus.INFORMATION,
@@ -373,6 +378,88 @@ function polyfillGqlStatusObject (notification: any): GqlStatusObject {
   })
 }
 
+const defaultRawDiagnosticRecord = {
+  OPERATION: '',
+  OPERATION_CODE: '0',
+  CURRENT_SCHEMA: '/',
+  _status_parameters: {},
+  _severity: '',
+  _classification: '',
+  _position: {
+    offset: -1,
+    line: -1,
+    column: -1
+  }
+}
+
+Object.freeze(defaultRawDiagnosticRecord)
+
+/**
+ * This objects are used for polyfilling the first status on the status list
+ *
+ * @private
+ */
+const staticGqlStatusObjects = {
+  SUCCESS: new GqlStatusObject({
+    gql_status: '00000',
+    status_description: 'successful completion',
+    diagnostic_record: defaultRawDiagnosticRecord
+  }),
+  NO_DATA: new GqlStatusObject({
+    gql_status: '02000',
+    status_description: 'no data',
+    diagnostic_record: defaultRawDiagnosticRecord
+  }),
+  NO_DATA_UNKNOWN_SUBCONDITION: new GqlStatusObject({
+    gql_status: unknownGqlStatus.NO_DATA,
+    status_description: 'no data - unknown subcondition',
+    diagnostic_record: defaultRawDiagnosticRecord
+  }),
+  OMITTED_RESULT: new GqlStatusObject({
+    gql_status: '00001',
+    status_description: 'successful completion - omitted',
+    diagnostic_record: defaultRawDiagnosticRecord
+  })
+}
+
+Object.freeze(staticGqlStatusObjects)
+
+/**
+ *
+ * @private
+ * @param metadata
+ * @returns
+ */
+function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...GqlStatusObject[]] {
+  function getGqlStatusObjectFromStreamSummary (summary: any): GqlStatusObject {
+    if (summary?.have_records_streamed === true) {
+      return staticGqlStatusObjects.SUCCESS
+    }
+
+    if (summary?.has_keys === false) {
+      return staticGqlStatusObjects.OMITTED_RESULT
+    }
+
+    if (summary?.pulled === true) {
+      return staticGqlStatusObjects.NO_DATA
+    }
+
+    return staticGqlStatusObjects.NO_DATA_UNKNOWN_SUBCONDITION
+  }
+
+  if (metadata.statuses != null) {
+    return metadata.statuses.map((status: unknown) => new GqlStatusObject(status))
+  }
+
+  return [getGqlStatusObjectFromStreamSummary(metadata.stream_summary), ...(metadata.notifications?.map(polyfillGqlStatusObject) ?? [])]
+}
+
+/**
+ *
+ * @private
+ * @param pos
+ * @returns {NotificationPosition}
+ */
 function _constructPosition (pos: any): NotificationPosition {
   if (pos == null) {
     return {}
@@ -406,7 +493,8 @@ export {
   notificationClassification,
   Notification,
   GqlStatusObject,
-  polyfillGqlStatusObject
+  polyfillGqlStatusObject,
+  buildGqlStatusObjectFromMetadata
 }
 
 export type {

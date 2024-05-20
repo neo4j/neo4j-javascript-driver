@@ -30,11 +30,11 @@ const {
 } = internal
 const { PROTOCOL_ERROR } = error
 class StreamObserver {
-  onNext (rawRecord) {}
+  onNext (rawRecord) { }
 
-  onError (_error) {}
+  onError (_error) { }
 
-  onCompleted (meta) {}
+  onCompleted (meta) { }
 }
 
 /**
@@ -107,6 +107,8 @@ class ResultStreamObserver extends StreamObserver {
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
     this._setupAutoPull()
     this._paused = false
+    this._pulled = !reactive
+    this._haveRecordStreamed = false
   }
 
   /**
@@ -137,6 +139,7 @@ class ResultStreamObserver extends StreamObserver {
    * @param {Array} rawRecord - An array with the raw record
    */
   onNext (rawRecord) {
+    this._haveRecordStreamed = true
     const record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
     if (this._observers.some(o => o.onNext)) {
       this._observers.forEach(o => {
@@ -248,6 +251,13 @@ class ResultStreamObserver extends StreamObserver {
     const completionMetadata = Object.assign(
       this._server ? { server: this._server } : {},
       this._meta,
+      {
+        stream_summary: {
+          have_records_streamed: this._haveRecordStreamed,
+          pulled: this._pulled,
+          has_keys: this._fieldKeys.length > 0
+        }
+      },
       meta
     )
 
@@ -392,6 +402,7 @@ class ResultStreamObserver extends StreamObserver {
     if (this._discard) {
       this._discardFunction(this._queryId, this)
     } else {
+      this._pulled = true
       this._moreFunction(this._queryId, this._fetchSize, this)
     }
     this._setState(_states.STREAMING)
@@ -501,7 +512,7 @@ class ResetObserver extends StreamObserver {
     this.onError(
       newError(
         'Received RECORD when resetting: received record is: ' +
-          json.stringify(record),
+        json.stringify(record),
         PROTOCOL_ERROR
       )
     )
@@ -602,9 +613,9 @@ class ProcedureRouteObserver extends StreamObserver {
       this.onError(
         newError(
           'Illegal response from router. Received ' +
-            this._records.length +
-            ' records but expected only one.\n' +
-            json.stringify(this._records),
+          this._records.length +
+          ' records but expected only one.\n' +
+          json.stringify(this._records),
           PROTOCOL_ERROR
         )
       )
@@ -637,7 +648,7 @@ class RouteObserver extends StreamObserver {
     this.onError(
       newError(
         'Received RECORD when resetting: received record is: ' +
-          json.stringify(record),
+        json.stringify(record),
         PROTOCOL_ERROR
       )
     )
@@ -678,7 +689,7 @@ const _states = {
     name: () => {
       return 'READY_STREAMING'
     },
-    pull: () => {}
+    pull: () => { }
   },
   READY: {
     // reactive start state
@@ -710,7 +721,7 @@ const _states = {
     name: () => {
       return 'STREAMING'
     },
-    pull: () => {}
+    pull: () => { }
   },
   FAILED: {
     onError: _error => {
@@ -719,13 +730,13 @@ const _states = {
     name: () => {
       return 'FAILED'
     },
-    pull: () => {}
+    pull: () => { }
   },
   SUCCEEDED: {
     name: () => {
       return 'SUCCEEDED'
     },
-    pull: () => {}
+    pull: () => { }
   }
 }
 

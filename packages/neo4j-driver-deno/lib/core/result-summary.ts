@@ -18,7 +18,7 @@
 import Integer from './integer.ts'
 import { NumberOrInteger } from './graph-types.ts'
 import { util } from './internal/index.ts'
-import Notification, { GqlStatusObject } from './notification.ts'
+import Notification, { GqlStatusObject, buildGqlStatusObjectFromMetadata } from './notification.ts'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.
@@ -32,7 +32,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   plan: Plan | false
   profile: ProfiledPlan | false
   notifications: Notification[]
-  gqlStatusObjects: GqlStatusObject[]
+  gqlStatusObjects: [GqlStatusObject, ...GqlStatusObject[]]
   server: ServerInfo
   resultConsumedAfter: T
   resultAvailableAfter: T
@@ -114,18 +114,18 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * A list of GqlStatusObjects that arise when executing the query.
      *
      * The list always contains at least 1 status representing the Success, No Data or Omitted Result.
-     * This status will be always the first one. 
+     * This status will be always the first one.
      * When discarding records while connected to a non-gql aware server, the driver might not be able to
      * tell apart Success and No Data.
      *
-     * All following status are notifications like warnings about problematic queries or other valuable 
+     * All following status are notifications like warnings about problematic queries or other valuable
      * information that can be presented in a client.
-     * 
+     *
      * @type {Array<GqlStatusObject>}
      * @public
      * @experimental
      */
-    this.gqlStatusObjects = []
+    this.gqlStatusObjects = buildGqlStatusObjectFromMetadata(metadata)
 
     /**
      * The basic information of the server where the result is obtained from.
