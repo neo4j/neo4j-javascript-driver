@@ -57,19 +57,20 @@ import { isPoint, Point } from './spatial-types.ts'
 import ResultSummary, {
   queryType,
   ServerInfo,
-  Notification,
-  NotificationPosition,
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Stats,
+  Stats
+} from './result-summary.ts'
+import Notification, {
+  NotificationPosition,
   NotificationSeverityLevel,
   NotificationClassification,
   NotificationCategory,
   notificationCategory,
   notificationClassification,
   notificationSeverityLevel
-} from './result-summary.ts'
+} from './notification.ts'
 import NotificationFilter, {
   notificationFilterDisabledCategory,
   NotificationFilterDisabledCategory,

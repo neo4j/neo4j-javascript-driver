@@ -18,7 +18,7 @@ import {
   NotificationCategory,
   NotificationClassification,
   NotificationSeverityLevel
-} from './result-summary.ts'
+} from './notification.ts'
 
 type ExcludeUnknown<T> = Exclude<T, 'UNKNOWN'>
 type OFF = 'OFF'

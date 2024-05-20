@@ -18,7 +18,7 @@ import {
   NotificationCategory,
   NotificationClassification,
   NotificationSeverityLevel
-} from './result-summary'
+} from './notification'
 
 type ExcludeUnknown<T> = Exclude<T, 'UNKNOWN'>
 type OFF = 'OFF'

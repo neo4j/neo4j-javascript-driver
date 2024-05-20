@@ -57,19 +57,20 @@ import { isPoint, Point } from './spatial-types'
 import ResultSummary, {
   queryType,
   ServerInfo,
-  Notification,
-  NotificationPosition,
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Stats,
+  Stats
+} from './result-summary'
+import Notification, {
+  NotificationPosition,
   NotificationSeverityLevel,
   NotificationClassification,
   NotificationCategory,
   notificationCategory,
   notificationClassification,
   notificationSeverityLevel
-} from './result-summary'
+} from './notification'
 import NotificationFilter, {
   notificationFilterDisabledCategory,
   NotificationFilterDisabledCategory,

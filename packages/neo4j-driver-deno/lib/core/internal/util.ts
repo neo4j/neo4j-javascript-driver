@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import Integer, { isInt } from '../integer.ts'
+import Integer, { isInt, int } from '../integer.ts'
 import { NumberOrInteger } from '../graph-types.ts'
 import { EncryptionLevel } from '../types.ts'
 import { stringify } from '../json.ts'
@@ -259,6 +259,23 @@ function equals (a: unknown, b: unknown): boolean {
   return false
 }
 
+/**
+ * Converts (Integer | bigint) to number.
+ * 
+ * @private
+ * @param {NumberOrInteger} value The number or integer
+ * @returns {number} The number 
+ */
+function toNumber (value: NumberOrInteger): number {
+  if (value instanceof Integer) {
+    return value.toNumber()
+  } else if (typeof value === 'bigint') {
+    return int(value).toNumber()
+  } else {
+    return value
+  }
+}
+
 export {
   isEmptyObjectOrNull,
   isObject,
@@ -268,6 +285,7 @@ export {
   assertNumber,
   assertNumberOrInteger,
   assertValidDate,
+  toNumber,
   validateQueryAndParameters,
   equals,
   ENCRYPTION_ON,
