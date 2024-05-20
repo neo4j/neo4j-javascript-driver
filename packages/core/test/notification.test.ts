@@ -23,7 +23,8 @@ import {
   NotificationCategory,
   notificationSeverityLevel,
   notificationCategory,
-  notificationClassification
+  notificationClassification,
+  NotificationClassification
 } from '../src/notification'
 
 describe('Notification', () => {
@@ -215,7 +216,7 @@ describe('GqlStatusObject', () => {
       expect(gqlStatusObject.rawSeverity).toEqual(severity)
     })
 
-    it.each(getValidCategories())('should fill classification with values came from raw.diagnostic_record (%s)', (classification) => {
+    it.each(getValidClassifications())('should fill classification with values came from raw.diagnostic_record (%s)', (classification) => {
       const diagnosticRecord = {
         OPERATION: '',
         OPERATION_CODE: '0',
@@ -242,10 +243,10 @@ describe('GqlStatusObject', () => {
 
     it.each([
       'UNKNOWN',
-      null,
       undefined,
-      'I_AM_NOT_OKAY',
-      'information'
+      null,
+      'DUNNO',
+      'deprecation'
     ])('should fill classification UNKNOWN if the raw.diagnostic_record._classification equals to %s', classification => {
       const diagnosticRecord = {
         OPERATION: '',
@@ -371,6 +372,20 @@ function getValidSeverityLevels (): NotificationSeverityLevel[] {
 }
 
 function getValidCategories (): NotificationCategory[] {
+  return [
+    'HINT',
+    'UNRECOGNIZED',
+    'UNSUPPORTED',
+    'PERFORMANCE',
+    'TOPOLOGY',
+    'SECURITY',
+    'DEPRECATION',
+    'GENERIC',
+    'UNKNOWN'
+  ]
+}
+
+function getValidClassifications (): NotificationClassification[] {
   return [
     'HINT',
     'UNRECOGNIZED',
