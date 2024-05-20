@@ -24,7 +24,8 @@ import {
   notificationSeverityLevel,
   notificationCategory,
   notificationClassification,
-  NotificationClassification
+  NotificationClassification,
+  polyfillGqlStatusObject
 } from '../src/notification'
 
 describe('Notification', () => {
@@ -295,6 +296,122 @@ describe('GqlStatusObject', () => {
       const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
 
       expect(gqlStatusObject.diagnosticRecordAsJsonString).toBe(json.stringify(diagnosticRecord))
+    })
+  })
+
+  describe('polyfillGqlStatusObject()', () => {
+    it.each(getValidCategories())('should polyfill severity WARNING', (category) => {
+      const rawNotification = {
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        description: 'Description',
+        severity: 'WARNING',
+        position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        category
+      }
+
+      const gqlStatusObject = polyfillGqlStatusObject(rawNotification)
+
+      expect(gqlStatusObject).toEqual(new GqlStatusObject({
+        neo4j_code: rawNotification.code,
+        gql_status: '01N42',
+        status_description: rawNotification.description,
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: 'WARNING',
+          _classification: category,
+          _position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          _status_parameters: {}
+        }
+      }))
+    })
+
+    it.each(getValidCategories())('should polyfill severity INFORMATION', (category) => {
+      const rawNotification = {
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        description: 'Description',
+        severity: 'INFORMATION',
+        position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        category
+      }
+
+      const gqlStatusObject = polyfillGqlStatusObject(rawNotification)
+
+      expect(gqlStatusObject).toEqual(new GqlStatusObject({
+        neo4j_code: rawNotification.code,
+        gql_status: '03N42',
+        status_description: rawNotification.description,
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: 'INFORMATION',
+          _classification: category,
+          _position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          _status_parameters: {}
+        }
+      }))
+    })
+
+    it.each([
+      'UNKNOWN',
+      null,
+      undefined,
+      'I_AM_NOT_OKAY',
+      'information'
+    ])('should polyfill UNKNOWN', (severity) => {
+      const rawNotification = {
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        description: 'Description',
+        severity,
+        position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        category: 'UNSUPPORTED'
+      }
+
+      const gqlStatusObject = polyfillGqlStatusObject(rawNotification)
+
+      expect(gqlStatusObject).toEqual(new GqlStatusObject({
+        neo4j_code: rawNotification.code,
+        gql_status: '03N42',
+        status_description: rawNotification.description,
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: severity,
+          _classification: rawNotification.category,
+          _position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          _status_parameters: {}
+        }
+      }))
     })
   })
 })

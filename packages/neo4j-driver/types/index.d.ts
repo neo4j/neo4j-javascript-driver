@@ -55,6 +55,7 @@ import {
   RecordShape,
   ResultSummary,
   Notification,
+  GqlStatusObject,
   NotificationPosition,
   Plan,
   ProfiledPlan,
@@ -257,6 +258,7 @@ declare const forExport: {
   ProfiledPlan: typeof ProfiledPlan
   QueryStatistics: typeof QueryStatistics
   Notification: typeof Notification
+  GqlStatusObject: typeof GqlStatusObject
   ServerInfo: typeof ServerInfo
   NotificationPosition: NotificationPosition
   Session: typeof Session
@@ -336,6 +338,7 @@ export {
   ProfiledPlan,
   QueryStatistics,
   Notification,
+  GqlStatusObject,
   ServerInfo,
   NotificationPosition,
   Session,

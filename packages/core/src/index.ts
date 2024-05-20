@@ -67,6 +67,7 @@ import Notification, {
   NotificationSeverityLevel,
   NotificationClassification,
   NotificationCategory,
+  GqlStatusObject,
   notificationCategory,
   notificationClassification,
   notificationSeverityLevel
@@ -153,6 +154,7 @@ const forExport = {
   queryType,
   ServerInfo,
   Notification,
+  GqlStatusObject,
   Plan,
   ProfiledPlan,
   QueryStatistics,
@@ -224,6 +226,7 @@ export {
   queryType,
   ServerInfo,
   Notification,
+  GqlStatusObject,
   Plan,
   ProfiledPlan,
   QueryStatistics,

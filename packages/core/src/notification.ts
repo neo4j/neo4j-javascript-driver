@@ -23,6 +23,15 @@ interface NotificationPosition {
   column?: number
 }
 
+type UnknownGqlStatus = `${'01' | '02' | '03' | '50'}N42`
+
+const unknownGqlStatus: Record<string, UnknownGqlStatus> = {
+  WARNING: '01N42',
+  NO_DATA: '02N42',
+  INFORMATION: '03N42',
+  ERROR: '50N42'
+}
+
 type NotificationSeverityLevel = 'WARNING' | 'INFORMATION' | 'UNKNOWN'
 /**
  * @typedef {'WARNING' | 'INFORMATION' | 'UNKNOWN'} NotificationSeverityLevel
@@ -346,6 +355,24 @@ class GqlStatusObject {
   }
 }
 
+function polyfillGqlStatusObject (notification: any): GqlStatusObject {
+  return new GqlStatusObject({
+    gql_status: notification.severity === notificationSeverityLevel.WARNING ? unknownGqlStatus.WARNING : unknownGqlStatus.INFORMATION,
+    status_description: notification.description,
+    neo4j_code: notification.code,
+    title: notification.title,
+    diagnostic_record: {
+      OPERATION: '',
+      OPERATION_CODE: '0',
+      CURRENT_SCHEMA: '/',
+      _status_parameters: {},
+      _severity: notification.severity,
+      _classification: notification.category,
+      _position: notification.position
+    }
+  })
+}
+
 function _constructPosition (pos: any): NotificationPosition {
   if (pos == null) {
     return {}
@@ -378,7 +405,8 @@ export {
   notificationCategory,
   notificationClassification,
   Notification,
-  GqlStatusObject
+  GqlStatusObject,
+  polyfillGqlStatusObject
 }
 
 export type {

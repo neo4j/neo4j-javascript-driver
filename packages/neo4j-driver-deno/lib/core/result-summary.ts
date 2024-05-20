@@ -111,6 +111,16 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
     this.notifications = this._buildNotifications(metadata.notifications)
 
     /**
+     * A list of GqlStatusObjects that arise when executing the query.
+     *
+     * The list always contains at least 1 status representing the Success, No Data or Omitted Result.
+     * This status will be always the first one. 
+     * When discarding records while connected to a non-gql aware server, the driver might not be able to
+     * tell apart Success and No Data.
+     *
+     * All following status are notifications like warnings about problematic queries or other valuable 
+     * information that can be presented in a client.
+     * 
      * @type {Array<GqlStatusObject>}
      * @public
      * @experimental
