@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as json  from './json.ts'
+import * as json from './json.ts'
 import { util } from './internal/index.ts'
 
 interface NotificationPosition {
@@ -198,10 +198,10 @@ class Notification {
      * @public
      */
     this.rawCategory = notification.category
-  }  
+  }
 }
 
-type DiagnosticRecord = {
+interface DiagnosticRecord {
   OPERATION: string
   OPERATION_CODE: string
   CURRENT_SCHEMA: string
@@ -231,10 +231,10 @@ class GqlStatusObject {
   public readonly classification: NotificationClassification
   public readonly rawClassification?: string
 
-  constructor(rawGqlStatusObject: any) {
+  constructor (rawGqlStatusObject: any) {
     /**
      * The GQLSTATUS
-     * 
+     *
      * @type {string}
      * @public
      */
@@ -242,7 +242,7 @@ class GqlStatusObject {
 
     /**
      * The GQLSTATUS description
-     * 
+     *
      * @type {string}
      * @public
      */
@@ -250,7 +250,7 @@ class GqlStatusObject {
 
     /**
      * The diagnostic record as it is.
-     * 
+     *
      * @type {object}
      * @public
      */
@@ -337,7 +337,7 @@ class GqlStatusObject {
   /**
    * The json string representation of the diagnostic record.
    * The goal of this method is provide a serialized object for human inspection.
-   * 
+   *
    * @type {string}
    * @public
    */
@@ -361,14 +361,14 @@ function _constructPosition (pos: any): NotificationPosition {
 
 function _asEnumerableSeverity (severity: any): NotificationSeverityLevel {
   return severityLevels.includes(severity)
-  ? severity
-  : notificationSeverityLevel.UNKNOWN
+    ? severity
+    : notificationSeverityLevel.UNKNOWN
 }
 
-function _asEnumerableClassification(classification: any): NotificationClassification {
+function _asEnumerableClassification (classification: any): NotificationClassification {
   return categories.includes(classification)
-      ? classification
-      : notificationClassification.UNKNOWN
+    ? classification
+    : notificationClassification.UNKNOWN
 }
 
 export default Notification
