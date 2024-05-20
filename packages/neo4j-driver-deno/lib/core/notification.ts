@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as json  from './json.ts'
 import { util } from './internal/index.ts'
 
 interface NotificationPosition {
-    offset?: number
-    line?: number
-    column?: number
+  offset?: number
+  line?: number
+  column?: number
 }
 
 type NotificationSeverityLevel = 'WARNING' | 'INFORMATION' | 'UNKNOWN'
@@ -30,16 +31,16 @@ type NotificationSeverityLevel = 'WARNING' | 'INFORMATION' | 'UNKNOWN'
  * Constants that represents the Severity level in the {@link Notification}
  */
 const notificationSeverityLevel: { [key in NotificationSeverityLevel]: key } = {
-    WARNING: 'WARNING',
-    INFORMATION: 'INFORMATION',
-    UNKNOWN: 'UNKNOWN'
+  WARNING: 'WARNING',
+  INFORMATION: 'INFORMATION',
+  UNKNOWN: 'UNKNOWN'
 }
 
 Object.freeze(notificationSeverityLevel)
 const severityLevels = Object.values(notificationSeverityLevel)
 
 type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' | 'PERFORMANCE' |
-    'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN'
+'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN'
 /**
  * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN' } NotificationCategory
  */
@@ -47,15 +48,15 @@ type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' | 'PERFORMAN
  * Constants that represents the Category in the {@link Notification}
  */
 const notificationCategory: { [key in NotificationCategory]: key } = {
-    HINT: 'HINT',
-    UNRECOGNIZED: 'UNRECOGNIZED',
-    UNSUPPORTED: 'UNSUPPORTED',
-    PERFORMANCE: 'PERFORMANCE',
-    DEPRECATION: 'DEPRECATION',
-    TOPOLOGY: 'TOPOLOGY',
-    SECURITY: 'SECURITY',
-    GENERIC: 'GENERIC',
-    UNKNOWN: 'UNKNOWN'
+  HINT: 'HINT',
+  UNRECOGNIZED: 'UNRECOGNIZED',
+  UNSUPPORTED: 'UNSUPPORTED',
+  PERFORMANCE: 'PERFORMANCE',
+  DEPRECATION: 'DEPRECATION',
+  TOPOLOGY: 'TOPOLOGY',
+  SECURITY: 'SECURITY',
+  GENERIC: 'GENERIC',
+  UNKNOWN: 'UNKNOWN'
 }
 
 Object.freeze(notificationCategory)
@@ -78,143 +79,137 @@ const notificationClassification = notificationCategory
  * @access public
  */
 class Notification {
-    code: string
-    title: string
-    description: string
-    severity: string
-    position: NotificationPosition | {}
-    severityLevel: NotificationSeverityLevel
-    category: NotificationCategory
-    rawSeverityLevel: string
-    rawCategory?: string
+  code: string
+  title: string
+  description: string
+  severity: string
+  position: NotificationPosition | {}
+  severityLevel: NotificationSeverityLevel
+  category: NotificationCategory
+  rawSeverityLevel: string
+  rawCategory?: string
+
+  /**
+   * Create a Notification instance
+   * @constructor
+   * @param {Object} notification - Object with notification data
+   */
+  constructor (notification: any) {
+    /**
+     * The code
+     * @type {string}
+     * @public
+     */
+    this.code = notification.code
+    /**
+     * The title
+     * @type {string}
+     * @public
+     */
+    this.title = notification.title
+    /**
+     * The description
+     * @type {string}
+     * @public
+     */
+    this.description = notification.description
+    /**
+     * The raw severity
+     *
+     * Use {@link Notification#rawSeverityLevel} for the raw value or {@link Notification#severityLevel} for an enumerated value.
+     *
+     * @type {string}
+     * @public
+     * @deprecated This property will be removed in 6.0.
+     */
+    this.severity = notification.severity
+    /**
+     * The position which the notification had occur.
+     *
+     * @type {NotificationPosition}
+     * @public
+     */
+    this.position = _constructPosition(notification.position)
 
     /**
-     * Create a Notification instance
-     * @constructor
-     * @param {Object} notification - Object with notification data
+     * The severity level
+     *
+     * @type {NotificationSeverityLevel}
+     * @public
+     * @example
+     * const { summary } = await session.run("RETURN 1")
+     *
+     * for (const notification of summary.notifications) {
+     *     switch(notification.severityLevel) {
+     *         case neo4j.notificationSeverityLevel.INFORMATION: // or simply 'INFORMATION'
+     *             console.info(`${notification.title} - ${notification.description}`)
+     *             break
+     *         case neo4j.notificationSeverityLevel.WARNING: // or simply 'WARNING'
+     *             console.warn(`${notification.title} - ${notification.description}`)
+     *             break
+     *         case neo4j.notificationSeverityLevel.UNKNOWN: // or simply 'UNKNOWN'
+     *         default:
+     *             // the raw info came from the server could be found at notification.rawSeverityLevel
+     *             console.log(`${notification.title} - ${notification.description}`)
+     *             break
+     *     }
+     * }
      */
-    constructor(notification: any) {
-        /**
-         * The code
-         * @type {string}
-         * @public
-         */
-        this.code = notification.code
-        /**
-         * The title
-         * @type {string}
-         * @public
-         */
-        this.title = notification.title
-        /**
-         * The description
-         * @type {string}
-         * @public
-         */
-        this.description = notification.description
-        /**
-         * The raw severity
-         *
-         * Use {@link Notification#rawSeverityLevel} for the raw value or {@link Notification#severityLevel} for an enumerated value.
-         *
-         * @type {string}
-         * @public
-         * @deprecated This property will be removed in 6.0.
-         */
-        this.severity = notification.severity
-        /**
-         * The position which the notification had occur.
-         *
-         * @type {NotificationPosition}
-         * @public
-         */
-        this.position = Notification._constructPosition(notification.position)
+    this.severityLevel = _asEnumerableSeverity(this.severity)
 
-        /**
-         * The severity level
-         *
-         * @type {NotificationSeverityLevel}
-         * @public
-         * @example
-         * const { summary } = await session.run("RETURN 1")
-         *
-         * for (const notification of summary.notifications) {
-         *     switch(notification.severityLevel) {
-         *         case neo4j.notificationSeverityLevel.INFORMATION: // or simply 'INFORMATION'
-         *             console.info(`${notification.title} - ${notification.description}`)
-         *             break
-         *         case neo4j.notificationSeverityLevel.WARNING: // or simply 'WARNING'
-         *             console.warn(`${notification.title} - ${notification.description}`)
-         *             break
-         *         case neo4j.notificationSeverityLevel.UNKNOWN: // or simply 'UNKNOWN'
-         *         default:
-         *             // the raw info came from the server could be found at notification.rawSeverityLevel
-         *             console.log(`${notification.title} - ${notification.description}`)
-         *             break
-         *     }
-         * }
-         */
-        this.severityLevel = severityLevels.includes(notification.severity)
-            ? notification.severity
-            : notificationSeverityLevel.UNKNOWN
+    /**
+     * The severity level returned by the server without any validation.
+     *
+     * @type {string}
+     * @public
+     */
+    this.rawSeverityLevel = notification.severity
 
-        /**
-         * The severity level returned by the server without any validation.
-         *
-         * @type {string}
-         * @public
-         */
-        this.rawSeverityLevel = notification.severity
+    /**
+     * The category
+     *
+     * @type {NotificationCategory}
+     * @public
+     * @example
+     * const { summary } = await session.run("RETURN 1")
+     *
+     * for (const notification of summary.notifications) {
+     *     switch(notification.category) {
+     *         case neo4j.notificationCategory.QUERY: // or simply 'QUERY'
+     *             console.info(`${notification.title} - ${notification.description}`)
+     *             break
+     *         case neo4j.notificationCategory.PERFORMANCE: // or simply 'PERFORMANCE'
+     *             console.warn(`${notification.title} - ${notification.description}`)
+     *             break
+     *         case neo4j.notificationCategory.UNKNOWN: // or simply 'UNKNOWN'
+     *         default:
+     *             // the raw info came from the server could be found at notification.rawCategory
+     *             console.log(`${notification.title} - ${notification.description}`)
+     *             break
+     *     }
+     * }
+     */
+    this.category = _asEnumerableClassification(notification.category)
 
-        /**
-         * The category
-         *
-         * @type {NotificationCategory}
-         * @public
-         * @example
-         * const { summary } = await session.run("RETURN 1")
-         *
-         * for (const notification of summary.notifications) {
-         *     switch(notification.category) {
-         *         case neo4j.notificationCategory.QUERY: // or simply 'QUERY'
-         *             console.info(`${notification.title} - ${notification.description}`)
-         *             break
-         *         case neo4j.notificationCategory.PERFORMANCE: // or simply 'PERFORMANCE'
-         *             console.warn(`${notification.title} - ${notification.description}`)
-         *             break
-         *         case neo4j.notificationCategory.UNKNOWN: // or simply 'UNKNOWN'
-         *         default:
-         *             // the raw info came from the server could be found at notification.rawCategory
-         *             console.log(`${notification.title} - ${notification.description}`)
-         *             break
-         *     }
-         * }
-         */
-        this.category = categories.includes(notification.category)
-            ? notification.category
-            : notificationCategory.UNKNOWN
+    /**
+     * The category returned by the server without any validation.
+     *
+     * @type {string|undefined}
+     * @public
+     */
+    this.rawCategory = notification.category
+  }  
+}
 
-        /**
-         * The category returned by the server without any validation.
-         *
-         * @type {string|undefined}
-         * @public
-         */
-        this.rawCategory = notification.category
-    }
-
-    static _constructPosition(pos: NotificationPosition): NotificationPosition {
-        if (pos == null) {
-            return {}
-        }
-        /* eslint-disable @typescript-eslint/no-non-null-assertion */
-        return {
-            offset: util.toNumber(pos.offset!),
-            line: util.toNumber(pos.line!),
-            column: util.toNumber(pos.column!)
-        }
-        /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    }
+type DiagnosticRecord = {
+  OPERATION: string
+  OPERATION_CODE: string
+  CURRENT_SCHEMA: string
+  _severity?: string
+  _classification?: string
+  _position?: object
+  _status_parameters?: object
+  [key: string]: unknown
 }
 
 /**
@@ -224,42 +219,156 @@ class Notification {
  * This status is a superset of {@link Notification}.
  *
  * @experimental
+ * @public
  */
 class GqlStatusObject {
+  public readonly gqlStatus: string
+  public readonly statusDescription: string
+  public readonly diagnosticRecord: DiagnosticRecord
+  public readonly position: NotificationPosition
+  public readonly severity: NotificationSeverityLevel
+  public readonly rawSeverity?: string
+  public readonly classification: NotificationClassification
+  public readonly rawClassification?: string
+
+  constructor(rawGqlStatusObject: any) {
     /**
      * The GQLSTATUS
+     * 
+     * @type {string}
+     * @public
      */
-    getGqlStatus(): String {
-        return ''
-    }
+    this.gqlStatus = rawGqlStatusObject.gql_status
 
     /**
-     * Retrieve the severity from the diagnostic record.
+     * The GQLSTATUS description
+     * 
+     * @type {string}
+     * @public
      */
-    getSeverity(): NotificationSeverityLevel {
-        return notificationSeverityLevel.UNKNOWN
-    }
+    this.statusDescription = rawGqlStatusObject.status_description
 
     /**
-     * Retrieve the severity from the diagnostic record as string.
+     * The diagnostic record as it is.
+     * 
+     * @type {object}
+     * @public
      */
-    getRawSeverity(): String {
-        return ''
-    }
+    this.diagnosticRecord = rawGqlStatusObject.diagnostic_record ?? {}
 
     /**
-       * Retrieve the classification from the diagnostic record.
-       */
-    getClassification(): NotificationClassification {
-        return notificationClassification.UNKNOWN
-    }
+     * The position which the notification had occur.
+     *
+     * @type {NotificationPosition}
+     * @public
+     */
+    this.position = _constructPosition(this.diagnosticRecord._position)
 
     /**
-     * Retrieve the classification from the diagnostic record as string
+     * The severity
+     *
+     * @type {NotificationSeverityLevel}
+     * @public
+     * @example
+     * const { summary } = await session.run("RETURN 1")
+     *
+     * for (const gqlStatusObject of summary.gqlStatusObjects) {
+     *     switch(gqlStatusObject.severity) {
+     *         case neo4j.notificationSeverityLevel.INFORMATION: // or simply 'INFORMATION'
+     *             console.info(gqlStatusObject.statusDescription)
+     *             break
+     *         case neo4j.notificationSeverityLevel.WARNING: // or simply 'WARNING'
+     *             console.warn(gqlStatusObject.statusDescription)
+     *             break
+     *         case neo4j.notificationSeverityLevel.UNKNOWN: // or simply 'UNKNOWN'
+     *         default:
+     *             // the raw info came from the server could be found at gqlStatusObject.rawSeverity
+     *             console.log(gqlStatusObject.statusDescription)
+     *             break
+     *     }
+     * }
      */
-    getRawClassification(): String {
-        return ''
-    }
+    this.severity = _asEnumerableSeverity(this.diagnosticRecord._severity)
+
+    /**
+     * The severity returned in the diagnostic record from the server without any validation.
+     *
+     * @type {string | undefined}
+     * @public
+     */
+    this.rawSeverity = this.diagnosticRecord._severity
+
+    /**
+     * The classification
+     *
+     * @type {NotificationClassification}
+     * @public
+     * @example
+     * const { summary } = await session.run("RETURN 1")
+     *
+     * for (const gqlStatusObject of summary.gqlStatusObjects) {
+     *     switch(gqlStatusObject.classification) {
+     *         case neo4j.notificationClassification.QUERY: // or simply 'QUERY'
+     *             console.info(gqlStatusObject.statusDescription)
+     *             break
+     *         case neo4j.notificationClassification.PERFORMANCE: // or simply 'PERFORMANCE'
+     *             console.warn(gqlStatusObject.statusDescription)
+     *             break
+     *         case neo4j.notificationClassification.UNKNOWN: // or simply 'UNKNOWN'
+     *         default:
+     *             // the raw info came from the server could be found at notification.rawCategory
+     *             console.log(gqlStatusObject.statusDescription)
+     *             break
+     *     }
+     * }
+     */
+    this.classification = _asEnumerableClassification(this.diagnosticRecord._classification)
+
+    /**
+     * The category returned by the server without any validation.
+     *
+     * @type {string|undefined}
+     * @public
+     */
+    this.rawClassification = this.diagnosticRecord._classification
+    Object.freeze(this)
+  }
+
+  /**
+   * The json string representation of the diagnostic record.
+   * The goal of this method is provide a serialized object for human inspection.
+   * 
+   * @type {string}
+   * @public
+   */
+  public get diagnosticRecordAsJsonString (): string {
+    return json.stringify(this.diagnosticRecord)
+  }
+}
+
+function _constructPosition (pos: any): NotificationPosition {
+  if (pos == null) {
+    return {}
+  }
+  /* eslint-disable @typescript-eslint/no-non-null-assertion */
+  return {
+    offset: util.toNumber(pos.offset!),
+    line: util.toNumber(pos.line!),
+    column: util.toNumber(pos.column!)
+  }
+  /* eslint-enable @typescript-eslint/no-non-null-assertion */
+}
+
+function _asEnumerableSeverity (severity: any): NotificationSeverityLevel {
+  return severityLevels.includes(severity)
+  ? severity
+  : notificationSeverityLevel.UNKNOWN
+}
+
+function _asEnumerableClassification(classification: any): NotificationClassification {
+  return categories.includes(classification)
+      ? classification
+      : notificationClassification.UNKNOWN
 }
 
 export default Notification
@@ -273,8 +382,9 @@ export {
 }
 
 export type {
-    NotificationPosition,
-    NotificationSeverityLevel,
-    NotificationCategory,
-    NotificationClassification
+  NotificationPosition,
+  NotificationSeverityLevel,
+  NotificationCategory,
+  NotificationClassification,
+  DiagnosticRecord
 }

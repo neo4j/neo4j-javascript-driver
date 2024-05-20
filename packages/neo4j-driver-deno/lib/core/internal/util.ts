@@ -261,10 +261,10 @@ function equals (a: unknown, b: unknown): boolean {
 
 /**
  * Converts (Integer | bigint) to number.
- * 
+ *
  * @private
  * @param {NumberOrInteger} value The number or integer
- * @returns {number} The number 
+ * @returns {number} The number
  */
 function toNumber (value: NumberOrInteger): number {
   if (value instanceof Integer) {

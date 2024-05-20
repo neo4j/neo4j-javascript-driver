@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
+import * as json from '../src/json'
 import {
   Notification,
+  GqlStatusObject,
   NotificationSeverityLevel,
   NotificationCategory,
   notificationSeverityLevel,
@@ -82,6 +84,216 @@ describe('Notification', () => {
 
       expect(notification.category).toBe('UNKNOWN')
       expect(notification.rawCategory).toBe(rawCategory)
+    })
+  })
+})
+
+describe('GqlStatusObject', () => {
+  describe('constructor', () => {
+    it('should fill gqlStatus with raw.gql_status', () => {
+      const gqlStatus = '00001'
+      const rawGqlStatusObject = {
+        gql_status: gqlStatus
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.gqlStatus).toBe(gqlStatus)
+    })
+
+    it('should fill statusDescription with raw.status_description', () => {
+      const statusDescription = 'some gql standard status description'
+      const rawGqlStatusObject = {
+        status_description: statusDescription
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.statusDescription).toBe(statusDescription)
+    })
+
+    it('should fill diagnosticRecord with raw.diagnostic_record', () => {
+      const diagnosticRecord = {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _severity: '',
+        _classification: '',
+        _position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        _status_parameters: {}
+      }
+      const rawGqlStatusObject = {
+        diagnostic_record: diagnosticRecord
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.diagnosticRecord).toBe(diagnosticRecord)
+    })
+
+    it('should fill position with values came from raw.diagnostic_record', () => {
+      const diagnosticRecord = {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _severity: '',
+        _classification: '',
+        _position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        _status_parameters: {}
+      }
+
+      const rawGqlStatusObject = {
+        diagnostic_record: diagnosticRecord
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.position).toEqual(diagnosticRecord._position)
+    })
+
+    it.each(getValidSeverityLevels())('should fill severity with values came from raw.diagnostic_record (%s)', (severity) => {
+      const diagnosticRecord = {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _severity: severity,
+        _classification: '',
+        _position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        _status_parameters: {}
+      }
+
+      const rawGqlStatusObject = {
+        diagnostic_record: diagnosticRecord
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.severity).toEqual(severity)
+      expect(gqlStatusObject.rawSeverity).toEqual(severity)
+    })
+
+    it.each([
+      'UNKNOWN',
+      null,
+      undefined,
+      'I_AM_NOT_OKAY',
+      'information'
+    ])('should fill severity UNKNOWN if the raw.diagnostic_record._severity equals to %s', severity => {
+      const diagnosticRecord = {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _severity: severity,
+        _classification: '',
+        _position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        _status_parameters: {}
+      }
+
+      const rawGqlStatusObject = {
+        diagnostic_record: diagnosticRecord
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.severity).toEqual(notificationSeverityLevel.UNKNOWN)
+      expect(gqlStatusObject.rawSeverity).toEqual(severity)
+    })
+
+    it.each(getValidCategories())('should fill classification with values came from raw.diagnostic_record (%s)', (classification) => {
+      const diagnosticRecord = {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _severity: '',
+        _classification: classification,
+        _position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        _status_parameters: {}
+      }
+
+      const rawGqlStatusObject = {
+        diagnostic_record: diagnosticRecord
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.classification).toEqual(classification)
+      expect(gqlStatusObject.rawClassification).toEqual(classification)
+    })
+
+    it.each([
+      'UNKNOWN',
+      null,
+      undefined,
+      'I_AM_NOT_OKAY',
+      'information'
+    ])('should fill classification UNKNOWN if the raw.diagnostic_record._classification equals to %s', classification => {
+      const diagnosticRecord = {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _severity: '',
+        _classification: classification,
+        _position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        _status_parameters: {}
+      }
+
+      const rawGqlStatusObject = {
+        diagnostic_record: diagnosticRecord
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.classification).toEqual(notificationClassification.UNKNOWN)
+      expect(gqlStatusObject.rawClassification).toEqual(classification)
+    })
+  })
+
+  describe('diagnosticRecordAsJsonString()', () => {
+    it('should stringify diagnosticRecord', () => {
+      const diagnosticRecord = {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _severity: '',
+        _classification: '',
+        _position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        _status_parameters: {}
+      }
+      const rawGqlStatusObject = {
+        diagnostic_record: diagnosticRecord
+      }
+
+      const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
+
+      expect(gqlStatusObject.diagnosticRecordAsJsonString).toBe(json.stringify(diagnosticRecord))
     })
   })
 })
