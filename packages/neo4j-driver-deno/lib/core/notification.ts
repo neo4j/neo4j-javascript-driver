@@ -49,7 +49,7 @@ Object.freeze(notificationSeverityLevel)
 const severityLevels = Object.values(notificationSeverityLevel)
 
 type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' | 'PERFORMANCE' |
-  'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN'
+'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN'
 /**
  * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN' } NotificationCategory
  */
@@ -103,7 +103,7 @@ class Notification {
    * @constructor
    * @param {Object} notification - Object with notification data
    */
-  constructor(notification: any) {
+  constructor (notification: any) {
     /**
      * The code
      * @type {string}
@@ -240,7 +240,7 @@ class GqlStatusObject {
   public readonly classification: NotificationClassification
   public readonly rawClassification?: string
 
-  constructor(rawGqlStatusObject: any) {
+  constructor (rawGqlStatusObject: any) {
     /**
      * The GQLSTATUS
      *
@@ -350,17 +350,17 @@ class GqlStatusObject {
    * @type {string}
    * @public
    */
-  public get diagnosticRecordAsJsonString(): string {
+  public get diagnosticRecordAsJsonString (): string {
     return json.stringify(this.diagnosticRecord)
   }
 }
 
 /**
  * @private
- * @param notification 
+ * @param notification
  * @returns {GqlStatusObject}
  */
-function polyfillGqlStatusObject(notification: any): GqlStatusObject {
+function polyfillGqlStatusObject (notification: any): GqlStatusObject {
   return new GqlStatusObject({
     gql_status: notification.severity === notificationSeverityLevel.WARNING ? unknownGqlStatus.WARNING : unknownGqlStatus.INFORMATION,
     status_description: notification.description,
@@ -377,7 +377,6 @@ function polyfillGqlStatusObject(notification: any): GqlStatusObject {
     }
   })
 }
-
 
 const defaultRawDiagnosticRecord = {
   OPERATION: '',
@@ -397,7 +396,7 @@ Object.freeze(defaultRawDiagnosticRecord)
 
 /**
  * This objects are used for polyfilling the first status on the status list
- * 
+ *
  * @private
  */
 const staticGqlStatusObjects = {
@@ -425,15 +424,14 @@ const staticGqlStatusObjects = {
 
 Object.freeze(staticGqlStatusObjects)
 
-
 /**
- * 
+ *
  * @private
- * @param metadata 
- * @returns 
+ * @param metadata
+ * @returns
  */
 function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...GqlStatusObject[]] {
-  function getGqlStatusObjectFromStreamSummary(summary: any): GqlStatusObject {
+  function getGqlStatusObjectFromStreamSummary (summary: any): GqlStatusObject {
     if (summary?.have_records_streamed === true) {
       return staticGqlStatusObjects.SUCCESS
     }
@@ -448,7 +446,7 @@ function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...
 
     return staticGqlStatusObjects.NO_DATA_UNKNOWN_SUBCONDITION
   }
-  
+
   if (metadata.statuses != null) {
     return metadata.statuses.map((status: unknown) => new GqlStatusObject(status))
   }
@@ -457,12 +455,12 @@ function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...
 }
 
 /**
- * 
+ *
  * @private
- * @param pos 
- * @returns {NotificationPosition} 
+ * @param pos
+ * @returns {NotificationPosition}
  */
-function _constructPosition(pos: any): NotificationPosition {
+function _constructPosition (pos: any): NotificationPosition {
   if (pos == null) {
     return {}
   }
@@ -475,13 +473,13 @@ function _constructPosition(pos: any): NotificationPosition {
   /* eslint-enable @typescript-eslint/no-non-null-assertion */
 }
 
-function _asEnumerableSeverity(severity: any): NotificationSeverityLevel {
+function _asEnumerableSeverity (severity: any): NotificationSeverityLevel {
   return severityLevels.includes(severity)
     ? severity
     : notificationSeverityLevel.UNKNOWN
 }
 
-function _asEnumerableClassification(classification: any): NotificationClassification {
+function _asEnumerableClassification (classification: any): NotificationClassification {
   return categories.includes(classification)
     ? classification
     : notificationClassification.UNKNOWN
