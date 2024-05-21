@@ -487,11 +487,29 @@ function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...
 
   const polyfilledObjects = (metadata.notifications?.map(polyfillGqlStatusObject) ?? []) as GqlStatusObject[]
   const clientGenerated = getGqlStatusObjectFromStreamSummary(metadata.stream_summary)
-  const position = clientGenerated.gqlStatus.startsWith('02') ? 
-    0 : polyfilledObjects.findIndex(v => v.severity !== 'WARNING') + 1
+  const position = clientGenerated.gqlStatus.startsWith('02')
+    ? 0
+    : polyfilledObjects.findIndex(v => v.severity !== 'WARNING') + 1
 
-  
   return polyfilledObjects.splice(position, 0, clientGenerated) as [GqlStatusObject, ...GqlStatusObject[]]
+}
+
+/**
+ *
+ * @private
+ * @param metadata
+ * @returns
+ */
+function buildNotificationsFromMetadata (metadata: any): Notification[] {
+  if (metadata.notifications != null) {
+    return metadata.notifications.map((n: any) => new Notification(n))
+  }
+
+  if (metadata.statuses != null) {
+    return metadata.statuses.map(polyfillNotification).filter((n: unknown) => n != null)
+  }
+
+  return []
 }
 
 /**
@@ -535,7 +553,8 @@ export {
   GqlStatusObject,
   polyfillGqlStatusObject,
   polyfillNotification,
-  buildGqlStatusObjectFromMetadata
+  buildGqlStatusObjectFromMetadata,
+  buildNotificationsFromMetadata
 }
 
 export type {

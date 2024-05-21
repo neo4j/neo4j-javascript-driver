@@ -497,6 +497,24 @@ function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...
 /**
  *
  * @private
+ * @param metadata
+ * @returns
+ */
+function buildNotificationsFromMetadata (metadata: any): Notification[] {
+  if (metadata.notifications != null) {
+    return metadata.notifications.map((n: any) => new Notification(n))
+  }
+
+  if (metadata.statuses != null) {
+    return metadata.statuses.map(polyfillNotification).filter((n: unknown) => n != null)
+  }
+
+  return []
+}
+
+/**
+ *
+ * @private
  * @param pos
  * @returns {NotificationPosition}
  */
@@ -535,7 +553,8 @@ export {
   GqlStatusObject,
   polyfillGqlStatusObject,
   polyfillNotification,
-  buildGqlStatusObjectFromMetadata
+  buildGqlStatusObjectFromMetadata,
+  buildNotificationsFromMetadata
 }
 
 export type {

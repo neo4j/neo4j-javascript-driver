@@ -27,7 +27,8 @@ import {
   NotificationClassification,
   polyfillGqlStatusObject,
   polyfillNotification,
-  buildGqlStatusObjectFromMetadata
+  buildGqlStatusObjectFromMetadata,
+  buildNotificationsFromMetadata
 } from '../src/notification'
 
 describe('Notification', () => {
@@ -554,7 +555,7 @@ describe('GqlStatusObject', () => {
       }))
     })
 
-    it.each(getValidCategories())('should polyfill severity INFORMATIO and no description', (category) => {
+    it.each(getValidCategories())('should polyfill severity INFORMATION and no description', (category) => {
       const rawNotification = {
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
@@ -1133,6 +1134,194 @@ describe('buildGqlStatusObjectFromMetadata', () => {
     const expectedStatuses = notifications.map(polyfillGqlStatusObject).splice(position, 0, filledObject)
 
     expect(buildGqlStatusObjectFromMetadata(metadata)).toEqual(expectedStatuses)
+  })
+})
+
+describe('buildNotificationsFromMetadata', () => {
+  it.each([
+    [
+      {
+      }
+    ],
+    [
+      {
+        notifications: []
+      }
+    ],
+    [
+      {
+        notifications: [],
+        statuses: getValidNotificationStatus()
+      }
+    ],
+    [
+      {
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    [
+      {
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }],
+        statuses: getValidNotificationStatus()
+      }
+    ],
+    [
+      {
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }, {
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    [
+      {
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }, {
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }, {
+          code: 'Neo.Notification.Info.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'INFORMATION',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    [
+      getSuccessStatusObject(), 0, {
+        stream_summary: {
+          have_records_streamed: true
+        },
+        notifications: [{
+          code: 'Neo.Notification.Info.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'INFORMATION',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }, {
+          code: 'Neo.Notification.Info.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'INFORMATION',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ]
+
+  ])('should build from notifications when not available', (metadata: any) => {
+    const notifications = metadata.notifications != null ? metadata.notifications : []
+    const expectedNotifications = notifications.map((notification: any) => new Notification(notification))
+
+    expect(buildNotificationsFromMetadata(metadata)).toEqual(expectedNotifications)
+  })
+
+  it.each([
+    {
+      statuses: getValidStatus()
+    },
+    {
+      statuses: [
+        {
+          gql_status: '00000',
+          status_description: 'successful completion — omitted',
+          diagnostic_record: {
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          }
+        }
+      ]
+    },
+    {
+      statuses: []
+    }
+  ])('should build from statuses when notifications not available', (metadata: any) => {
+    const expectedNotifications = metadata.statuses.map(polyfillNotification)
+      .filter((notification: unknown) => notification != null)
+
+    expect(buildNotificationsFromMetadata(metadata)).toEqual(expectedNotifications)
   })
 })
 

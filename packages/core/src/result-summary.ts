@@ -18,7 +18,7 @@
 import Integer from './integer'
 import { NumberOrInteger } from './graph-types'
 import { util } from './internal'
-import Notification, { GqlStatusObject, buildGqlStatusObjectFromMetadata } from './notification'
+import Notification, { GqlStatusObject, buildGqlStatusObjectFromMetadata, buildNotificationsFromMetadata } from './notification'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.
@@ -108,7 +108,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @type {Array<Notification>}
      * @public
      */
-    this.notifications = this._buildNotifications(metadata.notifications)
+    this.notifications = buildNotificationsFromMetadata(metadata)
 
     /**
      * A list of GqlStatusObjects that arise when executing the query.
@@ -154,15 +154,6 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @public
      */
     this.database = { name: metadata.db ?? null }
-  }
-
-  _buildNotifications (notifications: any[]): Notification[] {
-    if (notifications == null) {
-      return []
-    }
-    return notifications.map(function (n: any): Notification {
-      return new Notification(n)
-    })
   }
 
   /**
