@@ -25,11 +25,23 @@ interface NotificationPosition {
 
 type UnknownGqlStatus = `${'01' | '02' | '03' | '50'}N42`
 
-const unknownGqlStatus: Record<string, UnknownGqlStatus> = {
-  WARNING: '01N42',
-  NO_DATA: '02N42',
-  INFORMATION: '03N42',
-  ERROR: '50N42'
+const unknownGqlStatus: Record<string, { gql_status: UnknownGqlStatus, status_description: string }> = {
+  WARNING: {
+    gql_status: '01N42',
+    status_description: 'warn: warning - unknown warning'
+  },
+  NO_DATA: {
+    gql_status: '02N42',
+    status_description: 'note: no data - unknown subcondition'
+  },
+  INFORMATION: {
+    gql_status: '03N42',
+    status_description: 'info: informational - unknown notification'
+  },
+  ERROR: {
+    gql_status: '50N42',
+    status_description: 'error: general processing exception - unknown error'
+  }
 }
 
 type NotificationSeverityLevel = 'WARNING' | 'INFORMATION' | 'UNKNOWN'
@@ -383,9 +395,10 @@ function polyfillNotification (status: any): Notification | undefined {
  * @returns {GqlStatusObject}
  */
 function polyfillGqlStatusObject (notification: any): GqlStatusObject {
+  const defaultStatus = notification.severity === notificationSeverityLevel.WARNING ? unknownGqlStatus.WARNING : unknownGqlStatus.INFORMATION
   return new GqlStatusObject({
-    gql_status: notification.severity === notificationSeverityLevel.WARNING ? unknownGqlStatus.WARNING : unknownGqlStatus.INFORMATION,
-    status_description: notification.description,
+    gql_status: defaultStatus.gql_status,
+    status_description: notification.description ?? defaultStatus.status_description,
     neo4j_code: notification.code,
     title: notification.title,
     diagnostic_record: {
@@ -424,22 +437,21 @@ Object.freeze(defaultRawDiagnosticRecord)
 const staticGqlStatusObjects = {
   SUCCESS: new GqlStatusObject({
     gql_status: '00000',
-    status_description: 'successful completion',
+    status_description: 'note: successful completion',
     diagnostic_record: defaultRawDiagnosticRecord
   }),
   NO_DATA: new GqlStatusObject({
     gql_status: '02000',
-    status_description: 'no data',
+    status_description: 'note: no data',
     diagnostic_record: defaultRawDiagnosticRecord
   }),
   NO_DATA_UNKNOWN_SUBCONDITION: new GqlStatusObject({
-    gql_status: unknownGqlStatus.NO_DATA,
-    status_description: 'no data - unknown subcondition',
+    ...unknownGqlStatus.NO_DATA,
     diagnostic_record: defaultRawDiagnosticRecord
   }),
   OMITTED_RESULT: new GqlStatusObject({
     gql_status: '00001',
-    status_description: 'successful completion - omitted',
+    status_description: 'note: successful completion - omitted',
     diagnostic_record: defaultRawDiagnosticRecord
   })
 }
@@ -473,7 +485,13 @@ function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...
     return metadata.statuses.map((status: unknown) => new GqlStatusObject(status))
   }
 
-  return [getGqlStatusObjectFromStreamSummary(metadata.stream_summary), ...(metadata.notifications?.map(polyfillGqlStatusObject) ?? [])]
+  const polyfilledObjects = (metadata.notifications?.map(polyfillGqlStatusObject) ?? []) as GqlStatusObject[]
+  const clientGenerated = getGqlStatusObjectFromStreamSummary(metadata.stream_summary)
+  const position = clientGenerated.gqlStatus.startsWith('02') ? 
+    0 : polyfilledObjects.findIndex(v => v.severity !== 'WARNING') + 1
+
+  
+  return polyfilledObjects.splice(position, 0, clientGenerated) as [GqlStatusObject, ...GqlStatusObject[]]
 }
 
 /**

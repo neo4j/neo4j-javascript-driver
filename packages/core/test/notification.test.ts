@@ -483,6 +483,41 @@ describe('GqlStatusObject', () => {
       }))
     })
 
+    it.each(getValidCategories())('should polyfill severity WARNING and no description', (category) => {
+      const rawNotification = {
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        severity: 'WARNING',
+        position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        category
+      }
+
+      const gqlStatusObject = polyfillGqlStatusObject(rawNotification)
+
+      expect(gqlStatusObject).toEqual(new GqlStatusObject({
+        neo4j_code: rawNotification.code,
+        gql_status: '01N42',
+        status_description: 'warn: warning - unknown warning',
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: 'WARNING',
+          _classification: category,
+          _position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          _status_parameters: {}
+        }
+      }))
+    })
+
     it.each(getValidCategories())('should polyfill severity INFORMATION', (category) => {
       const rawNotification = {
         code: 'Neo.Notification.Warning.Code',
@@ -503,6 +538,41 @@ describe('GqlStatusObject', () => {
         neo4j_code: rawNotification.code,
         gql_status: '03N42',
         status_description: rawNotification.description,
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: 'INFORMATION',
+          _classification: category,
+          _position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          _status_parameters: {}
+        }
+      }))
+    })
+
+    it.each(getValidCategories())('should polyfill severity INFORMATIO and no description', (category) => {
+      const rawNotification = {
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        severity: 'INFORMATION',
+        position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        category
+      }
+
+      const gqlStatusObject = polyfillGqlStatusObject(rawNotification)
+
+      expect(gqlStatusObject).toEqual(new GqlStatusObject({
+        neo4j_code: rawNotification.code,
+        gql_status: '03N42',
+        status_description: 'info: informational - unknown notification',
         diagnostic_record: {
           OPERATION: '',
           OPERATION_CODE: '0',
@@ -545,6 +615,47 @@ describe('GqlStatusObject', () => {
         neo4j_code: rawNotification.code,
         gql_status: '03N42',
         status_description: rawNotification.description,
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: severity,
+          _classification: rawNotification.category,
+          _position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          _status_parameters: {}
+        }
+      }))
+    })
+
+    it.each([
+      'UNKNOWN',
+      null,
+      undefined,
+      'I_AM_NOT_OKAY',
+      'information'
+    ])('should polyfill UNKNOWN and no description', (severity) => {
+      const rawNotification = {
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        severity,
+        position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        category: 'UNSUPPORTED'
+      }
+
+      const gqlStatusObject = polyfillGqlStatusObject(rawNotification)
+
+      expect(gqlStatusObject).toEqual(new GqlStatusObject({
+        neo4j_code: rawNotification.code,
+        gql_status: '03N42',
+        status_description: 'info: informational - unknown notification',
         diagnostic_record: {
           OPERATION: '',
           OPERATION_CODE: '0',
@@ -661,14 +772,14 @@ describe('buildGqlStatusObjectFromMetadata', () => {
   it.each([
     // SUCCESS
     [
-      getSuccessStatusObject(), {
+      getSuccessStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: true
         }
       }
     ],
     [
-      getSuccessStatusObject(), {
+      getSuccessStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: true
         },
@@ -676,7 +787,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       }
     ],
     [
-      getSuccessStatusObject(), {
+      getSuccessStatusObject(), 1, {
         stream_summary: {
           have_records_streamed: true
         },
@@ -694,9 +805,110 @@ describe('buildGqlStatusObjectFromMetadata', () => {
         }]
       }
     ],
+    [
+      getSuccessStatusObject(), 2, {
+        stream_summary: {
+          have_records_streamed: true
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }, {
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    [
+      getSuccessStatusObject(), 2, {
+        stream_summary: {
+          have_records_streamed: true
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }, {
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }, {
+          code: 'Neo.Notification.Info.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'INFORMATION',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    [
+      getSuccessStatusObject(), 0, {
+        stream_summary: {
+          have_records_streamed: true
+        },
+        notifications: [{
+          code: 'Neo.Notification.Info.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'INFORMATION',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }, {
+          code: 'Neo.Notification.Info.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'INFORMATION',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
     // NO DATA
     [
-      getNoDataStatusObject(), {
+      getNoDataStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
           pulled: true,
@@ -705,7 +917,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       }
     ],
     [
-      getNoDataStatusObject(), {
+      getNoDataStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
           pulled: true,
@@ -715,13 +927,46 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       }
     ],
     [
-      getNoDataStatusObject(), {
+      getNoDataStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
           pulled: true,
           has_keys: true
         },
         notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    [
+      getNoDataStatusObject(), 0, {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: true,
+          has_keys: true
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        },
+        {
           code: 'Neo.Notification.Warning.Code',
           title: 'Notification Title',
           description: 'Description',
@@ -737,7 +982,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
     ],
     // OMITTED RESULT
     [
-      getOmittedResultStatusObject(), {
+      getOmittedResultStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
           pulled: true,
@@ -746,7 +991,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       }
     ],
     [
-      getOmittedResultStatusObject(), {
+      getOmittedResultStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
           pulled: false,
@@ -756,7 +1001,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       }
     ],
     [
-      getOmittedResultStatusObject(), {
+      getOmittedResultStatusObject(), 1, {
         stream_summary: {
           have_records_streamed: false,
           pulled: true,
@@ -776,9 +1021,75 @@ describe('buildGqlStatusObjectFromMetadata', () => {
         }]
       }
     ],
+    [
+      getOmittedResultStatusObject(), 2, {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: true,
+          has_keys: false
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        },
+        {
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
+    [
+      getOmittedResultStatusObject(), 1, {
+        stream_summary: {
+          have_records_streamed: false,
+          pulled: true,
+          has_keys: false
+        },
+        notifications: [{
+          code: 'Neo.Notification.Warning.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'WARNING',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        },
+        {
+          code: 'Neo.Notification.Information.Code',
+          title: 'Notification Title',
+          description: 'Description',
+          severity: 'INFORMATION',
+          position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          category: 'TOPOLOGY'
+        }]
+      }
+    ],
     // NO DATA - UNKNOWN SUBCONDITION
     [
-      getNoDataUnknownSubconditionStatusObject(), {
+      getNoDataUnknownSubconditionStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
           pulled: false,
@@ -787,7 +1098,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       }
     ],
     [
-      getNoDataUnknownSubconditionStatusObject(), {
+      getNoDataUnknownSubconditionStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
           pulled: false,
@@ -797,7 +1108,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       }
     ],
     [
-      getNoDataUnknownSubconditionStatusObject(), {
+      getNoDataUnknownSubconditionStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
           pulled: false,
@@ -817,9 +1128,9 @@ describe('buildGqlStatusObjectFromMetadata', () => {
         }]
       }
     ]
-  ])('should build from notifications when not available', (firstGqlObject: GqlStatusObject, metadata: any) => {
+  ])('should build from notifications when not available', (filledObject: GqlStatusObject, position: number, metadata: any) => {
     const notifications = metadata.notifications != null ? metadata.notifications : []
-    const expectedStatuses = [firstGqlObject, ...notifications.map(polyfillGqlStatusObject)]
+    const expectedStatuses = notifications.map(polyfillGqlStatusObject).splice(position, 0, filledObject)
 
     expect(buildGqlStatusObjectFromMetadata(metadata)).toEqual(expectedStatuses)
   })
@@ -929,7 +1240,7 @@ function getValidStatus (): any[] {
   return [
     {
       gql_status: '00000',
-      status_description: 'successful completion',
+      status_description: 'note: successful completion',
       diagnostic_record: {
         OPERATION_CODE: '0',
         CURRENT_SCHEMA: '/',
@@ -951,7 +1262,7 @@ function getValidNotificationStatus (): any [] {
   return [
     {
       gql_status: '01N00',
-      status_description: 'warning - feature deprecated',
+      status_description: 'warn: warning - feature deprecated',
       neo4j_code: 'Neo.Some.Warning.Code',
       title: 'the title',
       diagnostic_record: {
@@ -965,7 +1276,7 @@ function getValidNotificationStatus (): any [] {
     },
     {
       gql_status: '03N60',
-      status_description: 'informational - subquery variable shadowing',
+      status_description: 'info: informational - subquery variable shadowing',
       neo4j_code: 'Neo.Some.Informational.Code',
       title: 'the title',
       diagnostic_record: {
@@ -983,7 +1294,7 @@ function getValidNotificationStatus (): any [] {
 function getSuccessStatus (): any {
   return {
     gql_status: '00000',
-    status_description: 'successful completion',
+    status_description: 'note: successful completion',
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',
@@ -1007,7 +1318,7 @@ function getSuccessStatusObject (): GqlStatusObject {
 function getNoDataStatus (): any {
   return {
     gql_status: '02000',
-    status_description: 'no data',
+    status_description: 'note: no data',
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',
@@ -1031,7 +1342,7 @@ function getNoDataStatusObject (): GqlStatusObject {
 function getOmittedResultStatus (): any {
   return {
     gql_status: '00001',
-    status_description: 'successful completion - omitted',
+    status_description: 'note: successful completion - omitted',
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',
@@ -1055,7 +1366,7 @@ function getOmittedResultStatusObject (): GqlStatusObject {
 function getNoDataUnknownSubconditionStatus (): any {
   return {
     gql_status: '02N42',
-    status_description: 'no data - unknown subcondition',
+    status_description: 'note: no data - unknown subcondition',
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',
