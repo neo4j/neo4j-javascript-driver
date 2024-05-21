@@ -26,6 +26,7 @@ import {
   notificationClassification,
   NotificationClassification,
   polyfillGqlStatusObject,
+  polyfillNotification,
   buildGqlStatusObjectFromMetadata
 } from '../src/notification'
 
@@ -87,6 +88,151 @@ describe('Notification', () => {
 
       expect(notification.category).toBe('UNKNOWN')
       expect(notification.rawCategory).toBe(rawCategory)
+    })
+  })
+
+  describe('polyfillNotification()', () => {
+    it.each([
+      getSuccessStatus(),
+      getNoDataStatus(),
+      getOmittedResultStatus(),
+      getNoDataUnknownSubconditionStatus()
+    ])('should return undefined when status is not a notification (%o)', (status: any) => {
+      expect(polyfillNotification(status)).toBeUndefined()
+    })
+
+    it.each(getValidCategories())('should polyfill severity WARNING', (category) => {
+      const status = {
+        neo4j_code: 'Neo.Notification.Warning.Code',
+        gql_status: '01N42',
+        status_description: 'Description',
+        title: 'Notification Title',
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: 'WARNING',
+          _classification: category,
+          _position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          _status_parameters: {}
+        }
+      }
+
+      const gqlStatusObject = polyfillNotification(status)
+
+      expect(gqlStatusObject).toEqual(new Notification({
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        description: 'Description',
+        severity: 'WARNING',
+        position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        category
+      }))
+    })
+
+    it.each(getValidCategories())('should polyfill severity INFORMATION', (category) => {
+      const status = {
+        neo4j_code: 'Neo.Notification.Warning.Code',
+        gql_status: '03N42',
+        title: 'Notification Title',
+        status_description: 'Description',
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: 'INFORMATION',
+          _classification: category,
+          _position: {
+            offset: 0,
+            line: 0,
+            column: 0
+          },
+          _status_parameters: {}
+        }
+      }
+
+      const gqlStatusObject = polyfillNotification(status)
+
+      expect(gqlStatusObject).toEqual(new Notification({
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        description: 'Description',
+        severity: 'INFORMATION',
+        position: {
+          offset: 0,
+          line: 0,
+          column: 0
+        },
+        category
+      }))
+    })
+
+    it.each([
+      'UNKNOWN',
+      null,
+      undefined,
+      'I_AM_NOT_OKAY',
+      'information'
+    ])('should polyfill UNKNOWN', (severity) => {
+      const status = {
+        neo4j_code: 'Neo.Notification.Warning.Code',
+        gql_status: '03N42',
+        title: 'Notification Title',
+        status_description: 'Description',
+        diagnostic_record: {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _severity: severity,
+          _classification: 'UNSUPPORTED',
+          _position: {
+            offset: 1,
+            line: 2,
+            column: 3
+          },
+          _status_parameters: {}
+        }
+      }
+
+      const gqlStatusObject = polyfillNotification(status)
+
+      expect(gqlStatusObject).toEqual(new Notification({
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        description: 'Description',
+        severity,
+        position: {
+          offset: 1,
+          line: 2,
+          column: 3
+        },
+        category: 'UNSUPPORTED'
+      }))
+    })
+
+    it('should polyfill when diagnostic records is not present', () => {
+      const status = {
+        neo4j_code: 'Neo.Notification.Warning.Code',
+        gql_status: '03N42',
+        title: 'Notification Title',
+        status_description: 'Description'
+      }
+
+      const gqlStatusObject = polyfillNotification(status)
+
+      expect(gqlStatusObject).toEqual(new Notification({
+        code: 'Neo.Notification.Warning.Code',
+        title: 'Notification Title',
+        description: 'Description'
+      }))
     })
   })
 })
@@ -420,52 +566,7 @@ describe('GqlStatusObject', () => {
 describe('buildGqlStatusObjectFromMetadata', () => {
   it.each([
     {
-      statuses: [
-        {
-          gql_status: '00000',
-          status_description: 'successful completion — omitted',
-          diagnostic_record: {
-            OPERATION_CODE: '0',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
-          }
-        },
-        {
-          gql_status: '01N00',
-          status_description: 'warning - feature deprecated',
-          neo4j_code: 'Neo.Some.Warning.Code',
-          title: 'the title',
-          diagnostic_record: {
-            OPERATION: '',
-            OPERATION_CODE: '0',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: 'WARNING',
-            _classification: 'DEPRECATION'
-          }
-        },
-        {
-          gql_status: '03N60',
-          status_description: 'informational - subquery variable shadowing',
-          neo4j_code: 'Neo.Some.Informational.Code',
-          title: 'the title',
-          diagnostic_record: {
-            OPERATION: '',
-            OPERATION_CODE: '0',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: 'INFORMATION',
-            _classification: 'HINT'
-          }
-        }
-      ],
+      statuses: getValidStatus(),
       notifications: [{
         severity: 'WARNING',
         description: 'Some description',
@@ -824,8 +925,63 @@ function getValidClassifications (): NotificationClassification[] {
   ]
 }
 
-function getSuccessStatusObject (): GqlStatusObject {
-  return new GqlStatusObject({
+function getValidStatus (): any[] {
+  return [
+    {
+      gql_status: '00000',
+      status_description: 'successful completion',
+      diagnostic_record: {
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _status_parameters: {},
+        _severity: '',
+        _classification: '',
+        _position: {
+          offset: -1,
+          line: -1,
+          column: -1
+        }
+      }
+    },
+    ...getValidNotificationStatus()
+  ]
+}
+
+function getValidNotificationStatus (): any [] {
+  return [
+    {
+      gql_status: '01N00',
+      status_description: 'warning - feature deprecated',
+      neo4j_code: 'Neo.Some.Warning.Code',
+      title: 'the title',
+      diagnostic_record: {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _status_parameters: {},
+        _severity: 'WARNING',
+        _classification: 'DEPRECATION'
+      }
+    },
+    {
+      gql_status: '03N60',
+      status_description: 'informational - subquery variable shadowing',
+      neo4j_code: 'Neo.Some.Informational.Code',
+      title: 'the title',
+      diagnostic_record: {
+        OPERATION: '',
+        OPERATION_CODE: '0',
+        CURRENT_SCHEMA: '/',
+        _status_parameters: {},
+        _severity: 'INFORMATION',
+        _classification: 'HINT'
+      }
+    }
+  ]
+}
+
+function getSuccessStatus (): any {
+  return {
     gql_status: '00000',
     status_description: 'successful completion',
     diagnostic_record: {
@@ -841,11 +997,15 @@ function getSuccessStatusObject (): GqlStatusObject {
         column: -1
       }
     }
-  })
+  }
 }
 
-function getNoDataStatusObject (): GqlStatusObject {
-  return new GqlStatusObject({
+function getSuccessStatusObject (): GqlStatusObject {
+  return new GqlStatusObject(getSuccessStatus())
+}
+
+function getNoDataStatus (): any {
+  return {
     gql_status: '02000',
     status_description: 'no data',
     diagnostic_record: {
@@ -861,11 +1021,15 @@ function getNoDataStatusObject (): GqlStatusObject {
         column: -1
       }
     }
-  })
+  }
 }
 
-function getOmittedResultStatusObject (): GqlStatusObject {
-  return new GqlStatusObject({
+function getNoDataStatusObject (): GqlStatusObject {
+  return new GqlStatusObject(getNoDataStatus())
+}
+
+function getOmittedResultStatus (): any {
+  return {
     gql_status: '00001',
     status_description: 'successful completion - omitted',
     diagnostic_record: {
@@ -881,11 +1045,15 @@ function getOmittedResultStatusObject (): GqlStatusObject {
         column: -1
       }
     }
-  })
+  }
 }
 
-function getNoDataUnknownSubconditionStatusObject (): GqlStatusObject {
-  return new GqlStatusObject({
+function getOmittedResultStatusObject (): GqlStatusObject {
+  return new GqlStatusObject(getOmittedResultStatus())
+}
+
+function getNoDataUnknownSubconditionStatus (): any {
+  return {
     gql_status: '02N42',
     status_description: 'no data - unknown subcondition',
     diagnostic_record: {
@@ -901,5 +1069,9 @@ function getNoDataUnknownSubconditionStatusObject (): GqlStatusObject {
         column: -1
       }
     }
-  })
+  }
+}
+
+function getNoDataUnknownSubconditionStatusObject (): GqlStatusObject {
+  return new GqlStatusObject(getNoDataUnknownSubconditionStatus())
 }

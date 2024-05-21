@@ -356,6 +356,28 @@ class GqlStatusObject {
 }
 
 /**
+ *
+ * @private
+ * @param status
+ * @returns {Notification|undefined}
+ */
+function polyfillNotification (status: any): Notification | undefined {
+  // Non notification status should have neo4j_code
+  if (status.neo4j_code == null) {
+    return undefined
+  }
+
+  return new Notification({
+    code: status.neo4j_code,
+    title: status.title,
+    description: status.status_description,
+    severity: status.diagnostic_record?._severity,
+    category: status.diagnostic_record?._classification,
+    position: status.diagnostic_record?._position
+  })
+}
+
+/**
  * @private
  * @param notification
  * @returns {GqlStatusObject}
@@ -494,6 +516,7 @@ export {
   Notification,
   GqlStatusObject,
   polyfillGqlStatusObject,
+  polyfillNotification,
   buildGqlStatusObjectFromMetadata
 }
 
