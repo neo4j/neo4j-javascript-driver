@@ -313,7 +313,9 @@ class ResultStreamObserver extends StreamObserver {
         for (let i = 0; i < meta.fields.length; i++) {
           this._fieldLookup[meta.fields[i]] = i
         }
+      }
 
+      if (meta.fields != null) {
         // remove fields key from metadata object
         delete meta.fields
       }
