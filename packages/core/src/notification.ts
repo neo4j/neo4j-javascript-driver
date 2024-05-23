@@ -498,15 +498,26 @@ function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...
     return metadata.statuses.map((status: unknown) => new GqlStatusObject(status))
   }
 
-  const polyfilledObjects = (metadata.notifications?.map(polyfillGqlStatusObject) ?? []) as GqlStatusObject[]
   const clientGenerated = getGqlStatusObjectFromStreamSummary(metadata.stream_summary)
-  const position = clientGenerated.gqlStatus.startsWith('02')
-    ? 0
-    : polyfilledObjects.findIndex(v => v.severity !== 'WARNING')
+  const polyfilledObjects = [clientGenerated, ...(metadata.notifications?.map(polyfillGqlStatusObject) ?? []) as GqlStatusObject[]]
 
-  polyfilledObjects.splice(position !== -1 ? position : polyfilledObjects.length, 0, clientGenerated)
+  return polyfilledObjects.sort((a: GqlStatusObject, b: GqlStatusObject) => calculateWeight(a) - calculateWeight(b)) as [GqlStatusObject, ...GqlStatusObject[]]
+}
 
-  return polyfilledObjects as [GqlStatusObject, ...GqlStatusObject[]]
+const gqlStatusWeightByClass = Object.freeze({
+  '02': 0,
+  '01': 1,
+  '00': 2
+})
+/**
+ * GqlStatus weight
+ *
+ * @private
+ */
+function calculateWeight (gqlStatusObject: GqlStatusObject): number {
+  const gqlClass = gqlStatusObject.gqlStatus?.slice(0, 2)
+  // @ts-expect-error
+  return gqlStatusWeightByClass[gqlClass] ?? 9999
 }
 
 /**
