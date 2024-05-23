@@ -356,11 +356,11 @@ class GqlStatusObject {
 
     /**
      * Indicates if this object represents a notification and it can be filtered using
-     * NotificationFilter. 
-     * 
+     * NotificationFilter.
+     *
      * Only GqlStatusObject which is Notification has meaningful position, severity and
      * classification.
-     * 
+     *
      * @type {boolean}
      * @public
      */
@@ -504,7 +504,7 @@ function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...
     ? 0
     : polyfilledObjects.findIndex(v => v.severity !== 'WARNING')
 
-  polyfilledObjects.splice(position !== -1 ? position : polyfilledObjects.length, 0, clientGenerated) 
+  polyfilledObjects.splice(position !== -1 ? position : polyfilledObjects.length, 0, clientGenerated)
 
   return polyfilledObjects as [GqlStatusObject, ...GqlStatusObject[]]
 }
