@@ -55,7 +55,7 @@ const skippedTests = [
   ),
   skip(
     'ResultSummary.notifications defaults to empty array instead of return null/undefined',
-    ifEquals('stub.summary.test_summary.TestSummary.test_no_notifications'),
+    ifEquals('stub.summary.test_summary.TestSummaryNotifications4x4.test_no_notifications'),
     ifEquals('neo4j.test_summary.TestSummary.test_no_notification_info')
   ),
   skip(

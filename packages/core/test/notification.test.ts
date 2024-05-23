@@ -995,7 +995,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       getOmittedResultStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
-          pulled: false,
+          pulled: true,
           has_keys: false
         },
         notifications: []
@@ -1131,7 +1131,8 @@ describe('buildGqlStatusObjectFromMetadata', () => {
     ]
   ])('should build from notifications when not available', (filledObject: GqlStatusObject, position: number, metadata: any) => {
     const notifications = metadata.notifications != null ? metadata.notifications : []
-    const expectedStatuses = notifications.map(polyfillGqlStatusObject).splice(position, 0, filledObject)
+    const expectedStatuses = notifications.map(polyfillGqlStatusObject)
+    expectedStatuses.splice(position, 0, filledObject)
 
     expect(buildGqlStatusObjectFromMetadata(metadata)).toEqual(expectedStatuses)
   })
@@ -1283,7 +1284,7 @@ describe('buildNotificationsFromMetadata', () => {
       }
     ]
 
-  ])('should build from notifications when not available', (metadata: any) => {
+  ])('should build from notifications when available', (metadata: any) => {
     const notifications = metadata.notifications != null ? metadata.notifications : []
     const expectedNotifications = notifications.map((notification: any) => new Notification(notification))
 
@@ -1531,7 +1532,7 @@ function getNoDataStatusObject (): GqlStatusObject {
 function getOmittedResultStatus (): any {
   return {
     gql_status: '00001',
-    status_description: 'note: successful completion - omitted',
+    status_description: 'note: successful completion - omitted result',
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',

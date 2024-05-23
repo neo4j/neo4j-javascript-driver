@@ -251,6 +251,7 @@ class GqlStatusObject {
   public readonly rawSeverity?: string
   public readonly classification: NotificationClassification
   public readonly rawClassification?: string
+  public readonly isNotification: boolean
 
   constructor (rawGqlStatusObject: any) {
     /**
@@ -352,6 +353,18 @@ class GqlStatusObject {
      * @public
      */
     this.rawClassification = this.diagnosticRecord._classification
+
+    /**
+     * Indicates if this object represents a notification and it can be filtered using
+     * NotificationFilter.
+     *
+     * Only GqlStatusObject which is Notification has meaningful position, severity and
+     * classification.
+     *
+     * @type {boolean}
+     * @public
+     */
+    this.isNotification = rawGqlStatusObject.neo4j_code != null
     Object.freeze(this)
   }
 
@@ -451,7 +464,7 @@ const staticGqlStatusObjects = {
   }),
   OMITTED_RESULT: new GqlStatusObject({
     gql_status: '00001',
-    status_description: 'note: successful completion - omitted',
+    status_description: 'note: successful completion - omitted result',
     diagnostic_record: defaultRawDiagnosticRecord
   })
 }
@@ -489,9 +502,11 @@ function buildGqlStatusObjectFromMetadata (metadata: any): [GqlStatusObject, ...
   const clientGenerated = getGqlStatusObjectFromStreamSummary(metadata.stream_summary)
   const position = clientGenerated.gqlStatus.startsWith('02')
     ? 0
-    : polyfilledObjects.findIndex(v => v.severity !== 'WARNING') + 1
+    : polyfilledObjects.findIndex(v => v.severity !== 'WARNING')
 
-  return polyfilledObjects.splice(position, 0, clientGenerated) as [GqlStatusObject, ...GqlStatusObject[]]
+  polyfilledObjects.splice(position !== -1 ? position : polyfilledObjects.length, 0, clientGenerated)
+
+  return polyfilledObjects as [GqlStatusObject, ...GqlStatusObject[]]
 }
 
 /**
