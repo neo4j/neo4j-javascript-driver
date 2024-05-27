@@ -24,6 +24,7 @@ import {
   internal
 } from '../../core/index.ts'
 import RawRoutingTable from './routing-table-raw.js'
+import { functional } from '../lang/index.js'
 
 const {
   constants: { FETCH_ALL }
@@ -62,6 +63,7 @@ class ResultStreamObserver extends StreamObserver {
    * @param {function(keys: string[]): Promise|void} param.afterKeys -
    * @param {function(metadata: Object): Promise|void} param.beforeComplete -
    * @param {function(metadata: Object): Promise|void} param.afterComplete -
+   * @param {function(metadata: Object): Promise|void} param.enrichMetadata -
    */
   constructor ({
     reactive = false,
@@ -76,7 +78,8 @@ class ResultStreamObserver extends StreamObserver {
     afterComplete,
     server,
     highRecordWatermark = Number.MAX_VALUE,
-    lowRecordWatermark = Number.MAX_VALUE
+    lowRecordWatermark = Number.MAX_VALUE,
+    enrichMetadata
   } = {}) {
     super()
 
@@ -96,6 +99,7 @@ class ResultStreamObserver extends StreamObserver {
     this._afterKeys = afterKeys
     this._beforeComplete = beforeComplete
     this._afterComplete = afterComplete
+    this._enrichMetadata = enrichMetadata || functional.identity
 
     this._queryId = null
     this._moreFunction = moreFunction
@@ -248,7 +252,7 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   _handlePullSuccess (meta) {
-    const completionMetadata = Object.assign(
+    const completionMetadata = this._enrichMetadata(Object.assign(
       this._server ? { server: this._server } : {},
       this._meta,
       {
@@ -259,7 +263,7 @@ class ResultStreamObserver extends StreamObserver {
         }
       },
       meta
-    )
+    ))
 
     if (![undefined, null, 'r', 'w', 'rw', 's'].includes(completionMetadata.type)) {
       this.onError(

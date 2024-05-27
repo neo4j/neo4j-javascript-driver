@@ -27,6 +27,20 @@ const {
   constants: { BOLT_PROTOCOL_V5_5, FETCH_ALL }
 } = internal
 
+const DEFAULT_DIAGNOSTIC_RECORD = Object.freeze({
+  OPERATION: '',
+  OPERATION_CODE: '0',
+  CURRENT_SCHEMA: '/',
+  _status_parameters: {},
+  _severity: '',
+  _classification: '',
+  _position: {
+    offset: -1,
+    line: -1,
+    column: -1
+  }
+})
+
 export default class BoltProtocol extends BoltProtocolV5x4 {
   get version () {
     return BOLT_PROTOCOL_V5_5
@@ -140,7 +154,8 @@ export default class BoltProtocol extends BoltProtocolV5x4 {
       beforeComplete,
       afterComplete,
       highRecordWatermark,
-      lowRecordWatermark
+      lowRecordWatermark,
+      enrichMetadata: BoltProtocol._enrichMetadata
     })
 
     const flushRun = reactive
@@ -162,5 +177,21 @@ export default class BoltProtocol extends BoltProtocolV5x4 {
     }
 
     return observer
+  }
+
+  /**
+   *
+   * @param {object} metadata
+   * @returns {object}
+   */
+  static _enrichMetadata (metadata) {
+    if (Array.isArray(metadata.statuses)) {
+      metadata.statuses = metadata.statuses.map(status => ({
+        ...status,
+        diagnostic_record: { ...DEFAULT_DIAGNOSTIC_RECORD, ...status.diagnostic_record }
+      }))
+    }
+
+    return metadata
   }
 }
