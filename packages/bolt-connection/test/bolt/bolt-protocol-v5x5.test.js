@@ -1151,6 +1151,448 @@ describe('#unit BoltProtocolV5x5', () => {
     })
   })
 
+  describe('result metadata enrich', () => {
+    it('run should configure BoltProtocolV5x5._enrichMetadata as enrichMetadata', () => {
+      const database = 'testdb'
+      const bookmarks = new Bookmarks([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx2'
+      ])
+      const txConfig = new TxConfig({
+        timeout: 5000,
+        metadata: { x: 1, y: 'something' }
+      })
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV5x5(recorder, null, false)
+      utils.spyProtocolWrite(protocol)
+
+      const query = 'RETURN $x, $y'
+      const parameters = { x: 'x', y: 'y' }
+
+      const observer = protocol.run(query, parameters, {
+        bookmarks,
+        txConfig,
+        database,
+        mode: WRITE
+      })
+
+      expect(observer._enrichMetadata).toBe(BoltProtocolV5x5._enrichMetadata)
+    })
+
+    describe('BoltProtocolV5x5._enrichMetadata', () => {
+      it('should handle empty metadata', () => {
+        const metadata = BoltProtocolV5x5._enrichMetadata({})
+
+        expect(metadata).toEqual({})
+      })
+
+      it('should handle metadata with random objects', () => {
+        const metadata = BoltProtocolV5x5._enrichMetadata({
+          a: 1133,
+          b: 345
+        })
+
+        expect(metadata).toEqual({
+          a: 1133,
+          b: 345
+        })
+      })
+
+      it('should handle metadata not change notifications ', () => {
+        const metadata = BoltProtocolV5x5._enrichMetadata({
+          a: 1133,
+          b: 345,
+          notifications: [
+            {
+              severity: 'WARNING',
+              category: 'HINT'
+            }
+          ]
+        })
+
+        expect(metadata).toEqual({
+          a: 1133,
+          b: 345,
+          notifications: [
+            {
+              severity: 'WARNING',
+              category: 'HINT'
+            }
+          ]
+        })
+      })
+
+      it.each([
+        [null, null],
+        [undefined, undefined],
+        [[], []],
+        [statusesWithDiagnosticRecord(null, null), statusesWithDiagnosticRecord(null, null)],
+        [statusesWithDiagnosticRecord(undefined, undefined), statusesWithDiagnosticRecord({
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _status_parameters: {},
+          _severity: '',
+          _classification: '',
+          _position: {
+            offset: -1,
+            line: -1,
+            column: -1
+          }
+        },
+        {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/',
+          _status_parameters: {},
+          _severity: '',
+          _classification: '',
+          _position: {
+            offset: -1,
+            line: -1,
+            column: -1
+          }
+        })],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' }
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: 'G'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: 'G',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: 'G',
+            _position: {
+              offset: 1,
+              line: 2,
+              column: 3
+            }
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: 'G',
+            _position: {
+              offset: 1,
+              line: 2,
+              column: 3
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: '/',
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: {},
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: '',
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: '',
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: null,
+            _position: {
+              offset: -1,
+              line: -1,
+              column: -1
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: null,
+            _position: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: null,
+            _position: null
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: undefined,
+            OPERATION_CODE: undefined,
+            CURRENT_SCHEMA: undefined,
+            _status_parameters: undefined,
+            _severity: undefined,
+            _classification: undefined,
+            _position: undefined
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: undefined,
+            OPERATION_CODE: undefined,
+            CURRENT_SCHEMA: undefined,
+            _status_parameters: undefined,
+            _severity: undefined,
+            _classification: undefined,
+            _position: undefined
+          })
+        ]
+      ])('should handle statuses (%o) ', (statuses, expectedStatuses) => {
+        const metadata = BoltProtocolV5x5._enrichMetadata({
+          a: 1133,
+          b: 345,
+          statuses
+        })
+
+        expect(metadata).toEqual({
+          a: 1133,
+          b: 345,
+          statuses: expectedStatuses
+        })
+      })
+    })
+
+    function statusesWithDiagnosticRecord (...diagnosticRecords) {
+      return diagnosticRecords.map(diagnosticRecord => {
+        return {
+          gql_status: '00000',
+          status_description: 'note: successful completion',
+          diagnostic_record: diagnosticRecord
+        }
+      })
+    }
+  })
+
   function newProtocol (recorder) {
     return new BoltProtocolV5x5(recorder, null, false, undefined, undefined, () => {})
   }

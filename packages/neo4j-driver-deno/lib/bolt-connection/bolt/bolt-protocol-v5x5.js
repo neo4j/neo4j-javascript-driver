@@ -188,7 +188,7 @@ export default class BoltProtocol extends BoltProtocolV5x4 {
     if (Array.isArray(metadata.statuses)) {
       metadata.statuses = metadata.statuses.map(status => ({
         ...status,
-        diagnostic_record: { ...DEFAULT_DIAGNOSTIC_RECORD, ...status.diagnostic_record }
+        diagnostic_record: status.diagnostic_record !== null ? { ...DEFAULT_DIAGNOSTIC_RECORD, ...status.diagnostic_record } : null
       }))
     }
 
