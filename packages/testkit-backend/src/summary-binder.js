@@ -51,9 +51,9 @@ function mapGqlStatusObject (binder) {
   return (gqlStatusObject) => {
     return {
       ...gqlStatusObject,
-      position: Object.keys(gqlStatusObject.position).length !== 0 ? gqlStatusObject.position : null,
-      rawSeverity: gqlStatusObject.rawSeverity || '',
-      rawClassification: gqlStatusObject.rawClassification || '',
+      position: gqlStatusObject.position || null,
+      rawSeverity: gqlStatusObject.rawSeverity !== undefined ? gqlStatusObject.rawSeverity : null,
+      rawClassification: gqlStatusObject.rawClassification !== undefined ? gqlStatusObject.rawClassification : null,
       diagnosticRecord: binder.objectToCypher(gqlStatusObject.diagnosticRecord)
     }
   }

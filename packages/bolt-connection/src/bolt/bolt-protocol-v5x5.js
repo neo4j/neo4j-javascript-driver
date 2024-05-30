@@ -30,15 +30,7 @@ const {
 const DEFAULT_DIAGNOSTIC_RECORD = Object.freeze({
   OPERATION: '',
   OPERATION_CODE: '0',
-  CURRENT_SCHEMA: '/',
-  _status_parameters: {},
-  _severity: '',
-  _classification: '',
-  _position: {
-    offset: -1,
-    line: -1,
-    column: -1
-  }
+  CURRENT_SCHEMA: '/'
 })
 
 export default class BoltProtocol extends BoltProtocolV5x4 {

@@ -478,8 +478,7 @@ describe('GqlStatusObject', () => {
             offset: 0,
             line: 0,
             column: 0
-          },
-          _status_parameters: {}
+          }
         }
       }))
     })
@@ -513,8 +512,7 @@ describe('GqlStatusObject', () => {
             offset: 0,
             line: 0,
             column: 0
-          },
-          _status_parameters: {}
+          }
         }
       }))
     })
@@ -549,8 +547,7 @@ describe('GqlStatusObject', () => {
             offset: 0,
             line: 0,
             column: 0
-          },
-          _status_parameters: {}
+          }
         }
       }))
     })
@@ -584,8 +581,7 @@ describe('GqlStatusObject', () => {
             offset: 0,
             line: 0,
             column: 0
-          },
-          _status_parameters: {}
+          }
         }
       }))
     })
@@ -626,8 +622,7 @@ describe('GqlStatusObject', () => {
             offset: 0,
             line: 0,
             column: 0
-          },
-          _status_parameters: {}
+          }
         }
       }))
     })
@@ -667,8 +662,7 @@ describe('GqlStatusObject', () => {
             offset: 0,
             line: 0,
             column: 0
-          },
-          _status_parameters: {}
+          }
         }
       }))
     })
@@ -699,15 +693,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
           status_description: 'successful completion — omitted',
           diagnostic_record: {
             OPERATION_CODE: '0',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: '/'
           }
         }
       ],
@@ -731,15 +717,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
           status_description: 'successful completion — omitted',
           diagnostic_record: {
             OPERATION_CODE: '0',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: '/'
           }
         }
       ]
@@ -1302,15 +1280,7 @@ describe('buildNotificationsFromMetadata', () => {
           status_description: 'successful completion — omitted',
           diagnostic_record: {
             OPERATION_CODE: '0',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: '/'
           }
         }
       ]
@@ -1488,15 +1458,7 @@ function getSuccessStatus (): any {
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',
-      CURRENT_SCHEMA: '/',
-      _status_parameters: {},
-      _severity: '',
-      _classification: '',
-      _position: {
-        offset: -1,
-        line: -1,
-        column: -1
-      }
+      CURRENT_SCHEMA: '/'
     }
   }
 }
@@ -1512,15 +1474,7 @@ function getNoDataStatus (): any {
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',
-      CURRENT_SCHEMA: '/',
-      _status_parameters: {},
-      _severity: '',
-      _classification: '',
-      _position: {
-        offset: -1,
-        line: -1,
-        column: -1
-      }
+      CURRENT_SCHEMA: '/'
     }
   }
 }
@@ -1536,15 +1490,7 @@ function getOmittedResultStatus (): any {
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',
-      CURRENT_SCHEMA: '/',
-      _status_parameters: {},
-      _severity: '',
-      _classification: '',
-      _position: {
-        offset: -1,
-        line: -1,
-        column: -1
-      }
+      CURRENT_SCHEMA: '/'
     }
   }
 }
@@ -1560,15 +1506,7 @@ function getNoDataUnknownSubconditionStatus (): any {
     diagnostic_record: {
       OPERATION: '',
       OPERATION_CODE: '0',
-      CURRENT_SCHEMA: '/',
-      _status_parameters: {},
-      _severity: '',
-      _classification: '',
-      _position: {
-        offset: -1,
-        line: -1,
-        column: -1
-      }
+      CURRENT_SCHEMA: '/'
     }
   }
 }

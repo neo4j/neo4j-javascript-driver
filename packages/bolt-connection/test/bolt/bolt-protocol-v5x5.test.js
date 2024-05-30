@@ -1230,28 +1230,12 @@ describe('#unit BoltProtocolV5x5', () => {
         [statusesWithDiagnosticRecord(undefined, undefined), statusesWithDiagnosticRecord({
           OPERATION: '',
           OPERATION_CODE: '0',
-          CURRENT_SCHEMA: '/',
-          _status_parameters: {},
-          _severity: '',
-          _classification: '',
-          _position: {
-            offset: -1,
-            line: -1,
-            column: -1
-          }
+          CURRENT_SCHEMA: '/'
         },
         {
           OPERATION: '',
           OPERATION_CODE: '0',
-          CURRENT_SCHEMA: '/',
-          _status_parameters: {},
-          _severity: '',
-          _classification: '',
-          _position: {
-            offset: -1,
-            line: -1,
-            column: -1
-          }
+          CURRENT_SCHEMA: '/'
         })],
         [
           statusesWithDiagnosticRecord({
@@ -1260,15 +1244,7 @@ describe('#unit BoltProtocolV5x5', () => {
           statusesWithDiagnosticRecord({
             OPERATION: 'A',
             OPERATION_CODE: '0',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: '/'
           })
         ],
         [
@@ -1279,15 +1255,7 @@ describe('#unit BoltProtocolV5x5', () => {
           statusesWithDiagnosticRecord({
             OPERATION: 'A',
             OPERATION_CODE: 'B',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: '/'
           })
         ],
         [
@@ -1299,15 +1267,7 @@ describe('#unit BoltProtocolV5x5', () => {
           statusesWithDiagnosticRecord({
             OPERATION: 'A',
             OPERATION_CODE: 'B',
-            CURRENT_SCHEMA: '/C',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: '/C'
           })
         ],
         [
@@ -1321,14 +1281,7 @@ describe('#unit BoltProtocolV5x5', () => {
             OPERATION: 'A',
             OPERATION_CODE: 'B',
             CURRENT_SCHEMA: '/C',
-            _status_parameters: { d: 'E' },
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            _status_parameters: { d: 'E' }
           })
         ],
         [
@@ -1344,13 +1297,7 @@ describe('#unit BoltProtocolV5x5', () => {
             OPERATION_CODE: 'B',
             CURRENT_SCHEMA: '/C',
             _status_parameters: { d: 'E' },
-            _severity: 'F',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            _severity: 'F'
           })
         ],
         [
@@ -1368,12 +1315,7 @@ describe('#unit BoltProtocolV5x5', () => {
             CURRENT_SCHEMA: '/C',
             _status_parameters: { d: 'E' },
             _severity: 'F',
-            _classification: 'G',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            _classification: 'G'
           })
         ],
         [
@@ -1411,15 +1353,7 @@ describe('#unit BoltProtocolV5x5', () => {
           statusesWithDiagnosticRecord({
             OPERATION: null,
             OPERATION_CODE: '0',
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: '/'
           })
         ],
         [
@@ -1430,15 +1364,7 @@ describe('#unit BoltProtocolV5x5', () => {
           statusesWithDiagnosticRecord({
             OPERATION: null,
             OPERATION_CODE: null,
-            CURRENT_SCHEMA: '/',
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: '/'
           })
         ],
         [
@@ -1450,15 +1376,7 @@ describe('#unit BoltProtocolV5x5', () => {
           statusesWithDiagnosticRecord({
             OPERATION: null,
             OPERATION_CODE: null,
-            CURRENT_SCHEMA: null,
-            _status_parameters: {},
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            CURRENT_SCHEMA: null
           })
         ],
         [
@@ -1472,14 +1390,7 @@ describe('#unit BoltProtocolV5x5', () => {
             OPERATION: null,
             OPERATION_CODE: null,
             CURRENT_SCHEMA: null,
-            _status_parameters: null,
-            _severity: '',
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            _status_parameters: null
           })
         ],
         [
@@ -1495,13 +1406,7 @@ describe('#unit BoltProtocolV5x5', () => {
             OPERATION_CODE: null,
             CURRENT_SCHEMA: null,
             _status_parameters: null,
-            _severity: null,
-            _classification: '',
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            _severity: null
           })
         ],
         [
@@ -1519,12 +1424,7 @@ describe('#unit BoltProtocolV5x5', () => {
             CURRENT_SCHEMA: null,
             _status_parameters: null,
             _severity: null,
-            _classification: null,
-            _position: {
-              offset: -1,
-              line: -1,
-              column: -1
-            }
+            _classification: null
           })
         ],
         [

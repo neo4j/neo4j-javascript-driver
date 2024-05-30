@@ -246,7 +246,7 @@ class GqlStatusObject {
   public readonly gqlStatus: string
   public readonly statusDescription: string
   public readonly diagnosticRecord: DiagnosticRecord
-  public readonly position: NotificationPosition
+  public readonly position?: NotificationPosition
   public readonly severity: NotificationSeverityLevel
   public readonly rawSeverity?: string
   public readonly classification: NotificationClassification
@@ -281,10 +281,10 @@ class GqlStatusObject {
     /**
      * The position which the notification had occur.
      *
-     * @type {NotificationPosition}
+     * @type {NotificationPosition | undefined}
      * @public
      */
-    this.position = _constructPosition(this.diagnosticRecord._position)
+    this.position = this.diagnosticRecord._position != null ? _constructPosition(this.diagnosticRecord._position) : undefined
 
     /**
      * The severity
@@ -415,10 +415,7 @@ function polyfillGqlStatusObject (notification: any): GqlStatusObject {
     neo4j_code: notification.code,
     title: notification.title,
     diagnostic_record: {
-      OPERATION: '',
-      OPERATION_CODE: '0',
-      CURRENT_SCHEMA: '/',
-      _status_parameters: {},
+      ...rawPolyfilledDiagnosticRecord,
       _severity: notification.severity,
       _classification: notification.category,
       _position: notification.position
@@ -426,21 +423,13 @@ function polyfillGqlStatusObject (notification: any): GqlStatusObject {
   })
 }
 
-const defaultRawDiagnosticRecord = {
+const rawPolyfilledDiagnosticRecord = {
   OPERATION: '',
   OPERATION_CODE: '0',
-  CURRENT_SCHEMA: '/',
-  _status_parameters: {},
-  _severity: '',
-  _classification: '',
-  _position: {
-    offset: -1,
-    line: -1,
-    column: -1
-  }
+  CURRENT_SCHEMA: '/'
 }
 
-Object.freeze(defaultRawDiagnosticRecord)
+Object.freeze(rawPolyfilledDiagnosticRecord)
 
 /**
  * This objects are used for polyfilling the first status on the status list
@@ -451,21 +440,21 @@ const staticGqlStatusObjects = {
   SUCCESS: new GqlStatusObject({
     gql_status: '00000',
     status_description: 'note: successful completion',
-    diagnostic_record: defaultRawDiagnosticRecord
+    diagnostic_record: rawPolyfilledDiagnosticRecord
   }),
   NO_DATA: new GqlStatusObject({
     gql_status: '02000',
     status_description: 'note: no data',
-    diagnostic_record: defaultRawDiagnosticRecord
+    diagnostic_record: rawPolyfilledDiagnosticRecord
   }),
   NO_DATA_UNKNOWN_SUBCONDITION: new GqlStatusObject({
     ...unknownGqlStatus.NO_DATA,
-    diagnostic_record: defaultRawDiagnosticRecord
+    diagnostic_record: rawPolyfilledDiagnosticRecord
   }),
   OMITTED_RESULT: new GqlStatusObject({
     gql_status: '00001',
     status_description: 'note: successful completion - omitted result',
-    diagnostic_record: defaultRawDiagnosticRecord
+    diagnostic_record: rawPolyfilledDiagnosticRecord
   })
 }
 
