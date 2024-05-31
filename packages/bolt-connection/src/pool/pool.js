@@ -113,6 +113,7 @@ class Pool {
           )
         }
       }, this._acquisitionTimeout)
+      typeof timeoutId === 'object' && timeoutId.unref()
 
       request = new PendingRequest(key, acquisitionContext, config, resolve, reject, timeoutId, this._log)
       allRequests[key].push(request)
