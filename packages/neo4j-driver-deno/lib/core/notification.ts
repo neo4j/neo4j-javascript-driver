@@ -426,7 +426,7 @@ function polyfillGqlStatusObject (notification: any): GqlStatusObject {
 const rawPolyfilledDiagnosticRecord = {
   OPERATION: '',
   OPERATION_CODE: '0',
-  CURRENT_SCHEMA: '/',
+  CURRENT_SCHEMA: '/'
 }
 
 Object.freeze(rawPolyfilledDiagnosticRecord)

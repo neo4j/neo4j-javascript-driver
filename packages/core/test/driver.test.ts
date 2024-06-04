@@ -614,7 +614,7 @@ describe('Driver', () => {
           { notificationFilter },
           createConnectionProviderMock,
           createSession
-        )).toThrow(new Error('The notificationFilter can have both "disabledCategories" and  "disabledClassifications" configured at same time.'))
+        )).toThrow(new Error('The notificationFilter can\'t have both "disabledCategories" and  "disabledClassifications" configured at the same time.'))
 
         expect(createConnectionProviderMock).not.toHaveBeenCalled()
       })
