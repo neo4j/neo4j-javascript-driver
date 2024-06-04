@@ -903,7 +903,7 @@ function validateConfig (config: any, log: Logger): any {
   }
 
   if (config.notificationFilter?.disabledCategories != null && config.notificationFilter?.disabledClassifications != null) {
-    throw new Error('The notificationFilter can have both "disabledCategories" and  "disabledClassifications" configured at same time.')
+    throw new Error('The notificationFilter can't have both "disabledCategories" and  "disabledClassifications" configured at the same time.')
   }
 
   return config
