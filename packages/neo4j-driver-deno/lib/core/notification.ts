@@ -222,7 +222,7 @@ class Notification {
   }
 }
 
-interface DiagnosticRecord {
+interface NotificationDiagnosticRecord {
   OPERATION: string
   OPERATION_CODE: string
   CURRENT_SCHEMA: string
@@ -245,7 +245,7 @@ interface DiagnosticRecord {
 class GqlStatusObject {
   public readonly gqlStatus: string
   public readonly statusDescription: string
-  public readonly diagnosticRecord: DiagnosticRecord
+  public readonly diagnosticRecord: NotificationDiagnosticRecord
   public readonly position?: NotificationPosition
   public readonly severity: NotificationSeverityLevel
   public readonly rawSeverity?: string
@@ -577,5 +577,5 @@ export type {
   NotificationSeverityLevel,
   NotificationCategory,
   NotificationClassification,
-  DiagnosticRecord
+  NotificationDiagnosticRecord
 }
