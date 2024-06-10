@@ -18,6 +18,7 @@
 import {
   internal,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel
 } from 'neo4j-driver-core'
 import RequestMessage from '../../../src/bolt/request-message'
@@ -375,8 +376,7 @@ export function notificationFilterFixture () {
 function notificationFilterSetFixture () {
   const minimumSeverityLevelSet = Object.values(notificationFilterMinimumSeverityLevel)
   const disabledCategories = Object.values(notificationFilterDisabledCategory)
-  // TODO: Fix the type
-  const disabledClassifications = Object.values(notificationFilterDisabledCategory)
+  const disabledClassifications = Object.values(notificationFilterDisabledClassification)
   const disabledCategoriesSet = [...disabledCategories.keys()]
     .map(length => disabledCategories.slice(0, length + 1))
   const disabledClassificationsSet = [...disabledCategories.keys()]
