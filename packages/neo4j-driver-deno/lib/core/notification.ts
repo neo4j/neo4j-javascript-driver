@@ -430,7 +430,7 @@ function polyfillGqlStatusObject (notification: any): GqlStatusObject {
   if (notification.position != null) {
     polyfilledRawObj.diagnostic_record._position = notification.position
   }
-  
+
   return new GqlStatusObject(polyfilledRawObj)
 }
 
