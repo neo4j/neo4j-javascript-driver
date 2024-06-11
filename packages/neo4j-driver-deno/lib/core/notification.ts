@@ -409,18 +409,29 @@ function polyfillNotification (status: any): Notification | undefined {
  */
 function polyfillGqlStatusObject (notification: any): GqlStatusObject {
   const defaultStatus = notification.severity === notificationSeverityLevel.WARNING ? unknownGqlStatus.WARNING : unknownGqlStatus.INFORMATION
-  return new GqlStatusObject({
+  const polyfilledRawObj: any & { diagnostic_record: NotificationDiagnosticRecord } = {
     gql_status: defaultStatus.gql_status,
     status_description: notification.description ?? defaultStatus.status_description,
     neo4j_code: notification.code,
     title: notification.title,
     diagnostic_record: {
-      ...rawPolyfilledDiagnosticRecord,
-      _severity: notification.severity,
-      _classification: notification.category,
-      _position: notification.position
+      ...rawPolyfilledDiagnosticRecord
     }
-  })
+  }
+
+  if (notification.severity != null) {
+    polyfilledRawObj.diagnostic_record._severity = notification.severity
+  }
+
+  if (notification.category != null) {
+    polyfilledRawObj.diagnostic_record._classification = notification.category
+  }
+
+  if (notification.position != null) {
+    polyfilledRawObj.diagnostic_record._position = notification.position
+  }
+  
+  return new GqlStatusObject(polyfilledRawObj)
 }
 
 const rawPolyfilledDiagnosticRecord = {

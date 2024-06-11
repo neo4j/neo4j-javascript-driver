@@ -616,7 +616,7 @@ describe('GqlStatusObject', () => {
           OPERATION: '',
           OPERATION_CODE: '0',
           CURRENT_SCHEMA: '/',
-          _severity: severity,
+          _severity: severity != null ? severity : undefined,
           _classification: rawNotification.category,
           _position: {
             offset: 0,
@@ -656,7 +656,7 @@ describe('GqlStatusObject', () => {
           OPERATION: '',
           OPERATION_CODE: '0',
           CURRENT_SCHEMA: '/',
-          _severity: severity,
+          _severity: severity != null ? severity : undefined,
           _classification: rawNotification.category,
           _position: {
             offset: 0,
