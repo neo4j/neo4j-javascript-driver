@@ -176,7 +176,7 @@ class Notification {
      *     }
      * }
      */
-    this.severityLevel = _asEnumerableSeverity(this.severity)
+    this.severityLevel = _asEnumerableSeverity(notification.severity)
 
     /**
      * The severity level returned by the server without any validation.
@@ -279,7 +279,7 @@ class GqlStatusObject {
     this.diagnosticRecord = rawGqlStatusObject.diagnostic_record ?? {}
 
     /**
-     * The position which the notification had occur.
+     * The position at which the notification had occurred.
      *
      * @type {NotificationPosition | undefined}
      * @public
@@ -338,7 +338,7 @@ class GqlStatusObject {
      *             break
      *         case neo4j.notificationClassification.UNKNOWN: // or simply 'UNKNOWN'
      *         default:
-     *             // the raw info came from the server could be found at notification.rawCategory
+     *             // the raw info came from the server can be found at notification.rawCategory
      *             console.log(gqlStatusObject.statusDescription)
      *             break
      *     }

@@ -219,7 +219,7 @@ describe('Notification', () => {
       }))
     })
 
-    it('should polyfill when diagnostic records is not present', () => {
+    it('should polyfill when diagnostic record is not present', () => {
       const status = {
         neo4j_code: 'Neo.Notification.Warning.Code',
         gql_status: '03N42',
@@ -285,7 +285,7 @@ describe('GqlStatusObject', () => {
       expect(gqlStatusObject.diagnosticRecord).toBe(diagnosticRecord)
     })
 
-    it('should fill position with values came from raw.diagnostic_record', () => {
+    it('should fill position with values from raw.diagnostic_record', () => {
       const diagnosticRecord = {
         OPERATION: '',
         OPERATION_CODE: '0',

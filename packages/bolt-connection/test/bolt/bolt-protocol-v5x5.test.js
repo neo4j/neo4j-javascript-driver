@@ -1151,7 +1151,7 @@ describe('#unit BoltProtocolV5x5', () => {
     })
   })
 
-  describe('result metadata enrich', () => {
+  describe('result metadata enrichment', () => {
     it('run should configure BoltProtocolV5x5._enrichMetadata as enrichMetadata', () => {
       const database = 'testdb'
       const bookmarks = new Bookmarks([

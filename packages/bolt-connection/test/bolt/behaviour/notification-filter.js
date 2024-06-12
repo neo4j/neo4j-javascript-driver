@@ -229,7 +229,7 @@ export function shouldSupportNotificationFilterOnBeginTransaction (createProtoco
 export function shouldSupportGqlNotificationFilterOnBeginTransaction (createProtocol) {
   it.each(
     notificationFilterFixture()
-  )('should send notificationsFilter=%o on begin a transaction', (notificationFilter) => {
+  )('should send notificationsFilter=%o on beginning a transaction', (notificationFilter) => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = createProtocol(recorder)
     utils.spyProtocolWrite(protocol)

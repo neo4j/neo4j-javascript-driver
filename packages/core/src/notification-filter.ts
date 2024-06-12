@@ -101,7 +101,7 @@ class NotificationFilter {
      *
      *
      * This property is equivalent to {@link NotificationFilter#disabledClassifications}
-     * and it should not be enabled at same time.
+     * and it must not be enabled at same time.
      *
      * @type {?NotificationFilterDisabledCategory[]}
      */
@@ -111,8 +111,7 @@ class NotificationFilter {
      * Classifications the user would like to opt-out of receiving.
      *
      * This property is equivalent to {@link NotificationFilter#disabledCategories}
-     * and it should not be enabled at same time.
-     *
+     * and it must not be enabled at same time.
      *
      * @type {?NotificationFilterDisabledClassification[]}
      * @experimental
