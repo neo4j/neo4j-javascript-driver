@@ -1107,7 +1107,7 @@ describe('buildGqlStatusObjectFromMetadata', () => {
         }]
       }
     ]
-  ])('should build from notifications when not available', (filledObject: GqlStatusObject, position: number, metadata: any) => {
+  ])('should build from notifications when statuses not available', (filledObject: GqlStatusObject, position: number, metadata: any) => {
     const notifications = metadata.notifications != null ? metadata.notifications : []
     const expectedStatuses = notifications.map(polyfillGqlStatusObject)
     expectedStatuses.splice(position, 0, filledObject)
