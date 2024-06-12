@@ -1232,7 +1232,7 @@ describe('buildNotificationsFromMetadata', () => {
       }
     ],
     [
-      getSuccessStatusObject(), 0, {
+      {
         stream_summary: {
           have_records_streamed: true
         },
@@ -1258,10 +1258,10 @@ describe('buildNotificationsFromMetadata', () => {
             column: 0
           },
           category: 'TOPOLOGY'
-        }]
+        }],
+        statuses: [getSuccessStatusObject()]
       }
     ]
-
   ])('should build from notifications when available', (metadata: any) => {
     const notifications = metadata.notifications != null ? metadata.notifications : []
     const expectedNotifications = notifications.map((notification: any) => new Notification(notification))
