@@ -346,11 +346,13 @@ export default class RequestMessage {
    * Create a new RUN message with additional metadata.
    * @param {string} query the cypher query.
    * @param {Object} parameters the query parameters.
-   * @param {Bookmarks} bookmarks the bookmarks.
-   * @param {TxConfig} txConfig the configuration.
-   * @param {string} database the database name.
-   * @param {string} mode the access mode.
-   * @param {string} impersonatedUser the impersonated user.
+   * @param {Object} extra - extra params
+   * @param {Bookmarks} extra.bookmarks the bookmarks.
+   * @param {TxConfig} extra.txConfig the configuration.
+   * @param {string} extra.database the database name.
+   * @param {string} extra.mode the access mode.
+   * @param {string} extra.impersonatedUser the impersonated user.
+   * @param {notificationFilter} extra.notificationFilter the notification filter
    * @return {RequestMessage} new RUN message with additional metadata.
    */
   static runWithMetadata (
@@ -371,11 +373,13 @@ export default class RequestMessage {
    * Create a new RUN message with additional metadata.
    * @param {string} query the cypher query.
    * @param {Object} parameters the query parameters.
-   * @param {Bookmarks} bookmarks the bookmarks.
-   * @param {TxConfig} txConfig the configuration.
-   * @param {string} database the database name.
-   * @param {string} mode the access mode.
-   * @param {string} impersonatedUser the impersonated user.
+   * @param {Object} extra - extra params
+   * @param {Bookmarks} extra.bookmarks the bookmarks.
+   * @param {TxConfig} extra.txConfig the configuration.
+   * @param {string} extra.database the database name.
+   * @param {string} extra.mode the access mode.
+   * @param {string} extra.impersonatedUser the impersonated user.
+   * @param {notificationFilter} extra.notificationFilter the notification filter
    * @return {RequestMessage} new RUN message with additional metadata.
    */
   static runWithMetadata5x5 (
@@ -506,6 +510,8 @@ export default class RequestMessage {
  * @param {string} mode the access mode.
  * @param {string} impersonatedUser the impersonated user mode.
  * @param {notificationFilter} notificationFilter the notification filter
+ * @param {Object} functions Transformation functions applied to metadata
+ * @param {function(metadata,notificationFilter):void} functions.appendNotificationFilter Changes metadata by append the Notification Filter to it.
  * @return {Object} a metadata object.
  */
 function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter, functions = {}) {

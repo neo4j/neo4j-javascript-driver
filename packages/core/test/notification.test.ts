@@ -123,9 +123,9 @@ describe('Notification', () => {
         }
       }
 
-      const gqlStatusObject = polyfillNotification(status)
+      const notification = polyfillNotification(status)
 
-      expect(gqlStatusObject).toEqual(new Notification({
+      expect(notification).toEqual(new Notification({
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
         description: 'Description',
@@ -160,9 +160,9 @@ describe('Notification', () => {
         }
       }
 
-      const gqlStatusObject = polyfillNotification(status)
+      const notification = polyfillNotification(status)
 
-      expect(gqlStatusObject).toEqual(new Notification({
+      expect(notification).toEqual(new Notification({
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
         description: 'Description',
@@ -182,7 +182,7 @@ describe('Notification', () => {
       undefined,
       'I_AM_NOT_OKAY',
       'information'
-    ])('should polyfill UNKNOWN', (severity) => {
+    ])('should polyfill severity UNKNOWN', (severity) => {
       const status = {
         neo4j_code: 'Neo.Notification.Warning.Code',
         gql_status: '03N42',
@@ -203,9 +203,9 @@ describe('Notification', () => {
         }
       }
 
-      const gqlStatusObject = polyfillNotification(status)
+      const notification = polyfillNotification(status)
 
-      expect(gqlStatusObject).toEqual(new Notification({
+      expect(notification).toEqual(new Notification({
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
         description: 'Description',
@@ -227,9 +227,9 @@ describe('Notification', () => {
         status_description: 'Description'
       }
 
-      const gqlStatusObject = polyfillNotification(status)
+      const notification = polyfillNotification(status)
 
-      expect(gqlStatusObject).toEqual(new Notification({
+      expect(notification).toEqual(new Notification({
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
         description: 'Description'
@@ -592,7 +592,7 @@ describe('GqlStatusObject', () => {
       undefined,
       'I_AM_NOT_OKAY',
       'information'
-    ])('should polyfill UNKNOWN', (severity) => {
+    ])('should polyfill severity UNKNOWN', (severity) => {
       const rawNotification = {
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
