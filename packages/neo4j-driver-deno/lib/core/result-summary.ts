@@ -114,12 +114,18 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * A list of GqlStatusObjects that arise when executing the query.
      *
      * The list always contains at least 1 status representing the Success, No Data or Omitted Result.
-     * This status will be always the first one.
-     * When discarding records while connected to a non-gql aware server, the driver might not be able to
-     * tell apart Success and No Data.
+     * 
+     * When discarding records while connected to a non-gql aware server and using a RxSession, 
+     * the driver might not be able to tell apart Success and No Data.
      *
      * All following status are notifications like warnings about problematic queries or other valuable
      * information that can be presented in a client.
+     * 
+     * The GqlStatusObjects will be presented in the following order:
+     *
+     * - A “no data” (02xxx) has precedence over a warning;
+     * - A warning (01xxx) has precedence over a success.
+     * - A success (00xxx) has precedence over anything informational (03xxx)
      *
      * @type {Array<GqlStatusObject>}
      * @public
