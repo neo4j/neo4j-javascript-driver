@@ -976,6 +976,15 @@ describe('buildGqlStatusObjectFromMetadata', () => {
       getOmittedResultStatusObject(), 0, {
         stream_summary: {
           have_records_streamed: false,
+          pulled: false,
+          has_keys: false
+        }
+      }
+    ],
+    [
+      getOmittedResultStatusObject(), 0, {
+        stream_summary: {
+          have_records_streamed: false,
           pulled: true,
           has_keys: false
         },
