@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { Node, int } from '../src'
 import * as json from '../src/json'
 import {
   Notification,
@@ -435,7 +436,9 @@ describe('GqlStatusObject', () => {
           line: 0,
           column: 0
         },
-        _status_parameters: {}
+        _status_parameters: {
+          some_node: new Node(int(1), ['ABC'], { bla: 'string' }, 'myElementId')
+        }
       }
       const rawGqlStatusObject = {
         diagnostic_record: diagnosticRecord
@@ -443,7 +446,7 @@ describe('GqlStatusObject', () => {
 
       const gqlStatusObject = new GqlStatusObject(rawGqlStatusObject)
 
-      expect(gqlStatusObject.diagnosticRecordAsJsonString).toBe(json.stringify(diagnosticRecord))
+      expect(gqlStatusObject.diagnosticRecordAsJsonString).toBe(json.stringify(diagnosticRecord, { useCustomToString: true }))
     })
   })
 

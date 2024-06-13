@@ -253,6 +253,11 @@ class GqlStatusObject {
   public readonly rawClassification?: string
   public readonly isNotification: boolean
 
+  /**
+   *
+   * @param rawGqlStatusObject
+   * @private
+   */
   constructor (rawGqlStatusObject: any) {
     /**
      * The GQLSTATUS
@@ -376,7 +381,7 @@ class GqlStatusObject {
    * @public
    */
   public get diagnosticRecordAsJsonString (): string {
-    return json.stringify(this.diagnosticRecord)
+    return json.stringify(this.diagnosticRecord, { useCustomToString: true })
   }
 }
 
