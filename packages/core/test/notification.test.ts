@@ -504,7 +504,7 @@ describe('GqlStatusObject', () => {
       expect(gqlStatusObject).toEqual(new GqlStatusObject({
         neo4j_code: rawNotification.code,
         gql_status: '01N42',
-        status_description: 'warn: warning - unknown warning',
+        status_description: 'warn: unknown warning',
         diagnostic_record: {
           OPERATION: '',
           OPERATION_CODE: '0',
@@ -573,7 +573,7 @@ describe('GqlStatusObject', () => {
       expect(gqlStatusObject).toEqual(new GqlStatusObject({
         neo4j_code: rawNotification.code,
         gql_status: '03N42',
-        status_description: 'info: informational - unknown notification',
+        status_description: 'info: unknown notification',
         diagnostic_record: {
           OPERATION: '',
           OPERATION_CODE: '0',
@@ -654,7 +654,7 @@ describe('GqlStatusObject', () => {
       expect(gqlStatusObject).toEqual(new GqlStatusObject({
         neo4j_code: rawNotification.code,
         gql_status: '03N42',
-        status_description: 'info: informational - unknown notification',
+        status_description: 'info: unknown notification',
         diagnostic_record: {
           OPERATION: '',
           OPERATION_CODE: '0',
@@ -1425,7 +1425,7 @@ function getValidNotificationStatus (): any [] {
   return [
     {
       gql_status: '01N00',
-      status_description: 'warn: warning - feature deprecated',
+      status_description: 'warn: feature deprecated',
       neo4j_code: 'Neo.Some.Warning.Code',
       title: 'the title',
       diagnostic_record: {
@@ -1439,7 +1439,7 @@ function getValidNotificationStatus (): any [] {
     },
     {
       gql_status: '03N60',
-      status_description: 'info: informational - subquery variable shadowing',
+      status_description: 'info: subquery variable shadowing',
       neo4j_code: 'Neo.Some.Informational.Code',
       title: 'the title',
       diagnostic_record: {

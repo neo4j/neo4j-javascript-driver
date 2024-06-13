@@ -28,7 +28,7 @@ type UnknownGqlStatus = `${'01' | '02' | '03' | '50'}N42`
 const unknownGqlStatus: Record<string, { gql_status: UnknownGqlStatus, status_description: string }> = {
   WARNING: {
     gql_status: '01N42',
-    status_description: 'warn: warning - unknown warning'
+    status_description: 'warn: unknown warning'
   },
   NO_DATA: {
     gql_status: '02N42',
@@ -36,7 +36,7 @@ const unknownGqlStatus: Record<string, { gql_status: UnknownGqlStatus, status_de
   },
   INFORMATION: {
     gql_status: '03N42',
-    status_description: 'info: informational - unknown notification'
+    status_description: 'info: unknown notification'
   },
   ERROR: {
     gql_status: '50N42',
