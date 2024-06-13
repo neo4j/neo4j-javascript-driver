@@ -16,6 +16,7 @@
  */
 import * as json from './json'
 import { util } from './internal'
+import { NumberOrInteger } from './graph-types'
 
 interface NotificationPosition {
   offset?: number
@@ -228,8 +229,12 @@ interface NotificationDiagnosticRecord {
   CURRENT_SCHEMA: string
   _severity?: string
   _classification?: string
-  _position?: object
-  _status_parameters?: object
+  _position?: {
+    offset: NumberOrInteger
+    line: NumberOrInteger
+    column: NumberOrInteger
+  }
+  _status_parameters?: Record<string, unknown>
   [key: string]: unknown
 }
 
