@@ -118,7 +118,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * When discarding records while connected to a non-gql aware server and using a RxSession,
      * the driver might not be able to tell apart Success and No Data.
      *
-     * All following status are notifications like warnings about problematic queries or other valuable
+     * All other status are notifications like warnings about problematic queries or other valuable
      * information that can be presented in a client.
      *
      * The GqlStatusObjects will be presented in the following order:

@@ -511,7 +511,7 @@ export default class RequestMessage {
  * @param {string} impersonatedUser the impersonated user mode.
  * @param {notificationFilter} notificationFilter the notification filter
  * @param {Object} functions Transformation functions applied to metadata
- * @param {function(metadata,notificationFilter):void} functions.appendNotificationFilter Changes metadata by append the Notification Filter to it.
+ * @param {function(metadata,notificationFilter):void} functions.appendNotificationFilter Changes metadata by appending the Notification Filter to it.
  * @return {Object} a metadata object.
  */
 function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter, functions = {}) {
