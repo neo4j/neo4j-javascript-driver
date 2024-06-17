@@ -51,7 +51,7 @@ export default class QueryExecutor {
     })
 
     // @ts-expect-error AbortSignal doesn't implements EventTarget on this TS Config.
-    const listenerHandle = installEventListenerWhenPossible(config.signal, 'abort',  async () => await session.close())
+    const listenerHandle = installEventListenerWhenPossible(config.signal, 'abort', async () => await session.close())
 
     // @ts-expect-error The method is private for external users
     session._configureTransactionExecutor(true, TELEMETRY_APIS.EXECUTE_QUERY)
@@ -72,13 +72,11 @@ export default class QueryExecutor {
   }
 }
 
-interface Listener {
-  (event: unknown): unknown
-}
+type Listener = (event: unknown) => unknown
 
 interface EventTarget {
-  addEventListener?: (type:string, listener: Listener) => unknown
-  removeEventListener?: (type:string, listener: Listener) => unknown
+  addEventListener?: (type: string, listener: Listener) => unknown
+  removeEventListener?: (type: string, listener: Listener) => unknown
 }
 
 function installEventListenerWhenPossible (target: EventTarget | undefined, event: string, listener: () => unknown): { uninstall: () => void } {
