@@ -50,11 +50,10 @@ export default class QueryExecutor {
       auth: config.auth
     })
 
-    
     const listenerHandle = installEventListenerWhenPossible(
       // Solving linter and types definitions issue
-      config.signal as unknown as EventTarget, 
-      'abort', 
+      config.signal as unknown as EventTarget,
+      'abort',
       async () => await session.close())
 
     // @ts-expect-error The method is private for external users
