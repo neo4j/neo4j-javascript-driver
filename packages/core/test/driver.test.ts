@@ -473,6 +473,8 @@ describe('Driver', () => {
           key: 'value'
         }
       }
+      const aAbortController = new AbortController()
+
       async function aTransformer (result: Result): Promise<string> {
         const summary = await result.summary()
         return summary.database.name ?? 'no-db-set'
@@ -488,7 +490,8 @@ describe('Driver', () => {
         ['config.bookmarkManager=null', 'q', {}, { bookmarkManager: null }, extendsDefaultWith({ bookmarkManager: undefined })],
         ['config.bookmarkManager set to non-null/empty', 'q', {}, { bookmarkManager: theBookmarkManager }, extendsDefaultWith({ bookmarkManager: theBookmarkManager })],
         ['config.resultTransformer set', 'q', {}, { resultTransformer: aTransformer }, extendsDefaultWith({ resultTransformer: aTransformer })],
-        ['config.transactionConfig set', 'q', {}, { transactionConfig: aTransactionConfig }, extendsDefaultWith({ transactionConfig: aTransactionConfig })]
+        ['config.transactionConfig set', 'q', {}, { transactionConfig: aTransactionConfig }, extendsDefaultWith({ transactionConfig: aTransactionConfig })],
+        ['config.signal set', 'q', {}, { signal: aAbortController.signal }, extendsDefaultWith({ signal: aAbortController.signal })]
       ])('should handle the params for %s', async (_, query, params, config, buildExpectedConfig) => {
         const spiedExecute = jest.spyOn(queryExecutor, 'execute')
 
