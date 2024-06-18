@@ -33,6 +33,7 @@ interface ExecutionConfig<T> {
   bookmarkManager?: BookmarkManager
   transactionConfig?: TransactionConfig
   auth?: AuthToken
+  signal?: AbortSignal
   resultTransformer: (result: Result) => Promise<T>
 }
 
@@ -49,6 +50,12 @@ export default class QueryExecutor {
       auth: config.auth
     })
 
+    const listenerHandle = installEventListenerWhenPossible(
+      // Solving linter and types definitions issue
+      config.signal as unknown as EventTarget,
+      'abort',
+      async () => await session.close())
+
     // @ts-expect-error The method is private for external users
     session._configureTransactionExecutor(true, TELEMETRY_APIS.EXECUTE_QUERY)
 
@@ -62,7 +69,29 @@ export default class QueryExecutor {
         return await config.resultTransformer(result)
       }, config.transactionConfig)
     } finally {
+      listenerHandle.uninstall()
       await session.close()
+    }
+  }
+}
+
+type Listener = (event: unknown) => unknown
+
+interface EventTarget {
+  addEventListener?: (type: string, listener: Listener) => unknown
+  removeEventListener?: (type: string, listener: Listener) => unknown
+}
+
+function installEventListenerWhenPossible (target: EventTarget | undefined, event: string, listener: () => unknown): { uninstall: () => void } {
+  if (typeof target?.addEventListener === 'function') {
+    target.addEventListener(event, listener)
+  }
+
+  return {
+    uninstall: () => {
+      if (typeof target?.removeEventListener === 'function') {
+        target.removeEventListener(event, listener)
+      }
     }
   }
 }

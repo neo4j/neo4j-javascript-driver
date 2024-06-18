@@ -358,6 +358,7 @@ class QueryConfig<T = EagerResult> {
   resultTransformer?: ResultTransformer<T>
   transactionConfig?: TransactionConfig
   auth?: AuthToken
+  signal?: AbortSignal
 
   /**
    * @constructor
@@ -429,6 +430,23 @@ class QueryConfig<T = EagerResult> {
      * @see {@link driver}
      */
     this.auth = undefined
+
+    /**
+     * The {@link AbortSignal} for aborting query execution.
+     *
+     * When aborted, the signal triggers the result consumption cancelation and
+     * transactions are reset. However, due to race conditions,
+     * there is no guarantee the transaction will be rolled back.
+     * Equivalent to {@link Session.close}
+     *
+     * **Warning**: This option is only available in runtime which supports AbortSignal.addEventListener.
+     *
+     * @since 5.22.0
+     * @type {AbortSignal|undefined}
+     * @experimental
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+     */
+    this.signal = undefined
   }
 }
 
@@ -595,7 +613,8 @@ class Driver {
       database: config.database,
       impersonatedUser: config.impersonatedUser,
       transactionConfig: config.transactionConfig,
-      auth: config.auth
+      auth: config.auth,
+      signal: config.signal
     }, query, parameters)
   }
 
