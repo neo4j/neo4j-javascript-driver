@@ -436,7 +436,7 @@ class QueryConfig<T = EagerResult> {
      *
      * When aborted, the signal triggers the result consumption cancelation and
      * transactions are reset. However, due to race conditions,
-     * there is no warranty the transaction will be rolled back.
+     * there is no guarantee the transaction will be rolled back.
      * Equivalent to {@link Session.close}
      *
      * **Warning**: This option is only available in runtime which supports AbortSignal.addEventListener.
