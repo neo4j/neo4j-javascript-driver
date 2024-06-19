@@ -267,4 +267,98 @@ describe('resultTransformers', () => {
       })
     })
   })
+
+  describe('.first', () => {
+    describe('with a valid result', () => {
+      it('should return an single Record', async () => {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onCompleted(meta)
+
+        const record = await resultTransformers.first()(result)
+
+        expect(record).toEqual(new Record(keys, rawRecord1))
+      })
+
+      it('it should return an undefined when empty', async () => {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onCompleted(meta)
+
+        const record = await resultTransformers.first()(result)
+
+        expect(record).toEqual(undefined)
+      })
+
+      it('should return a type-safe single Record', async () => {
+        interface Car {
+          model: string
+          year: number
+        }
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['model', 'year']
+        const rawRecord1 = ['Beautiful Sedan', 1987]
+
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onCompleted(meta)
+        const record = await resultTransformers.first<Car>()(result)
+
+        expect(record).toEqual(new Record(keys, rawRecord1))
+
+        const car = record?.toObject()
+
+        expect(car?.model).toEqual(rawRecord1[0])
+        expect(car?.year).toEqual(rawRecord1[1])
+      })
+
+      it('should return an single Record', async () => {
+        const meta = { db: 'adb' }
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const cancelSpy = jest.spyOn(resultStreamObserverMock, 'cancel')
+        cancelSpy.mockImplementation(() => resultStreamObserverMock.onCompleted(meta))
+
+        const query = 'Query'
+        const params = { a: 1 }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [1, 2]
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onNext(rawRecord2)
+
+        const record = await resultTransformers.first()(result)
+
+        await new Promise(resolve => setTimeout(resolve, 100))
+        expect(record).toEqual(new Record(keys, rawRecord1))
+        expect(cancelSpy).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    describe('when results fail', () => {
+      it('should propagate the exception', async () => {
+        const expectedError = newError('expected error')
+        const result = new Result(Promise.reject(expectedError), 'query')
+
+        await expect(resultTransformers.first()(result)).rejects.toThrow(expectedError)
+      })
+    })
+  })
 })
