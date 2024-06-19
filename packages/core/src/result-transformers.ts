@@ -21,12 +21,6 @@ import EagerResult from './result-eager'
 import ResultSummary from './result-summary'
 import { newError } from './error'
 
-async function createEagerResultFromResult<Entries extends RecordShape> (result: Result): Promise<EagerResult<Entries>> {
-  const { summary, records } = await result
-  const keys = await result.keys()
-  return new EagerResult<Entries>(keys, records, summary)
-}
-
 type ResultTransformer<T> = (result: Result) => Promise<T>
 /**
  * Protocol for transforming {@link Result}.
@@ -162,6 +156,31 @@ class ResultTransformers {
       })
     }
   }
+
+  /**
+   * Creates a {@link ResultTransformer} which collects the first record {@link Record} of {@link Result}
+   * and discard the rest of the records, if existent.
+   *
+   * @example
+   * // Using in executeQuery
+   * const maybeFirstRecord = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
+   *   resultTransformer: neo4j.resultTransformers.first()
+   * })
+   *
+   * @example
+   * // Using in other results
+   * const record = await neo4j.resultTransformers.first()(result)
+   *
+   *
+   * @template Entries The shape of the record.
+   * @returns {ResultTransformer<Record<Entries>|undefined>} The result transformer
+   * @see {@link Driver#executeQuery}
+   * @experimental This is a preview feature.
+   * @since 5.22.0
+   */
+  first<Entries extends RecordShape = RecordShape>(): ResultTransformer<Record<Entries> | undefined> {
+    return first
+  }
 }
 
 /**
@@ -175,4 +194,30 @@ export default resultTransformers
 
 export type {
   ResultTransformer
+}
+
+async function createEagerResultFromResult<Entries extends RecordShape> (result: Result): Promise<EagerResult<Entries>> {
+  const { summary, records } = await result
+  const keys = await result.keys()
+  return new EagerResult<Entries>(keys, records, summary)
+}
+
+async function first<Entries extends RecordShape> (result: Result): Promise<Record<Entries> | undefined> {
+  // The async iterator is not used in the for await fashion
+  // because the transpiler is generating a code which
+  // doesn't call it.return when break the loop
+  // causing the method hanging when fetchSize > recordNumber.
+  const it = result[Symbol.asyncIterator]()
+  const { value, done } = await it.next()
+
+  try {
+    if (done === true) {
+      return undefined
+    }
+    return value
+  } finally {
+    if (it.return != null) {
+      await it.return()
+    }
+  }
 }
