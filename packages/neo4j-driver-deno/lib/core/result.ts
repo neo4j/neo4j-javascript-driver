@@ -23,6 +23,7 @@ import { Query, PeekableAsyncIterator } from './types.ts'
 import { observer, util, connectionHolder } from './internal/index.ts'
 import { newError, PROTOCOL_ERROR } from './error.ts'
 import { NumberOrInteger } from './graph-types.ts'
+import Integer from './integer.ts'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
@@ -182,12 +183,14 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * *Should not be combined with {@link Result#subscribe} function.*
    *
    * @public
-   * @returns {Promise<ResultSummary>} - Result summary.
+   * @returns {Promise<ResultSummary<T>>} - Result summary.
    *
    */
-  summary (): Promise<ResultSummary> {
+  summary<T extends NumberOrInteger = Integer> (): Promise<ResultSummary<T>> {
     if (this._summary !== null) {
-      return Promise.resolve(this._summary)
+      // This type casting is needed since we are defining the number type of
+      // summary in Result template 
+      return Promise.resolve(this._summary as unknown as ResultSummary<T>)
     } else if (this._error !== null) {
       return Promise.reject(this._error)
     }
@@ -196,7 +199,9 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
         .then(o => {
           o.cancel()
           o.subscribe(this._decorateObserver({
-            onCompleted: summary => resolve(summary),
+            // This type casting is needed since we are defining the number type of
+            // summary in Result template 
+            onCompleted: summary => resolve(summary as unknown as ResultSummary<T>),
             onError: err => reject(err)
           }))
         })

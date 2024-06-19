@@ -20,6 +20,8 @@ import Result from './result'
 import EagerResult from './result-eager'
 import ResultSummary from './result-summary'
 import { newError } from './error'
+import { NumberOrInteger } from './graph-types'
+import Integer from './integer'
 
 type ResultTransformer<T> = (result: Result) => Promise<T>
 /**
@@ -181,6 +183,24 @@ class ResultTransformers {
   first<Entries extends RecordShape = RecordShape>(): ResultTransformer<Record<Entries> | undefined> {
     return first
   }
+
+  /**
+   * Creates a {@link ResultTransformer} which consumes the result and returns the {@link ResultSummary}.
+   *
+   * This result transformer is a shortcut to `(result) => result.summary()`.
+   *
+   * @example
+   * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
+   *   resultTransformer: neo4j.resultTransformers.summary()
+   * })
+   *
+   * @returns {ResultTransformer<ResultSummary<T>>} The result transformer
+   * @see {@link Driver#executeQuery}
+   * @experimental This is a preview feature
+   */
+  summary <T extends NumberOrInteger = Integer> (): ResultTransformer<ResultSummary<T>> {
+    return summary
+  }
 }
 
 /**
@@ -220,4 +240,8 @@ async function first<Entries extends RecordShape> (result: Result): Promise<Reco
       await it.return()
     }
   }
+}
+
+async function summary<T extends NumberOrInteger = Integer> (result: Result): Promise<ResultSummary<T>> {
+  return await result.summary()
 }
