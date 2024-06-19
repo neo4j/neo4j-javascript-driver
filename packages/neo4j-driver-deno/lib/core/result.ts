@@ -189,7 +189,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
   summary<T extends NumberOrInteger = Integer> (): Promise<ResultSummary<T>> {
     if (this._summary !== null) {
       // This type casting is needed since we are defining the number type of
-      // summary in Result template 
+      // summary in Result template
       return Promise.resolve(this._summary as unknown as ResultSummary<T>)
     } else if (this._error !== null) {
       return Promise.reject(this._error)
@@ -200,7 +200,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
           o.cancel()
           o.subscribe(this._decorateObserver({
             // This type casting is needed since we are defining the number type of
-            // summary in Result template 
+            // summary in Result template
             onCompleted: summary => resolve(summary as unknown as ResultSummary<T>),
             onError: err => reject(err)
           }))
