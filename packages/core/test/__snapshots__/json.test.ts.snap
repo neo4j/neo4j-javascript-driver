@@ -1,7 +1,223 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`json .stringify should handle Date 1`] = `"{"year":1999,"month":4,"day":12}"`;
+
+exports[`json .stringify should handle Date in list 1`] = `"[{"year":1999,"month":4,"day":12}]"`;
+
+exports[`json .stringify should handle Date in object 1`] = `"{"key":{"year":1999,"month":4,"day":12}}"`;
+
+exports[`json .stringify should handle DateTime 1`] = `"{"year":2024,"month":6,"day":13,"hour":10,"minute":0,"second":30,"nanosecond":134,"timeZoneOffsetSeconds":-3600,"timeZoneId":"Europe/Berlin"}"`;
+
+exports[`json .stringify should handle DateTime in list 1`] = `"[{"year":2024,"month":6,"day":13,"hour":10,"minute":0,"second":30,"nanosecond":134,"timeZoneOffsetSeconds":-3600,"timeZoneId":"Europe/Berlin"}]"`;
+
+exports[`json .stringify should handle DateTime in object 1`] = `"{"key":{"year":2024,"month":6,"day":13,"hour":10,"minute":0,"second":30,"nanosecond":134,"timeZoneOffsetSeconds":-3600,"timeZoneId":"Europe/Berlin"}}"`;
+
+exports[`json .stringify should handle Duration 1`] = `"{"months":10,"days":2,"seconds":{"low":35,"high":0},"nanoseconds":{"low":100,"high":0}}"`;
+
+exports[`json .stringify should handle Duration in list 1`] = `"[{"months":10,"days":2,"seconds":{"low":35,"high":0},"nanoseconds":{"low":100,"high":0}}]"`;
+
+exports[`json .stringify should handle Duration in object 1`] = `"{"key":{"months":10,"days":2,"seconds":{"low":35,"high":0},"nanoseconds":{"low":100,"high":0}}}"`;
+
+exports[`json .stringify should handle Integer 1`] = `"{"low":5,"high":0}"`;
+
+exports[`json .stringify should handle Integer in list 1`] = `"[{"low":5,"high":0}]"`;
+
+exports[`json .stringify should handle Integer in object 1`] = `"{"key":{"low":5,"high":0}}"`;
+
+exports[`json .stringify should handle LocalDateTime 1`] = `"{"year":1999,"month":4,"day":28,"hour":12,"minute":40,"second":12,"nanosecond":301}"`;
+
+exports[`json .stringify should handle LocalDateTime in list 1`] = `"[{"year":1999,"month":4,"day":28,"hour":12,"minute":40,"second":12,"nanosecond":301}]"`;
+
+exports[`json .stringify should handle LocalDateTime in object 1`] = `"{"key":{"year":1999,"month":4,"day":28,"hour":12,"minute":40,"second":12,"nanosecond":301}}"`;
+
+exports[`json .stringify should handle LocalTime 1`] = `"{"hour":2,"minute":30,"second":25,"nanosecond":150}"`;
+
+exports[`json .stringify should handle LocalTime in list 1`] = `"[{"hour":2,"minute":30,"second":25,"nanosecond":150}]"`;
+
+exports[`json .stringify should handle LocalTime in object 1`] = `"{"key":{"hour":2,"minute":30,"second":25,"nanosecond":150}}"`;
+
+exports[`json .stringify should handle Node 1`] = `"{"identity":1,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"myId"}"`;
+
+exports[`json .stringify should handle Node in list 1`] = `"[{"identity":1,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"myId"}]"`;
+
+exports[`json .stringify should handle Node in object 1`] = `"{"key":{"identity":1,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"myId"}}"`;
+
+exports[`json .stringify should handle Path 1`] = `"{"start":{"identity":1,"labels":["Person"],"properties":{"name":"Antonio"},"elementId":"antonioId"},"end":{"identity":2,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"mrBauerId"},"segments":[{"start":{"identity":1,"labels":["Person"],"properties":{"name":"Antonio"},"elementId":"antonioId"},"relationship":{"identity":3,"start":1,"end":2,"type":"PLAY_FOOTBALL","properties":{"since":1897},"elementId":"relId","startNodeElementId":"antonioId","endNodeElementId":"mrBauerId"},"end":{"identity":2,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"mrBauerId"}}],"length":1}"`;
+
+exports[`json .stringify should handle Path in list 1`] = `"[{"start":{"identity":1,"labels":["Person"],"properties":{"name":"Antonio"},"elementId":"antonioId"},"end":{"identity":2,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"mrBauerId"},"segments":[{"start":{"identity":1,"labels":["Person"],"properties":{"name":"Antonio"},"elementId":"antonioId"},"relationship":{"identity":3,"start":1,"end":2,"type":"PLAY_FOOTBALL","properties":{"since":1897},"elementId":"relId","startNodeElementId":"antonioId","endNodeElementId":"mrBauerId"},"end":{"identity":2,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"mrBauerId"}}],"length":1}]"`;
+
+exports[`json .stringify should handle Path in object 1`] = `"{"key":{"start":{"identity":1,"labels":["Person"],"properties":{"name":"Antonio"},"elementId":"antonioId"},"end":{"identity":2,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"mrBauerId"},"segments":[{"start":{"identity":1,"labels":["Person"],"properties":{"name":"Antonio"},"elementId":"antonioId"},"relationship":{"identity":3,"start":1,"end":2,"type":"PLAY_FOOTBALL","properties":{"since":1897},"elementId":"relId","startNodeElementId":"antonioId","endNodeElementId":"mrBauerId"},"end":{"identity":2,"labels":["Person"],"properties":{"name":"Mr. Bauer"},"elementId":"mrBauerId"}}],"length":1}}"`;
+
+exports[`json .stringify should handle Point 1`] = `"{"srid":4979,"x":1,"y":2,"z":3}"`;
+
+exports[`json .stringify should handle Point in list 1`] = `"[{"srid":4979,"x":1,"y":2,"z":3}]"`;
+
+exports[`json .stringify should handle Point in object 1`] = `"{"key":{"srid":4979,"x":1,"y":2,"z":3}}"`;
+
+exports[`json .stringify should handle Relationship 1`] = `"{"identity":1,"start":2,"end":3,"type":"FRIENDSHIP","properties":{"started":1999},"elementId":"myId","startNodeElementId":"startId","endNodeElementId":"endId"}"`;
+
+exports[`json .stringify should handle Relationship in list 1`] = `"[{"identity":1,"start":2,"end":3,"type":"FRIENDSHIP","properties":{"started":1999},"elementId":"myId","startNodeElementId":"startId","endNodeElementId":"endId"}]"`;
+
+exports[`json .stringify should handle Relationship in object 1`] = `"{"key":{"identity":1,"start":2,"end":3,"type":"FRIENDSHIP","properties":{"started":1999},"elementId":"myId","startNodeElementId":"startId","endNodeElementId":"endId"}}"`;
+
+exports[`json .stringify should handle Time 1`] = `"{"hour":12,"minute":50,"second":23,"nanosecond":300,"timeZoneOffsetSeconds":3600}"`;
+
+exports[`json .stringify should handle Time in list 1`] = `"[{"hour":12,"minute":50,"second":23,"nanosecond":300,"timeZoneOffsetSeconds":3600}]"`;
+
+exports[`json .stringify should handle Time in object 1`] = `"{"key":{"hour":12,"minute":50,"second":23,"nanosecond":300,"timeZoneOffsetSeconds":3600}}"`;
+
+exports[`json .stringify should handle UnboundRelationship 1`] = `"{"identity":1,"type":"ALONE","properties":{"since":2001},"elementId":"myId"}"`;
+
+exports[`json .stringify should handle UnboundRelationship in list 1`] = `"[{"identity":1,"type":"ALONE","properties":{"since":2001},"elementId":"myId"}]"`;
+
+exports[`json .stringify should handle UnboundRelationship in object 1`] = `"{"key":{"identity":1,"type":"ALONE","properties":{"since":2001},"elementId":"myId"}}"`;
+
+exports[`json .stringify should handle bigint 1`] = `""3n""`;
+
+exports[`json .stringify should handle bigint in list 1`] = `"["3n"]"`;
+
+exports[`json .stringify should handle bigint in object 1`] = `"{"key":"3n"}"`;
+
+exports[`json .stringify should handle list 1`] = `"["1",2,{"tres":3}]"`;
+
+exports[`json .stringify should handle list in list 1`] = `"[["1",2,{"tres":3}]]"`;
+
+exports[`json .stringify should handle list in object 1`] = `"{"key":["1",2,{"tres":3}]}"`;
+
+exports[`json .stringify should handle number 1`] = `"2"`;
+
+exports[`json .stringify should handle number in list 1`] = `"[2]"`;
+
+exports[`json .stringify should handle number in object 1`] = `"{"key":2}"`;
+
+exports[`json .stringify should handle object 1`] = `"{"identity":123,"labels":["a"],"properties":{"key":"value"},"elementId":"abc"}"`;
+
+exports[`json .stringify should handle object in list 1`] = `"[{"identity":123,"labels":["a"],"properties":{"key":"value"},"elementId":"abc"}]"`;
+
+exports[`json .stringify should handle object in object 1`] = `"{"key":{"identity":123,"labels":["a"],"properties":{"key":"value"},"elementId":"abc"}}"`;
+
+exports[`json .stringify should handle object with custom toString 1`] = `"{"identity":"1"}"`;
+
+exports[`json .stringify should handle object with custom toString in list 1`] = `"[{"identity":"1"}]"`;
+
+exports[`json .stringify should handle object with custom toString in object 1`] = `"{"key":{"identity":"1"}}"`;
+
 exports[`json .stringify should handle objects created with createBrokenObject 1`] = `"{"__isBrokenObject__":true,"__reason__":{"code":"N/A","name":"Neo4jError","retriable":false}}"`;
 
 exports[`json .stringify should handle objects created with createBrokenObject in list 1`] = `"[{"__isBrokenObject__":true,"__reason__":{"code":"N/A","name":"Neo4jError","retriable":false}}]"`;
 
 exports[`json .stringify should handle objects created with createBrokenObject inside other object 1`] = `"{"number":1,"broken":{"__isBrokenObject__":true,"__reason__":{"code":"N/A","name":"Neo4jError","retriable":false}}}"`;
+
+exports[`json .stringify should handle string 1`] = `""my string""`;
+
+exports[`json .stringify should handle string in list 1`] = `"["my string"]"`;
+
+exports[`json .stringify should handle string in object 1`] = `"{"key":"my string"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Date 1`] = `""1999-04-12""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Date in list 1`] = `"["1999-04-12"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Date in object 1`] = `"{"key":"1999-04-12"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle DateTime 1`] = `""2024-06-13T10:00:30.000000134-01:00[Europe/Berlin]""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle DateTime in list 1`] = `"["2024-06-13T10:00:30.000000134-01:00[Europe/Berlin]"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle DateTime in object 1`] = `"{"key":"2024-06-13T10:00:30.000000134-01:00[Europe/Berlin]"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Duration 1`] = `""P10M2DT35.000000100S""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Duration in list 1`] = `"["P10M2DT35.000000100S"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Duration in object 1`] = `"{"key":"P10M2DT35.000000100S"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Integer 1`] = `""5""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Integer in list 1`] = `"["5"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Integer in object 1`] = `"{"key":"5"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle LocalDateTime 1`] = `""1999-04-28T12:40:12.000000301""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle LocalDateTime in list 1`] = `"["1999-04-28T12:40:12.000000301"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle LocalDateTime in object 1`] = `"{"key":"1999-04-28T12:40:12.000000301"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle LocalTime 1`] = `""02:30:25.000000150""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle LocalTime in list 1`] = `"["02:30:25.000000150"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle LocalTime in object 1`] = `"{"key":"02:30:25.000000150"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Node 1`] = `""(myId:Person {name:\\"Mr. Bauer\\"})""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Node in list 1`] = `"["(myId:Person {name:\\"Mr. Bauer\\"})"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Node in object 1`] = `"{"key":"(myId:Person {name:\\"Mr. Bauer\\"})"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Path 1`] = `"{"start":"(antonioId:Person {name:\\"Antonio\\"})","end":"(mrBauerId:Person {name:\\"Mr. Bauer\\"})","segments":[{"start":"(antonioId:Person {name:\\"Antonio\\"})","relationship":"(antonioId)-[:PLAY_FOOTBALL {since:1897}]->(mrBauerId)","end":"(mrBauerId:Person {name:\\"Mr. Bauer\\"})"}],"length":1}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Path in list 1`] = `"[{"start":"(antonioId:Person {name:\\"Antonio\\"})","end":"(mrBauerId:Person {name:\\"Mr. Bauer\\"})","segments":[{"start":"(antonioId:Person {name:\\"Antonio\\"})","relationship":"(antonioId)-[:PLAY_FOOTBALL {since:1897}]->(mrBauerId)","end":"(mrBauerId:Person {name:\\"Mr. Bauer\\"})"}],"length":1}]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Path in object 1`] = `"{"key":{"start":"(antonioId:Person {name:\\"Antonio\\"})","end":"(mrBauerId:Person {name:\\"Mr. Bauer\\"})","segments":[{"start":"(antonioId:Person {name:\\"Antonio\\"})","relationship":"(antonioId)-[:PLAY_FOOTBALL {since:1897}]->(mrBauerId)","end":"(mrBauerId:Person {name:\\"Mr. Bauer\\"})"}],"length":1}}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Point 1`] = `""Point{srid=4979.0, x=1.0, y=2.0, z=3.0}""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Point in list 1`] = `"["Point{srid=4979.0, x=1.0, y=2.0, z=3.0}"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Point in object 1`] = `"{"key":"Point{srid=4979.0, x=1.0, y=2.0, z=3.0}"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Relationship 1`] = `""(startId)-[:FRIENDSHIP {started:1999}]->(endId)""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Relationship in list 1`] = `"["(startId)-[:FRIENDSHIP {started:1999}]->(endId)"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Relationship in object 1`] = `"{"key":"(startId)-[:FRIENDSHIP {started:1999}]->(endId)"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Time 1`] = `""12:50:23.000000300+01:00""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Time in list 1`] = `"["12:50:23.000000300+01:00"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle Time in object 1`] = `"{"key":"12:50:23.000000300+01:00"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle UnboundRelationship 1`] = `""-[:ALONE {since:2001}]->""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle UnboundRelationship in list 1`] = `"["-[:ALONE {since:2001}]->"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle UnboundRelationship in object 1`] = `"{"key":"-[:ALONE {since:2001}]->"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle bigint 1`] = `""3n""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle bigint in list 1`] = `"["3n"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle bigint in object 1`] = `"{"key":"3n"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle list 1`] = `"["1",2,{"tres":3}]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle list in list 1`] = `"[["1",2,{"tres":3}]]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle list in object 1`] = `"{"key":["1",2,{"tres":3}]}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle number 1`] = `"2"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle number in list 1`] = `"[2]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle number in object 1`] = `"{"key":2}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle object 1`] = `"{"identity":123,"labels":["a"],"properties":{"key":"value"},"elementId":"abc"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle object in list 1`] = `"[{"identity":123,"labels":["a"],"properties":{"key":"value"},"elementId":"abc"}]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle object in object 1`] = `"{"key":{"identity":123,"labels":["a"],"properties":{"key":"value"},"elementId":"abc"}}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle object with custom toString 1`] = `""My identity is One""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle object with custom toString in list 1`] = `"["My identity is One"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle object with custom toString in object 1`] = `"{"key":"My identity is One"}"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle string 1`] = `""my string""`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle string in list 1`] = `"["my string"]"`;
+
+exports[`json .stringify when opts.useCustomToString=true should handle string in object 1`] = `"{"key":"my string"}"`;

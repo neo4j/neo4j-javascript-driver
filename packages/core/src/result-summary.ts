@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import Integer, { int } from './integer'
+import Integer from './integer'
 import { NumberOrInteger } from './graph-types'
+import { util } from './internal'
+import Notification, { GqlStatusObject, buildGqlStatusObjectFromMetadata, buildNotificationsFromMetadata } from './notification'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.
@@ -30,6 +32,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   plan: Plan | false
   profile: ProfiledPlan | false
   notifications: Notification[]
+  gqlStatusObjects: [GqlStatusObject, ...GqlStatusObject[]]
   server: ServerInfo
   resultConsumedAfter: T
   resultAvailableAfter: T
@@ -105,7 +108,30 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @type {Array<Notification>}
      * @public
      */
-    this.notifications = this._buildNotifications(metadata.notifications)
+    this.notifications = buildNotificationsFromMetadata(metadata)
+
+    /**
+     * A list of GqlStatusObjects that arise when executing the query.
+     *
+     * The list always contains at least 1 status representing the Success, No Data or Omitted Result.
+     *
+     * When discarding records while connected to a non-gql aware server and using a RxSession,
+     * the driver might not be able to tell apart Success and No Data.
+     *
+     * All other status are notifications like warnings about problematic queries or other valuable
+     * information that can be presented in a client.
+     *
+     * The GqlStatusObjects will be presented in the following order:
+     *
+     * - A “no data” (02xxx) has precedence over a warning;
+     * - A warning (01xxx) has precedence over a success.
+     * - A success (00xxx) has precedence over anything informational (03xxx)
+     *
+     * @type {Array<GqlStatusObject>}
+     * @public
+     * @experimental
+     */
+    this.gqlStatusObjects = buildGqlStatusObjectFromMetadata(metadata)
 
     /**
      * The basic information of the server where the result is obtained from.
@@ -134,15 +160,6 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @public
      */
     this.database = { name: metadata.db ?? null }
-  }
-
-  _buildNotifications (notifications: any[]): Notification[] {
-    if (notifications == null) {
-      return []
-    }
-    return notifications.map(function (n: any): Notification {
-      return new Notification(n)
-    })
   }
 
   /**
@@ -358,9 +375,9 @@ class QueryStatistics {
       // To camelCase
       const camelCaseIndex = index.replace(/(-\w)/g, m => m[1].toUpperCase())
       if (camelCaseIndex in this._stats) {
-        this._stats[camelCaseIndex] = intValue(statistics[index])
+        this._stats[camelCaseIndex] = util.toNumber(statistics[index])
       } else if (camelCaseIndex === 'systemUpdates') {
-        this._systemUpdates = intValue(statistics[index])
+        this._systemUpdates = util.toNumber(statistics[index])
       } else if (camelCaseIndex === 'containsSystemUpdates') {
         this._containsSystemUpdates = statistics[index]
       } else if (camelCaseIndex === 'containsUpdates') {
@@ -411,195 +428,6 @@ class QueryStatistics {
   }
 }
 
-interface NotificationPosition {
-  offset?: number
-  line?: number
-  column?: number
-}
-
-type NotificationSeverityLevel = 'WARNING' | 'INFORMATION' | 'UNKNOWN'
-/**
- * @typedef {'WARNING' | 'INFORMATION' | 'UNKNOWN'} NotificationSeverityLevel
- */
-/**
- * Constants that represents the Severity level in the {@link Notification}
- */
-const notificationSeverityLevel: { [key in NotificationSeverityLevel]: key } = {
-  WARNING: 'WARNING',
-  INFORMATION: 'INFORMATION',
-  UNKNOWN: 'UNKNOWN'
-}
-
-Object.freeze(notificationSeverityLevel)
-const severityLevels = Object.values(notificationSeverityLevel)
-
-type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' | 'PERFORMANCE' |
-'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN'
-/**
- * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN' } NotificationCategory
- */
-/**
- * Constants that represents the Category in the {@link Notification}
- */
-const notificationCategory: { [key in NotificationCategory]: key } = {
-  HINT: 'HINT',
-  UNRECOGNIZED: 'UNRECOGNIZED',
-  UNSUPPORTED: 'UNSUPPORTED',
-  PERFORMANCE: 'PERFORMANCE',
-  DEPRECATION: 'DEPRECATION',
-  TOPOLOGY: 'TOPOLOGY',
-  SECURITY: 'SECURITY',
-  GENERIC: 'GENERIC',
-  UNKNOWN: 'UNKNOWN'
-}
-
-Object.freeze(notificationCategory)
-const categories = Object.values(notificationCategory)
-
-/**
- * Class for Cypher notifications
- * @access public
- */
-class Notification {
-  code: string
-  title: string
-  description: string
-  severity: string
-  position: NotificationPosition | {}
-  severityLevel: NotificationSeverityLevel
-  category: NotificationCategory
-  rawSeverityLevel: string
-  rawCategory?: string
-
-  /**
-   * Create a Notification instance
-   * @constructor
-   * @param {Object} notification - Object with notification data
-   */
-  constructor (notification: any) {
-    /**
-     * The code
-     * @type {string}
-     * @public
-     */
-    this.code = notification.code
-    /**
-     * The title
-     * @type {string}
-     * @public
-     */
-    this.title = notification.title
-    /**
-     * The description
-     * @type {string}
-     * @public
-     */
-    this.description = notification.description
-    /**
-     * The raw severity
-     *
-     * Use {@link Notification#rawSeverityLevel} for the raw value or {@link Notification#severityLevel} for an enumerated value.
-     *
-     * @type {string}
-     * @public
-     * @deprecated This property will be removed in 6.0.
-     */
-    this.severity = notification.severity
-    /**
-     * The position which the notification had occur.
-     *
-     * @type {NotificationPosition}
-     * @public
-     */
-    this.position = Notification._constructPosition(notification.position)
-
-    /**
-     * The severity level
-     *
-     * @type {NotificationSeverityLevel}
-     * @public
-     * @example
-     * const { summary } = await session.run("RETURN 1")
-     *
-     * for (const notification of summary.notifications) {
-     *     switch(notification.severityLevel) {
-     *         case neo4j.notificationSeverityLevel.INFORMATION: // or simply 'INFORMATION'
-     *             console.info(`${notification.title} - ${notification.description}`)
-     *             break
-     *         case neo4j.notificationSeverityLevel.WARNING: // or simply 'WARNING'
-     *             console.warn(`${notification.title} - ${notification.description}`)
-     *             break
-     *         case neo4j.notificationSeverityLevel.UNKNOWN: // or simply 'UNKNOWN'
-     *         default:
-     *             // the raw info came from the server could be found at notification.rawSeverityLevel
-     *             console.log(`${notification.title} - ${notification.description}`)
-     *             break
-     *     }
-     * }
-     */
-    this.severityLevel = severityLevels.includes(notification.severity)
-      ? notification.severity
-      : notificationSeverityLevel.UNKNOWN
-
-    /**
-     * The severity level returned by the server without any validation.
-     *
-     * @type {string}
-     * @public
-     */
-    this.rawSeverityLevel = notification.severity
-
-    /**
-     * The category
-     *
-     * @type {NotificationCategory}
-     * @public
-     * @example
-     * const { summary } = await session.run("RETURN 1")
-     *
-     * for (const notification of summary.notifications) {
-     *     switch(notification.category) {
-     *         case neo4j.notificationCategory.QUERY: // or simply 'QUERY'
-     *             console.info(`${notification.title} - ${notification.description}`)
-     *             break
-     *         case neo4j.notificationCategory.PERFORMANCE: // or simply 'PERFORMANCE'
-     *             console.warn(`${notification.title} - ${notification.description}`)
-     *             break
-     *         case neo4j.notificationCategory.UNKNOWN: // or simply 'UNKNOWN'
-     *         default:
-     *             // the raw info came from the server could be found at notification.rawCategory
-     *             console.log(`${notification.title} - ${notification.description}`)
-     *             break
-     *     }
-     * }
-     */
-    this.category = categories.includes(notification.category)
-      ? notification.category
-      : notificationCategory.UNKNOWN
-
-    /**
-     * The category returned by the server without any validation.
-     *
-     * @type {string|undefined}
-     * @public
-     */
-    this.rawCategory = notification.category
-  }
-
-  static _constructPosition (pos: NotificationPosition): NotificationPosition {
-    if (pos == null) {
-      return {}
-    }
-    /* eslint-disable @typescript-eslint/no-non-null-assertion */
-    return {
-      offset: intValue(pos.offset!),
-      line: intValue(pos.line!),
-      column: intValue(pos.column!)
-    }
-    /* eslint-enable @typescript-eslint/no-non-null-assertion */
-  }
-}
-
 /**
  * Class for exposing server info from a result.
  * @access public
@@ -642,16 +470,6 @@ class ServerInfo {
   }
 }
 
-function intValue (value: NumberOrInteger): number {
-  if (value instanceof Integer) {
-    return value.toNumber()
-  } else if (typeof value === 'bigint') {
-    return int(value).toNumber()
-  } else {
-    return value
-  }
-}
-
 function valueOrDefault (
   key: string,
   values: { [key: string]: NumberOrInteger } | false,
@@ -659,7 +477,7 @@ function valueOrDefault (
 ): number {
   if (values !== false && key in values) {
     const value = values[key]
-    return intValue(value)
+    return util.toNumber(value)
   } else {
     return defaultValue
   }
@@ -679,18 +497,10 @@ const queryType = {
 export {
   queryType,
   ServerInfo,
-  Notification,
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Stats,
-  notificationSeverityLevel,
-  notificationCategory
-}
-export type {
-  NotificationPosition,
-  NotificationSeverityLevel,
-  NotificationCategory
+  Stats
 }
 
 export default ResultSummary

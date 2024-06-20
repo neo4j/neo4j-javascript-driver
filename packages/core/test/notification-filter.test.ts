@@ -17,6 +17,8 @@
 import {
   NotificationFilterDisabledCategory,
   notificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification,
+  notificationFilterDisabledClassification,
   NotificationFilterMinimumSeverityLevel,
   notificationFilterMinimumSeverityLevel
 } from '../src/notification-filter'
@@ -58,6 +60,30 @@ describe('notificationFilterDisabledCategory', () => {
   it.each(getValidNotificationsCategories())('should have %s as key', (category) => {
     const keys = Object.keys(notificationFilterDisabledCategory)
     expect(keys.includes(category)).toBe(true)
+  })
+})
+
+describe('notificationFilterDisabledClassification', () => {
+  it('should have keys equals to values', () => {
+    for (const [key, value] of Object.entries(notificationFilterDisabledClassification)) {
+      expect(key).toEqual(value)
+    }
+  })
+
+  it('should values be assignable to NotificationFilterDisabledClassification', () => {
+    for (const [, value] of Object.entries(notificationFilterDisabledClassification)) {
+      const assignableValue: NotificationFilterDisabledClassification = value
+      expect(assignableValue).toBeDefined()
+    }
+  })
+
+  it.each(getValidNotificationsCategories())('should have %s as key', (category) => {
+    const keys = Object.keys(notificationFilterDisabledCategory)
+    expect(keys.includes(category)).toBe(true)
+  })
+
+  it('should be notificationFilterDisabledCategory', () => {
+    expect(notificationFilterDisabledClassification).toBe(notificationFilterDisabledCategory)
   })
 })
 

@@ -39,10 +39,14 @@ import {
   NotificationSeverityLevel,
   notificationCategory,
   NotificationCategory,
+  notificationClassification,
+  NotificationClassification,
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel,
   NotificationFilterDisabledCategory,
   notificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification,
+  notificationFilterDisabledClassification,
   authTokenManagers
 } from '../../types/index'
 
@@ -159,6 +163,25 @@ const unrecognizedCategory: NotificationCategory = notificationCategory.UNRECOGN
 const unsupportedCategory: NotificationCategory = notificationCategory.UNSUPPORTED
 const unknownCategory: NotificationCategory = notificationCategory.UNKNOWN
 
+const hintClassificationString: string = notificationClassification.HINT
+const deprecationClassificationString: string = notificationClassification.DEPRECATION
+const performanceClassificationString: string = notificationClassification.PERFORMANCE
+const topologyClassificationString: string = notificationClassification.TOPOLOGY
+const securityClassificationString: string = notificationClassification.SECURITY
+const genericClassificationString: string = notificationClassification.GENERIC
+const unrecognizedClassificationString: string = notificationClassification.UNRECOGNIZED
+const unsupportedClassificationString: string = notificationClassification.UNSUPPORTED
+const unknownClassificationString: string = notificationClassification.UNKNOWN
+const hintClassification: NotificationClassification = notificationClassification.HINT
+const deprecationClassification: NotificationClassification = notificationClassification.DEPRECATION
+const performanceClassification: NotificationClassification = notificationClassification.PERFORMANCE
+const topologyClassification: NotificationClassification = notificationClassification.TOPOLOGY
+const securityClassification: NotificationClassification = notificationClassification.SECURITY
+const genericClassification: NotificationClassification = notificationClassification.GENERIC
+const unrecognizedClassification: NotificationClassification = notificationClassification.UNRECOGNIZED
+const unsupportedClassification: NotificationClassification = notificationClassification.UNSUPPORTED
+const unknownClassification: NotificationClassification = notificationClassification.UNKNOWN
+
 const offNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.OFF
 const warningNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.WARNING
 const infoNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.INFORMATION
@@ -178,3 +201,16 @@ const performanceDisabledCategory: NotificationFilterDisabledCategory = notifica
 const genericDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.GENERIC
 const unrecognizedDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.UNRECOGNIZED
 const unsupportedDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.UNSUPPORTED
+
+const hintDisabledClassificationString: string = notificationFilterDisabledClassification.HINT
+const deprecationDisabledClassificationString: string = notificationFilterDisabledClassification.DEPRECATION
+const performanceDisabledClassificationString: string = notificationFilterDisabledClassification.PERFORMANCE
+const genericDisabledClassificationString: string = notificationFilterDisabledClassification.GENERIC
+const unrecognizedDisabledClassificationString: string = notificationFilterDisabledClassification.UNRECOGNIZED
+const unsupportedDisabledClassificationString: string = notificationFilterDisabledClassification.UNSUPPORTED
+const hintDisabledClassification: NotificationFilterDisabledClassification = notificationFilterDisabledClassification.HINT
+const deprecationDisabledClassification: NotificationFilterDisabledClassification = notificationFilterDisabledClassification.DEPRECATION
+const performanceDisabledClassification: NotificationFilterDisabledClassification = notificationFilterDisabledClassification.PERFORMANCE
+const genericDisabledClassification: NotificationFilterDisabledClassification = notificationFilterDisabledClassification.GENERIC
+const unrecognizedDisabledClassification: NotificationFilterDisabledClassification = notificationFilterDisabledClassification.UNRECOGNIZED
+const unsupportedDisabledClassification: NotificationFilterDisabledClassification = notificationFilterDisabledClassification.UNSUPPORTED

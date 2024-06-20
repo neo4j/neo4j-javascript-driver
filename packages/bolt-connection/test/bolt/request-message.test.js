@@ -646,6 +646,212 @@ describe('#unit RequestMessage', () => {
     })
   })
 
+  describe('BoltV5.5', () => {
+    describe('hello5x5', () => {
+      it.each(
+        gqlNotificationFilterFixtures()
+      )('should create HELLO message where notificationFilters=%o', (notificationFilter, expectedNotificationFilter) => {
+        const userAgent = 'my-driver/1.0.2'
+        const boltAgent = {
+          product: 'neo4j-javascript/5.6',
+          platform: 'netbsd 1.1.1; Some arch',
+          languageDetails: 'Node/16.0.1 (v8 1.7.0)'
+        }
+
+        const expectedFields = {
+          user_agent: userAgent,
+          bolt_agent: {
+            product: 'neo4j-javascript/5.6',
+            platform: 'netbsd 1.1.1; Some arch',
+            language_details: 'Node/16.0.1 (v8 1.7.0)'
+          },
+          ...expectedNotificationFilter
+        }
+
+        const message = RequestMessage.hello5x5(userAgent, boltAgent, notificationFilter)
+
+        expect(message.signature).toEqual(0x01)
+        expect(message.fields).toEqual([
+          expectedFields
+        ])
+        expect(message.toString()).toEqual(
+          `HELLO ${json.stringify(expectedFields)}`
+        )
+      })
+
+      it('should create HELLO with NodeJS Bolt Agent', () => {
+        const userAgent = 'my-driver/1.0.2'
+        const boltAgent = {
+          product: 'neo4j-javascript/5.6',
+          platform: 'netbsd 1.1.1; Some arch',
+          languageDetails: 'Node/16.0.1 (v8 1.7.0)'
+        }
+
+        const expectedFields = {
+          user_agent: userAgent,
+          bolt_agent: {
+            product: 'neo4j-javascript/5.6',
+            platform: 'netbsd 1.1.1; Some arch',
+            language_details: 'Node/16.0.1 (v8 1.7.0)'
+          }
+        }
+
+        const message = RequestMessage.hello5x5(userAgent, boltAgent)
+
+        expect(message.signature).toEqual(0x01)
+        expect(message.fields).toEqual([
+          expectedFields
+        ])
+        expect(message.toString()).toEqual(
+          `HELLO ${json.stringify(expectedFields)}`
+        )
+      })
+
+      it('should create HELLO with Browser Bolt Agent', () => {
+        const userAgent = 'my-driver/1.0.2'
+
+        const boltAgent = {
+          product: 'neo4j-javascript/5.3',
+          platform: 'Macintosh; Intel Mac OS X 10_15_7'
+        }
+
+        const expectedFields = {
+          user_agent: userAgent,
+          bolt_agent: {
+            product: 'neo4j-javascript/5.3',
+            platform: 'Macintosh; Intel Mac OS X 10_15_7'
+          }
+        }
+
+        const message = RequestMessage.hello5x5(userAgent, boltAgent)
+
+        expect(message.signature).toEqual(0x01)
+        expect(message.fields).toEqual([
+          expectedFields
+        ])
+        expect(message.toString()).toEqual(
+          `HELLO ${json.stringify(expectedFields)}`
+        )
+      })
+
+      it('should create HELLO with Deno Bolt Agent', () => {
+        const userAgent = 'my-driver/1.0.2'
+
+        const boltAgent = {
+          product: 'neo4j-javascript/5.3',
+          platform: 'macos 14.1; myArch',
+          languageDetails: 'Deno/1.19.1 (v8 8.1.39)'
+        }
+
+        const expectedFields = {
+          user_agent: userAgent,
+          bolt_agent: {
+            product: 'neo4j-javascript/5.3',
+            platform: 'macos 14.1; myArch',
+            language_details: 'Deno/1.19.1 (v8 8.1.39)'
+          }
+        }
+
+        const message = RequestMessage.hello5x5(userAgent, boltAgent)
+
+        expect(message.signature).toEqual(0x01)
+        expect(message.fields).toEqual([
+          expectedFields
+        ])
+        expect(message.toString()).toEqual(
+          `HELLO ${json.stringify(expectedFields)}`
+        )
+      })
+    })
+
+    describe('begin5x5', () => {
+      it.each(
+        gqlNotificationFilterFixtures()
+      )('should create BEGIN message where notificationFilters=%o', (notificationFilter, expectedNotificationFilter) => {
+        ;[READ, WRITE].forEach(mode => {
+          const bookmarks = new Bookmarks([
+            'neo4j:bookmark:v1:tx1',
+            'neo4j:bookmark:v1:tx10'
+          ])
+          const impersonatedUser = 'the impostor'
+          const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
+
+          const message = RequestMessage.begin5x5({ bookmarks, txConfig, mode, impersonatedUser, notificationFilter })
+
+          const expectedMode = {}
+          if (mode === READ) {
+            expectedMode.mode = 'r'
+          }
+          const expectedMetadata = {
+            bookmarks: bookmarks.values(),
+            tx_timeout: int(42),
+            tx_metadata: { key: 42 },
+            imp_user: impersonatedUser,
+            ...expectedMode,
+            ...expectedNotificationFilter
+          }
+
+          expect(message.signature).toEqual(0x11)
+          expect(message.fields).toEqual([expectedMetadata])
+          expect(message.toString()).toEqual(
+            `BEGIN ${json.stringify(expectedMetadata)}`
+          )
+        })
+      })
+    })
+
+    describe('run5x5', () => {
+      it.each(
+        gqlNotificationFilterFixtures()
+      )('should create RUN message where notificationFilters=%o', (notificationFilter, expectedNotificationFilter) => {
+        ;[READ, WRITE].forEach(mode => {
+          const query = 'RETURN $x'
+          const parameters = { x: 42 }
+          const bookmarks = new Bookmarks([
+            'neo4j:bookmark:v1:tx1',
+            'neo4j:bookmark:v1:tx10',
+            'neo4j:bookmark:v1:tx100'
+          ])
+          const txConfig = new TxConfig({
+            timeout: 999,
+            metadata: { a: 'a', b: 'b' }
+          })
+          const impersonatedUser = 'the impostor'
+
+          const message = RequestMessage.runWithMetadata5x5(query, parameters, {
+            bookmarks,
+            txConfig,
+            mode,
+            impersonatedUser,
+            notificationFilter
+          })
+
+          const expectedMode = {}
+          if (mode === READ) {
+            expectedMode.mode = 'r'
+          }
+
+          const expectedMetadata = {
+            bookmarks: bookmarks.values(),
+            tx_timeout: int(999),
+            tx_metadata: { a: 'a', b: 'b' },
+            imp_user: impersonatedUser,
+            ...expectedMode,
+            ...expectedNotificationFilter
+          }
+
+          expect(message.signature).toEqual(0x10)
+          expect(message.fields).toEqual([query, parameters, expectedMetadata])
+          expect(message.toString()).toEqual(
+            `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+              expectedMetadata
+            )}`
+          )
+        })
+      })
+    })
+  })
+
   function notificationFilterFixtures () {
     return notificationFilterBehaviour.notificationFilterFixture()
       .map(notificationFilter => {
@@ -657,6 +863,31 @@ describe('#unit RequestMessage', () => {
 
           if (notificationFilter.disabledCategories) {
             expectedNotificationFilter.notifications_disabled_categories = notificationFilter.disabledCategories
+          }
+
+          if (notificationFilter.disabledClassifications) {
+            expectedNotificationFilter.notifications_disabled_categories = notificationFilter.disabledClassifications
+          }
+        }
+        return [notificationFilter, expectedNotificationFilter]
+      })
+  }
+
+  function gqlNotificationFilterFixtures () {
+    return notificationFilterBehaviour.notificationFilterFixture()
+      .map(notificationFilter => {
+        const expectedNotificationFilter = {}
+        if (notificationFilter) {
+          if (notificationFilter.minimumSeverityLevel) {
+            expectedNotificationFilter.notifications_minimum_severity = notificationFilter.minimumSeverityLevel
+          }
+
+          if (notificationFilter.disabledCategories) {
+            expectedNotificationFilter.notifications_disabled_classifications = notificationFilter.disabledCategories
+          }
+
+          if (notificationFilter.disabledClassifications) {
+            expectedNotificationFilter.notifications_disabled_classifications = notificationFilter.disabledClassifications
           }
         }
         return [notificationFilter, expectedNotificationFilter]

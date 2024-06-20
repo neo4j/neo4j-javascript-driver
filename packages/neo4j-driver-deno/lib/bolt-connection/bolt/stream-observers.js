@@ -24,17 +24,18 @@ import {
   internal
 } from '../../core/index.ts'
 import RawRoutingTable from './routing-table-raw.js'
+import { functional } from '../lang/index.js'
 
 const {
   constants: { FETCH_ALL }
 } = internal
 const { PROTOCOL_ERROR } = error
 class StreamObserver {
-  onNext (rawRecord) {}
+  onNext (rawRecord) { }
 
-  onError (_error) {}
+  onError (_error) { }
 
-  onCompleted (meta) {}
+  onCompleted (meta) { }
 }
 
 /**
@@ -62,6 +63,7 @@ class ResultStreamObserver extends StreamObserver {
    * @param {function(keys: string[]): Promise|void} param.afterKeys -
    * @param {function(metadata: Object): Promise|void} param.beforeComplete -
    * @param {function(metadata: Object): Promise|void} param.afterComplete -
+   * @param {function(metadata: Object): Promise|void} param.enrichMetadata -
    */
   constructor ({
     reactive = false,
@@ -76,7 +78,8 @@ class ResultStreamObserver extends StreamObserver {
     afterComplete,
     server,
     highRecordWatermark = Number.MAX_VALUE,
-    lowRecordWatermark = Number.MAX_VALUE
+    lowRecordWatermark = Number.MAX_VALUE,
+    enrichMetadata
   } = {}) {
     super()
 
@@ -96,6 +99,7 @@ class ResultStreamObserver extends StreamObserver {
     this._afterKeys = afterKeys
     this._beforeComplete = beforeComplete
     this._afterComplete = afterComplete
+    this._enrichMetadata = enrichMetadata || functional.identity
 
     this._queryId = null
     this._moreFunction = moreFunction
@@ -107,6 +111,8 @@ class ResultStreamObserver extends StreamObserver {
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
     this._setupAutoPull()
     this._paused = false
+    this._pulled = !reactive
+    this._haveRecordStreamed = false
   }
 
   /**
@@ -137,6 +143,7 @@ class ResultStreamObserver extends StreamObserver {
    * @param {Array} rawRecord - An array with the raw record
    */
   onNext (rawRecord) {
+    this._haveRecordStreamed = true
     const record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
     if (this._observers.some(o => o.onNext)) {
       this._observers.forEach(o => {
@@ -245,11 +252,18 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   _handlePullSuccess (meta) {
-    const completionMetadata = Object.assign(
+    const completionMetadata = this._enrichMetadata(Object.assign(
       this._server ? { server: this._server } : {},
       this._meta,
+      {
+        stream_summary: {
+          have_records_streamed: this._haveRecordStreamed,
+          pulled: this._pulled,
+          has_keys: this._fieldKeys.length > 0
+        }
+      },
       meta
-    )
+    ))
 
     if (![undefined, null, 'r', 'w', 'rw', 's'].includes(completionMetadata.type)) {
       this.onError(
@@ -303,7 +317,9 @@ class ResultStreamObserver extends StreamObserver {
         for (let i = 0; i < meta.fields.length; i++) {
           this._fieldLookup[meta.fields[i]] = i
         }
+      }
 
+      if (meta.fields != null) {
         // remove fields key from metadata object
         delete meta.fields
       }
@@ -392,6 +408,7 @@ class ResultStreamObserver extends StreamObserver {
     if (this._discard) {
       this._discardFunction(this._queryId, this)
     } else {
+      this._pulled = true
       this._moreFunction(this._queryId, this._fetchSize, this)
     }
     this._setState(_states.STREAMING)
@@ -501,7 +518,7 @@ class ResetObserver extends StreamObserver {
     this.onError(
       newError(
         'Received RECORD when resetting: received record is: ' +
-          json.stringify(record),
+        json.stringify(record),
         PROTOCOL_ERROR
       )
     )
@@ -602,9 +619,9 @@ class ProcedureRouteObserver extends StreamObserver {
       this.onError(
         newError(
           'Illegal response from router. Received ' +
-            this._records.length +
-            ' records but expected only one.\n' +
-            json.stringify(this._records),
+          this._records.length +
+          ' records but expected only one.\n' +
+          json.stringify(this._records),
           PROTOCOL_ERROR
         )
       )
@@ -637,7 +654,7 @@ class RouteObserver extends StreamObserver {
     this.onError(
       newError(
         'Received RECORD when resetting: received record is: ' +
-          json.stringify(record),
+        json.stringify(record),
         PROTOCOL_ERROR
       )
     )
@@ -678,7 +695,7 @@ const _states = {
     name: () => {
       return 'READY_STREAMING'
     },
-    pull: () => {}
+    pull: () => { }
   },
   READY: {
     // reactive start state
@@ -710,7 +727,7 @@ const _states = {
     name: () => {
       return 'STREAMING'
     },
-    pull: () => {}
+    pull: () => { }
   },
   FAILED: {
     onError: _error => {
@@ -719,13 +736,13 @@ const _states = {
     name: () => {
       return 'FAILED'
     },
-    pull: () => {}
+    pull: () => { }
   },
   SUCCEEDED: {
     name: () => {
       return 'SUCCEEDED'
     },
-    pull: () => {}
+    pull: () => { }
   }
 }
 

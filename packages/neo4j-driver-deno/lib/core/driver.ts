@@ -920,6 +920,11 @@ function validateConfig (config: any, log: Logger): any {
       'where a new connection is created while it is acquired'
     )
   }
+
+  if (config.notificationFilter?.disabledCategories != null && config.notificationFilter?.disabledClassifications != null) {
+    throw new Error('The notificationFilter can\'t have both "disabledCategories" and  "disabledClassifications" configured at the same time.')
+  }
+
   return config
 }
 

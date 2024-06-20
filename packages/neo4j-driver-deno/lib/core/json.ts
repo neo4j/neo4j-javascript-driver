@@ -17,13 +17,17 @@
 
 import { isBrokenObject, getBrokenObjectReason } from './internal/object-util.ts'
 
+interface StringifyOpts {
+  useCustomToString?: boolean
+}
+
 /**
  * Custom version on JSON.stringify that can handle values that normally don't support serialization, such as BigInt.
  * @private
  * @param val A JavaScript value, usually an object or array, to be converted.
  * @returns A JSON string representing the given value.
  */
-export function stringify (val: any): string {
+export function stringify (val: any, opts?: StringifyOpts): string {
   return JSON.stringify(val, (_, value) => {
     if (isBrokenObject(value)) {
       return {
@@ -31,8 +35,17 @@ export function stringify (val: any): string {
         __reason__: getBrokenObjectReason(value)
       }
     }
+
     if (typeof value === 'bigint') {
       return `${value}n`
+    }
+
+    if (opts?.useCustomToString === true &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        typeof value.toString === 'function' &&
+        value.toString !== Object.prototype.toString) {
+      return value?.toString()
     }
     return value
   })

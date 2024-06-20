@@ -57,20 +57,26 @@ import { isPoint, Point } from './spatial-types.ts'
 import ResultSummary, {
   queryType,
   ServerInfo,
-  Notification,
-  NotificationPosition,
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Stats,
-  NotificationSeverityLevel,
-  NotificationCategory,
-  notificationCategory,
-  notificationSeverityLevel
+  Stats
 } from './result-summary.ts'
+import Notification, {
+  NotificationPosition,
+  NotificationSeverityLevel,
+  NotificationClassification,
+  NotificationCategory,
+  GqlStatusObject,
+  notificationCategory,
+  notificationClassification,
+  notificationSeverityLevel
+} from './notification.ts'
 import NotificationFilter, {
   notificationFilterDisabledCategory,
   NotificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
+  NotificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel
 } from './notification-filter.ts'
@@ -148,6 +154,7 @@ const forExport = {
   queryType,
   ServerInfo,
   Notification,
+  GqlStatusObject,
   Plan,
   ProfiledPlan,
   QueryStatistics,
@@ -169,8 +176,10 @@ const forExport = {
   routing,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider
@@ -218,6 +227,7 @@ export {
   queryType,
   ServerInfo,
   Notification,
+  GqlStatusObject,
   Plan,
   ProfiledPlan,
   QueryStatistics,
@@ -241,8 +251,10 @@ export {
   routing,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider
@@ -267,9 +279,11 @@ export type {
   RecordShape,
   ResultTransformer,
   NotificationCategory,
+  NotificationClassification,
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification,
   NotificationFilterMinimumSeverityLevel,
   ClientCertificate,
   ClientCertificateProvider,

@@ -120,6 +120,7 @@ const instanceOfDriverPlan: boolean = dummy instanceof driver.Plan
 const instanceOfDriverProfiledPlan: boolean = dummy instanceof driver.ProfiledPlan
 const instanceOfDriverQueryStatistics: boolean = dummy instanceof driver.QueryStatistics
 const instanceOfDriverNotification: boolean = dummy instanceof driver.Notification
+const instanceOfDriverGqlStatusObject: boolean = dummy instanceof driver.GqlStatusObject
 const instanceOfDriverServerInfo: boolean = dummy instanceof driver.ServerInfo
 const instanceOfDriverSession: boolean = dummy instanceof driver.Session
 const instanceOfDriverTransaction: boolean = dummy instanceof driver.Transaction

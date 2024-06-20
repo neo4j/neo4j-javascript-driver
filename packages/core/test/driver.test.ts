@@ -24,7 +24,7 @@ import { ConfiguredCustomResolver } from '../src/internal/resolver'
 import { LogLevel } from '../src/types'
 import resultTransformers from '../src/result-transformers'
 import Record, { RecordShape } from '../src/record'
-import { validNotificationFilters } from './utils/notification-filters.fixtures'
+import { invalidNotificationFilters, validNotificationFilters } from './utils/notification-filters.fixtures'
 
 describe('Driver', () => {
   let driver: Driver | null
@@ -605,6 +605,21 @@ describe('Driver', () => {
         )
 
         await driver.close()
+      })
+
+      it.each(
+        invalidNotificationFilters()
+      )('should fail on invalid notification filters', async (notificationFilter?: NotificationFilter) => {
+        const createConnectionProviderMock = jest.fn(mockCreateConnectonProvider(connectionProvider))
+
+        expect(() => new Driver(
+          META_INFO,
+          { notificationFilter },
+          createConnectionProviderMock,
+          createSession
+        )).toThrow(new Error('The notificationFilter can\'t have both "disabledCategories" and  "disabledClassifications" configured at the same time.'))
+
+        expect(createConnectionProviderMock).not.toHaveBeenCalled()
       })
     })
 

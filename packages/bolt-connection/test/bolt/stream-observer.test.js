@@ -151,7 +151,12 @@ describe('#unit ResultStreamObserver', () => {
 
     expect(receivedMetaData).toEqual({
       metaDataField1: 'value1',
-      metaDataField2: 'value2'
+      metaDataField2: 'value2',
+      stream_summary: {
+        have_records_streamed: false,
+        has_keys: true,
+        pulled: true
+      }
     })
   })
 
@@ -227,7 +232,15 @@ describe('#unit ResultStreamObserver', () => {
     expect(received.onNext[1].toObject()).toEqual({ A: 11, B: 22, C: 33 })
     expect(received.onNext[2].toObject()).toEqual({ A: 111, B: 222, C: 333 })
     expect(received.onKeys).toEqual([['A', 'B', 'C']])
-    expect(received.onCompleted).toEqual([{ key: 42, has_more: false }])
+    expect(received.onCompleted).toEqual([{
+      key: 42,
+      has_more: false,
+      stream_summary: {
+        has_keys: true,
+        have_records_streamed: true,
+        pulled: true
+      }
+    }])
     expect(received.onError).toEqual([])
   })
 
@@ -256,7 +269,15 @@ describe('#unit ResultStreamObserver', () => {
     expect(received[1].toObject()).toEqual({ A: 1, B: 2, C: 3 })
     expect(received[2].toObject()).toEqual({ A: 11, B: 22, C: 33 })
     expect(received[3].toObject()).toEqual({ A: 111, B: 222, C: 333 })
-    expect(received[4]).toEqual({ key: 42, has_more: false })
+    expect(received[4]).toEqual({
+      key: 42,
+      has_more: false,
+      stream_summary: {
+        has_keys: true,
+        have_records_streamed: true,
+        pulled: true
+      }
+    })
   })
 
   it('should inform all the pre-existing events of an error stream to the subscriber', () => {
@@ -678,6 +699,191 @@ describe('#unit ResultStreamObserver', () => {
           expect(meta.type).toBe(type)
         })
       )
+    })
+  })
+
+  describe('metadata.stream_summary', () => {
+    it('should notify stream without keys, pulled or record received', async () => {
+      const streamObserver = new ResultStreamObserver({ reactive: true, discardFunction: jest.fn() })
+      const received = []
+      const observer = {
+        onCompleted: metadata => received.push(metadata),
+        onError: error => received.push(error),
+        onNext: record => received.push(record),
+        onKeys: keys => received.push(keys)
+      }
+
+      streamObserver.subscribe(observer)
+
+      streamObserver.cancel()
+      streamObserver.onCompleted({ fields: [] })
+
+      await new Promise((resolve, reject) => {
+        setImmediate(() => {
+          try {
+            streamObserver.onCompleted({ key: 42, has_more: false })
+            resolve()
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+
+      expect(received[received.length - 1]).toEqual({
+        key: 42,
+        has_more: false,
+        stream_summary: {
+          has_keys: false,
+          have_records_streamed: false,
+          pulled: false
+        }
+      })
+    })
+
+    it('should notify stream keys, but without pulled or record received', async () => {
+      const streamObserver = new ResultStreamObserver({ reactive: true, discardFunction: jest.fn() })
+      const received = []
+      const observer = {
+        onCompleted: metadata => received.push(metadata),
+        onError: error => received.push(error),
+        onNext: record => received.push(record),
+        onKeys: keys => received.push(keys)
+      }
+
+      streamObserver.subscribe(observer)
+
+      streamObserver.cancel()
+      streamObserver.onCompleted({ fields: ['A'] })
+
+      await new Promise((resolve, reject) => {
+        setImmediate(() => {
+          try {
+            streamObserver.onCompleted({ key: 42, has_more: false })
+            resolve()
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+
+      expect(received[received.length - 1]).toEqual({
+        key: 42,
+        has_more: false,
+        stream_summary: {
+          has_keys: true,
+          have_records_streamed: false,
+          pulled: false
+        }
+      })
+    })
+
+    it('should notify stream pulled, but without keys or record received', async () => {
+      const streamObserver = new ResultStreamObserver({ reactive: false })
+      const received = []
+      const observer = {
+        onCompleted: metadata => received.push(metadata),
+        onError: error => received.push(error),
+        onNext: record => received.push(record),
+        onKeys: keys => received.push(keys)
+      }
+
+      streamObserver.subscribe(observer)
+
+      streamObserver.onCompleted({ fields: [] })
+
+      await new Promise((resolve, reject) => {
+        setImmediate(() => {
+          try {
+            streamObserver.onCompleted({ key: 42, has_more: false })
+            resolve()
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+
+      expect(received[received.length - 1]).toEqual({
+        key: 42,
+        has_more: false,
+        stream_summary: {
+          has_keys: false,
+          have_records_streamed: false,
+          pulled: true
+        }
+      })
+    })
+
+    it('should notify stream pulled and keys received, but no record received', async () => {
+      const streamObserver = new ResultStreamObserver({ reactive: false })
+      const received = []
+      const observer = {
+        onCompleted: metadata => received.push(metadata),
+        onError: error => received.push(error),
+        onNext: record => received.push(record),
+        onKeys: keys => received.push(keys)
+      }
+
+      streamObserver.subscribe(observer)
+
+      streamObserver.onCompleted({ fields: ['A'] })
+
+      await new Promise((resolve, reject) => {
+        setImmediate(() => {
+          try {
+            streamObserver.onCompleted({ key: 42, has_more: false })
+            resolve()
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+
+      expect(received[received.length - 1]).toEqual({
+        key: 42,
+        has_more: false,
+        stream_summary: {
+          has_keys: true,
+          have_records_streamed: false,
+          pulled: true
+        }
+      })
+    })
+
+    it('should notify stream pulled, keys received and record received', async () => {
+      const streamObserver = new ResultStreamObserver({ reactive: false })
+      const received = []
+      const observer = {
+        onCompleted: metadata => received.push(metadata),
+        onError: error => received.push(error),
+        onNext: record => received.push(record),
+        onKeys: keys => received.push(keys)
+      }
+
+      streamObserver.subscribe(observer)
+
+      streamObserver.onCompleted({ fields: ['A'] })
+      streamObserver.onNext([1])
+
+      await new Promise((resolve, reject) => {
+        setImmediate(() => {
+          try {
+            streamObserver.onCompleted({ key: 42, has_more: false })
+            resolve()
+          } catch (e) {
+            reject(e)
+          }
+        })
+      })
+
+      expect(received[received.length - 1]).toEqual({
+        key: 42,
+        has_more: false,
+        stream_summary: {
+          has_keys: true,
+          have_records_streamed: true,
+          pulled: true
+        }
+      })
     })
   })
 })
