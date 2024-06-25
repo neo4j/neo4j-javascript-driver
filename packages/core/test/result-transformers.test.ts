@@ -270,7 +270,7 @@ describe('resultTransformers', () => {
 
   describe('.summary()', () => {
     describe('with a valid result', () => {
-      it('it should return an ResultSummary', async () => {
+      it('should return a ResultSummary', async () => {
         const resultStreamObserverMock = new ResultStreamObserverMock()
         const query = 'Query'
         const params = { a: 1 }
@@ -291,7 +291,7 @@ describe('resultTransformers', () => {
         )
       })
 
-      it('it should cancel stream', async () => {
+      it('should cancel stream', async () => {
         const meta = { db: 'adb' }
         const resultStreamObserverMock = new ResultStreamObserverMock()
         const cancelSpy = jest.spyOn(resultStreamObserverMock, 'cancel')
@@ -314,7 +314,7 @@ describe('resultTransformers', () => {
         )
       })
 
-      it('it should return a ResultSummary<number>', async () => {
+      it('should return a ResultSummary<number>', async () => {
         const resultStreamObserverMock = new ResultStreamObserverMock()
         const query = 'Query'
         const params = { a: 1 }
@@ -344,7 +344,7 @@ describe('resultTransformers', () => {
         )
       })
 
-      it('it should return a ResultSummary<bigint>', async () => {
+      it('should return a ResultSummary<bigint>', async () => {
         const resultStreamObserverMock = new ResultStreamObserverMock()
         const query = 'Query'
         const params = { a: 1 }
@@ -374,7 +374,7 @@ describe('resultTransformers', () => {
         )
       })
 
-      it('it should return a ResultSummary<Integer>', async () => {
+      it('should return a ResultSummary<Integer>', async () => {
         const resultStreamObserverMock = new ResultStreamObserverMock()
         const query = 'Query'
         const params = { a: 1 }
@@ -410,7 +410,7 @@ describe('resultTransformers', () => {
         const expectedError = newError('expected error')
         const result = new Result(Promise.reject(expectedError), 'query')
 
-        await expect(resultTransformers.eagerResultTransformer()(result)).rejects.toThrow(expectedError)
+        await expect(resultTransformers.summary()(result)).rejects.toThrow(expectedError)
       })
     })
   })
