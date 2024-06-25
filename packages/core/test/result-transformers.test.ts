@@ -330,10 +330,15 @@ describe('resultTransformers', () => {
         resultStreamObserverMock.onCompleted(meta)
         const summary = await resultTransformers.summary<number>()(result)
 
+        const typeAssertionNumber: ResultSummary<number> = summary
         // @ts-expect-error
         const typeAssertionInteger: ResultSummary<Integer> = summary
         // @ts-expect-error
         const typeAssertionBigInt: ResultSummary<bigint> = summary
+
+        expect(typeAssertionNumber).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
 
         expect(typeAssertionInteger).toEqual(
           new ResultSummary<Integer>(query, params, meta)
@@ -360,6 +365,7 @@ describe('resultTransformers', () => {
         resultStreamObserverMock.onCompleted(meta)
         const summary = await resultTransformers.summary<bigint>()(result)
 
+        const typeAssertionBigInt: ResultSummary<bigint> = summary
         // @ts-expect-error
         const typeAssertionNumber: ResultSummary<number> = summary
         // @ts-expect-error
@@ -370,6 +376,10 @@ describe('resultTransformers', () => {
         )
 
         expect(typeAssertionInteger).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+
+        expect(typeAssertionBigInt).toEqual(
           new ResultSummary<Integer>(query, params, meta)
         )
       })
@@ -390,10 +400,15 @@ describe('resultTransformers', () => {
         resultStreamObserverMock.onCompleted(meta)
         const summary = await resultTransformers.summary<Integer>()(result)
 
+        const typeAssertionInteger: ResultSummary<Integer> = summary
         // @ts-expect-error
         const typeAssertionNumber: ResultSummary<number> = summary
         // @ts-expect-error
         const typeAssertionBigInt: ResultSummary<bigint> = summary
+
+        expect(typeAssertionInteger).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
 
         expect(typeAssertionNumber).toEqual(
           new ResultSummary<Integer>(query, params, meta)
