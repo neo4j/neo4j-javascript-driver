@@ -20,7 +20,10 @@ import resultTransformers from '../src/result-transformers'
 import ResultStreamObserverMock from './utils/result-stream-observer.mock'
 
 describe('resultTransformers', () => {
-  describe('.eagerResultTransformer()', () => {
+  describe.each([
+    ['.eagerResultTransformer()', resultTransformers.eagerResultTransformer],
+    ['.eager()', resultTransformers.eager]
+  ])('%s', (_, transformerFactory) => {
     describe('with a valid result', () => {
       it('it should return an EagerResult', async () => {
         const resultStreamObserverMock = new ResultStreamObserverMock()
@@ -36,7 +39,7 @@ describe('resultTransformers', () => {
         resultStreamObserverMock.onNext(rawRecord2)
         resultStreamObserverMock.onCompleted(meta)
 
-        const eagerResult: EagerResult = await resultTransformers.eagerResultTransformer()(result)
+        const eagerResult: EagerResult = await transformerFactory()(result)
 
         expect(eagerResult.keys).toEqual(keys)
         expect(eagerResult.records).toEqual([
@@ -66,7 +69,7 @@ describe('resultTransformers', () => {
         resultStreamObserverMock.onNext(rawRecord1)
         resultStreamObserverMock.onNext(rawRecord2)
         resultStreamObserverMock.onCompleted(meta)
-        const eagerResult: EagerResult<Car> = await resultTransformers.eagerResultTransformer<Car>()(result)
+        const eagerResult: EagerResult<Car> = await transformerFactory<Car>()(result)
 
         expect(eagerResult.keys).toEqual(keys)
         expect(eagerResult.records).toEqual([
@@ -92,12 +95,15 @@ describe('resultTransformers', () => {
         const expectedError = newError('expected error')
         const result = new Result(Promise.reject(expectedError), 'query')
 
-        await expect(resultTransformers.eagerResultTransformer()(result)).rejects.toThrow(expectedError)
+        await expect(transformerFactory()(result)).rejects.toThrow(expectedError)
       })
     })
   })
 
-  describe('.mappedResultTransformer', () => {
+  describe.each([
+    ['.mappedResultTransformer', resultTransformers.mappedResultTransformer],
+    ['.mapped', resultTransformers.mapped]
+  ])('%s', (_, transformerFactory) => {
     describe('with a valid result', () => {
       it('should map and collect the result', async () => {
         const {
@@ -116,7 +122,7 @@ describe('resultTransformers', () => {
           ks: keys
         }))
 
-        const transform = resultTransformers.mappedResultTransformer({ map, collect })
+        const transform = transformerFactory({ map, collect })
 
         const { as, db, ks }: { as: number[], db: string | undefined | null, ks: string[] } = await transform(result)
 
@@ -146,7 +152,7 @@ describe('resultTransformers', () => {
 
         const map = jest.fn((record) => record.get('a') as number)
 
-        const transform = resultTransformers.mappedResultTransformer({ map })
+        const transform = transformerFactory({ map })
 
         const { records: as, summary, keys: receivedKeys }: { records: number[], summary: ResultSummary, keys: string[] } = await transform(result)
 
@@ -177,7 +183,7 @@ describe('resultTransformers', () => {
           ks: keys
         }))
 
-        const transform = resultTransformers.mappedResultTransformer({ collect })
+        const transform = transformerFactory({ collect })
 
         const { recordsFetched, db, ks }: { recordsFetched: number, db: string | undefined | null, ks: string[] } = await transform(result)
 
@@ -204,7 +210,7 @@ describe('resultTransformers', () => {
           return record.get('a') as number
         })
 
-        const transform = resultTransformers.mappedResultTransformer({ map })
+        const transform = transformerFactory({ map })
 
         const { records: as }: { records: number[] } = await transform(result)
 
@@ -224,7 +230,7 @@ describe('resultTransformers', () => {
         { Collect: () => {} }
       ])('should throw if miss-configured [config=%o]', (config) => {
         // @ts-expect-error
-        expect(() => resultTransformers.mappedResultTransformer(config))
+        expect(() => transformerFactory(config))
           .toThrow(newError('Requires a map or/and a collect functions.'))
       })
 
@@ -259,7 +265,7 @@ describe('resultTransformers', () => {
       it('should propagate the exception', async () => {
         const expectedError = newError('expected error')
         const result = new Result(Promise.reject(expectedError), 'query')
-        const transformer = resultTransformers.mappedResultTransformer({
+        const transformer = transformerFactory({
           collect: (records) => records
         })
 
