@@ -62,7 +62,7 @@ class ResultTransformers {
    * Creates a {@link ResultTransformer} which transforms {@link Result} to {@link EagerResult}
    * by consuming the whole stream.
    *
-   * This is the default implementation used in {@link Driver#executeQuery} and a alias to 
+   * This is the default implementation used in {@link Driver#executeQuery} and a alias to
    * {@link resultTransformers.eagerResultTransformer}
    *
    * @example
@@ -155,9 +155,9 @@ class ResultTransformers {
    * along with the {@link ResultSummary} and {@link Result#keys}.
    *
    * NOTE: The config object requires map or/and collect to be valid.
-   * 
+   *
    * This method is a alias to {@link ResultTransformers#mappedResultTransformer}
-   * 
+   *
    *
    * @example
    * // Mapping the records
@@ -287,19 +287,19 @@ async function createEagerResultFromResult<Entries extends RecordShape> (result:
   return new EagerResult<Entries>(keys, records, summary)
 }
 
-function createMappedResultTransformer<R = Record, T = { records: R[], keys: string[], summary: ResultSummary }>(config: { map?: (rec: Record) => R | undefined, collect?: (records: R[], summary: ResultSummary, keys: string[]) => T }): ResultTransformer<T> {
+function createMappedResultTransformer<R = Record, T = { records: R[], keys: string[], summary: ResultSummary }> (config: { map?: (rec: Record) => R | undefined, collect?: (records: R[], summary: ResultSummary, keys: string[]) => T }): ResultTransformer<T> {
   if (config == null || (config.collect == null && config.map == null)) {
     throw newError('Requires a map or/and a collect functions.')
   }
   return async (result: Result) => {
     return await new Promise((resolve, reject) => {
-      const state: { keys: string[]; records: R[]}  = { records: [], keys: [] }
+      const state: { keys: string[], records: R[] } = { records: [], keys: [] }
 
       result.subscribe({
-        onKeys(keys: string[]) {
+        onKeys (keys: string[]) {
           state.keys = keys
         },
-        onNext(record: Record) {
+        onNext (record: Record) {
           if (config.map != null) {
             const mappedRecord = config.map(record)
             if (mappedRecord !== undefined) {
@@ -309,7 +309,7 @@ function createMappedResultTransformer<R = Record, T = { records: R[], keys: str
             state.records.push(record as unknown as R)
           }
         },
-        onCompleted(summary: ResultSummary) {
+        onCompleted (summary: ResultSummary) {
           if (config.collect != null) {
             resolve(config.collect(state.records, summary, state.keys))
           } else {
@@ -317,7 +317,7 @@ function createMappedResultTransformer<R = Record, T = { records: R[], keys: str
             resolve(obj as unknown as T)
           }
         },
-        onError(error: Error) {
+        onError (error: Error) {
           reject(error)
         }
       })
