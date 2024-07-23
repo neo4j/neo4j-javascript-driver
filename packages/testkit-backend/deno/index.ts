@@ -1,4 +1,5 @@
 import {
+  configurableConsole,
   Context,
   createGetFeatures,
   CypherNativeBinders,
@@ -29,6 +30,7 @@ const logLevel = Deno.env.get("TEST_LOG_LEVEL");
 const createContext = () =>
   new Context(shouldRunTest, getFeatures, binder, logLevel);
 
+configurableConsole.install(logLevel);
 const listener = channel.listen(9876);
 const handle = controller.createHandler(neo4j, createContext, requestHandlers);
 

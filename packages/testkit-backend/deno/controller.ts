@@ -64,12 +64,14 @@ export function createHandler(
   ) {
     const context = newContext();
     const wire = newWire(context, (response) => {
-      console.log("response:", response);
+      console.log("response:", response.name);
+      console.debug(response.data);
       return reply(response);
     });
 
     for await (const request of requests()) {
-      console.log("request:", request);
+      console.log("request:", request.name);
+      console.debug(request.data);
       const { data, name } = request;
       if (!(name in requestHandlers)) {
         console.log("Unknown request: " + name);
