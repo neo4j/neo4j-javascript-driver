@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import v5x4 from './bolt-protocol-v5x4.transformer.js'
+import v5x5 from './bolt-protocol-v5x5.transformer'
 
 export default {
-  ...v5x4
+  ...v5x5
 }

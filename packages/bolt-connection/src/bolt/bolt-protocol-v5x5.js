@@ -147,7 +147,7 @@ export default class BoltProtocol extends BoltProtocolV5x4 {
       afterComplete,
       highRecordWatermark,
       lowRecordWatermark,
-      enrichMetadata: BoltProtocol._enrichMetadata
+      enrichMetadata: this._enrichMetadata
     })
 
     const flushRun = reactive
@@ -176,10 +176,11 @@ export default class BoltProtocol extends BoltProtocolV5x4 {
    * @param {object} metadata
    * @returns {object}
    */
-  static _enrichMetadata (metadata) {
+  _enrichMetadata (metadata) {
     if (Array.isArray(metadata.statuses)) {
       metadata.statuses = metadata.statuses.map(status => ({
         ...status,
+        description: status.neo4j_code != null ? status.status_description : status.description,
         diagnostic_record: status.diagnostic_record !== null ? { ...DEFAULT_DIAGNOSTIC_RECORD, ...status.diagnostic_record } : null
       }))
     }
