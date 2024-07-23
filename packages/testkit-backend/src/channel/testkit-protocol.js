@@ -62,14 +62,16 @@ export default class Protocol extends EventEmitter {
 
   serializeResponse (response) {
     const responseStr = stringify(response)
-    console.log('> writing response', responseStr)
+    console.log('> writing response', response.name)
+    console.debug(responseStr)
     return ['#response begin', responseStr, '#response end'].join('\n') + '\n'
   }
 
   _emitRequest () {
     const request = JSON.parse(this._request)
     const { name, data } = request
-    console.log('> Got request ' + name, data)
+    console.log('> Got request ' + name)
+    console.debug(data)
     this.emit('request', { name, data })
   }
 }

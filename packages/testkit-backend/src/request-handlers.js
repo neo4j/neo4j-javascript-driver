@@ -1,4 +1,5 @@
 import * as responses from './responses.js'
+import configurableConsole from './console.configurable.js'
 
 export function throwFrontendError () {
   throw new Error('TestKit FrontendError')
@@ -376,6 +377,9 @@ export function StartTest (_, context, { testName }, wire) {
   } else {
     context.logLevel = null
   }
+
+  configurableConsole.setLevel(context.logLevel || context.environmentLogLevel)
+
   const shouldRunTest = context.getShouldRunTestFunction()
   shouldRunTest(testName, {
     onRun: () => {
