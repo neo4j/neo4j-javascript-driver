@@ -405,7 +405,7 @@ function polyfillNotification (status: any): Notification | undefined {
   return new Notification({
     code: status.neo4j_code,
     title: status.title,
-    description: status.status_description,
+    description: status.description,
     severity: status.diagnostic_record?._severity,
     category: status.diagnostic_record?._classification,
     position: status.diagnostic_record?._position

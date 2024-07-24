@@ -30,6 +30,7 @@ import BoltProtocolV5x2 from './bolt-protocol-v5x2.js'
 import BoltProtocolV5x3 from './bolt-protocol-v5x3.js'
 import BoltProtocolV5x4 from './bolt-protocol-v5x4.js'
 import BoltProtocolV5x5 from './bolt-protocol-v5x5.js'
+import BoltProtocolV5x6 from './bolt-protocol-v5x6.js'
 // eslint-disable-next-line no-unused-vars
 import { Chunker, Dechunker } from '../channel/index.js'
 import ResponseHandler from './response-handler.js'
@@ -232,6 +233,14 @@ function createProtocol (
         serversideRouting)
     case 5.5:
       return new BoltProtocolV5x5(server,
+        chunker,
+        packingConfig,
+        createResponseHandler,
+        log,
+        onProtocolError,
+        serversideRouting)
+    case 5.6:
+      return new BoltProtocolV5x6(server,
         chunker,
         packingConfig,
         createResponseHandler,

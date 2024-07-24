@@ -25,6 +25,7 @@ const features = [
   'Feature:Bolt:5.3',
   'Feature:Bolt:5.4',
   'Feature:Bolt:5.5',
+  'Feature:Bolt:5.6',
   'Feature:Bolt:Patch:UTC',
   'Feature:API:ConnectionAcquisitionTimeout',
   'Feature:API:Driver.ExecuteQuery',

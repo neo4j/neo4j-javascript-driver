@@ -108,6 +108,7 @@ describe('Notification', () => {
         neo4j_code: 'Neo.Notification.Warning.Code',
         gql_status: '01N42',
         status_description: 'Description',
+        description: 'the notification description',
         title: 'Notification Title',
         diagnostic_record: {
           OPERATION: '',
@@ -129,7 +130,7 @@ describe('Notification', () => {
       expect(notification).toEqual(new Notification({
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
-        description: 'Description',
+        description: 'the notification description',
         severity: 'WARNING',
         position: {
           offset: 0,
@@ -146,6 +147,7 @@ describe('Notification', () => {
         gql_status: '03N42',
         title: 'Notification Title',
         status_description: 'Description',
+        description: 'the notification description',
         diagnostic_record: {
           OPERATION: '',
           OPERATION_CODE: '0',
@@ -166,7 +168,7 @@ describe('Notification', () => {
       expect(notification).toEqual(new Notification({
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
-        description: 'Description',
+        description: 'the notification description',
         severity: 'INFORMATION',
         position: {
           offset: 0,
@@ -189,6 +191,7 @@ describe('Notification', () => {
         gql_status: '03N42',
         title: 'Notification Title',
         status_description: 'Description',
+        description: 'the notification description',
         diagnostic_record: {
           OPERATION: '',
           OPERATION_CODE: '0',
@@ -209,7 +212,7 @@ describe('Notification', () => {
       expect(notification).toEqual(new Notification({
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
-        description: 'Description',
+        description: 'the notification description',
         severity,
         position: {
           offset: 1,
@@ -225,7 +228,8 @@ describe('Notification', () => {
         neo4j_code: 'Neo.Notification.Warning.Code',
         gql_status: '03N42',
         title: 'Notification Title',
-        status_description: 'Description'
+        status_description: 'Description',
+        description: 'the notification description'
       }
 
       const notification = polyfillNotification(status)
@@ -233,7 +237,7 @@ describe('Notification', () => {
       expect(notification).toEqual(new Notification({
         code: 'Neo.Notification.Warning.Code',
         title: 'Notification Title',
-        description: 'Description'
+        description: 'the notification description'
       }))
     })
   })
