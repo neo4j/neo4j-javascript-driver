@@ -20,6 +20,9 @@ import { Neo4jError, newError } from '../error'
 import { assertNumberOrInteger } from './util'
 import { NumberOrInteger } from '../graph-types'
 
+const dateTimeFormatCache = new Map<string, Intl.DateTimeFormat>()
+const timeZoneValidityCache = new Map<string, boolean>()
+
 /*
   Code in this util should be compatible with code in the database that uses JSR-310 java.time APIs.
 
@@ -428,7 +431,6 @@ export function assertValidNanosecond (
   )
 }
 
-const timeZoneValidityCache = new Map<string, boolean>()
 const newInvalidZoneIdError = (zoneId: string, fieldName: string): Neo4jError => newError(
   `${fieldName} is expected to be a valid ZoneId but was: "${zoneId}"`
 )
@@ -613,6 +615,124 @@ function formatYear (year: NumberOrInteger | string): string {
     return formatNumber(yearInteger, 6, { usePositiveSign: true })
   }
   return formatNumber(yearInteger, 4)
+}
+
+/**
+ * Returns the offset for a given timezone id
+ *
+ * Javascript doesn't have support for direct getting the timezone offset from a given
+ * TimeZoneId and DateTime in the given TimeZoneId. For solving this issue,
+ *
+ * 1. The ZoneId is applied to the timestamp, so we could make the difference between the
+ * given timestamp and the new calculated one. This is the offset for the timezone
+ * in the utc is equal to epoch (some time in the future or past)
+ * 2. The offset is subtracted from the timestamp, so we have an estimated utc timestamp.
+ * 3. The ZoneId is applied to the new timestamp, se we could could make the difference
+ * between the new timestamp and the calculated one. This is the offset for the given timezone.
+ *
+ * Example:
+ *    Input: 2022-3-27 1:59:59 'Europe/Berlin'
+ *    Apply 1, 2022-3-27 1:59:59 => 2022-3-27 3:59:59 'Europe/Berlin' +2:00
+ *    Apply 2, 2022-3-27 1:59:59 - 2:00 => 2022-3-26 23:59:59
+ *    Apply 3, 2022-3-26 23:59:59 => 2022-3-27 00:59:59 'Europe/Berlin' +1:00
+ *  The offset is +1 hour.
+ *
+ * @param {string} timeZoneId The timezone id
+ * @param {Integer} epochSecond The epoch second in the timezone id
+ * @param {Integerable} nanosecond The nanoseconds in the timezone id
+ * @returns The timezone offset
+ */
+export function getOffsetFromZoneId (timeZoneId: string, epochSecond: Integer, nanosecond: Integer | bigint | number): Integer {
+  const dateTimeWithZoneAppliedTwice = getTimeInZoneId(timeZoneId, epochSecond, nanosecond)
+
+  // The wallclock form the current date time
+  const epochWithZoneAppliedTwice = localDateTimeToEpochSecond(
+    dateTimeWithZoneAppliedTwice.year,
+    dateTimeWithZoneAppliedTwice.month,
+    dateTimeWithZoneAppliedTwice.day,
+    dateTimeWithZoneAppliedTwice.hour,
+    dateTimeWithZoneAppliedTwice.minute,
+    dateTimeWithZoneAppliedTwice.second,
+    nanosecond)
+
+  const offsetOfZoneInTheFutureUtc = epochWithZoneAppliedTwice.subtract(epochSecond)
+  const guessedUtc = epochSecond.subtract(offsetOfZoneInTheFutureUtc)
+
+  const zonedDateTimeFromGuessedUtc = getTimeInZoneId(timeZoneId, guessedUtc, nanosecond)
+
+  const zonedEpochFromGuessedUtc = localDateTimeToEpochSecond(
+    zonedDateTimeFromGuessedUtc.year,
+    zonedDateTimeFromGuessedUtc.month,
+    zonedDateTimeFromGuessedUtc.day,
+    zonedDateTimeFromGuessedUtc.hour,
+    zonedDateTimeFromGuessedUtc.minute,
+    zonedDateTimeFromGuessedUtc.second,
+    nanosecond)
+
+  const offset = zonedEpochFromGuessedUtc.subtract(guessedUtc)
+  return offset
+}
+
+export function getDateTimeFormatForZoneId (timeZoneId: string): Intl.DateTimeFormat {
+  const formatter = dateTimeFormatCache.get(timeZoneId) ?? new Intl.DateTimeFormat('en-US', {
+    timeZone: timeZoneId,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false,
+    era: 'narrow'
+  })
+
+  if (!dateTimeFormatCache.has(timeZoneId)) {
+    dateTimeFormatCache.set(timeZoneId, formatter)
+  }
+
+  return formatter
+}
+
+export function getTimeInZoneId (timeZoneId: string, epochSecond: Integer, nano: bigint | Integer | number): any {
+  const formatter = getDateTimeFormatForZoneId(timeZoneId)
+
+  const utc = int(epochSecond)
+    .multiply(1000)
+    .add(int(nano).div(1_000_000))
+    .toNumber()
+
+  const formattedUtcParts = formatter.formatToParts(utc)
+
+  const localDateTime = formattedUtcParts.reduce<any>((obj, currentValue) => {
+    if (currentValue.type === 'era') {
+      obj.adjustEra =
+        currentValue.value.toUpperCase() === 'B'
+          ? (year: Integer) => year.subtract(1).negate() // 1BC equals to year 0 in astronomical year numbering
+          : (i: any) => i
+    } else if (currentValue.type === 'hour') {
+      obj.hour = int(currentValue.value).modulo(24)
+    } else if (currentValue.type !== 'literal') {
+      obj[currentValue.type] = int(currentValue.value)
+    }
+    return obj
+  }, {})
+
+  localDateTime.year = localDateTime.adjustEra(localDateTime.year)
+
+  const epochInTimeZone = localDateTimeToEpochSecond(
+    localDateTime.year,
+    localDateTime.month,
+    localDateTime.day,
+    localDateTime.hour,
+    localDateTime.minute,
+    localDateTime.second,
+    localDateTime.nanosecond
+  )
+
+  localDateTime.timeZoneOffsetSeconds = epochInTimeZone.subtract(epochSecond)
+  localDateTime.hour = localDateTime.hour.modulo(24)
+
+  return localDateTime
 }
 
 /**

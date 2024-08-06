@@ -162,6 +162,38 @@ describe('DateTime', () => {
       )
     })
   })
+
+  describe('.toString()', () => {
+    it('should stringify to iso string (offset + zone id)', () => {
+      const datetime = new DateTime(2022, 6, 16, 11, 19, 25, 4000004, 2 * 60 * 60, 'Europe/Stockholm')
+
+      const stringified = datetime.toString()
+
+      expect(stringified).toEqual(
+        '2022-06-16T11:19:25.004000004+02:00[Europe/Stockholm]'
+      )
+    })
+
+    it('should stringify to iso string (offset)', () => {
+      const datetime = new DateTime(2020, 12, 15, 12, 2, 3, 4000000, 60 * 60)
+
+      const stringified = datetime.toString()
+
+      expect(stringified).toEqual(
+        '2020-12-15T12:02:03.004000000+01:00'
+      )
+    })
+
+    it('should stringify to iso string (zoneid)', () => {
+      const datetime = new DateTime(2020, 12, 15, 12, 2, 3, 4000000, undefined, 'Europe/Stockholm')
+
+      const stringified = datetime.toString()
+
+      expect(stringified).toEqual(
+        '2020-12-15T12:02:03.004000000+01:00[Europe/Stockholm]'
+      )
+    })
+  })
 })
 
 describe('isDuration', () => {

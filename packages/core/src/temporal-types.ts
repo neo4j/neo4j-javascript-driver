@@ -682,9 +682,23 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       this.nanosecond
     )
 
-    const timeOffset = this.timeZoneOffsetSeconds != null
-      ? util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds ?? 0)
-      : ''
+    let offsetInSeconds: NumberOrInteger | undefined = this.timeZoneOffsetSeconds
+
+    if (offsetInSeconds == null) {
+      const epochSecond = util.localDateTimeToEpochSecond(
+        this.year,
+        this.month,
+        this.day,
+        this.hour,
+        this.minute,
+        this.second,
+        this.nanosecond
+      )
+
+      offsetInSeconds = util.getOffsetFromZoneId(this.timeZoneId ?? '', epochSecond, this.nanosecond)
+    }
+
+    const timeOffset = util.timeZoneOffsetToIsoString(offsetInSeconds)
 
     const timeZoneStr = this.timeZoneId != null
       ? `[${this.timeZoneId}]`
