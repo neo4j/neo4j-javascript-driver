@@ -431,7 +431,6 @@ export function assertValidNanosecond (
   )
 }
 
-
 const newInvalidZoneIdError = (zoneId: string, fieldName: string): Neo4jError => newError(
   `${fieldName} is expected to be a valid ZoneId but was: "${zoneId}"`
 )
@@ -675,7 +674,7 @@ export function getOffsetFromZoneId (timeZoneId: string, epochSecond: Integer, n
 }
 
 export function getDateTimeFormatForZoneId (timeZoneId: string): Intl.DateTimeFormat {
-  let formatter = dateTimeFormatCache.get(timeZoneId) ?? new Intl.DateTimeFormat('en-US', {
+  const formatter = dateTimeFormatCache.get(timeZoneId) ?? new Intl.DateTimeFormat('en-US', {
     timeZone: timeZoneId,
     year: 'numeric',
     month: 'numeric',
@@ -694,7 +693,7 @@ export function getDateTimeFormatForZoneId (timeZoneId: string): Intl.DateTimeFo
   return formatter
 }
 
-export function getTimeInZoneId (timeZoneId: string, epochSecond: Integer, nano: bigint | Integer | number ): any {
+export function getTimeInZoneId (timeZoneId: string, epochSecond: Integer, nano: bigint | Integer | number): any {
   const formatter = getDateTimeFormatForZoneId(timeZoneId)
 
   const utc = int(epochSecond)
@@ -704,7 +703,7 @@ export function getTimeInZoneId (timeZoneId: string, epochSecond: Integer, nano:
 
   const formattedUtcParts = formatter.formatToParts(utc)
 
-  const localDateTime = formattedUtcParts.reduce((obj, currentValue) => {
+  const localDateTime = formattedUtcParts.reduce<any>((obj, currentValue) => {
     if (currentValue.type === 'era') {
       obj.adjustEra =
         currentValue.value.toUpperCase() === 'B'
@@ -716,7 +715,7 @@ export function getTimeInZoneId (timeZoneId: string, epochSecond: Integer, nano:
       obj[currentValue.type] = int(currentValue.value)
     }
     return obj
-  }, {} as any)
+  }, {})
 
   localDateTime.year = localDateTime.adjustEra(localDateTime.year)
 

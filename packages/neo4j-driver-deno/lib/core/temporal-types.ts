@@ -697,7 +697,6 @@ export class DateTime<T extends NumberOrInteger = Integer> {
 
       offsetInSeconds = util.getOffsetFromZoneId(this.timeZoneId ?? '', epochSecond, this.nanosecond)
     }
-      
 
     const timeOffset = util.timeZoneOffsetToIsoString(offsetInSeconds)
 
