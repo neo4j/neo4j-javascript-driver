@@ -627,7 +627,7 @@ describe('#integration temporal-types', () => {
         15000000,
         'Europe/Zaporozhye'
       ).toString()
-    ).toEqual('1949-10-07T06:10:15.015000000[Europe/Zaporozhye]')
+    ).toEqual('1949-10-07T06:10:15.015000000+03:00[Europe/Zaporozhye]')
     expect(
       dateTimeWithZoneId(
         -30455,
@@ -639,7 +639,7 @@ describe('#integration temporal-types', () => {
         123,
         'Asia/Yangon'
       ).toString()
-    ).toEqual('-030455-05-05T12:24:10.000000123[Asia/Yangon]')
+    ).toEqual('-030455-05-05T12:24:10.000000123+06:24:47[Asia/Yangon]')
   }, 90000)
 
   it('should expose local time components in time', () => {
