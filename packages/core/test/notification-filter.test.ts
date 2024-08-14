@@ -103,6 +103,7 @@ function getValidNotificationsCategories (): NotificationFilterDisabledCategory[
     'PERFORMANCE',
     'TOPOLOGY',
     'SECURITY',
+    'SCHEMA',
     'UNRECOGNIZED',
     'UNSUPPORTED'
   ]

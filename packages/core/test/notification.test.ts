@@ -1393,6 +1393,7 @@ function getValidCategories (): NotificationCategory[] {
     'TOPOLOGY',
     'SECURITY',
     'DEPRECATION',
+    'SCHEMA',
     'GENERIC',
     'UNKNOWN'
   ]
@@ -1407,6 +1408,7 @@ function getValidClassifications (): NotificationClassification[] {
     'TOPOLOGY',
     'SECURITY',
     'DEPRECATION',
+    'SCHEMA',
     'GENERIC',
     'UNKNOWN'
   ]
