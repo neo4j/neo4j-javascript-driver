@@ -30,15 +30,15 @@ export default class PoolConfig {
     )
   }
 
-  static defaultConfig () {
+  static defaultConfig (): PoolConfig {
     return new PoolConfig(DEFAULT_MAX_SIZE, DEFAULT_ACQUISITION_TIMEOUT)
   }
 
-  static fromDriverConfig (config: { maxConnectionPoolSize?: number, connectionAcquisitionTimeout?: number} ) {
+  static fromDriverConfig (config: { maxConnectionPoolSize?: number, connectionAcquisitionTimeout?: number }): PoolConfig {
     const maxSize = isConfigured(config.maxConnectionPoolSize)
       ? config.maxConnectionPoolSize
       : DEFAULT_MAX_SIZE
-      
+
     const acquisitionTimeout = isConfigured(
       config.connectionAcquisitionTimeout
     )
@@ -49,8 +49,8 @@ export default class PoolConfig {
   }
 }
 
-function valueOrDefault (value: number | undefined, defaultValue: number) {
-  return value === 0 || value ? value : defaultValue
+function valueOrDefault (value: number | undefined, defaultValue: number): number {
+  return isConfigured(value) ? value : defaultValue
 }
 
 function isConfigured (value?: number): value is number {
