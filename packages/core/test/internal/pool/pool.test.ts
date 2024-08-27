@@ -15,13 +15,10 @@
  * limitations under the License.
  */
 
-import Pool from '../../src/pool/pool'
-import PoolConfig from '../../src/pool/pool-config'
-import { newError, error, internal } from 'neo4j-driver-core'
-
-const {
-  serverAddress: { ServerAddress }
-} = internal
+import Pool from '../../../src/internal/pool/pool'
+import PoolConfig from '../../../src/internal/pool/pool-config'
+import { ServerAddress } from '../../../src/internal/server-address'
+import { newError, error } from '../../../src'
 
 const { SERVICE_UNAVAILABLE } = error
 
@@ -31,7 +28,7 @@ describe('#unit Pool', () => {
     let counter = 0
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     const pool = new Pool({
-      create: (_, server, release) =>
+      create: (_: unknown, server: ServerAddress, release: (address: ServerAddress, resource: unknown) => Promise<void> ) =>
         Promise.resolve(new Resource(server, counter++, release))
     })
 

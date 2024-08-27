@@ -16,13 +16,47 @@
  */
 
 import PoolConfig from './pool-config'
-import { newError, internal } from 'neo4j-driver-core'
+import { newError } from '../../error'
+import { Logger } from '../logger'
+import { ServerAddress } from '../server-address'
 
-const {
-  logger: { Logger }
-} = internal
+
+type Release = (address: ServerAddress, resource: unknown) => Promise<void>
+type Create = (acquisitionContext: unknown, address: ServerAddress, release: Release) => Promise<unknown>
+type Destroy = (resource: unknown) => Promise<void>
+type ValidateOnAcquire = (acquisitionContext: unknown, resource: unknown) => Promise<boolean> | boolean
+type ValidateOnRelease = (resource: unknown) => Promise<boolean> | boolean
+type InstallObserver = (resource: unknown, observer: unknown) => void
+type RemoveObserver = (resource: unknown) => void
+type AcquisitionConfig = { requireNew?: boolean }
+
+type ConstructorParam = {
+  create?: Create
+  destroy?: Destroy
+  validateOnAcquire?: ValidateOnAcquire
+  validateOnRelease?: ValidateOnRelease
+  installIdleObserver?: InstallObserver
+  removeIdleObserver?: RemoveObserver
+  config?: PoolConfig
+  log?: Logger
+}
 
 class Pool {
+  private readonly _create: Create
+  private readonly _destroy: Destroy
+  private readonly _validateOnAcquire: ValidateOnAcquire
+  private readonly _validateOnRelease: ValidateOnRelease
+  private readonly _installIdleObserver: InstallObserver
+  private readonly _removeIdleObserver: RemoveObserver
+  private readonly _maxSize: number
+  private readonly _acquisitionTimeout: number
+  private readonly _log: Logger
+  private readonly _pools: { [key: string]: SingleAddressPool }
+  private readonly _pendingCreates: { [key: string]: number }
+  private readonly _acquireRequests: { [key: string]: PendingRequest[] }
+  private readonly _activeResourceCounts: { [key: string]: number }
+  private _closed: boolean
+
   /**
    * @param {function(acquisitionContext: object, address: ServerAddress, function(address: ServerAddress, resource: object): Promise<object>): Promise<object>} create
    *                an allocation function that creates a promise with a new resource. It's given an address for which to
@@ -52,7 +86,7 @@ class Pool {
     removeIdleObserver = conn => {},
     config = PoolConfig.defaultConfig(),
     log = Logger.noOp()
-  } = {}) {
+  }: ConstructorParam) {
     this._create = create
     this._destroy = destroy
     this._validateOnAcquire = validateOnAcquire
@@ -78,7 +112,7 @@ class Pool {
    * @param {boolean} config.requireNew Indicate it requires a new resource
    * @return {Promise<Object>} resource that is ready to use.
    */
-  acquire (acquisitionContext, address, config) {
+  acquire (acquisitionContext: unknown, address: ServerAddress, config?: AcquisitionConfig): Promise<unknown> {
     const key = address.asKey()
 
     // We're out of resources and will try to acquire later on when an existing resource is released.
@@ -88,7 +122,7 @@ class Pool {
       allRequests[key] = []
     }
     return new Promise((resolve, reject) => {
-      let request = null
+      let request: PendingRequest | undefined
 
       const timeoutId = setTimeout(() => {
         // acquisition timeout fired
@@ -100,13 +134,13 @@ class Pool {
           allRequests[key] = pendingRequests.filter(item => item !== request)
         }
 
-        if (request.isCompleted()) {
+        if (request?.isCompleted()) {
           // request already resolved/rejected by the release operation; nothing to do
         } else {
           // request is still pending and needs to be failed
           const activeCount = this.activeResourceCount(address)
           const idleCount = this.has(address) ? this._pools[key].length : 0
-          request.reject(
+          request?.reject(
             newError(
               `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
             )
@@ -126,11 +160,11 @@ class Pool {
    * @param {ServerAddress} address the address of the server to purge its pool.
    * @returns {Promise<void>} A promise that is resolved when the resources are purged
    */
-  purge (address) {
+  purge (address: ServerAddress): Promise<void> {
     return this._purgeKey(address.asKey())
   }
 
-  apply (address, resourceConsumer) {
+  apply (address: ServerAddress, resourceConsumer: (resource: unknown) => void): void {
     const key = address.asKey()
 
     if (key in this._pools) {
@@ -142,12 +176,12 @@ class Pool {
    * Destroy all idle resources in this pool.
    * @returns {Promise<void>} A promise that is resolved when the resources are purged
    */
-  async close () {
+  async close (): Promise<void> {
     this._closed = true
     /**
      * The lack of Promise consuming was making the driver do not close properly in the scenario
      * captured at result.test.js:it('should handle missing onCompleted'). The test was timing out
-     * because while wainting for the driver close.
+     * because while waiting for the driver close.
      *
      * Consuming the Promise.all or by calling then or by awaiting in the result inside this method solved
      * the issue somehow.
@@ -157,19 +191,19 @@ class Pool {
      */
     return await Promise.all(
       Object.keys(this._pools).map(key => this._purgeKey(key))
-    )
+    ).then()
   }
 
   /**
    * Keep the idle resources for the provided addresses and purge the rest.
    * @returns {Promise<void>} A promise that is resolved when the other resources are purged
    */
-  keepAll (addresses) {
+  async keepAll (addresses: ServerAddress[]): Promise<void> {
     const keysToKeep = addresses.map(a => a.asKey())
     const keysPresent = Object.keys(this._pools)
     const keysToPurge = keysPresent.filter(k => keysToKeep.indexOf(k) === -1)
 
-    return Promise.all(keysToPurge.map(key => this._purgeKey(key)))
+    return await Promise.all(keysToPurge.map(key => this._purgeKey(key))).then()
   }
 
   /**
@@ -177,7 +211,7 @@ class Pool {
    * @param {ServerAddress} address the address of the server to check.
    * @return {boolean} `true` when pool contains entries for the given key, <code>false</code> otherwise.
    */
-  has (address) {
+  has (address: ServerAddress): boolean {
     return address.asKey() in this._pools
   }
 
@@ -186,11 +220,11 @@ class Pool {
    * @param {ServerAddress} address the address of the server to check.
    * @return {number} count of resources acquired by clients.
    */
-  activeResourceCount (address) {
+  activeResourceCount (address: ServerAddress): number {
     return this._activeResourceCounts[address.asKey()] || 0
   }
 
-  _getOrInitializePoolFor (key) {
+  _getOrInitializePoolFor (key: string): SingleAddressPool {
     let pool = this._pools[key]
     if (!pool) {
       pool = new SingleAddressPool()
@@ -200,7 +234,7 @@ class Pool {
     return pool
   }
 
-  async _acquire (acquisitionContext, address, requireNew) {
+  async _acquire (acquisitionContext: unknown, address: ServerAddress, requireNew: boolean): Promise<{ resource: unknown, pool: SingleAddressPool }> {
     if (this._closed) {
       throw newError('Pool is closed, it is no more able to serve requests.')
     }
@@ -269,7 +303,7 @@ class Pool {
     return { resource, pool }
   }
 
-  async _release (address, resource, pool) {
+  async _release (address: ServerAddress, resource: unknown, pool: SingleAddressPool): Promise<void> {
     const key = address.asKey()
 
     try {
@@ -286,7 +320,7 @@ class Pool {
         } else {
           if (this._installIdleObserver) {
             this._installIdleObserver(resource, {
-              onError: error => {
+              onError: (error: Error) => {
                 this._log.debug(
                   `Idle connection ${resource} destroyed because of error: ${error}`
                 )
@@ -324,7 +358,7 @@ class Pool {
     }
   }
 
-  async _purgeKey (key) {
+  async _purgeKey (key: string): Promise<void> {
     const pool = this._pools[key]
     const destructionList = []
     if (pool) {
@@ -341,7 +375,7 @@ class Pool {
     }
   }
 
-  _processPendingAcquireRequests (address) {
+  _processPendingAcquireRequests (address: ServerAddress): void {
     const key = address.asKey()
     const requests = this._acquireRequests[key]
     if (requests) {
@@ -390,7 +424,7 @@ class Pool {
  * @param {string} key the resource group identifier (server address for connections).
  * @param {Object.<string, number>} activeResourceCounts the object holding active counts per key.
  */
-function resourceAcquired (key, activeResourceCounts) {
+function resourceAcquired (key: string, activeResourceCounts: { [key: string]: number }): void {
   const currentCount = activeResourceCounts[key] || 0
   activeResourceCounts[key] = currentCount + 1
 }
@@ -400,7 +434,7 @@ function resourceAcquired (key, activeResourceCounts) {
  * @param {string} key the resource group identifier (server address for connections).
  * @param {Object.<string, number>} activeResourceCounts the object holding active counts per key.
  */
-function resourceReleased (key, activeResourceCounts) {
+function resourceReleased (key: string, activeResourceCounts: { [key: string]: number }): void {
   const currentCount = activeResourceCounts[key] || 0
   const nextCount = currentCount - 1
 
@@ -412,7 +446,16 @@ function resourceReleased (key, activeResourceCounts) {
 }
 
 class PendingRequest {
-  constructor (key, context, config, resolve, reject, timeoutId, log) {
+  private readonly _key: string
+  private readonly _context: unknown
+  private readonly _config: AcquisitionConfig
+  private readonly _resolve: (resource: unknown) => void
+  private readonly _reject: (error: Error) => void
+  private readonly _timeoutId: number
+  private readonly _log: Logger
+  private _completed: boolean
+
+  constructor (key: string, context: unknown, config: AcquisitionConfig | undefined, resolve: (resource: unknown) => void, reject: (error: Error) => void, timeoutId: number, log: Logger) {
     this._key = key
     this._context = context
     this._resolve = resolve
@@ -435,12 +478,13 @@ class PendingRequest {
     return this._completed
   }
 
-  resolve (resource) {
+  resolve (resource: unknown) {
     if (this._completed) {
       return
     }
     this._completed = true
 
+    // @ts-expect-error
     clearTimeout(this._timeoutId)
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${resource} acquired from the pool ${this._key}`)
@@ -448,18 +492,23 @@ class PendingRequest {
     this._resolve(resource)
   }
 
-  reject (error) {
+  reject (error: Error) {
     if (this._completed) {
       return
     }
     this._completed = true
 
+    // @ts-expect-error
     clearTimeout(this._timeoutId)
     this._reject(error)
   }
 }
 
 class SingleAddressPool {
+  private _active: boolean
+  private _elements: unknown[]
+  private _elementsInUse: Set<unknown>
+
   constructor () {
     this._active = true
     this._elements = []
@@ -476,12 +525,12 @@ class SingleAddressPool {
     this._elementsInUse = new Set()
   }
 
-  filter (predicate) {
+  filter (predicate: (resource: unknown) => boolean) {
     this._elements = this._elements.filter(predicate)
     return this
   }
 
-  apply (resourceConsumer) {
+  apply (resourceConsumer: (resource: unknown) => void) {
     this._elements.forEach(resourceConsumer)
     this._elementsInUse.forEach(resourceConsumer)
   }
@@ -490,22 +539,22 @@ class SingleAddressPool {
     return this._elements.length
   }
 
-  pop () {
+  pop (): unknown {
     const element = this._elements.pop()
     this._elementsInUse.add(element)
     return element
   }
 
-  push (element) {
+  push (element: unknown): number {
     this._elementsInUse.delete(element)
     return this._elements.push(element)
   }
 
-  pushInUse (element) {
+  pushInUse (element: unknown): void {
     this._elementsInUse.add(element)
   }
 
-  removeInUse (element) {
+  removeInUse (element: unknown): void {
     this._elementsInUse.delete(element)
   }
 }
