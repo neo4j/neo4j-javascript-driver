@@ -144,7 +144,12 @@ class Pool<R extends unknown = unknown> {
           )
         }
       }, this._acquisitionTimeout)
-      typeof timeoutId === 'object' && timeoutId.unref()
+
+      if (typeof timeoutId === 'object') {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        timeoutId.unref()
+      }
 
       const request = new PendingRequest<R>(key, acquisitionContext, config, resolve, reject, timeoutId, this._log)
       allRequests[key].push(request)

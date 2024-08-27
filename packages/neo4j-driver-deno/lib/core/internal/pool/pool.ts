@@ -144,7 +144,11 @@ class Pool<R extends unknown = unknown> {
           )
         }
       }, this._acquisitionTimeout)
-      typeof timeoutId === 'object' && timeoutId.unref()
+
+      if (typeof timeoutId === 'object') {
+        // @ts-ignore
+        timeoutId.unref()
+      }
 
       const request = new PendingRequest<R>(key, acquisitionContext, config, resolve, reject, timeoutId, this._log)
       allRequests[key].push(request)
