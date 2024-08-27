@@ -146,8 +146,8 @@ class Pool<R extends unknown = unknown> {
       }, this._acquisitionTimeout)
 
       if (typeof timeoutId === 'object') {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
+        // eslint-disable-next-line
+        // @ts-ignore
         timeoutId.unref()
       }
 
