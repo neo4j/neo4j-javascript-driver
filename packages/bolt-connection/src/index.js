@@ -20,6 +20,5 @@ export * as bolt from './bolt'
 export * as buf from './buf'
 export * as channel from './channel'
 export * as packstream from './packstream'
-export * as pool from './pool'
 
 export * from './connection-provider'
