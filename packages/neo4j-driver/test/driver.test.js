@@ -18,15 +18,12 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import lolex from 'lolex'
-import {
-  DEFAULT_ACQUISITION_TIMEOUT,
-  DEFAULT_MAX_SIZE
-} from '../../bolt-connection/lib/pool/pool-config'
 import testUtils from './internal/test-utils'
 import { json, internal, bookmarkManager } from 'neo4j-driver-core'
 
 const {
-  bookmarks: { Bookmarks }
+  bookmarks: { Bookmarks },
+  pool: { DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE }
 } = internal
 
 // As long as driver creation doesn't touch the network it's fine to run
