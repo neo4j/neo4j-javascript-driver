@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import PoolConfig, {
-  DEFAULT_ACQUISITION_TIMEOUT,
-  DEFAULT_MAX_SIZE
-} from '../../../bolt-connection/lib/pool/pool-config'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  pool: { DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE, PoolConfig }
+} = internal
 
 describe('#unit PoolConfig', () => {
   let originalConsoleWarn

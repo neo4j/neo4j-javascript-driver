@@ -27,7 +27,6 @@ import {
   authTokenManagers
 } from 'neo4j-driver-core'
 import { RoutingTable } from '../../src/rediscovery/'
-import { Pool } from '../../src/pool'
 import SimpleHostNameResolver from '../../src/channel/browser/browser-host-name-resolver'
 import RoutingConnectionProvider from '../../src/connection-provider/connection-provider-routing'
 import { DelegateConnection, Connection } from '../../src/connection'
@@ -37,7 +36,8 @@ import LivenessCheckProvider from '../../src/connection-provider/liveness-check-
 
 const {
   serverAddress: { ServerAddress },
-  logger: { Logger }
+  logger: { Logger },
+  pool: { Pool }
 } = internal
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error

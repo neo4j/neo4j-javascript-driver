@@ -18,8 +18,8 @@
 import PoolConfig, {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
-} from './pool-config.js'
-import Pool from './pool.js'
+} from './pool-config.ts'
+import Pool from './pool.ts'
 
 export default Pool
 export { Pool, PoolConfig, DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE }
