@@ -268,8 +268,6 @@ export default class NodeChannel {
             self.onmessage(new ChannelBuffer(buffer))
           }
         })
-
-        self._conn.on('error', self._handleConnectionError)
         self._conn.on('end', self._handleConnectionTerminated)
 
         // Drain all pending messages
