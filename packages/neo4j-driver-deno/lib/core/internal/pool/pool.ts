@@ -251,19 +251,32 @@ class Pool<R extends unknown = unknown> {
           continue
         }
 
+        resourceAcquired(key, this._activeResourceCounts)
+
         if (this._removeIdleObserver != null) {
           this._removeIdleObserver(resource)
         }
 
-        if (await this._validateOnAcquire(acquisitionContext, resource)) {
+        let valid = false
+
+        try {
+          valid = await this._validateOnAcquire(acquisitionContext, resource)
+        } catch (e) {
+          if (this._log.isErrorEnabled()) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            this._log.error(`Failure on validate ${resource}. This is a bug, please report it. Caused by: ${e.message}`)
+          }
+        }
+
+        if (valid) {
           // idle resource is valid and can be acquired
-          resourceAcquired(key, this._activeResourceCounts)
           if (this._log.isDebugEnabled()) {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             this._log.debug(`${resource} acquired from the pool ${key}`)
           }
           return { resource, pool }
         } else {
+          resourceReleased(key, this._activeResourceCounts)
           pool.removeInUse(resource)
           await this._destroy(resource)
         }
