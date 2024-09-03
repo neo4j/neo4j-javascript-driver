@@ -1290,7 +1290,7 @@ describe('#unit Pool', () => {
       )
 
       const numberOfIdleResourceAfterResourceGetCreated = await new Promise(resolve =>
-        setTimeout(() => resolve(idleResources(pool, address)), 11))
+        setTimeout(() => resolve(idleResources(pool, address)), 15))
 
       expect(numberOfIdleResourceAfterResourceGetCreated).toEqual(1)
       expect(counter).toEqual(1)
