@@ -969,9 +969,7 @@ describe('#unit Pool', () => {
     await conn2.release(address, conn2)
   })
 
-  it.each([
-    ['is not valid', (promise: any) => promise.resolve(false)]
-  ])('should create new connection if the current one when %s', async (_, resolver) => {
+  it('should create new connection if the current one breaks due to being invalid', async () => {
     const conns: any[] = []
     const pool = new Pool<any>({
       // Hook into connection creation to track when and what connections that are
@@ -1019,7 +1017,7 @@ describe('#unit Pool', () => {
     expect(conns.length).toEqual(1)
 
     // should resolve the promise with the configured value
-    resolver(conns[0].promises[0])
+    conns[0].promises[0].resolve(false)
 
     // getting the connection 1
     const conn1 = await req0
@@ -1037,7 +1035,7 @@ describe('#unit Pool', () => {
     expect(conns.length).toEqual(2)
   })
 
-  it('should create new connection if the current one when validation fails', async () => {
+  it('should create new connection if the current one breaks from error during validation', async () => {
     const conns: any[] = []
     const pool = new Pool<any>({
       // Hook into connection creation to track when and what connections that are
@@ -1084,16 +1082,15 @@ describe('#unit Pool', () => {
     await expect(async () => await req0).rejects.toThrow()
 
     // Request other connection, this should also resolve the same connection.
-    await pool.acquire({}, address)
-    expect(conns.length).toEqual(1)
+    const conn2 = await pool.acquire({}, address)
+    expect(conns.length).toEqual(2)
 
-    // connection 2 is valid
-    // conns[0].promises[0].resolve(true)
-    // getting the connection 2
-    // const conn2 = await req1
-    // await conn2.release(address, conn2)
-    // expect(conns.length).toEqual(1)
-  }, 10000)
+    await conn2.release(address, conn2)
+    expect(conns.length).toEqual(2)
+    expect(conn0).not.toBe(conn2)
+    expect(idleResources(pool, address)).toBe(1)
+    expect(resourceInUse(pool, address)).toBe(0)
+  })
 
   it('should not time out if max pool size is not set', async () => {
     let counter = 0
