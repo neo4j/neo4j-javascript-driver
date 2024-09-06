@@ -262,10 +262,10 @@ class Pool<R extends unknown = unknown> {
         try {
           valid = await this._validateOnAcquire(acquisitionContext, resource)
         } catch (e) {
-          if (this._log.isErrorEnabled()) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            this._log.error(`Failure on validate ${resource}. This is a bug, please report it. Caused by: ${e.message}`)
-          }
+          resourceReleased(key, this._activeResourceCounts)
+          pool.removeInUse(resource)
+          await this._destroy(resource)
+          throw e
         }
 
         if (valid) {

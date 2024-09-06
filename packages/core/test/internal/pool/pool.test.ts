@@ -969,10 +969,7 @@ describe('#unit Pool', () => {
     await conn2.release(address, conn2)
   })
 
-  it.each([
-    ['is not valid', (promise: any) => promise.resolve(false)],
-    ['validation fails', (promise: any) => promise.reject(new Error('failed'))]
-  ])('should create new connection if the current one when %s', async (_, resolver) => {
+  it('should create new connection if the current one breaks due to being invalid', async () => {
     const conns: any[] = []
     const pool = new Pool<any>({
       // Hook into connection creation to track when and what connections that are
@@ -1020,7 +1017,7 @@ describe('#unit Pool', () => {
     expect(conns.length).toEqual(1)
 
     // should resolve the promise with the configured value
-    resolver(conns[0].promises[0])
+    conns[0].promises[0].resolve(false)
 
     // getting the connection 1
     const conn1 = await req0
@@ -1036,6 +1033,63 @@ describe('#unit Pool', () => {
     expect(conn1).toBe(conn2)
     await conn2.release(address, conn2)
     expect(conns.length).toEqual(2)
+  })
+
+  it('should create new connection if the current one breaks from error during validation', async () => {
+    const conns: any[] = []
+    const pool = new Pool<any>({
+      // Hook into connection creation to track when and what connections that are
+      // created.
+      create: async (_, server, release) => {
+        // Create a fake connection that makes it possible control when it's connected
+        // and released from the outer scope.
+        const conn: any = {
+          server,
+          release
+        }
+        conns.push(conn)
+        return conn
+      },
+      validateOnAcquire: async (context, resource: any) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
+          if (resource.promises == null) {
+            resource.promises = []
+          }
+          resource.promises.push({
+            resolve,
+            reject
+          })
+        })
+
+        return await promise
+      },
+      // Setup pool to only allow one connection
+      config: new PoolConfig(1, 100000)
+    })
+    // Make the first request for a connection, this will return a connection instantaneously
+    const conn0 = await pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // Releasing connection back to the pool, so it can be re-acquired.
+    await conn0.release(address, conn0)
+
+    // Request the same connection again, it will wait until resolve get called.
+    const req0 = pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // should resolve the promise with the configured value
+    conns[0].promises[0].reject(new Error('Failed'))
+    await expect(async () => await req0).rejects.toThrow()
+
+    // Request other connection, this should also resolve the same connection.
+    const conn2 = await pool.acquire({}, address)
+    expect(conns.length).toEqual(2)
+
+    await conn2.release(address, conn2)
+    expect(conns.length).toEqual(2)
+    expect(conn0).not.toBe(conn2)
+    expect(idleResources(pool, address)).toBe(1)
+    expect(resourceInUse(pool, address)).toBe(0)
   })
 
   it('should not time out if max pool size is not set', async () => {
