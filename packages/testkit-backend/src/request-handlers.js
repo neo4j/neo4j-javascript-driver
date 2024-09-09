@@ -372,7 +372,7 @@ export function SessionWriteTransaction (_, context, data, wire) {
 }
 
 export function StartTest (_, context, { testName }, wire) {
-  if (testName.endsWith('.test_disconnect_session_on_tx_pull_after_record') || testName.endsWith('test_no_reset_on_clean_connection')) {
+  if (testName.endsWith('.test_disconnect_session_on_tx_pull_after_record') || testName.endsWith('test_no_reset_on_clean_connection') || testName.endsWith('test_should_echo_back')) {
     context.logLevel = 'debug'
   } else {
     context.logLevel = null
