@@ -62,6 +62,7 @@ export default class WebSocketChannel {
       return
     }
 
+    console.log('Config.Address:', this._config.address)
     this._ws = createWebSocket(scheme, config.address, socketFactory)
     this._ws.binaryType = 'arraybuffer'
 
@@ -140,6 +141,7 @@ export default class WebSocketChannel {
   write (buffer) {
     // If there is a pending queue, push this on that queue. This means
     // we are not yet connected, so we queue things locally.
+    console.log('Config.Address:', this._config.address)
     if (this._pending !== null) {
       this._pending.push(buffer)
     } else if (buffer instanceof ChannelBuffer) {
