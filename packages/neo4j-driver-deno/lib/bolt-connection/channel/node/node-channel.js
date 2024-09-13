@@ -262,11 +262,13 @@ export default class NodeChannel {
         if (!self._open) {
           return
         }
+        console.log('NODE CHANNEL IP:', self._conn.remoteAddress, ' ON HOST', config.address)
 
         self._conn.on('data', buffer => {
           if (self.onmessage) {
             self.onmessage(new ChannelBuffer(buffer))
           }
+          console.log('ONDATA NODE CHANNEL IP:', self._conn.remoteAddress, ' ON HOST', config.address)
         })
         self._conn.on('end', self._handleConnectionTerminated)
 
