@@ -66,6 +66,11 @@ export default class WebSocketChannel {
     this._ws = createWebSocket(scheme, config.address, socketFactory)
     this._ws.binaryType = 'arraybuffer'
 
+    this._ws.on('connection', function connection (ws, req) {
+      const ip = req.socket.remoteAddress
+      console.log('CONNECTION TO:', this._ws.url, ' ON IP:', ip)
+    })
+
     const self = this
     // All connection errors are not sent to the error handler
     // we must also check for dirty close calls
