@@ -12,6 +12,7 @@ from common import (
 import os
 import time
 
+
 if __name__ == "__main__":
     print("starting backend")
     backend_script = "start-testkit-backend"
@@ -31,10 +32,10 @@ if __name__ == "__main__":
         "npm", "run", backend_script
     ], env=os.environ) as backend:
         if (is_browser()):
-            time.sleep(30)
+            time.sleep(5)
             print("openning firefox")
             with open_proccess_in_driver_repo([
-                "firefox", "-headless", "http://localhost:8000"
+                "firefox", "-headless -profile " + os.path.abspath(os.path.dirname(sys.argv[0]))+"/profile", "http://localhost:8000" # type: ignore
             ]) as firefox:
                 firefox.wait()
         backend.wait()
