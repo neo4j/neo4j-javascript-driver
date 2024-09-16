@@ -31,7 +31,7 @@ if __name__ == "__main__":
         "npm", "run", backend_script
     ], env=os.environ) as backend:
         if (is_browser()):
-            time.sleep(5)
+            time.sleep(30)
             print("openning firefox")
             with open_proccess_in_driver_repo([
                 "firefox", "-headless", "http://localhost:8000"
