@@ -35,7 +35,7 @@ if __name__ == "__main__":
             time.sleep(5)
             print("openning firefox")
             with open_proccess_in_driver_repo([
-                "firefox", "-profile", "./testkit/profile", "-headless", "http://localhost:8000" # type: ignore
+                "firefox", "-profile", "./testkit/firefox_profile", "-headless", "http://localhost:8000" # type: ignore
             ]) as firefox:
                 firefox.wait()
         backend.wait()
