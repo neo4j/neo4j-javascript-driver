@@ -65,10 +65,6 @@ export default class WebSocketChannel {
     this._ws = createWebSocket(scheme, config.address, socketFactory)
     this._ws.binaryType = 'arraybuffer'
 
-    if (this._ws._socket) {
-      console.log('65 Config.Address:', this._config.address, ' IP:', this._ws._socket.remoteAddress)
-    }
-
     const self = this
     // All connection errors are not sent to the error handler
     // we must also check for dirty close calls
@@ -81,10 +77,6 @@ export default class WebSocketChannel {
     this._ws.onopen = function () {
       // Connected! Cancel the connection timeout
       self._clearConnectionTimeout()
-      if (self._ws._socket) {
-        const ip = self._ws._socket.remoteAddress
-        console.log('OPEN Config.Address:', self._config.address, ' IP:', ip)
-      }
 
       // Drain all pending messages
       const pending = self._pending
@@ -148,7 +140,6 @@ export default class WebSocketChannel {
   write (buffer) {
     // If there is a pending queue, push this on that queue. This means
     // we are not yet connected, so we queue things locally.
-
     if (this._pending !== null) {
       this._pending.push(buffer)
     } else if (buffer instanceof ChannelBuffer) {
@@ -165,9 +156,6 @@ export default class WebSocketChannel {
       }
     } else {
       throw newError("Don't know how to send buffer: " + buffer)
-    }
-    if (this._ws._socket) {
-      console.log('WRITE Config.Address:', this._config.address, ' IP', this._ws._socket.remoteAddress)
     }
   }
 
