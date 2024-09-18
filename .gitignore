@@ -19,4 +19,4 @@ coverage
 *.code-workspace
 /testkit/CAs
 /testkit/CustomCAs
-/testkit/profile/*
+/testkit/firefox_profile/*
