@@ -94,7 +94,7 @@ class Neo4jError extends Error {
     this.gqlStatus = gqlStatus
     this.gqlStatusDescription = gqlStatusDescription
     this.diagnosticRecord = diagnosticRecord
-    this.classification = diagnosticRecord?._classification ?? "UNKNOWN"
+    this.classification = diagnosticRecord?._classification ?? 'UNKNOWN'
     this.name = 'Neo4jError'
     /**
      * Indicates if the error is retriable.
@@ -140,10 +140,10 @@ class Neo4jError extends Error {
  * @private
  */
 function newError (message: string, code?: Neo4jErrorCode, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: ErrorDiagnosticRecord, cause?: Neo4jError): Neo4jError {
-  if(diagnosticRecord && Object.keys(diagnosticRecord).length == 3 && diagnosticRecord.OPERATION == "" && diagnosticRecord.OPERATION_CODE == "0" && diagnosticRecord.CURRENT_SCHEMA == "/" ) {
+  if ((diagnosticRecord != null) && Object.keys(diagnosticRecord).length === 3 && diagnosticRecord.OPERATION === '' && diagnosticRecord.OPERATION_CODE === '0' && diagnosticRecord.CURRENT_SCHEMA === '/') {
     diagnosticRecord = undefined
   }
-  return new Neo4jError(message, code ?? NOT_AVAILABLE, gqlStatus ?? "50N42", gqlStatusDescription ?? "general processing exception - unknown error. " + message, diagnosticRecord, cause)
+  return new Neo4jError(message, code ?? NOT_AVAILABLE, gqlStatus ?? '50N42', gqlStatusDescription ?? 'general processing exception - unknown error. ' + message, diagnosticRecord, cause)
 }
 
 /**
