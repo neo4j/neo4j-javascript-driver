@@ -43,36 +43,93 @@ describe('newError', () => {
     }
   )
 
-  test('should create Neo4jErro without code should be created with "N/A" error', () => {
+  test('should create Neo4jError without code with "N/A" error', () => {
     const error: Neo4jError = newError('some error')
 
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
   })
 
-  test('should create Neo4jErro with cause', () => {
-    const cause = new Error('cause')
-    const error: Neo4jError = newError('some error', undefined, cause)
+  test('should create Neo4jError without status description with default description', () => {
+    const error: Neo4jError = newError('some error')
+
+    expect(error.gqlStatusDescription).toEqual('general processing exception - unknown error. some error')
+    expect(error.code).toEqual('N/A')
+  })
+
+  test('should create Neo4jError without gql status with default status', () => {
+    const error: Neo4jError = newError('some error')
+
+    expect(error.gqlStatus).toEqual('50N42')
+    expect(error.code).toEqual('N/A')
+  })
+
+  test('should create Neo4jError with cause', () => {
+    const cause = newError('cause')
+    const error: Neo4jError = newError('some error', undefined, 'some status', 'some description', undefined, cause)
 
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
     if (supportsCause) {
-      // @ts-expect-error
       expect(error.cause).toBe(cause)
-    } else {
       // @ts-expect-error
+      expect(error.cause.classification).toBe('UNKNOWN')
+    } else {
+      expect(error.cause).toBeUndefined()
+    }
+  })
+
+  test('should create Neo4jError with nested cause', () => {
+    const cause = newError('cause', undefined, undefined, undefined, undefined, newError('nested'))
+    const error: Neo4jError = newError('some error', undefined, 'some status', 'some description', undefined, cause)
+
+    expect(error.message).toEqual('some error')
+    expect(error.code).toEqual('N/A')
+    if (supportsCause) {
+      expect(error.cause).toBe(cause)
+      // @ts-expect-error
+      expect(error.cause.classification).toBe('UNKNOWN')
+      // @ts-expect-error
+      expect(error.cause.cause.classification).toBe('UNKNOWN')
+    } else {
       expect(error.cause).toBeUndefined()
     }
   })
 
   test.each([null, undefined])('should create Neo4jError without cause (%s)', (cause) => {
     // @ts-expect-error
-    const error: Neo4jError = newError('some error', undefined, cause)
+    const error: Neo4jError = newError('some error', undefined, undefined, undefined, undefined, cause)
 
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
-    // @ts-expect-error
     expect(error.cause).toBeUndefined()
+  })
+
+  test('should create Neo4jError without diagnosticRecord with UNKNOWN classification', () => {
+    const error: Neo4jError = newError('some error')
+
+    expect(error.classification).toEqual('UNKNOWN')
+  })
+
+  test.each([
+    'TRANSIENT_ERROR',
+    'CLIENT_ERROR',
+    'DATABASE_ERROR'
+  ])('should create Neo4jError with diagnosticRecord with classification (%s)', (classification) => {
+    // @ts-expect-error
+    const error: Neo4jError = newError('some error', undefined, undefined, undefined, { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: classification })
+
+    expect(error.classification).toEqual(classification)
+  })
+
+  test.each([undefined, { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/' }])('should create Neo4jError without diagnostic record (%s)', (diagnosticRecord) => {
+    const error: Neo4jError = newError('some error', undefined, undefined, undefined, diagnosticRecord)
+
+    expect(error.message).toEqual('some error')
+    expect(error.code).toEqual('N/A')
+    expect(error.cause).toBeUndefined()
+    expect(error.diagnosticRecord).toBeUndefined()
+    expect(error.classification).toEqual('UNKNOWN')
   })
 })
 
@@ -88,31 +145,43 @@ describe('isRetriableError()', () => {
 
 describe('Neo4jError', () => {
   test('should have message', () => {
-    const error = new Neo4jError('message', 'code')
+    const error = new Neo4jError('message', 'code', 'gqlStatus', 'gqlStatusDescription')
 
     expect(error.message).toEqual('message')
   })
 
   test('should have code', () => {
-    const error = new Neo4jError('message', 'code')
+    const error = new Neo4jError('message', 'code', 'gqlStatus', 'gqlStatusDescription')
 
     expect(error.code).toEqual('code')
   })
 
+  test('should have gqlStatus', () => {
+    const error = new Neo4jError('message', 'code', 'gqlStatus', 'gqlStatusDescription')
+
+    expect(error.gqlStatus).toEqual('gqlStatus')
+  })
+
+  test('should have gqlStatusDescription', () => {
+    const error = new Neo4jError('message', 'code', 'gqlStatus', 'gqlStatusDescription')
+
+    expect(error.gqlStatusDescription).toEqual('gqlStatusDescription')
+  })
+
   test('should have name equal to Neo4jError', () => {
-    const error = new Neo4jError('message', 'code')
+    const error = new Neo4jError('message', 'code', 'gqlStatus', 'gqlStatusDescription')
 
     expect(error.name).toEqual('Neo4jError')
   })
 
   test('should define stackstrace', () => {
-    const error = new Neo4jError('message', 'code')
+    const error = new Neo4jError('message', 'code', 'gqlStatus', 'gqlStatusDescription')
 
     expect(error.stack).toBeDefined()
   })
 
   test('should define __proto__ and constructor to backwards compatility with ES6', () => {
-    const error = new Neo4jError('message', 'code')
+    const error = new Neo4jError('message', 'code', 'gqlStatus', 'gqlStatusDescription')
 
     // eslint-disable-next-line no-proto
     expect(error.__proto__).toEqual(Neo4jError.prototype)
@@ -120,13 +189,13 @@ describe('Neo4jError', () => {
   })
 
   test.each(getRetriableCodes())('should define retriable as true for error with code %s', code => {
-    const error = new Neo4jError('message', code)
+    const error = new Neo4jError('message', code, 'gqlStatus', 'gqlStatusDescription')
 
     expect(error.retriable).toBe(true)
   })
 
   test.each(getNonRetriableCodes())('should define retriable as false for error with code %s', code => {
-    const error = new Neo4jError('message', code)
+    const error = new Neo4jError('message', code, 'gqlStatus', 'gqlStatusDescription')
 
     expect(error.retriable).toBe(false)
   })

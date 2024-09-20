@@ -115,11 +115,7 @@ export default class ResponseHandler {
           this._log.debug(`S: FAILURE ${json.stringify(msg)}`)
         }
         try {
-          const standardizedCode = _standardizeCode(payload.code)
-          const error = newError(payload.message, standardizedCode)
-          this._currentFailure = this._observer.onErrorApplyTransformation(
-            error
-          )
+          this._currentFailure = this._handleErrorPayload(payload)
           this._currentObserver.onError(this._currentFailure)
         } finally {
           this._updateCurrentObserver()
@@ -195,6 +191,16 @@ export default class ResponseHandler {
 
   _resetFailure () {
     this._currentFailure = null
+  }
+
+  _handleErrorPayload (payload) {
+    const standardizedCode = _standardizeCode(payload.code)
+    const cause = payload.cause != null ? this._handleErrorPayload(payload.cause) : undefined
+    const diagnosticRecord = payload.diagnostic_record != null ? payload.diagnostic_record : undefined
+    const error = newError(payload.message, standardizedCode, payload.gql_status, payload.status_description, diagnosticRecord, cause)
+    return this._observer.onErrorApplyTransformation(
+      error
+    )
   }
 }
 

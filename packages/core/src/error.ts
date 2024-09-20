@@ -17,6 +17,13 @@
 
 // A common place for constructing error objects, to keep them
 // uniform across the driver surface.
+import { NumberOrInteger } from './graph-types'
+import * as json from './json'
+
+export type ErrorClassification = 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN'
+/**
+ * @typedef { 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN' } ErrorClassification
+ */
 
 /**
  * Error code representing complete loss of service. Used by {@link Neo4jError#code}.
@@ -60,6 +67,11 @@ class Neo4jError extends Error {
    * Optional error code. Will be populated when error originates in the database.
    */
   code: Neo4jErrorCode
+  gqlStatus: string
+  gqlStatusDescription: string
+  diagnosticRecord: ErrorDiagnosticRecord | undefined
+  classification: ErrorClassification
+  cause?: Error
   retriable: boolean
   __proto__: Neo4jError
 
@@ -67,8 +79,11 @@ class Neo4jError extends Error {
    * @constructor
    * @param {string} message - the error message
    * @param {string} code - Optional error code. Will be populated when error originates in the database.
+   * @param {string} gqlStatus - the error message
+   * @param {string} gqlStatusDescription - the error message
+   * @param {ErrorDiagnosticRecord} diagnosticRecord - the error message
    */
-  constructor (message: string, code: Neo4jErrorCode, cause?: Error) {
+  constructor (message: string, code: Neo4jErrorCode, gqlStatus: string, gqlStatusDescription: string, diagnosticRecord?: ErrorDiagnosticRecord, cause?: Error) {
     // eslint-disable-next-line
     // @ts-ignore: not available in ES6 yet
     super(message, cause != null ? { cause } : undefined)
@@ -76,6 +91,10 @@ class Neo4jError extends Error {
     // eslint-disable-next-line no-proto
     this.__proto__ = Neo4jError.prototype
     this.code = code
+    this.gqlStatus = gqlStatus
+    this.gqlStatusDescription = gqlStatusDescription
+    this.diagnosticRecord = diagnosticRecord
+    this.classification = diagnosticRecord?._classification ?? 'UNKNOWN'
     this.name = 'Neo4jError'
     /**
      * Indicates if the error is retriable.
@@ -96,17 +115,35 @@ class Neo4jError extends Error {
       error instanceof Neo4jError &&
       error.retriable
   }
+
+  /**
+   * The json string representation of the diagnostic record.
+   * The goal of this method is provide a serialized object for human inspection.
+   *
+   * @type {string}
+   * @public
+   */
+  public get diagnosticRecordAsJsonString (): string {
+    return json.stringify(this.diagnosticRecord, { useCustomToString: true })
+  }
 }
 
 /**
  * Create a new error from a message and error code
  * @param message the error message
- * @param code the error code
+ * @param {Neo4jErrorCode} [code] the error code
+ * @param {String} [gqlStatus]
+ * @param {String} [gqlStatusDescription]
+ * @param {ErrorDiagnosticRecord} diagnosticRecord - the error message
+ * @param {Neo4jError} [cause]
  * @return {Neo4jError} an {@link Neo4jError}
  * @private
  */
-function newError (message: string, code?: Neo4jErrorCode, cause?: Error): Neo4jError {
-  return new Neo4jError(message, code ?? NOT_AVAILABLE, cause)
+function newError (message: string, code?: Neo4jErrorCode, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: ErrorDiagnosticRecord, cause?: Neo4jError): Neo4jError {
+  if ((diagnosticRecord != null) && Object.keys(diagnosticRecord).length === 3 && diagnosticRecord.OPERATION === '' && diagnosticRecord.OPERATION_CODE === '0' && diagnosticRecord.CURRENT_SCHEMA === '/') {
+    diagnosticRecord = undefined
+  }
+  return new Neo4jError(message, code ?? NOT_AVAILABLE, gqlStatus ?? '50N42', gqlStatusDescription ?? 'general processing exception - unknown error. ' + message, diagnosticRecord, cause)
 }
 
 /**
@@ -146,6 +183,21 @@ function _isTransientError (code?: Neo4jErrorCode): boolean {
  */
 function _isAuthorizationExpired (code?: Neo4jErrorCode): boolean {
   return code === 'Neo.ClientError.Security.AuthorizationExpired'
+}
+
+interface ErrorDiagnosticRecord {
+  OPERATION: string
+  OPERATION_CODE: string
+  CURRENT_SCHEMA: string
+  _severity?: string
+  _classification?: ErrorClassification
+  _position?: {
+    offset: NumberOrInteger
+    line: NumberOrInteger
+    column: NumberOrInteger
+  }
+  _status_parameters?: Record<string, unknown>
+  [key: string]: unknown
 }
 
 export {
