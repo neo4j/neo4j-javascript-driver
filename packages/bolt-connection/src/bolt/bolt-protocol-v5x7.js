@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import BoltProtocolV5x5 from './bolt-protocol-v5x5'
+import BoltProtocolV5x6 from './bolt-protocol-v5x6'
 
 import transformersFactories from './bolt-protocol-v5x5.transformer'
 import Transformer from './transformer'
@@ -22,7 +22,7 @@ import Transformer from './transformer'
 import { internal } from 'neo4j-driver-core'
 
 const {
-  constants: { BOLT_PROTOCOL_V5_6 }
+  constants: { BOLT_PROTOCOL_V5_7 }
 } = internal
 
 const DEFAULT_DIAGNOSTIC_RECORD = Object.freeze({
@@ -31,9 +31,9 @@ const DEFAULT_DIAGNOSTIC_RECORD = Object.freeze({
   CURRENT_SCHEMA: '/'
 })
 
-export default class BoltProtocolV5x6 extends BoltProtocolV5x5 {
+export default class BoltProtocol extends BoltProtocolV5x6 {
   get version () {
-    return BOLT_PROTOCOL_V5_6
+    return BOLT_PROTOCOL_V5_7
   }
 
   get transformer () {
@@ -43,19 +43,13 @@ export default class BoltProtocolV5x6 extends BoltProtocolV5x5 {
     return this._transformer
   }
 
-  /**
-   *
-   * @param {object} metadata
-   * @returns {object}
-   */
   _enrichMetadata (metadata) {
     if (Array.isArray(metadata.statuses)) {
       metadata.statuses = metadata.statuses.map(status => ({
         ...status,
-        diagnostic_record: status.diagnostic_record !== null ? { ...DEFAULT_DIAGNOSTIC_RECORD, ...status.diagnostic_record } : null
+        diagnostic_record: status.diagnostic_record !== null ? { ...DEFAULT_DIAGNOSTIC_RECORD, ...status.diagnostic_record } : null,
+        message: status.status_message
       }))
     }
-
-    return metadata
   }
 }
