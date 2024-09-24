@@ -67,13 +67,7 @@ export default class LocalController extends Controller {
         }))
       } else {
         const id = this._contexts.get(contextId).addError(e)
-        this._writeResponse(contextId, newResponse('DriverError', {
-          id,
-          errorType: e.name,
-          msg: e.message,
-          code: e.code,
-          retryable: e.retriable
-        }))
+        this._writeResponse(contextId, writeDriverError(id, e))
       }
       return
     }
@@ -85,4 +79,23 @@ function newResponse (name, data) {
   return {
     name, data
   }
+}
+
+function writeDriverError (id, e) {
+  let cause
+  if (e.cause != null && e.cause != null) {
+    cause = writeDriverError(id, e.cause)
+  }
+  return newResponse('DriverError', {
+    id,
+    errorType: e.name,
+    msg: e.message,
+    code: e.code,
+    gqlStatus: e.gqlStatus,
+    statusDescription: e.gqlStatusDescription,
+    diagnosticRecord: e.diagnosticRecord,
+    cause,
+    classification: e.classification,
+    retryable: e.retriable
+  })
 }

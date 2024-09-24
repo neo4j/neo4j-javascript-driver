@@ -30,18 +30,7 @@ function newWire(context: Context, reply: Reply): Wire {
           });
         } else {
           const id = context.addError(e);
-          return reply({
-            name: "DriverError",
-            data: {
-              id,
-              errorType: e.name,
-              msg: e.message,
-              // @ts-ignore Code Neo4jError does have code
-              code: e.code,
-              // @ts-ignore Code Neo4jError does retryable
-              retryable: e.retriable,
-            },
-          });
+          return reply(writeDriverError(id, e));
         }
       }
       const msg = e.message;
@@ -82,6 +71,26 @@ export function createHandler(
 
       handleRequest({ neo4j, mock: { FakeTime } }, context, data, wire);
     }
+  };
+}
+
+function writeDriverError(id, e) {
+  let cause;
+  if (e.cause != null && e.cause != null) {
+    cause = writeDriverError(id, e.cause);
+  }
+  return {
+    name: "DriverError",
+    id,
+    errorType: e.name,
+    msg: e.message,
+    code: e.code,
+    gqlStatus: e.gqlStatus,
+    statusDescription: e.gqlStatusDescription,
+    diagnosticRecord: e.diagnosticRecord,
+    cause,
+    classification: e.classification,
+    retryable: e.retriable,
   };
 }
 
