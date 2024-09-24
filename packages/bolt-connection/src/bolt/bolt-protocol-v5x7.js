@@ -25,6 +25,12 @@ const {
   constants: { BOLT_PROTOCOL_V5_7 }
 } = internal
 
+const DEFAULT_DIAGNOSTIC_RECORD = Object.freeze({
+  OPERATION: '',
+  OPERATION_CODE: '0',
+  CURRENT_SCHEMA: '/'
+})
+
 export default class BoltProtocol extends BoltProtocolV5x6 {
   get version () {
     return BOLT_PROTOCOL_V5_7
@@ -35,5 +41,22 @@ export default class BoltProtocol extends BoltProtocolV5x6 {
       this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)))
     }
     return this._transformer
+  }
+
+  /**
+   *
+   * @param {object} metadata
+   * @returns {object}
+   */
+  _enrichMetadata (metadata) {
+    if (Array.isArray(metadata.statuses)) {
+      metadata.statuses = metadata.statuses.map(status => ({
+        ...status,
+        code: status.neo4j_code,
+        diagnostic_record: status.diagnostic_record !== null ? { ...DEFAULT_DIAGNOSTIC_RECORD, ...status.diagnostic_record } : null
+      }))
+    }
+
+    return metadata
   }
 }
