@@ -1,6 +1,6 @@
 {
   "testkit": {
     "uri": "https://github.com/neo4j-drivers/testkit.git",
-    "ref": "24c9fee5e33850af9a1c4a28151e8869a251bcd0"
+    "ref": "5.0"
   }
 }
