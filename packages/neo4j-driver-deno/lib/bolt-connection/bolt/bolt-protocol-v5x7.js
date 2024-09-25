@@ -48,15 +48,12 @@ export default class BoltProtocol extends BoltProtocolV5x6 {
    * @param {object} metadata
    * @returns {object}
    */
-  _enrichMetadata (metadata) {
-    if (Array.isArray(metadata.statuses)) {
-      metadata.statuses = metadata.statuses.map(status => ({
-        ...status,
-        code: status.neo4j_code,
-        diagnostic_record: status.diagnostic_record !== null ? { ...DEFAULT_DIAGNOSTIC_RECORD, ...status.diagnostic_record } : null
-      }))
+  enrichErrorMetadata (metadata) {
+    return {
+      ...metadata,
+      cause: (metadata.cause !== null && metadata.cause !== undefined) ? this.enrichErrorMetadata(metadata.cause) : null,
+      code: metadata.neo4j_code,
+      diagnostic_record: metadata.diagnostic_record !== null ? { ...DEFAULT_DIAGNOSTIC_RECORD, ...metadata.diagnostic_record } : null
     }
-
-    return metadata
   }
 }

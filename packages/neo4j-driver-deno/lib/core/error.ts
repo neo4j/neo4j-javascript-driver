@@ -25,6 +25,16 @@ export type ErrorClassification = 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT
  * @typedef { 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN' } ErrorClassification
  */
 
+const errorClassification: { [key in ErrorClassification]: key } = { 
+  DATABASE_ERROR: 'DATABASE_ERROR',
+  CLIENT_ERROR: 'CLIENT_ERROR',
+  TRANSIENT_ERROR: 'TRANSIENT_ERROR',
+  UNKNOWN: 'UNKNOWN'
+}
+
+Object.freeze(errorClassification)
+const classifications = Object.values(errorClassification)
+
 /**
  * Error code representing complete loss of service. Used by {@link Neo4jError#code}.
  * @type {string}
@@ -58,6 +68,7 @@ type Neo4jErrorCode =
   | typeof PROTOCOL_ERROR
   | typeof NOT_AVAILABLE
 
+
 /// TODO: Remove definitions of this.constructor and this.__proto__
 /**
  * Class for all errors thrown/returned by the driver.
@@ -71,6 +82,7 @@ class Neo4jError extends Error {
   gqlStatusDescription: string
   diagnosticRecord: ErrorDiagnosticRecord | undefined
   classification: ErrorClassification
+  rawClassification?: string
   cause?: Error
   retriable: boolean
   __proto__: Neo4jError
@@ -94,7 +106,8 @@ class Neo4jError extends Error {
     this.gqlStatus = gqlStatus
     this.gqlStatusDescription = gqlStatusDescription
     this.diagnosticRecord = diagnosticRecord
-    this.classification = diagnosticRecord?._classification ?? 'UNKNOWN'
+    this.classification = extractClassification(this.diagnosticRecord)
+    this.rawClassification = diagnosticRecord?._classification ?? undefined
     this.name = 'Neo4jError'
     /**
      * Indicates if the error is retriable.
@@ -180,6 +193,13 @@ function _isTransientError (code?: Neo4jErrorCode): boolean {
  */
 function _isAuthorizationExpired (code?: Neo4jErrorCode): boolean {
   return code === 'Neo.ClientError.Security.AuthorizationExpired'
+}
+
+function extractClassification(diagnosticRecord?: ErrorDiagnosticRecord): ErrorClassification{
+  if (diagnosticRecord === undefined || diagnosticRecord._classification === undefined) {
+    return "UNKNOWN"
+  }
+  return classifications.includes(diagnosticRecord._classification) ? diagnosticRecord?._classification : 'UNKNOWN' 
 }
 
 interface ErrorDiagnosticRecord {

@@ -65,6 +65,7 @@ export default function create ({
   const createResponseHandler = protocol => {
     const responseHandler = new ResponseHandler({
       transformMetadata: protocol.transformMetadata.bind(protocol),
+      enrichErrorMetadata: protocol.enrichErrorMetadata.bind(protocol),
       log,
       observer
     })

@@ -70,10 +70,11 @@ export default class ResponseHandler {
    * @param {Logger} log The logger
    * @param {ResponseHandler~Observer} observer Object which will be notified about errors
    */
-  constructor ({ transformMetadata, log, observer } = {}) {
+  constructor ({ transformMetadata, enrichErrorMetadata, log, observer } = {}) {
     this._pendingObservers = []
     this._log = log
     this._transformMetadata = transformMetadata || NO_OP_IDENTITY
+    this._enrichErrorMetadata = enrichErrorMetadata || NO_OP_IDENTITY
     this._observer = Object.assign(
       {
         onObserversCountChange: NO_OP,
@@ -115,7 +116,7 @@ export default class ResponseHandler {
           this._log.debug(`S: FAILURE ${json.stringify(msg)}`)
         }
         try {
-          this._currentFailure = this._handleErrorPayload(payload)
+          this._currentFailure = this._handleErrorPayload(this._enrichErrorMetadata(payload))
           this._currentObserver.onError(this._currentFailure)
         } finally {
           this._updateCurrentObserver()

@@ -67,7 +67,7 @@ export default class LocalController extends Controller {
         }))
       } else {
         const id = this._contexts.get(contextId).addError(e)
-        this._writeResponse(contextId, writeDriverError(id, e))
+        this._writeResponse(contextId, writeDriverError(id, e, this._binder))
       }
       return
     }
@@ -81,10 +81,10 @@ function newResponse (name, data) {
   }
 }
 
-function writeDriverError (id, e) {
+function writeDriverError (id, e, binder) {
   let cause
-  if (e.cause != null && e.cause != null) {
-    cause = writeDriverError(id, e.cause)
+  if (e.cause != null) {
+    cause = writeGqlError(e.cause, binder)
   }
   return newResponse('DriverError', {
     id,
@@ -93,9 +93,26 @@ function writeDriverError (id, e) {
     code: e.code,
     gqlStatus: e.gqlStatus,
     statusDescription: e.gqlStatusDescription,
-    diagnosticRecord: e.diagnosticRecord,
+    diagnosticRecord: binder.objectToCypher(e.diagnosticRecord),
     cause,
     classification: e.classification,
+    rawClassification: e.rawClassification,
     retryable: e.retriable
+  })
+}
+
+function writeGqlError (e, binder) {
+  let cause
+  if (e.cause != null) {
+    cause = writeGqlError(e.cause, binder)
+  }
+  return newResponse('GqlError', {
+    msg: e.message,
+    gqlStatus: e.gqlStatus,
+    statusDescription: e.gqlStatusDescription,
+    diagnosticRecord: binder.objectToCypher(e.diagnosticRecord),
+    cause,
+    classification: e.classification,
+    rawClassification: e.rawClassification
   })
 }
