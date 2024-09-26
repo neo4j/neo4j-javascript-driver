@@ -90,6 +90,7 @@ function writeDriverError(id, e) {
     diagnosticRecord: e.diagnosticRecord,
     cause,
     classification: e.classification,
+    rawClassification: e.rawClassification,
     retryable: e.retriable,
   };
 }
@@ -101,15 +102,13 @@ function writeGqlError(e) {
   }
   return {
     name: "GqlError",
-    errorType: e.name,
     msg: e.message,
-    code: e.code,
     gqlStatus: e.gqlStatus,
     statusDescription: e.gqlStatusDescription,
     diagnosticRecord: e.diagnosticRecord,
     cause,
     classification: e.classification,
-    retryable: e.retriable,
+    rawClassification: e.rawClassification,
   };
 }
 
