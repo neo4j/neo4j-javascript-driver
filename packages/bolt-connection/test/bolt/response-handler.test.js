@@ -75,7 +75,7 @@ describe('response-handler', () => {
         message: 'older message',
         code: 'Neo.ClientError.Test.Kaboom',
         gql_status: '13N37',
-        status_description: 'I made this error up, for fun and profit!',
+        description: 'I made this error up, for fun and profit!',
         diagnostic_record: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'CLIENT_ERROR' }
       }
       const observer = {
@@ -96,7 +96,7 @@ describe('response-handler', () => {
       expect(receivedError.code).toBe(errorPayload.code)
       expect(receivedError.message).toBe(errorPayload.message)
       expect(receivedError.gqlStatus).toBe(errorPayload.gql_status)
-      expect(receivedError.gqlStatusDescription).toBe(errorPayload.status_description)
+      expect(receivedError.gqlStatusDescription).toBe(errorPayload.description)
       expect(receivedError.classification).toBe(errorPayload.diagnostic_record._classification)
     })
 
@@ -105,13 +105,13 @@ describe('response-handler', () => {
         message: 'old message',
         code: 'Neo.ClientError.Test.Error',
         gql_status: '13N37',
-        status_description: 'I made this error up, for fun and profit!',
+        description: 'I made this error up, for fun and profit!',
         diagnostic_record: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'CLIENT_ERROR' },
         cause: {
           message: 'old cause message',
           code: 'Neo.ClientError.Test.Cause',
           gql_status: '13N38',
-          status_description: 'I made this error up, for fun and profit and reasons!',
+          description: 'I made this error up, for fun and profit and reasons!',
           diagnostic_record: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'DATABASE_ERROR' }
         }
       }
@@ -133,7 +133,7 @@ describe('response-handler', () => {
       expect(receivedError.code).toBe(errorPayload.code)
       expect(receivedError.message).toBe(errorPayload.message)
       expect(receivedError.gqlStatus).toBe(errorPayload.gql_status)
-      expect(receivedError.gqlStatusDescription).toBe(errorPayload.status_description)
+      expect(receivedError.gqlStatusDescription).toBe(errorPayload.description)
       expect(receivedError.classification).toBe(errorPayload.diagnostic_record._classification)
       expect(receivedError.cause.classification).toBe(errorPayload.cause.diagnostic_record._classification)
     })

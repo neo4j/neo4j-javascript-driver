@@ -197,7 +197,7 @@ export default class ResponseHandler {
   _handleErrorPayload (payload) {
     const standardizedCode = _standardizeCode(payload.code)
     const cause = payload.cause != null ? this._handleErrorPayload(payload.cause) : undefined
-    const error = newError(payload.message, standardizedCode, payload.gql_status, payload.description, payload.diagnostic_record, cause)
+    const error = newError(payload.message, standardizedCode, cause, payload.gql_status, payload.description, payload.diagnostic_record)
     return this._observer.onErrorApplyTransformation(
       error
     )

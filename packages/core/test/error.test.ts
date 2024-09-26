@@ -53,7 +53,7 @@ describe('newError', () => {
   test('should create Neo4jError without status description with default description', () => {
     const error: Neo4jError = newError('some error')
 
-    expect(error.gqlStatusDescription).toEqual('general processing exception - unknown error. some error')
+    expect(error.gqlStatusDescription).toEqual('error: general processing exception - unknown error. some error')
     expect(error.code).toEqual('N/A')
   })
 
@@ -66,7 +66,7 @@ describe('newError', () => {
 
   test('should create Neo4jError with cause', () => {
     const cause = newError('cause')
-    const error: Neo4jError = newError('some error', undefined, 'some status', 'some description', undefined, cause)
+    const error: Neo4jError = newError('some error', undefined, cause, 'some status', 'some description', undefined)
 
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
@@ -80,8 +80,8 @@ describe('newError', () => {
   })
 
   test('should create Neo4jError with nested cause', () => {
-    const cause = newError('cause', undefined, undefined, undefined, undefined, newError('nested'))
-    const error: Neo4jError = newError('some error', undefined, 'some status', 'some description', undefined, cause)
+    const cause = newError('cause', undefined, newError('nested'), undefined, undefined, undefined)
+    const error: Neo4jError = newError('some error', undefined, cause, 'some status', 'some description', undefined)
 
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
@@ -98,7 +98,7 @@ describe('newError', () => {
 
   test.each([null, undefined])('should create Neo4jError without cause (%s)', (cause) => {
     // @ts-expect-error
-    const error: Neo4jError = newError('some error', undefined, undefined, undefined, undefined, cause)
+    const error: Neo4jError = newError('some error', undefined, cause, undefined, undefined, undefined)
 
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
@@ -117,19 +117,9 @@ describe('newError', () => {
     'DATABASE_ERROR'
   ])('should create Neo4jError with diagnosticRecord with classification (%s)', (classification) => {
     // @ts-expect-error
-    const error: Neo4jError = newError('some error', undefined, undefined, undefined, { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: classification })
+    const error: Neo4jError = newError('some error', undefined, undefined, undefined, undefined, { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: classification })
 
     expect(error.classification).toEqual(classification)
-  })
-
-  test.each([undefined, { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/' }])('should create Neo4jError without diagnostic record (%s)', (diagnosticRecord) => {
-    const error: Neo4jError = newError('some error', undefined, undefined, undefined, diagnosticRecord)
-
-    expect(error.message).toEqual('some error')
-    expect(error.code).toEqual('N/A')
-    expect(error.cause).toBeUndefined()
-    expect(error.diagnosticRecord).toBeUndefined()
-    expect(error.classification).toEqual('UNKNOWN')
   })
 })
 

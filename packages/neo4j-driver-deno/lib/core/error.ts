@@ -25,7 +25,7 @@ export type ErrorClassification = 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT
  * @typedef { 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN' } ErrorClassification
  */
 
-const errorClassification: { [key in ErrorClassification]: key } = { 
+const errorClassification: { [key in ErrorClassification]: key } = {
   DATABASE_ERROR: 'DATABASE_ERROR',
   CLIENT_ERROR: 'CLIENT_ERROR',
   TRANSIENT_ERROR: 'TRANSIENT_ERROR',
@@ -67,7 +67,6 @@ type Neo4jErrorCode =
   | typeof SESSION_EXPIRED
   | typeof PROTOCOL_ERROR
   | typeof NOT_AVAILABLE
-
 
 /// TODO: Remove definitions of this.constructor and this.__proto__
 /**
@@ -145,14 +144,14 @@ class Neo4jError extends Error {
  * Create a new error from a message and error code
  * @param message the error message
  * @param {Neo4jErrorCode} [code] the error code
+ * @param {Neo4jError} [cause]
  * @param {String} [gqlStatus]
  * @param {String} [gqlStatusDescription]
  * @param {ErrorDiagnosticRecord} diagnosticRecord - the error message
- * @param {Neo4jError} [cause]
  * @return {Neo4jError} an {@link Neo4jError}
  * @private
  */
-function newError (message: string, code?: Neo4jErrorCode, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: ErrorDiagnosticRecord, cause?: Neo4jError): Neo4jError {
+function newError (message: string, code?: Neo4jErrorCode, cause?: Neo4jError, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: ErrorDiagnosticRecord): Neo4jError {
   return new Neo4jError(message, code ?? NOT_AVAILABLE, gqlStatus ?? '50N42', gqlStatusDescription ?? 'error: general processing exception - unknown error. ' + message, diagnosticRecord, cause)
 }
 
@@ -195,11 +194,11 @@ function _isAuthorizationExpired (code?: Neo4jErrorCode): boolean {
   return code === 'Neo.ClientError.Security.AuthorizationExpired'
 }
 
-function extractClassification(diagnosticRecord?: ErrorDiagnosticRecord): ErrorClassification{
+function extractClassification (diagnosticRecord?: ErrorDiagnosticRecord): ErrorClassification {
   if (diagnosticRecord === undefined || diagnosticRecord._classification === undefined) {
-    return "UNKNOWN"
+    return 'UNKNOWN'
   }
-  return classifications.includes(diagnosticRecord._classification) ? diagnosticRecord?._classification : 'UNKNOWN' 
+  return classifications.includes(diagnosticRecord._classification) ? diagnosticRecord?._classification : 'UNKNOWN'
 }
 
 interface ErrorDiagnosticRecord {
