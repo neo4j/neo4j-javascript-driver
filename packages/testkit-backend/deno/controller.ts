@@ -76,12 +76,31 @@ export function createHandler(
 
 function writeDriverError(id, e) {
   let cause;
-  if (e.cause != null && e.cause != null) {
-    cause = writeDriverError(id, e.cause);
+  if (e.cause != null && e.cause != undefined) {
+    cause = writeGqlError(e.cause);
   }
   return {
     name: "DriverError",
     id,
+    errorType: e.name,
+    msg: e.message,
+    code: e.code,
+    gqlStatus: e.gqlStatus,
+    statusDescription: e.gqlStatusDescription,
+    diagnosticRecord: e.diagnosticRecord,
+    cause,
+    classification: e.classification,
+    retryable: e.retriable,
+  };
+}
+
+function writeGqlError(e) {
+  let cause;
+  if (e.cause != null && e.cause != undefined) {
+    cause = writeGqlError(e.cause);
+  }
+  return {
+    name: "GqlError",
     errorType: e.name,
     msg: e.message,
     code: e.code,
