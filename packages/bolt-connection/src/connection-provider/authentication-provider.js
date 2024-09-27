@@ -30,11 +30,11 @@ export default class AuthenticationProvider {
 
   async authenticate ({ connection, auth, skipReAuth, waitReAuth, forceReAuth }) {
     if (auth != null) {
-      const shouldReAuth = connection.supportsReAuth === true && (
+      const shouldReAuth = connection.authToken == null || (connection.supportsReAuth === true && (
         (!object.equals(connection.authToken, auth) && skipReAuth !== true) ||
         forceReAuth === true
-      )
-      if (connection.authToken == null || shouldReAuth) {
+      ))
+      if (shouldReAuth) {
         return await connection.connect(this._userAgent, this._boltAgent, auth, waitReAuth || false)
       }
       return connection
@@ -42,7 +42,7 @@ export default class AuthenticationProvider {
 
     const authToken = await this._authTokenManager.getToken()
 
-    if (!object.equals(authToken, connection.authToken)) {
+    if (connection.authToken == null || !object.equals(authToken, connection.authToken)) {
       return await connection.connect(this._userAgent, this._boltAgent, authToken, false)
     }
 
