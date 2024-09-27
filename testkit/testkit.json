@@ -1,6 +1,6 @@
 {
   "testkit": {
     "uri": "https://github.com/neo4j-drivers/testkit.git",
-    "ref": "02b0eaac0664057e00e30ecc8aea73cb3df13409"
+    "ref": "bolt-5x7-and-gql-errors"
   }
 }
