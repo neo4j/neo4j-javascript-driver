@@ -13,7 +13,7 @@ export async function setVersion (rootOutDir: string, version: string = currentV
 const thisFilePath = join(Deno.cwd().replace(" ", "%20"), 'versioning.ts');
 console.log(thisFilePath)
 console.log(Deno.mainModule)
-if (Deno.mainModule.endsWith(thisFilePath)) {
+if (Deno.mainModule.replace(" ", "%20").endsWith(thisFilePath)) {
   const parsedArgs = parse(Deno.args, {
     string: ["version", "output", 'filename'],
     unknown: (arg) => {
