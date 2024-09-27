@@ -103,7 +103,7 @@ class Neo4jError extends Error {
     // eslint-disable-next-line no-proto
     this.__proto__ = Neo4jError.prototype
     this.code = code
-    this.cause = cause
+    this.cause = cause != null ? cause : undefined
     this.gqlStatus = gqlStatus
     this.gqlStatusDescription = gqlStatusDescription
     this.diagnosticRecord = diagnosticRecord
