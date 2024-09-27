@@ -75,9 +75,6 @@ export function createHandler(
 }
 
 function writeDriverError(id, e) {
-  console.log("writing DriverError");
-  console.log(e);
-  console.log("Cause: ", e.cause);
   const cause = (e.cause != null && e.cause != undefined)
     ? writeGqlError(e.cause)
     : undefined;
@@ -98,9 +95,6 @@ function writeDriverError(id, e) {
 }
 
 function writeGqlError(e) {
-  console.log("writing GqlError");
-  console.log(e);
-  console.log("Cause: ", e.cause);
   const cause = (e.cause != null && e.cause != undefined)
     ? writeGqlError(e.cause)
     : undefined;
