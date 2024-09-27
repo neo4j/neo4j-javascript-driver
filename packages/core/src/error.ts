@@ -90,6 +90,7 @@ class Neo4jError extends Error {
    * @constructor
    * @param {string} message - the error message
    * @param {string} code - Optional error code. Will be populated when error originates in the database.
+   * @param {Neo4jError} cause - Optional error code. Will be populated when error originates in the database.
    * @param {string} gqlStatus - the error message
    * @param {string} gqlStatusDescription - the error message
    * @param {ErrorDiagnosticRecord} diagnosticRecord - the error message
@@ -102,6 +103,7 @@ class Neo4jError extends Error {
     // eslint-disable-next-line no-proto
     this.__proto__ = Neo4jError.prototype
     this.code = code
+    this.cause = cause
     this.gqlStatus = gqlStatus
     this.gqlStatusDescription = gqlStatusDescription
     this.diagnosticRecord = diagnosticRecord
