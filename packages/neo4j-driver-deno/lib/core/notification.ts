@@ -41,7 +41,7 @@ const unknownGqlStatus: Record<string, { gql_status: UnknownGqlStatus, status_de
   },
   ERROR: {
     gql_status: '50N42',
-    status_description: 'error: general processing exception - unknown error'
+    status_description: 'error: general processing exception - unexpected error'
   }
 }
 

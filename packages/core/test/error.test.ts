@@ -53,7 +53,7 @@ describe('newError', () => {
   test('should create Neo4jError without status description with default description', () => {
     const error: Neo4jError = newError('some error')
 
-    expect(error.gqlStatusDescription).toEqual('error: general processing exception - unknown error. some error')
+    expect(error.gqlStatusDescription).toEqual('error: general processing exception - unexpected error. some error')
     expect(error.code).toEqual('N/A')
   })
 

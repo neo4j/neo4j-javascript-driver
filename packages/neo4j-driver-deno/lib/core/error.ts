@@ -152,7 +152,7 @@ class Neo4jError extends Error {
  * @private
  */
 function newError (message: string, code?: Neo4jErrorCode, cause?: Neo4jError, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: ErrorDiagnosticRecord): Neo4jError {
-  return new Neo4jError(message, code ?? NOT_AVAILABLE, gqlStatus ?? '50N42', gqlStatusDescription ?? 'error: general processing exception - unknown error. ' + message, diagnosticRecord, cause)
+  return new Neo4jError(message, code ?? NOT_AVAILABLE, gqlStatus ?? '50N42', gqlStatusDescription ?? 'error: general processing exception - unexpected error. ' + message, diagnosticRecord, cause)
 }
 
 /**
