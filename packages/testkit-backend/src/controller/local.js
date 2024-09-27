@@ -82,6 +82,9 @@ function newResponse (name, data) {
 }
 
 function writeDriverError (id, e, binder) {
+  console.log('writing DriverError')
+  console.log(e)
+  console.log('Cause: ', e.cause)
   let cause
   if (e.cause != null) {
     cause = writeGqlError(e.cause, binder)
@@ -102,6 +105,9 @@ function writeDriverError (id, e, binder) {
 }
 
 function writeGqlError (e, binder) {
+  console.log('writing GqlError')
+  console.log(e)
+  console.log('Cause: ', e.cause)
   let cause
   if (e.cause != null) {
     cause = writeGqlError(e.cause, binder)
