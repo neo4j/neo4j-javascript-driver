@@ -1,4 +1,5 @@
 import Context from "../src/context.js";
+import CypherNativeBinders from "../src/cypher-native-binders.js";
 import { FakeTime } from "./deps.ts";
 import {
   RequestHandlerMap,
@@ -16,7 +17,11 @@ interface Wire {
   writeBackendError(msg: string): Promise<void>;
 }
 
-function newWire(context: Context, reply: Reply): Wire {
+function newWire(
+  context: Context,
+  binder: CypherNativeBinders,
+  reply: Reply,
+): Wire {
   return {
     writeResponse: (response: TestkitResponse) => reply(response),
     writeError: (e: Error) => {
@@ -30,7 +35,7 @@ function newWire(context: Context, reply: Reply): Wire {
           });
         } else {
           const id = context.addError(e);
-          return reply(writeDriverError(id, e));
+          return reply(writeDriverError(id, e, binder));
         }
       }
       const msg = e.message;
@@ -47,12 +52,13 @@ export function createHandler(
   newContext: () => Context,
   requestHandlers: RequestHandlerMap,
 ) {
+  const binder = new CypherNativeBinders(neo4j);
   return async function (
     reply: Reply,
     requests: () => AsyncIterable<TestkitRequest>,
   ) {
     const context = newContext();
-    const wire = newWire(context, (response) => {
+    const wire = newWire(context, binder, (response) => {
       console.log("response:", response.name);
       console.debug(response.data);
       return reply(response);
@@ -74,9 +80,9 @@ export function createHandler(
   };
 }
 
-function writeDriverError(id, e) {
+function writeDriverError(id, e, binder) {
   const cause = (e.cause != null && e.cause != undefined)
-    ? writeGqlError(e.cause)
+    ? writeGqlError(e.cause, binder)
     : undefined;
   return {
     name: "DriverError",
@@ -87,7 +93,7 @@ function writeDriverError(id, e) {
       code: e.code,
       gqlStatus: e.gqlStatus,
       statusDescription: e.gqlStatusDescription,
-      diagnosticRecord: e.diagnosticRecord,
+      diagnosticRecord: binder.objectToCypher(e.diagnosticRecord),
       cause: cause,
       classification: e.classification,
       rawClassification: e.rawClassification,
@@ -96,9 +102,9 @@ function writeDriverError(id, e) {
   };
 }
 
-function writeGqlError(e) {
+function writeGqlError(e, binder) {
   const cause = (e.cause != null && e.cause != undefined)
-    ? writeGqlError(e.cause)
+    ? writeGqlError(e.cause, binder)
     : undefined;
   return {
     name: "GqlError",
@@ -106,7 +112,7 @@ function writeGqlError(e) {
       msg: e.message,
       gqlStatus: e.gqlStatus,
       statusDescription: e.gqlStatusDescription,
-      diagnosticRecord: e.diagnosticRecord,
+      diagnosticRecord: binder.objectToCypher(e.diagnosticRecord),
       cause: cause,
       classification: e.classification,
       rawClassification: e.rawClassification,
