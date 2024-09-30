@@ -106,13 +106,13 @@ describe('response-handler', () => {
         code: 'Neo.ClientError.Test.Error',
         gql_status: '13N37',
         description: 'I made this error up, for fun and profit!',
-        diagnostic_record: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'CLIENT_ERROR' },
+        diagnostic_record: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'CLIENT_ERROR', additional_thing: 5268 },
         cause: {
           message: 'old cause message',
           code: 'Neo.ClientError.Test.Cause',
           gql_status: '13N38',
           description: 'I made this error up, for fun and profit and reasons!',
-          diagnostic_record: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'DATABASE_ERROR' }
+          diagnostic_record: { OPERATION: '', OPERATION_CODE: '2', CURRENT_SCHEMA: '/', _classification: 'DATABASE_ERROR', additional_thing: false }
         }
       }
       const observer = {
@@ -134,10 +134,26 @@ describe('response-handler', () => {
       expect(receivedError.message).toBe(errorPayload.message)
       expect(receivedError.gqlStatus).toBe(errorPayload.gql_status)
       expect(receivedError.gqlStatusDescription).toBe(errorPayload.description)
+      // eslint-disable-next-line camelcase
+      testDiagnosticRecord(receivedError.diagnosticRecord, errorPayload.diagnostic_record)
+      // eslint-disable-next-line camelcase
+      testDiagnosticRecord(receivedError.cause.diagnosticRecord, errorPayload.cause.diagnostic_record)
       expect(receivedError.classification).toBe(errorPayload.diagnostic_record._classification)
       expect(receivedError.cause.classification).toBe(errorPayload.cause.diagnostic_record._classification)
     })
   })
+
+  // eslint-disable-next-line camelcase
+  function testDiagnosticRecord (diagnostic_record, expected_diagnostic_record) {
+    // eslint-disable-next-line camelcase
+    expect(diagnostic_record.OPERATION).toBe(expected_diagnostic_record.OPERATION)
+    // eslint-disable-next-line camelcase
+    expect(diagnostic_record.CURRENT_SCHEMA).toBe(expected_diagnostic_record.CURRENT_SCHEMA)
+    // eslint-disable-next-line camelcase
+    expect(diagnostic_record.OPERATION_CODE).toBe(expected_diagnostic_record.OPERATION_CODE)
+    // eslint-disable-next-line camelcase
+    expect(diagnostic_record.additional_thing).toBe(expected_diagnostic_record.additional_thing)
+  }
 
   it('should keep track of observers and notify onObserversCountChange()', () => {
     const observer = {
