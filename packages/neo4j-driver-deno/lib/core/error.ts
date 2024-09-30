@@ -102,12 +102,61 @@ class Neo4jError extends Error {
     this.constructor = Neo4jError
     // eslint-disable-next-line no-proto
     this.__proto__ = Neo4jError.prototype
+    /**
+     * The Neo4j Error code
+     *
+     * @type {string}
+     * @deprecated This property will be removed in 7.0.
+     * @public
+     */
     this.code = code
+    /**
+     * Optional, nested error which caused the error
+     *
+     * @type {Error?}
+     * @experimental This is a preview feature.
+     * @public
+     */
     this.cause = cause != null ? cause : undefined
+    /**
+     * The GQL Status code
+     *
+     * @type {string}
+     * @experimental This is a preview feature.
+     * @public
+     */
     this.gqlStatus = gqlStatus
+    /**
+     * The GQL Status Description
+     *
+     * @type {string}
+     * @experimental This is a preview feature.
+     * @public
+     */
     this.gqlStatusDescription = gqlStatusDescription
+    /**
+     * The GQL diagnostic record
+     *
+     * @type {ErrorDiagnosticRecord}
+     * @experimental This is a preview feature.
+     * @public
+     */
     this.diagnosticRecord = diagnosticRecord
+    /**
+     * The GQL error classification, extracted from the diagnostic record
+     *
+     * @type {ErrorClassification}
+     * @experimental This is a preview feature.
+     * @public
+     */
     this.classification = extractClassification(this.diagnosticRecord)
+    /**
+     * The GQL error classification, extracted from the diagnostic record as a raw string
+     *
+     * @type {string}
+     * @experimental This is a preview feature.
+     * @public
+     */
     this.rawClassification = diagnosticRecord?._classification ?? undefined
     this.name = 'Neo4jError'
     /**
