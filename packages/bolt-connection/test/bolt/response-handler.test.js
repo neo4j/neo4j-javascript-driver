@@ -18,6 +18,7 @@
 import ResponseHandler from '../../src/bolt/response-handler'
 import { internal, newError } from 'neo4j-driver-core'
 
+/* eslint-disable camelcase */
 const {
   logger: { Logger }
 } = internal
@@ -134,24 +135,17 @@ describe('response-handler', () => {
       expect(receivedError.message).toBe(errorPayload.message)
       expect(receivedError.gqlStatus).toBe(errorPayload.gql_status)
       expect(receivedError.gqlStatusDescription).toBe(errorPayload.description)
-      // eslint-disable-next-line camelcase
       testDiagnosticRecord(receivedError.diagnosticRecord, errorPayload.diagnostic_record)
-      // eslint-disable-next-line camelcase
       testDiagnosticRecord(receivedError.cause.diagnosticRecord, errorPayload.cause.diagnostic_record)
       expect(receivedError.classification).toBe(errorPayload.diagnostic_record._classification)
       expect(receivedError.cause.classification).toBe(errorPayload.cause.diagnostic_record._classification)
     })
   })
 
-  // eslint-disable-next-line camelcase
   function testDiagnosticRecord (diagnostic_record, expected_diagnostic_record) {
-    // eslint-disable-next-line camelcase
     expect(diagnostic_record.OPERATION).toBe(expected_diagnostic_record.OPERATION)
-    // eslint-disable-next-line camelcase
     expect(diagnostic_record.CURRENT_SCHEMA).toBe(expected_diagnostic_record.CURRENT_SCHEMA)
-    // eslint-disable-next-line camelcase
     expect(diagnostic_record.OPERATION_CODE).toBe(expected_diagnostic_record.OPERATION_CODE)
-    // eslint-disable-next-line camelcase
     expect(diagnostic_record.additional_thing).toBe(expected_diagnostic_record.additional_thing)
   }
 
