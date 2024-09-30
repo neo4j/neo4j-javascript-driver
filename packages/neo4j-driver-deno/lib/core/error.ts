@@ -106,7 +106,6 @@ class Neo4jError extends Error {
      * The Neo4j Error code
      *
      * @type {string}
-     * @deprecated This property will be removed in 7.0.
      * @public
      */
     this.code = code
@@ -114,7 +113,6 @@ class Neo4jError extends Error {
      * Optional, nested error which caused the error
      *
      * @type {Error?}
-     * @experimental This is a preview feature.
      * @public
      */
     this.cause = cause != null ? cause : undefined
@@ -122,7 +120,6 @@ class Neo4jError extends Error {
      * The GQL Status code
      *
      * @type {string}
-     * @experimental This is a preview feature.
      * @public
      */
     this.gqlStatus = gqlStatus
@@ -130,7 +127,6 @@ class Neo4jError extends Error {
      * The GQL Status Description
      *
      * @type {string}
-     * @experimental This is a preview feature.
      * @public
      */
     this.gqlStatusDescription = gqlStatusDescription
@@ -138,7 +134,6 @@ class Neo4jError extends Error {
      * The GQL diagnostic record
      *
      * @type {ErrorDiagnosticRecord}
-     * @experimental This is a preview feature.
      * @public
      */
     this.diagnosticRecord = diagnosticRecord
@@ -146,7 +141,6 @@ class Neo4jError extends Error {
      * The GQL error classification, extracted from the diagnostic record
      *
      * @type {ErrorClassification}
-     * @experimental This is a preview feature.
      * @public
      */
     this.classification = extractClassification(this.diagnosticRecord)
@@ -154,7 +148,6 @@ class Neo4jError extends Error {
      * The GQL error classification, extracted from the diagnostic record as a raw string
      *
      * @type {string}
-     * @experimental This is a preview feature.
      * @public
      */
     this.rawClassification = diagnosticRecord?._classification ?? undefined
@@ -245,6 +238,9 @@ function _isAuthorizationExpired (code?: Neo4jErrorCode): boolean {
   return code === 'Neo.ClientError.Security.AuthorizationExpired'
 }
 
+/**
+ * extracts a typed classification from the diagnostic record.
+ */
 function extractClassification (diagnosticRecord?: ErrorDiagnosticRecord): ErrorClassification {
   if (diagnosticRecord === undefined || diagnosticRecord._classification === undefined) {
     return 'UNKNOWN'
@@ -252,6 +248,10 @@ function extractClassification (diagnosticRecord?: ErrorDiagnosticRecord): Error
   return classifications.includes(diagnosticRecord._classification) ? diagnosticRecord?._classification : 'UNKNOWN'
 }
 
+
+/**
+ * Class for the DiagnosticRecord in a {@link Neo4jError}, including commonly used fields.
+ */
 interface ErrorDiagnosticRecord {
   OPERATION: string
   OPERATION_CODE: string
