@@ -80,17 +80,19 @@ function writeDriverError(id, e) {
     : undefined;
   return {
     name: "DriverError",
-    id,
-    errorType: e.name,
-    msg: e.message,
-    code: e.code,
-    gqlStatus: e.gqlStatus,
-    statusDescription: e.gqlStatusDescription,
-    diagnosticRecord: e.diagnosticRecord,
-    cause: cause,
-    classification: e.classification,
-    rawClassification: e.rawClassification,
-    retryable: e.retriable,
+    data: {
+      id,
+      errorType: e.name,
+      msg: e.message,
+      code: e.code,
+      gqlStatus: e.gqlStatus,
+      statusDescription: e.gqlStatusDescription,
+      diagnosticRecord: e.diagnosticRecord,
+      cause: cause,
+      classification: e.classification,
+      rawClassification: e.rawClassification,
+      retryable: e.retriable,
+    },
   };
 }
 
@@ -100,13 +102,15 @@ function writeGqlError(e) {
     : undefined;
   return {
     name: "GqlError",
-    msg: e.message,
-    gqlStatus: e.gqlStatus,
-    statusDescription: e.gqlStatusDescription,
-    diagnosticRecord: e.diagnosticRecord,
-    cause: cause,
-    classification: e.classification,
-    rawClassification: e.rawClassification,
+    data: {
+      msg: e.message,
+      gqlStatus: e.gqlStatus,
+      statusDescription: e.gqlStatusDescription,
+      diagnosticRecord: e.diagnosticRecord,
+      cause: cause,
+      classification: e.classification,
+      rawClassification: e.rawClassification,
+    },
   };
 }
 
