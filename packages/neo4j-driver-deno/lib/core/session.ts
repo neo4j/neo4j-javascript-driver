@@ -220,22 +220,6 @@ class Session {
   }
 
   /**
-   * This method is used by Rediscovery on the neo4j-driver-bolt-protocol package.
-   *
-   * @private
-   * @param {function()} connectionConsumer The method which will use the connection
-   * @returns {Promise<T>} A connection promise
-   */
-  _acquireConnection<T> (connectionConsumer: ConnectionConsumer<T>): Promise<T> {
-    const { connectionHolder, resultPromise } = this._acquireAndConsumeConnection(connectionConsumer)
-
-    return resultPromise.then(async (result: T) => {
-      await connectionHolder.releaseConnection()
-      return result
-    })
-  }
-
-  /**
    * Acquires a {@link Connection}, consume it and return a promise of the result along with
    * the {@link ConnectionHolder} used in the process.
    *

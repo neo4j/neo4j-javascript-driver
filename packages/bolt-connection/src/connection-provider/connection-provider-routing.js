@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import { newError, error, int, Session, internal } from 'neo4j-driver-core'
+import { newError, error, int, internal } from 'neo4j-driver-core'
 import Rediscovery, { RoutingTable } from '../rediscovery'
 import { HostNameResolver } from '../channel'
-import SingleConnectionProvider from './connection-provider-single'
 import PooledConnectionProvider from './connection-provider-pooled'
 import { LeastConnectedLoadBalancingStrategy } from '../load-balancing'
 import {
@@ -538,13 +537,14 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         const [session, error] = await this._createSessionForRediscovery(
           currentRouter,
           bookmarks,
-          impersonatedUser,
           auth
         )
         if (session) {
+          const [connection, sessionContext] = session
           try {
             return [await this._rediscovery.lookupRoutingTableOnRouter(
-              session,
+              connection,
+              sessionContext,
               routingTable.database,
               currentRouter,
               impersonatedUser
@@ -552,7 +552,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
           } catch (error) {
             return this._handleRediscoveryError(error, currentRouter)
           } finally {
-            session.close()
+            await connection.release().then(() => null)
           }
         } else {
           // unable to acquire connection and create session towards the current router
@@ -564,7 +564,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
   }
 
-  async _createSessionForRediscovery (routerAddress, bookmarks, impersonatedUser, auth) {
+  async _createSessionForRediscovery (routerAddress, bookmarks, auth) {
     try {
       const connection = await this._connectionPool.acquire({ auth }, routerAddress)
 
@@ -585,24 +585,18 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         ? new DelegateConnection(connection, databaseSpecificErrorHandler)
         : new DelegateConnection(connection)
 
-      const connectionProvider = new SingleConnectionProvider(delegateConnection)
-
       const protocolVersion = connection.protocol().version
       if (protocolVersion < 4.0) {
-        return [new Session({
-          mode: WRITE,
-          bookmarks: Bookmarks.empty(),
-          connectionProvider
-        }), null]
+        return [[delegateConnection, {
+          mode: WRITE, bookmarks: Bookmarks.empty()
+        }], null]
       }
 
-      return [new Session({
+      return [[delegateConnection, {
+        bookmarks: bookmarks || Bookmarks.empty(),
         mode: READ,
-        database: SYSTEM_DB_NAME,
-        bookmarks,
-        connectionProvider,
-        impersonatedUser
-      }), null]
+        database: SYSTEM_DB_NAME
+      }], null]
     } catch (error) {
       return this._handleRediscoveryError(error, routerAddress)
     }
