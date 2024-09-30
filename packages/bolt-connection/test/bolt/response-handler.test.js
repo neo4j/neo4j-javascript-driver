@@ -110,7 +110,6 @@ describe('response-handler', () => {
         diagnostic_record: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'CLIENT_ERROR', additional_thing: 5268 },
         cause: {
           message: 'old cause message',
-          code: 'Neo.ClientError.Test.Cause',
           gql_status: '13N38',
           description: 'I made this error up, for fun and profit and reasons!',
           diagnostic_record: { OPERATION: '', OPERATION_CODE: '2', CURRENT_SCHEMA: '/', _classification: 'DATABASE_ERROR', additional_thing: false }
