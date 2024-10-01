@@ -248,7 +248,6 @@ function extractClassification (diagnosticRecord?: ErrorDiagnosticRecord): Error
   return classifications.includes(diagnosticRecord._classification) ? diagnosticRecord?._classification : 'UNKNOWN'
 }
 
-
 /**
  * Class for the DiagnosticRecord in a {@link Neo4jError}, including commonly used fields.
  */
