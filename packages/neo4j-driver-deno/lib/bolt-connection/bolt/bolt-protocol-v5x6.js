@@ -31,7 +31,7 @@ const DEFAULT_DIAGNOSTIC_RECORD = Object.freeze({
   CURRENT_SCHEMA: '/'
 })
 
-export default class BoltProtocolV5x6 extends BoltProtocolV5x5 {
+export default class BoltProtocol extends BoltProtocolV5x5 {
   get version () {
     return BOLT_PROTOCOL_V5_6
   }

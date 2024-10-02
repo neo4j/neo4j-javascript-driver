@@ -18,6 +18,7 @@ import {
   Neo4jError,
   isRetriableError,
   newError,
+  newGQLError,
   PROTOCOL_ERROR,
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED
@@ -65,7 +66,7 @@ describe('newError', () => {
   })
 
   test('should create Neo4jError with cause', () => {
-    const cause = newError('cause')
+    const cause = newGQLError('cause')
     const error: Neo4jError = newError('some error', undefined, cause, 'some status', 'some description', undefined)
 
     expect(error.message).toEqual('some error')
@@ -80,7 +81,7 @@ describe('newError', () => {
   })
 
   test('should create Neo4jError with nested cause', () => {
-    const cause = newError('cause', undefined, newError('nested'), undefined, undefined, undefined)
+    const cause = newGQLError('cause', newGQLError('nested'), undefined, undefined, undefined)
     const error: Neo4jError = newError('some error', undefined, cause, 'some status', 'some description', undefined)
 
     expect(error.message).toEqual('some error')
@@ -116,7 +117,6 @@ describe('newError', () => {
     'CLIENT_ERROR',
     'DATABASE_ERROR'
   ])('should create Neo4jError with diagnosticRecord with classification (%s)', (classification) => {
-    // @ts-expect-error
     const error: Neo4jError = newError('some error', undefined, undefined, undefined, undefined, { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: classification })
 
     expect(error.classification).toEqual(classification)

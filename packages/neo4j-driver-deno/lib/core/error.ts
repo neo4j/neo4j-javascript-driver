@@ -17,8 +17,10 @@
 
 // A common place for constructing error objects, to keep them
 // uniform across the driver surface.
-import { NumberOrInteger } from './graph-types.ts'
+
 import * as json from './json.ts'
+import { DiagnosticRecord, rawPolyfilledDiagnosticRecord } from './gql-constants.ts'
+
 
 export type ErrorClassification = 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN'
 /**
@@ -69,46 +71,33 @@ type Neo4jErrorCode =
   | typeof NOT_AVAILABLE
 
 /// TODO: Remove definitions of this.constructor and this.__proto__
-/**
- * Class for all errors thrown/returned by the driver.
- */
-class Neo4jError extends Error {
-  /**
-   * Optional error code. Will be populated when error originates in the database.
-   */
-  code: Neo4jErrorCode
+
+
+class GQLError extends Error {
   gqlStatus: string
   gqlStatusDescription: string
-  diagnosticRecord: ErrorDiagnosticRecord | undefined
+  diagnosticRecord: DiagnosticRecord | undefined
   classification: ErrorClassification
   rawClassification?: string
   cause?: Error
   retriable: boolean
-  __proto__: Neo4jError
+  __proto__: GQLError
 
   /**
    * @constructor
    * @param {string} message - the error message
-   * @param {string} code - Optional error code. Will be populated when error originates in the database.
-   * @param {Neo4jError} cause - Optional error code. Will be populated when error originates in the database.
-   * @param {string} gqlStatus - the error message
-   * @param {string} gqlStatusDescription - the error message
-   * @param {ErrorDiagnosticRecord} diagnosticRecord - the error message
+   * @param {string} gqlStatus - the GQL status code of the error
+   * @param {string} gqlStatusDescription - the GQL status description of the error
+   * @param {ErrorDiagnosticRecord} diagnosticRecord - the error diagnostic record
+   * @param {Error} cause - Optional nested error, the cause of the error
    */
-  constructor (message: string, code: Neo4jErrorCode, gqlStatus: string, gqlStatusDescription: string, diagnosticRecord?: ErrorDiagnosticRecord, cause?: Error) {
+  constructor (message: string, gqlStatus: string, gqlStatusDescription: string, diagnosticRecord?: DiagnosticRecord, cause?: Error) {
     // eslint-disable-next-line
     // @ts-ignore: not available in ES6 yet
     super(message, cause != null ? { cause } : undefined)
-    this.constructor = Neo4jError
+    this.constructor = GQLError
     // eslint-disable-next-line no-proto
-    this.__proto__ = Neo4jError.prototype
-    /**
-     * The Neo4j Error code
-     *
-     * @type {string}
-     * @public
-     */
-    this.code = code
+    this.__proto__ = GQLError.prototype
     /**
      * Optional, nested error which caused the error
      *
@@ -133,7 +122,7 @@ class Neo4jError extends Error {
     /**
      * The GQL diagnostic record
      *
-     * @type {ErrorDiagnosticRecord}
+     * @type {DiagnosticRecord}
      * @public
      */
     this.diagnosticRecord = diagnosticRecord
@@ -151,25 +140,7 @@ class Neo4jError extends Error {
      * @public
      */
     this.rawClassification = diagnosticRecord?._classification ?? undefined
-    this.name = 'Neo4jError'
-    /**
-     * Indicates if the error is retriable.
-     * @type {boolean} - true if the error is retriable
-     */
-    this.retriable = _isRetriableCode(code)
-  }
-
-  /**
-   * Verifies if the given error is retriable.
-   *
-   * @param {object|undefined|null} error the error object
-   * @returns {boolean} true if the error is retriable
-   */
-  static isRetriable (error?: any | null): boolean {
-    return error !== null &&
-      error !== undefined &&
-      error instanceof Neo4jError &&
-      error.retriable
+    this.name = 'GQLError'
   }
 
   /**
@@ -184,20 +155,90 @@ class Neo4jError extends Error {
   }
 }
 
+
 /**
- * Create a new error from a message and error code
+ * Class for all errors thrown/returned by the driver.
+ */
+class Neo4jError extends GQLError {
+  /**
+   * Optional error code. Will be populated when error originates in the database.
+   */
+  code: string
+
+  /**
+   * @constructor
+   * @param {string} message - the error message
+   * @param {string} code - Optional error code. Will be populated when error originates in the database.
+   * @param {string} gqlStatus - the GQL status code of the error
+   * @param {string} gqlStatusDescription - the GQL status description of the error
+   * @param {DiagnosticRecord} diagnosticRecord - the error diagnostic record
+   * @param {Error} cause - Optional nested error, the cause of the error
+   */
+  constructor (message: string, code: Neo4jErrorCode, gqlStatus: string, gqlStatusDescription: string, diagnosticRecord?: DiagnosticRecord, cause?: Error) {
+    super(message, gqlStatus, gqlStatusDescription, diagnosticRecord, cause)
+    this.constructor = Neo4jError
+    // eslint-disable-next-line no-proto
+    this.__proto__ = Neo4jError.prototype
+    /**
+     * The Neo4j Error code
+     *
+     * @type {string}
+     * @public
+     */
+    this.code = code
+
+    this.name = 'Neo4jError'
+    this.retriable = _isRetriableCode(code) 
+  }
+
+  toString(): string {
+    return this.name + ": " + this.message
+  }
+
+  /**
+   * Verifies if the given error is retriable.
+   *
+   * @param {object|undefined|null} error the error object
+   * @returns {boolean} true if the error is retriable
+   */
+  static isRetriable (error?: any | null): boolean {
+    return error !== null &&
+      error !== undefined &&
+      error instanceof GQLError &&
+      error.retriable
+  }
+}
+
+
+/**
+ * Create a new error from a message and optional data
  * @param message the error message
  * @param {Neo4jErrorCode} [code] the error code
  * @param {Neo4jError} [cause]
  * @param {String} [gqlStatus]
  * @param {String} [gqlStatusDescription]
- * @param {ErrorDiagnosticRecord} diagnosticRecord - the error message
+ * @param {DiagnosticRecord} diagnosticRecord - the error message
  * @return {Neo4jError} an {@link Neo4jError}
  * @private
  */
-function newError (message: string, code?: Neo4jErrorCode, cause?: Neo4jError, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: ErrorDiagnosticRecord): Neo4jError {
-  return new Neo4jError(message, code ?? NOT_AVAILABLE, gqlStatus ?? '50N42', gqlStatusDescription ?? 'error: general processing exception - unexpected error. ' + message, diagnosticRecord, cause)
+function newError (message: string, code?: Neo4jErrorCode, cause?: Error, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: DiagnosticRecord): Neo4jError {
+  return new Neo4jError(message, code ?? NOT_AVAILABLE, gqlStatus ?? '50N42', gqlStatusDescription ?? 'error: general processing exception - unexpected error. ' + message, diagnosticRecord ?? rawPolyfilledDiagnosticRecord, cause)
 }
+
+/**
+ * Create a new GQL error from a message and optional data
+ * @param message the error message
+ * @param {Neo4jError} [cause]
+ * @param {String} [gqlStatus]
+ * @param {String} [gqlStatusDescription]
+ * @param {DiagnosticRecord} diagnosticRecord - the error message
+ * @return {Neo4jError} an {@link Neo4jError}
+ * @private
+ */
+function newGQLError (message: string, cause?: Error, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: DiagnosticRecord): GQLError {
+  return new GQLError(message, gqlStatus ?? '50N42', gqlStatusDescription ?? 'error: general processing exception - unexpected error. ' + message, diagnosticRecord ?? rawPolyfilledDiagnosticRecord, cause)
+}
+
 
 /**
  * Verifies if the given error is retriable.
@@ -241,35 +282,19 @@ function _isAuthorizationExpired (code?: Neo4jErrorCode): boolean {
 /**
  * extracts a typed classification from the diagnostic record.
  */
-function extractClassification (diagnosticRecord?: ErrorDiagnosticRecord): ErrorClassification {
+function extractClassification (diagnosticRecord?: any): ErrorClassification {
   if (diagnosticRecord === undefined || diagnosticRecord._classification === undefined) {
     return 'UNKNOWN'
   }
   return classifications.includes(diagnosticRecord._classification) ? diagnosticRecord?._classification : 'UNKNOWN'
 }
 
-/**
- * Class for the DiagnosticRecord in a {@link Neo4jError}, including commonly used fields.
- */
-interface ErrorDiagnosticRecord {
-  OPERATION: string
-  OPERATION_CODE: string
-  CURRENT_SCHEMA: string
-  _severity?: string
-  _classification?: ErrorClassification
-  _position?: {
-    offset: NumberOrInteger
-    line: NumberOrInteger
-    column: NumberOrInteger
-  }
-  _status_parameters?: Record<string, unknown>
-  [key: string]: unknown
-}
-
 export {
   newError,
+  newGQLError,
   isRetriableError,
   Neo4jError,
+  GQLError,
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED,
   PROTOCOL_ERROR

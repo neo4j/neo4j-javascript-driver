@@ -16,6 +16,7 @@
  */
 
 import ResponseHandler from '../../src/bolt/response-handler'
+import BoltProtocolV1 from '../../src/bolt/bolt-protocol-v1'
 import { internal, newError } from 'neo4j-driver-core'
 
 /* eslint-disable camelcase */
@@ -107,7 +108,7 @@ describe('response-handler', () => {
         code: 'Neo.ClientError.Test.Error',
         gql_status: '13N37',
         description: 'I made this error up, for fun and profit!',
-        diagnostic_record: { OPERATION: '', OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'CLIENT_ERROR', additional_thing: 5268 },
+        diagnostic_record: { OPERATION_CODE: '0', CURRENT_SCHEMA: '/', _classification: 'CLIENT_ERROR', additional_thing: 5268 },
         cause: {
           message: 'old cause message',
           gql_status: '13N38',
@@ -119,7 +120,8 @@ describe('response-handler', () => {
         capturedErrors: [],
         onFailure: error => observer.capturedErrors.push(error)
       }
-      const responseHandler = new ResponseHandler({ observer, log: Logger.noOp() })
+      const enrichErrorMetadata = new BoltProtocolV1().enrichErrorMetadata
+      const responseHandler = new ResponseHandler({ observer, enrichErrorMetadata, log: Logger.noOp() })
       responseHandler._queueObserver({})
 
       const errorMessage = {
@@ -142,7 +144,7 @@ describe('response-handler', () => {
   })
 
   function testDiagnosticRecord (diagnostic_record, expected_diagnostic_record) {
-    expect(diagnostic_record.OPERATION).toBe(expected_diagnostic_record.OPERATION)
+    expect(diagnostic_record.OPERATION).toBe(expected_diagnostic_record.OPERATION ?? '')
     expect(diagnostic_record.CURRENT_SCHEMA).toBe(expected_diagnostic_record.CURRENT_SCHEMA)
     expect(diagnostic_record.OPERATION_CODE).toBe(expected_diagnostic_record.OPERATION_CODE)
     expect(diagnostic_record.additional_thing).toBe(expected_diagnostic_record.additional_thing)

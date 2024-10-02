@@ -371,7 +371,7 @@ describe('ChannelConnection', () => {
         expect(loggerFunction).toHaveBeenCalledWith(
           'error',
           `${connection} experienced a fatal error caused by Neo4jError: some error ` +
-            '({"code":"C","gqlStatus":"50N42","gqlStatusDescription":"error: general processing exception - unexpected error. some error","classification":"UNKNOWN","name":"Neo4jError","retriable":false})'
+            '({"gqlStatus":"50N42","gqlStatusDescription":"error: general processing exception - unexpected error. some error","diagnosticRecord":{"OPERATION":"","OPERATION_CODE":"0","CURRENT_SCHEMA":"/"},"classification":"UNKNOWN","name":"Neo4jError","code":"C","retriable":false})'
         )
       })
     })
@@ -419,7 +419,7 @@ describe('ChannelConnection', () => {
         expect(loggerFunction).toHaveBeenCalledWith(
           'error',
           `${connection} experienced a fatal error caused by Neo4jError: current failure ` +
-            '({"code":"ongoing","gqlStatus":"50N42","gqlStatusDescription":"error: general processing exception - unexpected error. current failure","classification":"UNKNOWN","name":"Neo4jError","retriable":false})'
+            '({"gqlStatus":"50N42","gqlStatusDescription":"error: general processing exception - unexpected error. current failure","diagnosticRecord":{"OPERATION":"","OPERATION_CODE":"0","CURRENT_SCHEMA":"/"},"classification":"UNKNOWN","name":"Neo4jError","code":"ongoing","retriable":false})'
         )
       })
     })

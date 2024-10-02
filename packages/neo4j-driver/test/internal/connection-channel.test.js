@@ -300,7 +300,7 @@ describe('#integration ChannelConnection', () => {
             .then(() => done.fail('Should fail'))
             .catch(error => {
               expect(error.message).toEqual(
-                'Received FAILURE as a response for RESET: Neo4jError'
+                'Received FAILURE as a response for RESET: Neo4jError: Hello'
               )
               expect(connection._isBroken).toBeTruthy()
               expect(connection.isOpen()).toBeFalsy()

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError, json } from '../../core/index.ts'
+import { newError, newGQLError, json } from '../../core/index.ts'
 
 // Signature bytes for each response message type
 const SUCCESS = 0x70 // 0111 0000 // SUCCESS <metadata>
@@ -196,8 +196,16 @@ export default class ResponseHandler {
 
   _handleErrorPayload (payload) {
     const standardizedCode = _standardizeCode(payload.code)
-    const cause = payload.cause != null ? this._handleErrorPayload(payload.cause) : undefined
+    const cause = payload.cause != null ? this._handleErrorCause(payload.cause) : undefined
     const error = newError(payload.message, standardizedCode, cause, payload.gql_status, payload.description, payload.diagnostic_record)
+    return this._observer.onErrorApplyTransformation(
+      error
+    )
+  }
+
+  _handleErrorCause (payload) {
+    const cause = payload.cause != null ? this._handleErrorCause(payload.cause) : undefined
+    const error = newGQLError(payload.message, cause, payload.gql_status, payload.description, payload.diagnostic_record)
     return this._observer.onErrorApplyTransformation(
       error
     )
