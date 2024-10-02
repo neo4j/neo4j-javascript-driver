@@ -21,7 +21,6 @@
 import * as json from './json.ts'
 import { DiagnosticRecord, rawPolyfilledDiagnosticRecord } from './gql-constants.ts'
 
-
 export type ErrorClassification = 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN'
 /**
  * @typedef { 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN' } ErrorClassification
@@ -71,7 +70,6 @@ type Neo4jErrorCode =
   | typeof NOT_AVAILABLE
 
 /// TODO: Remove definitions of this.constructor and this.__proto__
-
 
 class GQLError extends Error {
   gqlStatus: string
@@ -155,7 +153,6 @@ class GQLError extends Error {
   }
 }
 
-
 /**
  * Class for all errors thrown/returned by the driver.
  */
@@ -188,11 +185,11 @@ class Neo4jError extends GQLError {
     this.code = code
 
     this.name = 'Neo4jError'
-    this.retriable = _isRetriableCode(code) 
+    this.retriable = _isRetriableCode(code)
   }
 
-  toString(): string {
-    return this.name + ": " + this.message
+  toString (): string {
+    return this.name + ': ' + this.message
   }
 
   /**
@@ -208,7 +205,6 @@ class Neo4jError extends GQLError {
       error.retriable
   }
 }
-
 
 /**
  * Create a new error from a message and optional data
@@ -238,7 +234,6 @@ function newError (message: string, code?: Neo4jErrorCode, cause?: Error, gqlSta
 function newGQLError (message: string, cause?: Error, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: DiagnosticRecord): GQLError {
   return new GQLError(message, gqlStatus ?? '50N42', gqlStatusDescription ?? 'error: general processing exception - unexpected error. ' + message, diagnosticRecord ?? rawPolyfilledDiagnosticRecord, cause)
 }
-
 
 /**
  * Verifies if the given error is retriable.
