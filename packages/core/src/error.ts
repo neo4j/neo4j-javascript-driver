@@ -78,7 +78,6 @@ class GQLError extends Error {
   classification: ErrorClassification
   rawClassification?: string
   cause?: Error
-  retriable: boolean
   __proto__: GQLError
 
   /**
@@ -161,6 +160,7 @@ class Neo4jError extends GQLError {
    * Optional error code. Will be populated when error originates in the database.
    */
   code: string
+  retriable: boolean
 
   /**
    * @constructor
@@ -201,7 +201,7 @@ class Neo4jError extends GQLError {
   static isRetriable (error?: any | null): boolean {
     return error !== null &&
       error !== undefined &&
-      error instanceof GQLError &&
+      error instanceof Neo4jError &&
       error.retriable
   }
 }
