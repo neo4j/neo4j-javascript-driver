@@ -188,10 +188,6 @@ class Neo4jError extends GQLError {
     this.retriable = _isRetriableCode(code)
   }
 
-  toString (): string {
-    return this.name + ': ' + this.message
-  }
-
   /**
    * Verifies if the given error is retriable.
    *
