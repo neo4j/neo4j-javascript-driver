@@ -214,6 +214,7 @@ class SessionConfig {
      * The record fetch size of each batch of this session.
      *
      * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
+     * **Default**: {@link DEFAULT_FETCH_SIZE}
      *
      * @type {number|undefined}
      */
