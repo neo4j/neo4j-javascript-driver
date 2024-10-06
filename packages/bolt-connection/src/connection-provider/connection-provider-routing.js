@@ -142,6 +142,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth } = {}) {
     let name
     let address
+    if (database != null) {
+      // create the cache as a separated class
+      database = this._homeDbCache.get({ impersonatedUser, auth })
+    }
     const context = { database: database || DEFAULT_DB_NAME }
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
@@ -160,6 +164,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       auth,
       onDatabaseNameResolved: (databaseName) => {
         context.database = context.database || databaseName
+        this._homeDbCache.set({ impersonatedUser, auth, database })
         if (onDatabaseNameResolved) {
           onDatabaseNameResolved(databaseName)
         }
