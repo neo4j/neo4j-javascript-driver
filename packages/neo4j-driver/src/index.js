@@ -257,7 +257,7 @@ const logging = {
     return {
       level,
       logger: (level, message) =>
-        console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
+        console.log(`[${global.Date.now()}] [${level.toUpperCase()}] ${message}`)
     }
   }
 }
