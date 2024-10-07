@@ -27,9 +27,9 @@ if __name__ == "__main__":
     if session_type is not None:
         os.environ["SESSION_TYPE"] = session_type
 
-    print("npm run start-testkit-backend")
+    print("yarn run start-testkit-backend")
     with open_proccess_in_driver_repo([
-        "npm", "run", backend_script
+        "yarn", "run", backend_script
     ], env=os.environ) as backend:
         if (is_browser()):
             time.sleep(5)

@@ -63,10 +63,13 @@ USER driver
 WORKDIR /home/driver
 CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
-RUN npm config set prefix /home/driver/.npm_global
 
+ENV PATH="${PATH}:/home/driver/.npm_global/bin"
+RUN npm config set prefix /home/driver/.npm_global
+RUN npm install -g yarn
 
 ## Versions
 RUN node --version
 RUN npm --version
+RUN /home/driver/.npm_global/bin/yarn --version
 RUN deno --version

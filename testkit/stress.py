@@ -20,5 +20,5 @@ if __name__ == "__main__":
             ignore = "--ignore=neo4j-driver-lite"
 
         if not is_deno():
-            run_in_driver_repo(["npm", "run", "test::stress", "--", ignore],
+            run_in_driver_repo(["yarn", "run", "test::stress", "--", ignore],
                                env=os.environ)
