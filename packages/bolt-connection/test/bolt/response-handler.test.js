@@ -136,7 +136,7 @@ describe('response-handler', () => {
       expect(receivedError.message).toBe(errorPayload.message)
       expect(receivedError.gqlStatus).toBe(errorPayload.gql_status)
       expect(receivedError.gqlStatusDescription).toBe(errorPayload.description)
-      testDiagnosticRecord(receivedError.diagnosticRecord, errorPayload.diagnostic_record)
+      testDiagnosticRecord(receivedError.diagnosticRecord, { ...errorPayload.diagnostic_record, OPERATION: '' })
       testDiagnosticRecord(receivedError.cause.diagnosticRecord, errorPayload.cause.diagnostic_record)
       expect(receivedError.classification).toBe(errorPayload.diagnostic_record._classification)
       expect(receivedError.cause.classification).toBe(errorPayload.cause.diagnostic_record._classification)
@@ -144,7 +144,7 @@ describe('response-handler', () => {
   })
 
   function testDiagnosticRecord (diagnostic_record, expected_diagnostic_record) {
-    expect(diagnostic_record.OPERATION).toBe(expected_diagnostic_record.OPERATION ?? '')
+    expect(diagnostic_record.OPERATION).toBe(expected_diagnostic_record.OPERATION)
     expect(diagnostic_record.CURRENT_SCHEMA).toBe(expected_diagnostic_record.CURRENT_SCHEMA)
     expect(diagnostic_record.OPERATION_CODE).toBe(expected_diagnostic_record.OPERATION_CODE)
     expect(diagnostic_record.additional_thing).toBe(expected_diagnostic_record.additional_thing)

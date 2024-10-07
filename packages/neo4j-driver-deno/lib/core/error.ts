@@ -24,6 +24,7 @@ import { DiagnosticRecord, rawPolyfilledDiagnosticRecord } from './gql-constants
 export type ErrorClassification = 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN'
 /**
  * @typedef { 'DATABASE_ERROR' | 'CLIENT_ERROR' | 'TRANSIENT_ERROR' | 'UNKNOWN' } ErrorClassification
+ * @experimental this is part of the preview of GQL-compliant errors
  */
 
 const errorClassification: { [key in ErrorClassification]: key } = {
@@ -71,6 +72,10 @@ type Neo4jErrorCode =
 
 /// TODO: Remove definitions of this.constructor and this.__proto__
 
+/**
+ * Class for nested errors, to be used as causes in {@link Neo4jError}
+ * @experimental this class is part of the preview of GQL-compliant errors
+ */
 class GQLError extends Error {
   gqlStatus: string
   gqlStatusDescription: string
@@ -106,6 +111,7 @@ class GQLError extends Error {
      * The GQL Status code
      *
      * @type {string}
+     * @experimental this property is part of the preview of GQL-compliant errors
      * @public
      */
     this.gqlStatus = gqlStatus
@@ -113,6 +119,7 @@ class GQLError extends Error {
      * The GQL Status Description
      *
      * @type {string}
+     * @experimental this property is part of the preview of GQL-compliant errors
      * @public
      */
     this.gqlStatusDescription = gqlStatusDescription
@@ -120,6 +127,7 @@ class GQLError extends Error {
      * The GQL diagnostic record
      *
      * @type {DiagnosticRecord}
+     * @experimental this property is part of the preview of GQL-compliant errors
      * @public
      */
     this.diagnosticRecord = diagnosticRecord
@@ -127,13 +135,15 @@ class GQLError extends Error {
      * The GQL error classification, extracted from the diagnostic record
      *
      * @type {ErrorClassification}
+     * @experimental this property is part of the preview of GQL-compliant errors
      * @public
      */
-    this.classification = extractClassification(this.diagnosticRecord)
+    this.classification = _extractClassification(this.diagnosticRecord)
     /**
      * The GQL error classification, extracted from the diagnostic record as a raw string
      *
      * @type {string}
+     * @experimental this property is part of the preview of GQL-compliant errors
      * @public
      */
     this.rawClassification = diagnosticRecord?._classification ?? undefined
@@ -145,6 +155,7 @@ class GQLError extends Error {
    * The goal of this method is provide a serialized object for human inspection.
    *
    * @type {string}
+   * @experimental this is part of the preview of GQL-compliant errors
    * @public
    */
   public get diagnosticRecordAsJsonString (): string {
@@ -225,6 +236,7 @@ function newError (message: string, code?: Neo4jErrorCode, cause?: Error, gqlSta
  * @param {String} [gqlStatusDescription]
  * @param {DiagnosticRecord} diagnosticRecord - the error message
  * @return {Neo4jError} an {@link Neo4jError}
+ * @experimental this is part of the preview of GQL-compliant errors
  * @private
  */
 function newGQLError (message: string, cause?: Error, gqlStatus?: string, gqlStatusDescription?: string, diagnosticRecord?: DiagnosticRecord): GQLError {
@@ -273,7 +285,7 @@ function _isAuthorizationExpired (code?: Neo4jErrorCode): boolean {
 /**
  * extracts a typed classification from the diagnostic record.
  */
-function extractClassification (diagnosticRecord?: any): ErrorClassification {
+function _extractClassification (diagnosticRecord?: any): ErrorClassification {
   if (diagnosticRecord === undefined || diagnosticRecord._classification === undefined) {
     return 'UNKNOWN'
   }
