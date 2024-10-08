@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#unit BoltProtocolV5x7 .packable() should resultant function not pack graph types (Node) 1`] = `"It is not allowed to pass nodes in query parameters, given: (c:a {a:"b"})"`;
+
+exports[`#unit BoltProtocolV5x7 .packable() should resultant function not pack graph types (Path) 1`] = `"It is not allowed to pass paths in query parameters, given: [object Object]"`;
+
+exports[`#unit BoltProtocolV5x7 .packable() should resultant function not pack graph types (Relationship) 1`] = `"It is not allowed to pass relationships in query parameters, given: (e)-[:a {b:"c"}]->(f)"`;
+
+exports[`#unit BoltProtocolV5x7 .packable() should resultant function not pack graph types (UnboundRelationship) 1`] = `"It is not allowed to pass unbound relationships in query parameters, given: -[:a {b:"c"}]->"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Date with less fields) 1`] = `"Wrong struct size for Date, expected 1 but was 0"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Date with more fields) 1`] = `"Wrong struct size for Date, expected 1 but was 2"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (DateTimeWithZoneId with less fields) 1`] = `"Wrong struct size for DateTimeWithZoneId, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (DateTimeWithZoneId with more fields) 1`] = `"Wrong struct size for DateTimeWithZoneId, expected 3 but was 4"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (DateTimeWithZoneOffset with less fields) 1`] = `"Wrong struct size for DateTimeWithZoneOffset, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (DateTimeWithZoneOffset with more fields) 1`] = `"Wrong struct size for DateTimeWithZoneOffset, expected 3 but was 4"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Duration with less fields) 1`] = `"Wrong struct size for Duration, expected 4 but was 3"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Duration with more fields) 1`] = `"Wrong struct size for Duration, expected 4 but was 5"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (LocalDateTime with less fields) 1`] = `"Wrong struct size for LocalDateTime, expected 2 but was 1"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (LocalDateTime with more fields) 1`] = `"Wrong struct size for LocalDateTime, expected 2 but was 3"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (LocalTime with less fields) 1`] = `"Wrong struct size for LocalTime, expected 1 but was 0"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (LocalTime with more fields) 1`] = `"Wrong struct size for LocalTime, expected 1 but was 2"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Node with less fields) 1`] = `"Wrong struct size for Node, expected 4 but was 3"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Node with more fields) 1`] = `"Wrong struct size for Node, expected 4 but was 5"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Path with less fields) 1`] = `"Wrong struct size for Path, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Path with more fields) 1`] = `"Wrong struct size for Path, expected 3 but was 4"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Point with less fields) 1`] = `"Wrong struct size for Point2D, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Point with more fields) 1`] = `"Wrong struct size for Point2D, expected 3 but was 4"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Point3D with less fields) 1`] = `"Wrong struct size for Point3D, expected 4 but was 3"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Point3D with more fields) 1`] = `"Wrong struct size for Point3D, expected 4 but was 5"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Relationship with less fields) 1`] = `"Wrong struct size for Relationship, expected 8 but was 5"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Relationship with more fields) 1`] = `"Wrong struct size for Relationship, expected 8 but was 9"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Time with less fields) 1`] = `"Wrong struct size for Time, expected 2 but was 1"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (Time with more fileds) 1`] = `"Wrong struct size for Time, expected 2 but was 3"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (UnboundRelationship with less fields) 1`] = `"Wrong struct size for UnboundRelationship, expected 4 but was 3"`;
+
+exports[`#unit BoltProtocolV5x7 .unpack() should not unpack with wrong size (UnboundRelationship with more fields) 1`] = `"Wrong struct size for UnboundRelationship, expected 4 but was 5"`;

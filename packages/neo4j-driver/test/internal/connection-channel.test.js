@@ -42,7 +42,7 @@ const { SERVICE_UNAVAILABLE } = error
 
 const ILLEGAL_MESSAGE = { signature: 42, fields: [] }
 const SUCCESS_MESSAGE = { signature: 0x70, fields: [{}] }
-const FAILURE_MESSAGE = { signature: 0x7f, fields: [newError('Hello')] }
+const FAILURE_MESSAGE = { signature: 0x7f, fields: [{ message: 'Hello' }] }
 const RECORD_MESSAGE = { signature: 0x71, fields: [{ value: 'Hello' }] }
 
 const BOLT_AGENT = {

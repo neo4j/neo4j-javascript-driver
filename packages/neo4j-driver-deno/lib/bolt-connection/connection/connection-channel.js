@@ -441,7 +441,7 @@ export default class ChannelConnection extends Connection {
             reject(error)
           } else {
             const neo4jError = this._handleProtocolError(
-              'Received FAILURE as a response for RESET: ' + error
+              `Received FAILURE as a response for RESET: ${error}`
             )
             reject(neo4jError)
           }
