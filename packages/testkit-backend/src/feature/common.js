@@ -45,7 +45,8 @@ const features = [
   'Optimization:ImplicitDefaultArguments',
   'Optimization:MinimalBookmarksSet',
   'Optimization:MinimalResets',
-  'Optimization:AuthPipelining'
+  'Optimization:AuthPipelining',
+  'Detail:NumberIsNumber'
 ]
 
 export default features
