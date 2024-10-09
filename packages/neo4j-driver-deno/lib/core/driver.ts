@@ -868,9 +868,9 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const homeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.principal ?? "")
-    if (homeDatabase !== undefined && homeDatabase !== "") {
-      void connectionProvider.ensureFreshRoutingTable({database: homeDatabase})
+    const homeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.principal ?? '')
+    if (homeDatabase !== undefined && homeDatabase !== '') {
+      void connectionProvider.ensureFreshRoutingTable({ database: homeDatabase })
     }
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
@@ -893,7 +893,7 @@ class Driver {
     })
   }
 
-  _homeDatabaseCallback(user: string, databaseName: string): void {
+  _homeDatabaseCallback (user: string, databaseName: string): void {
     this.homeDatabaseCache.set(user, databaseName)
   }
 

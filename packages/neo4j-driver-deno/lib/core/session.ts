@@ -74,7 +74,7 @@ class Session {
   private readonly _bookmarkManager?: BookmarkManager
   private readonly _notificationFilter?: NotificationFilter
   private readonly _log: Logger
-  private _homeDatabaseCallback: Function | undefined
+  private readonly _homeDatabaseCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
   /**
    * @constructor
@@ -517,7 +517,7 @@ class Session {
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
-      if (this._homeDatabaseCallback) {
+      if (this._homeDatabaseCallback != null) {
         this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal, normalizedDatabase)
       }
       this._readConnectionHolder.setDatabase(normalizedDatabase)

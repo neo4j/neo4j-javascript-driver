@@ -110,7 +110,7 @@ class ConnectionProvider {
     throw Error('Not implemented')
   }
 
-  ensureFreshRoutingTable(param?: { database?: string, accessMode?: string }): Promise<void> {
+  ensureFreshRoutingTable (param?: { database?: string, accessMode?: string }): Promise<void> {
     throw Error('Not implemented')
   }
 
