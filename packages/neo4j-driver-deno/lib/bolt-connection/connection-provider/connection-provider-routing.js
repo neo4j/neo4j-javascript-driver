@@ -297,6 +297,18 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     })
   }
 
+  async ensureFreshRoutingTable ({ database, accessMode }) {
+    const context = { database: database || DEFAULT_DB_NAME }
+
+    await this._freshRoutingTable({
+      accessMode,
+      database: context.database,
+      onDatabaseNameResolved: (databaseName) => {
+        context.database = context.database || databaseName
+      }
+    })
+  }
+
   async verifyConnectivityAndGetServerInfo ({ database, accessMode }) {
     const context = { database: database || DEFAULT_DB_NAME }
 
