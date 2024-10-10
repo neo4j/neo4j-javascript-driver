@@ -102,11 +102,11 @@ exports[`json .stringify should handle object with custom toString in list 1`] =
 
 exports[`json .stringify should handle object with custom toString in object 1`] = `"{"key":{"identity":"1"}}"`;
 
-exports[`json .stringify should handle objects created with createBrokenObject 1`] = `"{"__isBrokenObject__":true,"__reason__":{"code":"N/A","name":"Neo4jError","retriable":false}}"`;
+exports[`json .stringify should handle objects created with createBrokenObject 1`] = `"{"__isBrokenObject__":true,"__reason__":{"gqlStatus":"50N42","gqlStatusDescription":"error: general processing exception - unexpected error. some error","diagnosticRecord":{"OPERATION":"","OPERATION_CODE":"0","CURRENT_SCHEMA":"/"},"classification":"UNKNOWN","name":"Neo4jError","code":"N/A","retriable":false}}"`;
 
-exports[`json .stringify should handle objects created with createBrokenObject in list 1`] = `"[{"__isBrokenObject__":true,"__reason__":{"code":"N/A","name":"Neo4jError","retriable":false}}]"`;
+exports[`json .stringify should handle objects created with createBrokenObject in list 1`] = `"[{"__isBrokenObject__":true,"__reason__":{"gqlStatus":"50N42","gqlStatusDescription":"error: general processing exception - unexpected error. some error","diagnosticRecord":{"OPERATION":"","OPERATION_CODE":"0","CURRENT_SCHEMA":"/"},"classification":"UNKNOWN","name":"Neo4jError","code":"N/A","retriable":false}}]"`;
 
-exports[`json .stringify should handle objects created with createBrokenObject inside other object 1`] = `"{"number":1,"broken":{"__isBrokenObject__":true,"__reason__":{"code":"N/A","name":"Neo4jError","retriable":false}}}"`;
+exports[`json .stringify should handle objects created with createBrokenObject inside other object 1`] = `"{"number":1,"broken":{"__isBrokenObject__":true,"__reason__":{"gqlStatus":"50N42","gqlStatusDescription":"error: general processing exception - unexpected error. some error","diagnosticRecord":{"OPERATION":"","OPERATION_CODE":"0","CURRENT_SCHEMA":"/"},"classification":"UNKNOWN","name":"Neo4jError","code":"N/A","retriable":false}}}"`;
 
 exports[`json .stringify should handle string 1`] = `""my string""`;
 

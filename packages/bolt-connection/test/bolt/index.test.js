@@ -48,13 +48,13 @@ describe('#unit Bolt', () => {
       const writtenBuffer = channel.written[0]
 
       const boltMagicPreamble = '60 60 b0 17'
-      const protocolVersion5x6to5x0 = '00 06 06 05'
+      const protocolVersion5x7to5x0 = '00 07 07 05'
       const protocolVersion4x4to4x2 = '00 02 04 04'
       const protocolVersion4x1 = '00 00 01 04'
       const protocolVersion3 = '00 00 00 03'
 
       expect(writtenBuffer.toHex()).toEqual(
-        `${boltMagicPreamble} ${protocolVersion5x6to5x0} ${protocolVersion4x4to4x2} ${protocolVersion4x1} ${protocolVersion3}`
+        `${boltMagicPreamble} ${protocolVersion5x7to5x0} ${protocolVersion4x4to4x2} ${protocolVersion4x1} ${protocolVersion3}`
       )
     })
 
