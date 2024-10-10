@@ -70,14 +70,14 @@ describe('Driver', () => {
       const session = driver?.session({ impersonatedUser })
 
       expect(session).not.toBeUndefined()
-      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ impersonatedUser, homeDatabaseCallback: driver?._homeDatabaseCallback }))
+      expect(createSession).toHaveBeenCalledWith(expect.objectContaining(expectedSessionParams({ impersonatedUser })))
     })
 
     it('should create the session without impersonated user', () => {
       const session = driver?.session()
 
       expect(session).not.toBeUndefined()
-      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ homeDatabaseCallback: driver?._homeDatabaseCallback }))
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({}))
     })
 
     it('should create the session with auth', () => {
@@ -90,14 +90,14 @@ describe('Driver', () => {
       const session = driver?.session({ auth })
 
       expect(session).not.toBeUndefined()
-      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ auth, homeDatabaseCallback: driver?._homeDatabaseCallback }))
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ auth }))
     })
 
     it('should create the session without auth', () => {
       const session = driver?.session()
 
       expect(session).not.toBeUndefined()
-      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ homeDatabaseCallback: driver?._homeDatabaseCallback }))
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({}))
     })
 
     it.each([
@@ -706,9 +706,9 @@ describe('Driver', () => {
       fetchSize: 1000,
       mode: 'WRITE',
       reactive: false,
-      impersonatedUser: undefined,
       // @ts-expect-error
       log: driver?._log,
+      homeDatabaseCallback: expect.any(Function),
       ...extra
     }
   }

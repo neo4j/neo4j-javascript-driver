@@ -472,7 +472,6 @@ class Driver {
   private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
   homeDatabaseCache: Map<string, string>
-  freshRoutingTablePromise: Promise<void>
 
   /**
    * You should not be calling this directly, instead use {@link driver}.

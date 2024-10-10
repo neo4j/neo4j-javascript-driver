@@ -139,7 +139,7 @@ gulp.task('test-nodejs-stub', () => {
 
 gulp.task('test-nodejs-integration', async () => {
   await sharedNeo4j.start()
-  return runJasmineTests('#integration dri*')
+  return runJasmineTests('#integration*')
 })
 
 gulp.task('run-browser-test-chrome', async function (cb) {
