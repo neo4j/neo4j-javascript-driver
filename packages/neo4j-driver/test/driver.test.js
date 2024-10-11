@@ -551,6 +551,9 @@ describe('#integration driver', () => {
 
     expect(driver.homeDatabaseCache.get(sharedNeo4j.authToken.principal)).toBe('neo4j')
     expect(session1._database).toBe('neo4j')
+    const session2 = driver.session({ auth: sharedNeo4j.authToken })
+    expect(session2._homeDatabaseBestGuess).toBe('neo4j')
+    await session2.run('CREATE () RETURN 43')
   })
 
   it('should discard old connections', async () => {

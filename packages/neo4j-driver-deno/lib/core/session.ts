@@ -76,6 +76,7 @@ class Session {
   private readonly _log: Logger
   private readonly _homeDatabaseCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
+  private readonly _homeDatabaseBestGuess
   /**
    * @constructor
    * @protected
@@ -126,6 +127,7 @@ class Session {
     this._fetchSize = fetchSize
     this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
     this._homeDatabaseCallback = homeDatabaseCallback
+    this._homeDatabaseBestGuess = config?.homeDatabase
     this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
@@ -260,7 +262,7 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection()) {
+    } else if (!this._hasTx && connectionHolder.initializeConnection(this._homeDatabaseBestGuess)) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method

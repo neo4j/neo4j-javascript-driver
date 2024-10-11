@@ -880,7 +880,9 @@ class Driver {
       database: database ?? '',
       connectionProvider,
       bookmarks,
-      config: this._config,
+      config: {...this._config,
+        homeDatabase
+      },
       reactive,
       impersonatedUser,
       fetchSize,
