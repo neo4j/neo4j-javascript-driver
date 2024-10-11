@@ -868,9 +868,6 @@ class Driver {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const homeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.principal ?? '')
-    if (homeDatabase !== undefined && homeDatabase !== '') {
-      void connectionProvider.ensureFreshRoutingTable({ database: homeDatabase })
-    }
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
@@ -880,7 +877,8 @@ class Driver {
       database: database ?? '',
       connectionProvider,
       bookmarks,
-      config: {...this._config,
+      config: {
+        ...this._config,
         homeDatabase
       },
       reactive,

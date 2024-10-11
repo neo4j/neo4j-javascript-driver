@@ -175,7 +175,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private async _createConnectionPromise (connectionProvider: ConnectionProvider, homeDatabase?: string): Promise<Connection & Releasable | null> {
     return await connectionProvider.acquireConnection({
       accessMode: this._mode,
-      database: (this._database === "" && homeDatabase !== undefined) ? homeDatabase : this._database,
+      database: (this._database === '' && homeDatabase !== undefined) ? homeDatabase : this._database,
       bookmarks: await this._getBookmarks(),
       impersonatedUser: this._impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,

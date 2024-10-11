@@ -110,10 +110,6 @@ class ConnectionProvider {
     throw Error('Not implemented')
   }
 
-  ensureFreshRoutingTable (param?: { database?: string, accessMode?: string }): Promise<void> {
-    throw Error('Not implemented')
-  }
-
   /**
    * This method verifies the connectivity of the database by trying to acquire a connection
    * for each server available in the cluster.
