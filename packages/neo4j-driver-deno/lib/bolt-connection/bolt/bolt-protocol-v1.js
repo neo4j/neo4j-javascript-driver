@@ -45,12 +45,6 @@ const {
   txConfig: { TxConfig }
 } = internal
 
-const DEFAULT_DIAGNOSTIC_RECORD = Object.freeze({
-  OPERATION: '',
-  OPERATION_CODE: '0',
-  CURRENT_SCHEMA: '/'
-})
-
 export default class BoltProtocol {
   /**
    * @callback CreateResponseHandler Creates the response handler
@@ -168,13 +162,6 @@ export default class BoltProtocol {
    */
   transformMetadata (metadata) {
     return metadata
-  }
-
-  enrichErrorMetadata (metadata) {
-    return {
-      ...metadata,
-      diagnostic_record: metadata.diagnostic_record !== null ? { ...DEFAULT_DIAGNOSTIC_RECORD, ...metadata.diagnostic_record } : null
-    }
   }
 
   /**

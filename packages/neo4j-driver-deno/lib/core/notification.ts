@@ -16,7 +16,7 @@
  */
 import * as json from './json.ts'
 import { util } from './internal/index.ts'
-import { DiagnosticRecord, rawPolyfilledDiagnosticRecord } from './gql-constants.ts'
+import { NumberOrInteger } from './graph-types.ts'
 
 interface NotificationPosition {
   offset?: number
@@ -41,7 +41,7 @@ const unknownGqlStatus: Record<string, { gql_status: UnknownGqlStatus, status_de
   },
   ERROR: {
     gql_status: '50N42',
-    status_description: 'error: general processing exception - unexpected error'
+    status_description: 'error: general processing exception - unknown error'
   }
 }
 
@@ -224,6 +224,21 @@ class Notification {
   }
 }
 
+interface NotificationDiagnosticRecord {
+  OPERATION: string
+  OPERATION_CODE: string
+  CURRENT_SCHEMA: string
+  _severity?: string
+  _classification?: string
+  _position?: {
+    offset: NumberOrInteger
+    line: NumberOrInteger
+    column: NumberOrInteger
+  }
+  _status_parameters?: Record<string, unknown>
+  [key: string]: unknown
+}
+
 /**
  * Representation for GqlStatusObject found when executing a query.
  * <p>
@@ -236,7 +251,7 @@ class Notification {
 class GqlStatusObject {
   public readonly gqlStatus: string
   public readonly statusDescription: string
-  public readonly diagnosticRecord: DiagnosticRecord
+  public readonly diagnosticRecord: NotificationDiagnosticRecord
   public readonly position?: NotificationPosition
   public readonly severity: NotificationSeverityLevel
   public readonly rawSeverity?: string
@@ -405,7 +420,7 @@ function polyfillNotification (status: any): Notification | undefined {
  */
 function polyfillGqlStatusObject (notification: any): GqlStatusObject {
   const defaultStatus = notification.severity === notificationSeverityLevel.WARNING ? unknownGqlStatus.WARNING : unknownGqlStatus.INFORMATION
-  const polyfilledRawObj: any & { diagnostic_record: DiagnosticRecord } = {
+  const polyfilledRawObj: any & { diagnostic_record: NotificationDiagnosticRecord } = {
     gql_status: defaultStatus.gql_status,
     status_description: notification.description ?? defaultStatus.status_description,
     neo4j_code: notification.code,
@@ -429,6 +444,14 @@ function polyfillGqlStatusObject (notification: any): GqlStatusObject {
 
   return new GqlStatusObject(polyfilledRawObj)
 }
+
+const rawPolyfilledDiagnosticRecord = {
+  OPERATION: '',
+  OPERATION_CODE: '0',
+  CURRENT_SCHEMA: '/'
+}
+
+Object.freeze(rawPolyfilledDiagnosticRecord)
 
 /**
  * This objects are used for polyfilling the first status on the status list
@@ -575,5 +598,6 @@ export type {
   NotificationPosition,
   NotificationSeverityLevel,
   NotificationCategory,
-  NotificationClassification
+  NotificationClassification,
+  NotificationDiagnosticRecord
 }

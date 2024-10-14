@@ -67,7 +67,13 @@ export default class LocalController extends Controller {
         }))
       } else {
         const id = this._contexts.get(contextId).addError(e)
-        this._writeResponse(contextId, writeDriverError(id, e, this._binder))
+        this._writeResponse(contextId, newResponse('DriverError', {
+          id,
+          errorType: e.name,
+          msg: e.message,
+          code: e.code,
+          retryable: e.retriable
+        }))
       }
       return
     }
@@ -79,40 +85,4 @@ function newResponse (name, data) {
   return {
     name, data
   }
-}
-
-function writeDriverError (id, e, binder) {
-  let cause
-  if (e.cause != null) {
-    cause = writeGqlError(e.cause, binder)
-  }
-  return newResponse('DriverError', {
-    id,
-    errorType: e.name,
-    msg: e.message,
-    code: e.code,
-    gqlStatus: e.gqlStatus,
-    statusDescription: e.gqlStatusDescription,
-    diagnosticRecord: binder.objectToCypher(e.diagnosticRecord),
-    cause,
-    classification: e.classification,
-    rawClassification: e.rawClassification,
-    retryable: e.retriable
-  })
-}
-
-function writeGqlError (e, binder) {
-  let cause
-  if (e.cause != null) {
-    cause = writeGqlError(e.cause, binder)
-  }
-  return newResponse('GqlError', {
-    msg: e.message,
-    gqlStatus: e.gqlStatus,
-    statusDescription: e.gqlStatusDescription,
-    diagnosticRecord: binder.objectToCypher(e.diagnosticRecord),
-    cause,
-    classification: e.classification,
-    rawClassification: e.rawClassification
-  })
 }
