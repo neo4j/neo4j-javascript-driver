@@ -74,6 +74,9 @@ class Session {
   private readonly _bookmarkManager?: BookmarkManager
   private readonly _notificationFilter?: NotificationFilter
   private readonly _log: Logger
+  private readonly _homeDatabaseCallback: Function | undefined
+  private readonly _auth: AuthToken | undefined
+  private readonly _homeDatabaseBestGuess
   /**
    * @constructor
    * @protected
@@ -101,7 +104,8 @@ class Session {
     bookmarkManager,
     notificationFilter,
     auth,
-    log
+    log,
+    homeDatabaseCallback
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -115,12 +119,16 @@ class Session {
     notificationFilter?: NotificationFilter
     auth?: AuthToken
     log: Logger
+    homeDatabaseCallback?: (user: string, databaseName: string) => void
   }) {
     this._mode = mode
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
     this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
+    this._homeDatabaseCallback = homeDatabaseCallback
+    this._homeDatabaseBestGuess = config?.homeDatabase
+    this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
@@ -187,6 +195,7 @@ class Session {
     const result = this._run(validatedQuery, params, async connection => {
       const bookmarks = await this._bookmarks()
       this._assertSessionIsOpen()
+      console.log('RUNNING TRANSACTION:', validatedQuery, 'AGAINST DATABASE:', this._database, 'AS USER:', this._auth?.principal)
       return connection.run(validatedQuery, params, {
         bookmarks,
         txConfig: autoCommitTxConfig,
@@ -254,7 +263,7 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection()) {
+    } else if (!this._hasTx && connectionHolder.initializeConnection(this._homeDatabaseBestGuess)) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
@@ -511,6 +520,9 @@ class Session {
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
+      if (this._homeDatabaseCallback != null) {
+        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal, normalizedDatabase)
+      }
       this._readConnectionHolder.setDatabase(normalizedDatabase)
       this._writeConnectionHolder.setDatabase(normalizedDatabase)
       this._databaseNameResolved = true

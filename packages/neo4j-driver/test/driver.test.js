@@ -514,7 +514,7 @@ describe('#integration driver', () => {
       sharedNeo4j.authToken
     )
 
-    const session1 = driver.session()
+    const session1 = driver.session({ auth: sharedNeo4j.authToken })
     await session1.run('CREATE () RETURN 42')
     await session1.close()
 
@@ -534,6 +534,26 @@ describe('#integration driver', () => {
     expect(connections2.length).toEqual(1)
 
     expect(connections1[0]).not.toEqual(connections2[0])
+  })
+
+  it('should build home database cache', async () => {
+    driver = neo4j.driver(
+      `neo4j://${sharedNeo4j.hostnameWithBoltPort}`,
+      sharedNeo4j.authToken
+    )
+
+    const session1 = driver.session({ auth: sharedNeo4j.authToken })
+    await session1.run('CREATE () RETURN 42')
+
+    // one connection should be established
+    const connections1 = openConnectionFrom(driver)
+    expect(connections1.length).toEqual(1)
+
+    expect(driver.homeDatabaseCache.get(sharedNeo4j.authToken.principal)).toBe('neo4j')
+    expect(session1._database).toBe('neo4j')
+    const session2 = driver.session({ auth: sharedNeo4j.authToken })
+    expect(session2._homeDatabaseBestGuess).toBe('neo4j')
+    await session2.run('CREATE () RETURN 43')
   })
 
   it('should discard old connections', async () => {

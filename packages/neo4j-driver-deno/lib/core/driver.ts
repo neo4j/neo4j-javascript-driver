@@ -97,6 +97,7 @@ type CreateSession = (args: {
   notificationFilter?: NotificationFilter
   auth?: AuthToken
   log: Logger
+  homeDatabaseCallback?: (user: string, databaseName: string) => void
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -470,6 +471,7 @@ class Driver {
   private readonly _createSession: CreateSession
   private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
+  homeDatabaseCache: Map<string, string>
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -508,6 +510,8 @@ class Driver {
      * @protected
      */
     this._connectionProvider = null
+
+    this.homeDatabaseCache = new Map<string, string>()
 
     this._afterConstruction()
   }
@@ -863,6 +867,7 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
+    const homeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.principal ?? '')
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
@@ -872,17 +877,25 @@ class Driver {
       database: database ?? '',
       connectionProvider,
       bookmarks,
-      config: this._config,
+      config: {
+        ...this._config,
+        homeDatabase
+      },
       reactive,
       impersonatedUser,
       fetchSize,
       bookmarkManager,
       notificationFilter,
       auth,
-      log: this._log
+      log: this._log,
+      homeDatabaseCallback: this._homeDatabaseCallback.bind(this)
     })
   }
 
+  _homeDatabaseCallback (user: string, databaseName: string): void {
+    this.homeDatabaseCache.set(user, databaseName)
+  }
+  
   /**
    * @private
    */
