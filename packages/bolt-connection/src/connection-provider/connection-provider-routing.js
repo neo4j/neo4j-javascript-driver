@@ -161,7 +161,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       onDatabaseNameResolved: (databaseName) => {
         context.database = context.database || databaseName
         if (onDatabaseNameResolved) {
-          onDatabaseNameResolved(databaseName)
+          onDatabaseNameResolved(databaseName, this._authenticationProvider?._authTokenManager?._authToken?.principal)
         }
       }
     })
