@@ -515,12 +515,12 @@ class Session {
    * @param {string|undefined} database The resolved database name
    * @returns {void}
    */
-  _onDatabaseNameResolved (database?: string): void {
+  _onDatabaseNameResolved (database?: string, user?: string): void {
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
       if (this._homeDatabaseCallback != null) {
-        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal, normalizedDatabase)
+        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, normalizedDatabase)
       }
       this._readConnectionHolder.setDatabase(normalizedDatabase)
       this._writeConnectionHolder.setDatabase(normalizedDatabase)

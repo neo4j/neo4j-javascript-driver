@@ -895,7 +895,7 @@ class Driver {
   _homeDatabaseCallback (user: string, databaseName: string): void {
     this.homeDatabaseCache.set(user, databaseName)
   }
-  
+
   /**
    * @private
    */

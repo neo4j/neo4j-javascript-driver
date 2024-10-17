@@ -161,7 +161,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       onDatabaseNameResolved: (databaseName) => {
         context.database = context.database || databaseName
         if (onDatabaseNameResolved) {
-          onDatabaseNameResolved(databaseName)
+          onDatabaseNameResolved(databaseName, this._authenticationProvider?._authTokenManager?._authToken?.principal)
         }
       }
     })
@@ -772,7 +772,6 @@ function _isFailFastError (error) {
 }
 
 function _isFailFastSecurityError (error) {
-  console.error('FFSE: ', error)
   return error.code.startsWith('Neo.ClientError.Security.') &&
     ![
       AUTHORIZATION_EXPIRED_CODE

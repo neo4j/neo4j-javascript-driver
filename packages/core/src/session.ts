@@ -195,7 +195,6 @@ class Session {
     const result = this._run(validatedQuery, params, async connection => {
       const bookmarks = await this._bookmarks()
       this._assertSessionIsOpen()
-      console.log('RUNNING TRANSACTION:', validatedQuery, 'AGAINST DATABASE:', this._database, 'AS USER:', this._auth?.principal)
       return connection.run(validatedQuery, params, {
         bookmarks,
         txConfig: autoCommitTxConfig,
@@ -516,12 +515,12 @@ class Session {
    * @param {string|undefined} database The resolved database name
    * @returns {void}
    */
-  _onDatabaseNameResolved (database?: string): void {
+  _onDatabaseNameResolved (database?: string, user?: string): void {
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
       if (this._homeDatabaseCallback != null) {
-        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal, normalizedDatabase)
+        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, normalizedDatabase)
       }
       this._readConnectionHolder.setDatabase(normalizedDatabase)
       this._writeConnectionHolder.setDatabase(normalizedDatabase)
