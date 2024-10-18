@@ -2772,7 +2772,7 @@ describe.each([
 
       await connectionProvider.acquireConnection({ accessMode: READ, impersonatedUser: user, onDatabaseNameResolved })
 
-      expect(onDatabaseNameResolved).toHaveBeenCalledWith('homedb')
+      expect(onDatabaseNameResolved).toHaveBeenCalledWith('homedb', undefined)
     })
 
     it.each(usersDataSet)('should call onDatabaseNameResolved with the resolved db acquiring named db [user=%s]', async (user) => {
@@ -2798,7 +2798,7 @@ describe.each([
 
       await connectionProvider.acquireConnection({ accessMode: READ, impersonatedUser: user, onDatabaseNameResolved, database: 'databaseA' })
 
-      expect(onDatabaseNameResolved).toHaveBeenCalledWith('databaseA')
+      expect(onDatabaseNameResolved).toHaveBeenCalledWith('databaseA', undefined)
     })
   })
 
