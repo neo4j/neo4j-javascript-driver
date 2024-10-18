@@ -356,7 +356,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
     return this._refreshRoutingTable(currentRoutingTable, bookmarks, impersonatedUser, auth)
       .then(newRoutingTable => {
-        onDatabaseNameResolved(newRoutingTable.database)
+        onDatabaseNameResolved(newRoutingTable.database, this._authenticationProvider?._authTokenManager?._authToken?.principal)
         return newRoutingTable
       })
   }

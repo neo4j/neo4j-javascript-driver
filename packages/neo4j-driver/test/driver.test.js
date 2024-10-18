@@ -541,7 +541,7 @@ describe('#integration driver', () => {
       `neo4j://${sharedNeo4j.hostnameWithBoltPort}`,
       sharedNeo4j.authToken
     )
-    if (await sharedNeo4j.cleanupAndGetProtocolVersion() >= 5.1) {
+    if (protocolVersion >= 5.1) {
       const session1 = driver.session({ auth: sharedNeo4j.authToken })
       await session1.run('CREATE () RETURN 42')
 
