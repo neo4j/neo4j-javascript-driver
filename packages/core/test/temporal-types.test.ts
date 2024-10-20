@@ -23,6 +23,7 @@ import fc from 'fast-check'
 const MIN_UTC_IN_MS = -8_640_000_000_000_000
 const MAX_UTC_IN_MS = 8_640_000_000_000_000
 const ONE_DAY_IN_MS = 86_400_000
+const ONE_MINUTE_TO_ONE_DAY_IN_MINUTES = 1439
 
 describe('Date', () => {
   describe('.toStandardDate()', () => {
@@ -59,6 +60,35 @@ describe('Date', () => {
       )
     })
   })
+
+  describe('JSON.stringify()', () => {
+    it('should serialize a valid ISO date', () => {
+      fc.assert(
+        fc.property(
+          fc.date({
+            max: temporalUtil.newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
+            min: temporalUtil.newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
+          }),
+          (date) => {
+            const localDate = Date.fromStandardDate(date)
+
+            const jsonString = JSON.stringify(localDate)
+            const dateIsoString = JSON.parse(jsonString)
+            const parsedDate = temporalUtil.newDate(dateIsoString)
+
+            const adjustedDateTime = temporalUtil.newDate(date)
+            adjustedDateTime.setHours(0, offset(parsedDate))
+
+            expect(parsedDate.getFullYear()).toEqual(adjustedDateTime.getFullYear())
+            expect(parsedDate.getMonth()).toEqual(adjustedDateTime.getMonth())
+            expect(parsedDate.getDate()).toEqual(adjustedDateTime.getDate())
+            expect(parsedDate.getHours()).toEqual(adjustedDateTime.getHours())
+            expect(parsedDate.getMinutes()).toEqual(adjustedDateTime.getMinutes())
+          }
+        )
+      )
+    })
+  })
 })
 
 describe('LocalDateTime', () => {
@@ -84,6 +114,23 @@ describe('LocalDateTime', () => {
           const receivedDate = localDatetime.toStandardDate()
 
           expect(receivedDate).toEqual(date)
+        })
+      )
+    })
+  })
+
+  describe('JSON.stringify()', () => {
+    it('should serialize a valid ISO date', () => {
+      fc.assert(
+        fc.property(fc.date().filter(dt => dt.getUTCSeconds() === dt.getSeconds()), (date) => {
+          const localDatetime = LocalDateTime.fromStandardDate(date)
+
+          const jsonString = JSON.stringify(localDatetime)
+          const dateIsoString = JSON.parse(jsonString)
+
+          const parsedDate = temporalUtil.newDate(dateIsoString)
+
+          expect(parsedDate).toEqual(date)
         })
       )
     })
@@ -160,6 +207,84 @@ describe('DateTime', () => {
           expect(receivedDate).toEqual(date)
         })
       )
+    })
+  })
+
+  describe('JSON.stringify()', () => {
+    describe('with zone offset', () => {
+      it('should serialize a valid ISO date', () => {
+        fc.assert(
+          fc.property(fc.date().filter(dt => dt.getUTCSeconds() === dt.getSeconds()), (date) => {
+            const datetime = DateTime.fromStandardDate(date)
+
+            const jsonString = JSON.stringify(datetime)
+            const dateIsoString = JSON.parse(jsonString)
+
+            const parsedDate = temporalUtil.newDate(dateIsoString)
+
+            expect(parsedDate).toEqual(date)
+          })
+        )
+      })
+
+      describe('and with zone id', () => {
+        it('should serialize a valid ISO date', () => {
+          fc.assert(
+            fc.property(
+              fc.date({
+                max: temporalUtil.newDate(MAX_UTC_IN_MS - 2 * ONE_DAY_IN_MS),
+                min: temporalUtil.newDate(MIN_UTC_IN_MS + 2 * ONE_DAY_IN_MS)
+              })
+                .filter(dt => dt.getUTCSeconds() === dt.getSeconds()),
+              fc.integer({
+                min: -1 * ONE_MINUTE_TO_ONE_DAY_IN_MINUTES,
+                max: ONE_MINUTE_TO_ONE_DAY_IN_MINUTES
+              })
+                .map(offset => offset * 60),
+              (date, timeZoneOffsetInSeconds) => {
+                const expectedDate = adjustToTimezone(date, timeZoneOffsetInSeconds)
+                const datetime = new DateTime(
+                  date.getFullYear(),
+                  date.getMonth() + 1,
+                  date.getDate(),
+                  date.getHours(),
+                  date.getMinutes(),
+                  date.getSeconds(),
+                  temporalUtil.totalNanoseconds(date),
+                  timeZoneOffsetInSeconds,
+                  'Europe/Berlin' // < Doesn't matter for the test scenario
+                )
+
+                const jsonString = JSON.stringify(datetime)
+                const dateIsoString = JSON.parse(jsonString)
+                const parsedDate = temporalUtil.newDate(dateIsoString)
+
+                expect(parsedDate).toEqual(expectedDate)
+              }
+            )
+          )
+        })
+      })
+    })
+
+    describe('without zone offset', () => {
+      it('should throw an error', () => {
+        const date = temporalUtil.newDate(0)
+        const datetime = new DateTime(
+          date.getFullYear(),
+          date.getMonth() + 1,
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes(),
+          date.getSeconds(),
+          temporalUtil.totalNanoseconds(date),
+          undefined,
+          'Europe/Berlin' // < Doesn't matter for the test scenario
+        )
+
+        expect(() => JSON.stringify(datetime))
+          .toThrow(new Error('Requires DateTime created with time zone offset'))
+      })
     })
   })
 })
@@ -295,4 +420,15 @@ describe('isDateTime', () => {
  */
 function offset (date: StandardDate): number {
   return date.getTimezoneOffset() * -1
+}
+
+/**
+ *
+ * @param date
+ * @param offsetInSeconds
+ * @return The adjusted date
+ */
+function adjustToTimezone (date: StandardDate, offsetInSeconds: number): StandardDate {
+  const epoch = date.getTime()
+  return temporalUtil.newDate(epoch - offsetInSeconds * 1000 + offset(date) * 60_000)
 }
