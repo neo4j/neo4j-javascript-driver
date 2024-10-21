@@ -516,12 +516,12 @@ class Session {
    * @returns {void}
    */
   _onDatabaseNameResolved (database?: string, user?: string): void {
+    const normalizedDatabase = database ?? ''
+    this._database = normalizedDatabase
+    if (this._homeDatabaseCallback != null && normalizedDatabase !== this._homeDatabaseBestGuess) {
+      this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, normalizedDatabase)
+    }
     if (!this._databaseNameResolved) {
-      const normalizedDatabase = database ?? ''
-      this._database = normalizedDatabase
-      if (this._homeDatabaseCallback != null) {
-        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, normalizedDatabase)
-      }
       this._readConnectionHolder.setDatabase(normalizedDatabase)
       this._writeConnectionHolder.setDatabase(normalizedDatabase)
       this._databaseNameResolved = true
