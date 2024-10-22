@@ -318,7 +318,7 @@ class Session {
 
     const mode = Session._validateSessionMode(accessMode)
     const connectionHolder = this._connectionHolderWithMode(mode)
-    connectionHolder.initializeConnection()
+    connectionHolder.initializeConnection(this._homeDatabaseBestGuess)
     this._hasTx = true
 
     const tx = new TransactionPromise({
