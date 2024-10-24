@@ -66,6 +66,7 @@ class ConnectionProvider {
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
     auth?: AuthToken
+    homeDbTable?: any
   }): Promise<Connection & Releasable> {
     throw Error('Not implemented')
   }

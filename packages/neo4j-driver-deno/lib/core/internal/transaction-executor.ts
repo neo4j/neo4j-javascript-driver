@@ -58,6 +58,7 @@ export class TransactionExecutor {
   private readonly _clearTimeout: ClearTimeout
   public telemetryApi: NonAutoCommitTelemetryApis
   public pipelineBegin: boolean
+  public committedDbCallback: any
 
   constructor (
     maxRetryTimeMs?: number | null,
@@ -67,7 +68,8 @@ export class TransactionExecutor {
     dependencies: Dependencies = {
       setTimeout: setTimeoutWrapper,
       clearTimeout: clearTimeoutWrapper
-    }
+    },
+    committedDbCallback?: any
   ) {
     this._maxRetryTimeMs = _valueOrDefault(
       maxRetryTimeMs,
@@ -88,7 +90,7 @@ export class TransactionExecutor {
 
     this._setTimeout = dependencies.setTimeout
     this._clearTimeout = dependencies.clearTimeout
-
+    this.committedDbCallback = committedDbCallback
     this._inFlightTimeoutIds = []
     this.pipelineBegin = false
     this.telemetryApi = TELEMETRY_APIS.MANAGED_TRANSACTION
@@ -247,7 +249,7 @@ export class TransactionExecutor {
     if (tx.isOpen()) {
       // transaction work returned resolved promise and transaction has not been committed/rolled back
       // try to commit the transaction
-      tx.commit()
+      tx.commit(this.committedDbCallback)
         .then(() => {
           // transaction was committed, return result to the user
           resolve(result)

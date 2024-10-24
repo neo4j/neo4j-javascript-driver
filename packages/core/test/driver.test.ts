@@ -709,6 +709,7 @@ describe('Driver', () => {
       impersonatedUser: undefined,
       // @ts-expect-error
       log: driver?._log,
+      homeDatabaseCallback: expect.any(Function),
       ...extra
     }
   }

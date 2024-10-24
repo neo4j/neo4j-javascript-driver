@@ -151,7 +151,6 @@ class Transaction {
             bookmarks: this._bookmarks,
             txConfig,
             mode: this._connectionHolder.mode(),
-            database: this._connectionHolder.database(),
             impersonatedUser: this._impersonatedUser,
             notificationFilter: this._notificationFilter,
             apiTelemetryConfig: this._apiTelemetryConfig,
@@ -220,7 +219,7 @@ class Transaction {
    *
    * @returns {Promise<void>} An empty promise if committed successfully or error if any error happened during commit.
    */
-  commit (): Promise<void> {
+  commit (committedDbCallback?: any): Promise<void> {
     const committed = this._state.commit({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
@@ -234,7 +233,12 @@ class Transaction {
     this._onClose()
     return new Promise((resolve, reject) => {
       committed.result.subscribe({
-        onCompleted: () => resolve(),
+        onCompleted: (result: any) => {
+          if (committedDbCallback !== undefined) {
+            committedDbCallback(result.database.name)
+          }
+          resolve()
+        },
         onError: (error: any) => reject(error)
       })
     })

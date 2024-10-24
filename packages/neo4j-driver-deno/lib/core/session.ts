@@ -74,6 +74,9 @@ class Session {
   private readonly _bookmarkManager?: BookmarkManager
   private readonly _notificationFilter?: NotificationFilter
   private readonly _log: Logger
+  private readonly _homeDatabaseCallback: Function | undefined
+  private readonly _auth: AuthToken | undefined
+  private readonly _homeDatabaseBestGuess
   /**
    * @constructor
    * @protected
@@ -101,7 +104,8 @@ class Session {
     bookmarkManager,
     notificationFilter,
     auth,
-    log
+    log,
+    homeDatabaseCallback
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -115,12 +119,16 @@ class Session {
     notificationFilter?: NotificationFilter
     auth?: AuthToken
     log: Logger
+    homeDatabaseCallback?: (user: string, databaseName: string) => void
   }) {
     this._mode = mode
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
     this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
+    this._homeDatabaseCallback = homeDatabaseCallback
+    this._homeDatabaseBestGuess = config?.homeDatabase
+    this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
@@ -149,7 +157,7 @@ class Session {
     this._impersonatedUser = impersonatedUser
     this._lastBookmarks = bookmarks ?? Bookmarks.empty()
     this._configuredBookmarks = this._lastBookmarks
-    this._transactionExecutor = _createTransactionExecutor(config)
+    this._transactionExecutor = _createTransactionExecutor({ ...config, commitCallback: this.committedDbCallback.bind(this) })
     this._databaseNameResolved = this._database !== ''
     const calculatedWatermaks = this._calculateWatermaks()
     this._lowRecordWatermark = calculatedWatermaks.low
@@ -254,7 +262,7 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection()) {
+    } else if (!this._hasTx && connectionHolder.initializeConnection(this._homeDatabaseBestGuess)) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
@@ -310,7 +318,7 @@ class Session {
 
     const mode = Session._validateSessionMode(accessMode)
     const connectionHolder = this._connectionHolderWithMode(mode)
-    connectionHolder.initializeConnection()
+    connectionHolder.initializeConnection(this._homeDatabaseBestGuess)
     this._hasTx = true
 
     const tx = new TransactionPromise({
@@ -507,7 +515,20 @@ class Session {
    * @param {string|undefined} database The resolved database name
    * @returns {void}
    */
-  _onDatabaseNameResolved (database?: string): void {
+  _onDatabaseNameResolved (database?: string, user?: string, table?: any): void {
+    if (this._homeDatabaseCallback != null) {
+      this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, table)
+    }
+    if (!this._databaseNameResolved) {
+      const normalizedDatabase = database ?? ''
+      this._database = normalizedDatabase
+      this._readConnectionHolder.setDatabase(normalizedDatabase)
+      this._writeConnectionHolder.setDatabase(normalizedDatabase)
+      this._databaseNameResolved = true
+    }
+  }
+
+  committedDbCallback (database: string): void {
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
@@ -632,9 +653,10 @@ class Session {
  */
 function _createTransactionExecutor (config?: {
   maxTransactionRetryTime: number | null
+  commitCallback: any
 }): TransactionExecutor {
   const maxRetryTimeMs = config?.maxTransactionRetryTime ?? null
-  return new TransactionExecutor(maxRetryTimeMs)
+  return new TransactionExecutor(maxRetryTimeMs, undefined, undefined, undefined, undefined, config?.commitCallback)
 }
 
 export default Session
