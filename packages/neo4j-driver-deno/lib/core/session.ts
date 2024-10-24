@@ -157,7 +157,7 @@ class Session {
     this._impersonatedUser = impersonatedUser
     this._lastBookmarks = bookmarks ?? Bookmarks.empty()
     this._configuredBookmarks = this._lastBookmarks
-    this._transactionExecutor = _createTransactionExecutor(config)
+    this._transactionExecutor = _createTransactionExecutor({...config, commitCallback: this.committedDbCallback.bind(this)})
     this._databaseNameResolved = this._database !== ''
     const calculatedWatermaks = this._calculateWatermaks()
     this._lowRecordWatermark = calculatedWatermaks.low
@@ -515,13 +515,23 @@ class Session {
    * @param {string|undefined} database The resolved database name
    * @returns {void}
    */
-  _onDatabaseNameResolved (database?: string, user?: string): void {
-    const normalizedDatabase = database ?? ''
-    this._database = normalizedDatabase
-    if (this._homeDatabaseCallback != null && normalizedDatabase !== this._homeDatabaseBestGuess) {
-      this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, normalizedDatabase)
+  _onDatabaseNameResolved (database?: string, user?: string, table?: any): void {
+    if (this._homeDatabaseCallback != null) {
+      this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, table)
     }
     if (!this._databaseNameResolved) {
+      const normalizedDatabase = database ?? ''
+      this._database = normalizedDatabase
+      this._readConnectionHolder.setDatabase(normalizedDatabase)
+      this._writeConnectionHolder.setDatabase(normalizedDatabase)
+      this._databaseNameResolved = true
+    }
+  }
+
+  committedDbCallback(database: string): void {
+    if (!this._databaseNameResolved) {
+      const normalizedDatabase = database ?? ''
+      this._database = normalizedDatabase
       this._readConnectionHolder.setDatabase(normalizedDatabase)
       this._writeConnectionHolder.setDatabase(normalizedDatabase)
       this._databaseNameResolved = true
@@ -643,9 +653,10 @@ class Session {
  */
 function _createTransactionExecutor (config?: {
   maxTransactionRetryTime: number | null
+  commitCallback: any
 }): TransactionExecutor {
   const maxRetryTimeMs = config?.maxTransactionRetryTime ?? null
-  return new TransactionExecutor(maxRetryTimeMs)
+  return new TransactionExecutor(maxRetryTimeMs, undefined, undefined, undefined, undefined, config?.commitCallback)
 }
 
 export default Session

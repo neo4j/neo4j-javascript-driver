@@ -139,9 +139,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth, homeDbTable } = {}) {
     let name
     let address
+    let runResolved = false
     const context = { database: database || DEFAULT_DB_NAME }
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
@@ -152,19 +153,25 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._handleSecurityError(error, address, conn, context.database)
     )
 
-    const routingTable = await this._freshRoutingTable({
-      accessMode,
-      database: context.database,
-      bookmarks,
-      impersonatedUser,
-      auth,
-      onDatabaseNameResolved: (databaseName) => {
-        context.database = context.database || databaseName
-        if (onDatabaseNameResolved) {
-          onDatabaseNameResolved(databaseName, this._authenticationProvider?._authTokenManager?._authToken?.principal)
+    const routingTable = (homeDbTable && !homeDbTable.isStaleFor(accessMode))
+      ? homeDbTable
+      : await this._freshRoutingTable({
+        accessMode,
+        database: context.database,
+        bookmarks,
+        impersonatedUser,
+        auth,
+        onDatabaseNameResolved: (databaseName) => {
+          context.database = context.database || databaseName
+          if (onDatabaseNameResolved) {
+            runResolved = true
+          }
         }
-      }
-    })
+      })
+
+    if (runResolved) {
+      onDatabaseNameResolved(context.database, this._authenticationProvider?._authTokenManager?._authToken?.principal, routingTable)
+    }
 
     // select a target server based on specified access mode
     if (accessMode === READ) {
