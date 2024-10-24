@@ -157,7 +157,7 @@ class Session {
     this._impersonatedUser = impersonatedUser
     this._lastBookmarks = bookmarks ?? Bookmarks.empty()
     this._configuredBookmarks = this._lastBookmarks
-    this._transactionExecutor = _createTransactionExecutor({...config, commitCallback: this.committedDbCallback.bind(this)})
+    this._transactionExecutor = _createTransactionExecutor({ ...config, commitCallback: this.committedDbCallback.bind(this) })
     this._databaseNameResolved = this._database !== ''
     const calculatedWatermaks = this._calculateWatermaks()
     this._lowRecordWatermark = calculatedWatermaks.low
@@ -528,7 +528,7 @@ class Session {
     }
   }
 
-  committedDbCallback(database: string): void {
+  committedDbCallback (database: string): void {
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase

@@ -234,7 +234,7 @@ class Transaction {
     return new Promise((resolve, reject) => {
       committed.result.subscribe({
         onCompleted: (result: any) => {
-          if(committedDbCallback !== undefined) {
+          if (committedDbCallback !== undefined) {
             committedDbCallback(result.database.name)
           }
           resolve()
