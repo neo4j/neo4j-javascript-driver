@@ -47,6 +47,11 @@ interface TransactionConfig {
   metadata?: object
 }
 
+interface DbGuess {
+  database: string
+  user: string
+}
+
 /**
  * A Session instance is used for handling the connection and
  * sending queries through the connection.
@@ -74,9 +79,11 @@ class Session {
   private readonly _bookmarkManager?: BookmarkManager
   private readonly _notificationFilter?: NotificationFilter
   private readonly _log: Logger
-  private readonly _homeDatabaseCallback: Function | undefined
+  private readonly _homeDatabaseTableCallback: Function | undefined
+  private readonly _committedDbCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
-  private readonly _homeDatabaseBestGuess
+  private _homeDatabaseBestGuess: string | undefined
+  private _databaseGuess: DbGuess | undefined
   /**
    * @constructor
    * @protected
@@ -105,7 +112,8 @@ class Session {
     notificationFilter,
     auth,
     log,
-    homeDatabaseCallback
+    homeDatabaseTableCallback,
+    committedDbCallback
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -119,14 +127,15 @@ class Session {
     notificationFilter?: NotificationFilter
     auth?: AuthToken
     log: Logger
-    homeDatabaseCallback?: (user: string, databaseName: string) => void
+    homeDatabaseTableCallback?: (user: string, table: any) => void
+    committedDbCallback?: (user: string, database: string) => void
   }) {
     this._mode = mode
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
-    this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
-    this._homeDatabaseCallback = homeDatabaseCallback
+    this._homeDatabaseTableCallback = homeDatabaseTableCallback
+    this._committedDbCallback = committedDbCallback
     this._homeDatabaseBestGuess = config?.homeDatabase
     this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
@@ -137,7 +146,7 @@ class Session {
       bookmarks,
       connectionProvider,
       impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      onDatabaseNameResolved: this._onDatabaseNameResolved.bind(this),
       getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
       log
     })
@@ -516,10 +525,11 @@ class Session {
    * @returns {void}
    */
   _onDatabaseNameResolved (database?: string, user?: string, table?: any): void {
-    if (this._homeDatabaseCallback != null) {
-      this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, table)
+    if(this._homeDatabaseTableCallback) {
+      this._homeDatabaseTableCallback(this._impersonatedUser ?? this._auth?.principal ?? user, table)
     }
     if (!this._databaseNameResolved) {
+      this._databaseGuess = {user: this._impersonatedUser ?? this._auth?.principal ?? user ?? "", database: database ?? ""}
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
       this._readConnectionHolder.setDatabase(normalizedDatabase)
@@ -529,12 +539,13 @@ class Session {
   }
 
   committedDbCallback (database: string): void {
-    if (!this._databaseNameResolved) {
-      const normalizedDatabase = database ?? ''
-      this._database = normalizedDatabase
-      this._readConnectionHolder.setDatabase(normalizedDatabase)
-      this._writeConnectionHolder.setDatabase(normalizedDatabase)
-      this._databaseNameResolved = true
+    if(this._committedDbCallback !== undefined && this._databaseGuess) {
+      this._committedDbCallback(database, this._databaseGuess.user)
+    }
+    if(this._databaseGuess && database !== this._databaseGuess.database) {
+      this._homeDatabaseBestGuess = undefined
+      this._readConnectionHolder.setDatabase(undefined)
+      this._writeConnectionHolder.setDatabase(undefined)
     }
   }
 

@@ -148,12 +148,13 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
       SESSION_EXPIRED,
       (error, address) => this._handleUnavailability(error, address, context.database),
-      (error, address) => this._handleWriteFailure(error, address, context.database),
+      (error, address) => {
+        this._handleWriteFailure(error, address, homeDbTable?.database ?? context.database)
+      },
       (error, address, conn) =>
         this._handleSecurityError(error, address, conn, context.database)
     )
-
-    const routingTable = (homeDbTable && !homeDbTable.isStaleFor(accessMode))
+    const routingTable = (homeDbTable && homeDbTable.isStaleFor(accessMode))
       ? homeDbTable
       : await this._freshRoutingTable({
         accessMode,

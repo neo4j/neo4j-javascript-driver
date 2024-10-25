@@ -97,7 +97,8 @@ type CreateSession = (args: {
   notificationFilter?: NotificationFilter
   auth?: AuthToken
   log: Logger
-  homeDatabaseCallback?: (user: string, databaseName: string) => void
+  homeDatabaseTableCallback?: (user: string, table: any) => void
+  committedDbCallback?: (user: string) => void
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -471,7 +472,7 @@ class Driver {
   private readonly _createSession: CreateSession
   private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
-  homeDatabaseCache: Map<string, string>
+  homeDatabaseCache: Map<string, any>
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -511,7 +512,7 @@ class Driver {
      */
     this._connectionProvider = null
 
-    this.homeDatabaseCache = new Map<string, string>()
+    this.homeDatabaseCache = new Map<string, any>()
 
     this._afterConstruction()
   }
@@ -841,6 +842,16 @@ class Driver {
     )
   }
 
+  _homeDatabaseCallback (user: string, table: any): void {
+    this.homeDatabaseCache.set(user, table)
+  }
+
+  _committedDbCallback (database: string, user: string): void {
+    if (this.homeDatabaseCache.get(user) !== undefined && this.homeDatabaseCache.get(user).database !== database) {
+      this.homeDatabaseCache.delete(user)
+    }
+  }
+
   /**
    * @private
    */
@@ -888,12 +899,9 @@ class Driver {
       notificationFilter,
       auth,
       log: this._log,
-      homeDatabaseCallback: this._homeDatabaseCallback.bind(this)
+      homeDatabaseTableCallback: this._homeDatabaseCallback.bind(this),
+      committedDbCallback: this._committedDbCallback.bind(this)
     })
-  }
-
-  _homeDatabaseCallback (user: string, databaseName: string): void {
-    this.homeDatabaseCache.set(user, databaseName)
   }
 
   /**
