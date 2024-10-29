@@ -856,7 +856,7 @@ class Driver {
 
   _removeFailureFromCache (database: string): void {
     this.homeDatabaseCache.forEach((_, key) => {
-      if(this.homeDatabaseCache.get(key).database === database) {
+      if (this.homeDatabaseCache.get(key).database === database) {
         this.homeDatabaseCache.delete(key)
       }
     })

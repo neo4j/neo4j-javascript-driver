@@ -137,7 +137,7 @@ class Session {
     this._fetchSize = fetchSize
     this._homeDatabaseTableCallback = homeDatabaseTableCallback
     this._committedDbCallback = committedDbCallback
-    this._databaseGuess = {user: config?.userGuess, database: config?.homeDatabase}
+    this._databaseGuess = { user: config?.userGuess, database: config?.homeDatabase }
     this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
@@ -148,7 +148,7 @@ class Session {
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved.bind(this),
-      removeFailureFromCache: removeFailureFromCache,
+      removeFailureFromCache,
       getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
       log
     })
