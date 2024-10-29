@@ -446,6 +446,10 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
+   * NOTE: Because it is an explicit transaction from the server point of view, Cypher queries using
+   * "CALL {} IN TRANSACTIONS" or the older "USING PERIODIC COMMIT" construct will not work (call
+   * {@link Session#run} for these).
+   *
    * @param {function(tx: ManagedTransaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
    * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
@@ -467,6 +471,10 @@ class Session {
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
+   *
+   * NOTE: Because it is an explicit transaction from the server point of view, Cypher queries using
+   * "CALL {} IN TRANSACTIONS" or the older "USING PERIODIC COMMIT" construct will not work (call
+   * {@link Session#run} for these).
    *
    * @param {function(tx: ManagedTransaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
