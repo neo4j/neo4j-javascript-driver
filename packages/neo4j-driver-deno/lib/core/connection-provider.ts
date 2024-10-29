@@ -57,6 +57,7 @@ class ConnectionProvider {
    * @property {Bookmarks} param.bookmarks - the bookmarks to send to routing discovery
    * @property {string} param.impersonatedUser - the impersonated user
    * @property {function (databaseName:string?)} param.onDatabaseNameResolved - Callback called when the database name get resolved
+   * @property {function (databaseName:string?)} param.removeFailureFromCache - Callback for deleting lost db from cache
    * @returns {Promise<Connection>}
    */
   acquireConnection (param?: {
@@ -64,7 +65,8 @@ class ConnectionProvider {
     database?: string
     bookmarks: bookmarks.Bookmarks
     impersonatedUser?: string
-    onDatabaseNameResolved?: (databaseName?: string) => void
+    onDatabaseNameResolved?: (database?: string) => void
+    removeFailureFromCache?: (database?: string) => void
     auth?: AuthToken
     homeDbTable?: any
   }): Promise<Connection & Releasable> {

@@ -139,7 +139,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth, homeDbTable } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, removeFailureFromCache, auth, homeDbTable } = {}) {
     let name
     let address
     let runResolved = false
@@ -149,12 +149,13 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       SESSION_EXPIRED,
       (error, address) => this._handleUnavailability(error, address, context.database),
       (error, address) => {
-        this._handleWriteFailure(error, address, homeDbTable?.database ?? context.database)
+        removeFailureFromCache(homeDbTable?.database ?? context.database)
+        return this._handleWriteFailure(error, address, homeDbTable?.database ?? context.database)
       },
       (error, address, conn) =>
         this._handleSecurityError(error, address, conn, context.database)
     )
-    const routingTable = (homeDbTable && homeDbTable.isStaleFor(accessMode))
+    const routingTable = (homeDbTable && !homeDbTable.isStaleFor(accessMode))
       ? homeDbTable
       : await this._freshRoutingTable({
         accessMode,

@@ -99,6 +99,7 @@ type CreateSession = (args: {
   log: Logger
   homeDatabaseTableCallback?: (user: string, table: any) => void
   committedDbCallback?: (user: string) => void
+  removeFailureFromCache?: (database: string) => void
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -110,6 +111,7 @@ interface DriverConfig {
   logging?: LoggingConfig
   notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
+  user?: string | undefined
 }
 
 /**
@@ -847,9 +849,17 @@ class Driver {
   }
 
   _committedDbCallback (database: string, user: string): void {
-    if(this.homeDatabaseCache.get(user) !== undefined && this.homeDatabaseCache.get(user).database !== database){
+    if (this.homeDatabaseCache.get(user) !== undefined && this.homeDatabaseCache.get(user).database !== database) {
       this.homeDatabaseCache.delete(user)
     }
+  }
+
+  _removeFailureFromCache (database: string): void {
+    this.homeDatabaseCache.forEach((_, key) => {
+      if(this.homeDatabaseCache.get(key).database === database) {
+        this.homeDatabaseCache.delete(key)
+      }
+    })
   }
 
   /**
@@ -878,7 +888,7 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const homeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.principal ?? '')
+    const homeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.principal ?? this._config.user ?? '')
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
@@ -890,7 +900,8 @@ class Driver {
       bookmarks,
       config: {
         ...this._config,
-        homeDatabase
+        homeDatabase,
+        userGuess: impersonatedUser ?? auth?.principal ?? ''
       },
       reactive,
       impersonatedUser,
@@ -900,7 +911,8 @@ class Driver {
       auth,
       log: this._log,
       homeDatabaseTableCallback: this._homeDatabaseCallback.bind(this),
-      committedDbCallback: this._committedDbCallback.bind(this)
+      committedDbCallback: this._committedDbCallback.bind(this),
+      removeFailureFromCache: this._removeFailureFromCache.bind(this)
     })
   }
 
@@ -916,7 +928,6 @@ class Driver {
         createHostNameResolver(this._config)
       )
     }
-
     return this._connectionProvider
   }
 }

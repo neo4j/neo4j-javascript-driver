@@ -48,7 +48,7 @@ interface TransactionConfig {
 }
 
 interface DbGuess {
-  database: string
+  database: any
   user: string
 }
 
@@ -82,7 +82,6 @@ class Session {
   private readonly _homeDatabaseTableCallback: Function | undefined
   private readonly _committedDbCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
-  private _homeDatabaseBestGuess: string | undefined
   private _databaseGuess: DbGuess | undefined
   /**
    * @constructor
@@ -113,6 +112,7 @@ class Session {
     auth,
     log,
     homeDatabaseTableCallback,
+    removeFailureFromCache,
     committedDbCallback
   }: {
     mode: SessionMode
@@ -128,6 +128,7 @@ class Session {
     auth?: AuthToken
     log: Logger
     homeDatabaseTableCallback?: (user: string, table: any) => void
+    removeFailureFromCache?: (database: string) => void
     committedDbCallback?: (user: string, database: string) => void
   }) {
     this._mode = mode
@@ -136,7 +137,7 @@ class Session {
     this._fetchSize = fetchSize
     this._homeDatabaseTableCallback = homeDatabaseTableCallback
     this._committedDbCallback = committedDbCallback
-    this._homeDatabaseBestGuess = config?.homeDatabase
+    this._databaseGuess = {user: config?.userGuess, database: config?.homeDatabase}
     this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
@@ -147,6 +148,7 @@ class Session {
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved.bind(this),
+      removeFailureFromCache: removeFailureFromCache,
       getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
       log
     })
@@ -271,7 +273,7 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection(this._homeDatabaseBestGuess)) {
+    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess?.database)) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
@@ -327,7 +329,7 @@ class Session {
 
     const mode = Session._validateSessionMode(accessMode)
     const connectionHolder = this._connectionHolderWithMode(mode)
-    connectionHolder.initializeConnection(this._homeDatabaseBestGuess)
+    connectionHolder.initializeConnection(this._databaseGuess?.database)
     this._hasTx = true
 
     const tx = new TransactionPromise({
@@ -525,11 +527,11 @@ class Session {
    * @returns {void}
    */
   _onDatabaseNameResolved (database?: string, user?: string, table?: any): void {
-    if(this._homeDatabaseTableCallback) {
+    this._databaseGuess = { user: this._impersonatedUser ?? this._auth?.principal ?? user ?? '', database: table }
+    if (this._homeDatabaseTableCallback != null) {
       this._homeDatabaseTableCallback(this._impersonatedUser ?? this._auth?.principal ?? user, table)
     }
     if (!this._databaseNameResolved) {
-      this._databaseGuess = {user: this._impersonatedUser ?? this._auth?.principal ?? user ?? "", database: database ?? ""}
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
       this._readConnectionHolder.setDatabase(normalizedDatabase)
@@ -539,11 +541,11 @@ class Session {
   }
 
   committedDbCallback (database: string): void {
-    if(this._committedDbCallback !== undefined && this._databaseGuess) {
+    if (this._committedDbCallback !== undefined && this._databaseGuess !== undefined) {
       this._committedDbCallback(database, this._databaseGuess.user)
     }
-    if(this._databaseGuess && database !== this._databaseGuess.database) {
-      this._homeDatabaseBestGuess = undefined
+    if ((this._databaseGuess != null) && database !== this._databaseGuess.database) {
+      this._databaseGuess = undefined
       this._readConnectionHolder.setDatabase(undefined)
       this._writeConnectionHolder.setDatabase(undefined)
     }
