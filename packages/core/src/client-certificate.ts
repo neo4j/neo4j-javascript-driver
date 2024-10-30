@@ -74,8 +74,8 @@ export default class ClientCertificate {
 /**
  * Provides a client certificate to the driver for mutual TLS.
  *
- * The driver will call {@link ClientCertificateProvider#hasUpdate()} to check if the client wants to update the certificate.
- * If so, it will call {@link ClientCertificateProvider#getCertificate()} to get the new certificate.
+ * The driver will call {@link ClientCertificateProvider#hasUpdate} to check if the client wants to update the certificate.
+ * If so, it will call {@link ClientCertificateProvider#getClientCertificate} to get the new certificate.
  *
  * The certificate is only used as a second factor for authentication authenticating the client.
  * The DMBS user still needs to authenticate with an authentication token.
@@ -103,7 +103,7 @@ export class ClientCertificateProvider {
   /**
    * Returns the certificate to use for new connections.
    *
-   * Will be called by the driver after {@link ClientCertificateProvider#hasUpdate()} returned true
+   * Will be called by the driver after {@link ClientCertificateProvider#hasUpdate} returned true
    * or when the driver establishes the first connection.
    *
    * @returns {Promise<ClientCertificate>|ClientCertificate} the certificate to use for new connections
