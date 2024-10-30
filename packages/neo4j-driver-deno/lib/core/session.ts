@@ -137,7 +137,7 @@ class Session {
     this._fetchSize = fetchSize
     this._homeDatabaseTableCallback = homeDatabaseTableCallback
     this._driverCommittedDbCallback = committedDbCallback
-    if(config?.cachedUser !== undefined && config?.cachedHomeDatabaseRoutingTable !== undefined) {
+    if (config?.cachedUser !== undefined && config?.cachedHomeDatabaseRoutingTable !== undefined) {
       this._databaseGuess = { user: config?.cachedUser, routingTable: config?.cachedHomeDatabaseRoutingTable }
     }
     this._auth = auth

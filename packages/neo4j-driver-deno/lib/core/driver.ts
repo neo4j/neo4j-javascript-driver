@@ -888,7 +888,7 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const cachedUser = impersonatedUser ?? auth?.principal  ?? this._config.user ?? ''
+    const cachedUser = impersonatedUser ?? auth?.principal ?? this._config.user ?? ''
     const cachedHomeDatabaseRoutingTable = this.homeDatabaseCache.get(cachedUser ?? '')
     const homeDatabaseTableCallback = this._homeDatabaseTableCallback.bind(this)
     const committedDbCallback = this._committedDbCallback.bind(this)
@@ -904,7 +904,7 @@ class Driver {
       config: {
         cachedHomeDatabaseRoutingTable,
         cachedUser,
-        ...this._config,
+        ...this._config
       },
       reactive,
       impersonatedUser,
