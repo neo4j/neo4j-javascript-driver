@@ -298,7 +298,7 @@ export class Config {
     this.resolver = undefined
 
     /**
-     * Configure filter for Notification objects returned in {@Link ResultSummary#notifications}.
+     * Configure filter for Notification objects returned in {@link ResultSummary#notifications}.
      *
      * See {@link SessionConfig#notificationFilter} for usage instructions.
      *

@@ -27,7 +27,7 @@ import { TxConfig } from './internal/tx-config.ts'
 import NotificationFilter from './notification-filter.ts'
 
 /**
- * Represents a {@link Promise<Transaction>} object and a {@link Transaction} object.
+ * Represents a Promise<{@link Transaction}> object and a {@link Transaction} object.
  *
  * Resolving this object promise verifies the result of the transaction begin and returns the {@link Transaction} object in case of success.
  *
