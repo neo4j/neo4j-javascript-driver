@@ -78,7 +78,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._createConnectionErrorHandler(),
         this._log,
         await this._clientCertificateHolder.getClientCertificate(),
-        this._routingContext
+        this._routingContext,
+        undefined,
+        this._channelSsrCallback.bind(this)
       )
     })
 
@@ -99,6 +101,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
 
     this._refreshRoutingTable = functional.reuseOngoingRequest(this._refreshRoutingTable, this)
+    this._withSSR = 0
+    this._withoutSSR = 0
   }
 
   _createConnectionErrorHandler () {
@@ -155,7 +159,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       (error, address, conn) =>
         this._handleSecurityError(error, address, conn, context.database)
     )
-    const routingTable = (homeDbTable && !homeDbTable.isStaleFor(accessMode))
+    const routingTable = (homeDbTable && !homeDbTable.isStaleFor(accessMode) && this._SSREnabled)
       ? homeDbTable
       : await this._freshRoutingTable({
         accessMode,
@@ -672,6 +676,18 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       routingTable.forgetRouter(address)
     }
   }
+
+  _channelSsrCallback (isEnabled, opened) {
+    if (isEnabled) {
+      this._withSSR = this._withSSR + (opened ? 1 : -1)
+    } else {
+      this._withoutSSR = this._withoutSSR + (opened ? 1 : -1)
+    }
+  }
+
+  _SSREnabled () {
+    return this._withSSR > 0 && this._withoutSSR === 0
+  }
 }
 
 /**
@@ -781,6 +797,7 @@ function _isFailFastError (error) {
 }
 
 function _isFailFastSecurityError (error) {
+  console.error(error)
   return error.code.startsWith('Neo.ClientError.Security.') &&
     ![
       AUTHORIZATION_EXPIRED_CODE

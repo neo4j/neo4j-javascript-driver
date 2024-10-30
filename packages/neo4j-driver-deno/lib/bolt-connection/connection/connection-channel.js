@@ -43,7 +43,8 @@ export function createChannelConnection (
   log,
   clientCertificate,
   serversideRouting = null,
-  createChannel = channelConfig => new Channel(channelConfig)
+  createChannel = channelConfig => new Channel(channelConfig),
+  ssrCallback
 ) {
   const channelConfig = new ChannelConfig(
     address,
@@ -89,7 +90,8 @@ export function createChannelConnection (
         chunker,
         config.notificationFilter,
         createProtocol,
-        config.telemetryDisabled
+        config.telemetryDisabled,
+        ssrCallback
       )
 
       // forward all pending bytes to the dechunker
@@ -124,7 +126,8 @@ export default class ChannelConnection extends Connection {
     chunker, // to be removed,
     notificationFilter,
     protocolSupplier,
-    telemetryDisabled
+    telemetryDisabled,
+    ssrCallback
   ) {
     super(errorHandler)
     this._authToken = null
@@ -143,6 +146,7 @@ export default class ChannelConnection extends Connection {
     this._notificationFilter = notificationFilter
     this._telemetryDisabledDriverConfig = telemetryDisabled === true
     this._telemetryDisabledConnection = true
+    this._ssrCallback = ssrCallback
 
     // connection from the database, returned in response for HELLO message and might not be available
     this._dbConnectionId = null
@@ -330,6 +334,16 @@ export default class ChannelConnection extends Connection {
               const telemetryEnabledHint = metadata.hints['telemetry.enabled']
               if (telemetryEnabledHint === true) {
                 this._telemetryDisabledConnection = false
+              }
+
+              const SSREnabledHint = metadata.hints['ssr.enabled']
+              if (this.serversideRouting !== SSREnabledHint) {
+                this._ssrCallback(SSREnabledHint, true)
+              }
+              if (SSREnabledHint === true) {
+                this.serversideRouting = true
+              } else if (SSREnabledHint === false) {
+                this.serversideRouting = false
               }
             }
           }
@@ -538,6 +552,7 @@ export default class ChannelConnection extends Connection {
    * @returns {Promise<void>} - A promise that will be resolved when the underlying channel is closed.
    */
   async close () {
+    this._ssrCallback(this.serversideRouting, false)
     if (this._log.isDebugEnabled()) {
       this._log.debug('closing')
     }

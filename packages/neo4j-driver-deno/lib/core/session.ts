@@ -48,7 +48,7 @@ interface TransactionConfig {
 }
 
 interface DbGuess {
-  database: any
+  routingTable: any
   user: string
 }
 
@@ -80,7 +80,7 @@ class Session {
   private readonly _notificationFilter?: NotificationFilter
   private readonly _log: Logger
   private readonly _homeDatabaseTableCallback: Function | undefined
-  private readonly _committedDbCallback: Function | undefined
+  private readonly _driverCommittedDbCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
   private _databaseGuess: DbGuess | undefined
   /**
@@ -136,8 +136,10 @@ class Session {
     this._reactive = reactive
     this._fetchSize = fetchSize
     this._homeDatabaseTableCallback = homeDatabaseTableCallback
-    this._committedDbCallback = committedDbCallback
-    this._databaseGuess = { user: config?.userGuess, database: config?.homeDatabase }
+    this._driverCommittedDbCallback = committedDbCallback
+    if(config?.cachedUser !== undefined && config?.cachedHomeDatabaseRoutingTable !== undefined) {
+      this._databaseGuess = { user: config?.cachedUser, routingTable: config?.cachedHomeDatabaseRoutingTable }
+    }
     this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
@@ -168,7 +170,7 @@ class Session {
     this._impersonatedUser = impersonatedUser
     this._lastBookmarks = bookmarks ?? Bookmarks.empty()
     this._configuredBookmarks = this._lastBookmarks
-    this._transactionExecutor = _createTransactionExecutor({ ...config, commitCallback: this.committedDbCallback.bind(this) })
+    this._transactionExecutor = _createTransactionExecutor({ ...config, commitCallback: this._committedDbCallback.bind(this) })
     this._databaseNameResolved = this._database !== ''
     const calculatedWatermaks = this._calculateWatermaks()
     this._lowRecordWatermark = calculatedWatermaks.low
@@ -273,7 +275,7 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess?.database)) {
+    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess?.routingTable)) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
@@ -329,7 +331,7 @@ class Session {
 
     const mode = Session._validateSessionMode(accessMode)
     const connectionHolder = this._connectionHolderWithMode(mode)
-    connectionHolder.initializeConnection(this._databaseGuess?.database)
+    connectionHolder.initializeConnection(this._databaseGuess?.routingTable)
     this._hasTx = true
 
     const tx = new TransactionPromise({
@@ -527,7 +529,7 @@ class Session {
    * @returns {void}
    */
   _onDatabaseNameResolved (database?: string, user?: string, table?: any): void {
-    this._databaseGuess = { user: this._impersonatedUser ?? this._auth?.principal ?? user ?? '', database: table }
+    this._databaseGuess = { user: this._impersonatedUser ?? this._auth?.principal ?? user ?? '', routingTable: table }
     if (this._homeDatabaseTableCallback != null) {
       this._homeDatabaseTableCallback(this._impersonatedUser ?? this._auth?.principal ?? user, table)
     }
@@ -540,14 +542,9 @@ class Session {
     }
   }
 
-  committedDbCallback (database: string): void {
-    if (this._committedDbCallback !== undefined && this._databaseGuess !== undefined) {
-      this._committedDbCallback(database, this._databaseGuess.user)
-    }
-    if ((this._databaseGuess != null) && database !== this._databaseGuess.database) {
-      this._databaseGuess = undefined
-      this._readConnectionHolder.setDatabase(undefined)
-      this._writeConnectionHolder.setDatabase(undefined)
+  _committedDbCallback (database: string): void {
+    if (this._driverCommittedDbCallback !== undefined && this._databaseGuess !== undefined) {
+      this._driverCommittedDbCallback(database, this._databaseGuess.user)
     }
   }
 

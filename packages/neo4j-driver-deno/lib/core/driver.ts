@@ -844,7 +844,7 @@ class Driver {
     )
   }
 
-  _homeDatabaseCallback (user: string, table: any): void {
+  _homeDatabaseTableCallback (user: string, table: any): void {
     this.homeDatabaseCache.set(user, table)
   }
 
@@ -888,20 +888,23 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const homeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.principal ?? this._config.user ?? '')
+    const cachedUser = impersonatedUser ?? auth?.principal  ?? this._config.user ?? ''
+    const cachedHomeDatabaseRoutingTable = this.homeDatabaseCache.get(cachedUser ?? '')
+    const homeDatabaseTableCallback = this._homeDatabaseTableCallback.bind(this)
+    const committedDbCallback = this._committedDbCallback.bind(this)
+    const removeFailureFromCache = this._removeFailureFromCache.bind(this)
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
-
     return this._createSession({
       mode: sessionMode,
       database: database ?? '',
       connectionProvider,
       bookmarks,
       config: {
+        cachedHomeDatabaseRoutingTable,
+        cachedUser,
         ...this._config,
-        homeDatabase,
-        userGuess: impersonatedUser ?? auth?.principal ?? ''
       },
       reactive,
       impersonatedUser,
@@ -910,9 +913,9 @@ class Driver {
       notificationFilter,
       auth,
       log: this._log,
-      homeDatabaseTableCallback: this._homeDatabaseCallback.bind(this),
-      committedDbCallback: this._committedDbCallback.bind(this),
-      removeFailureFromCache: this._removeFailureFromCache.bind(this)
+      homeDatabaseTableCallback,
+      committedDbCallback,
+      removeFailureFromCache
     })
   }
 
