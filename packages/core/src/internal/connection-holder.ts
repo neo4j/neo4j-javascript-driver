@@ -177,7 +177,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return true
   }
 
-  private async _createConnectionPromise (connectionProvider: ConnectionProvider, homeDatabaseTable?: any): Promise<Connection & Releasable | null> {
+  private async _createConnectionPromise (connectionProvider: ConnectionProvider, homeDatabase?: string): Promise<Connection & Releasable | null> {
     return await connectionProvider.acquireConnection({
       accessMode: this._mode,
       database: this._database ?? '',
@@ -186,7 +186,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
       onDatabaseNameResolved: this._onDatabaseNameResolved,
       removeFailureFromCache: this.removeFailureFromCache,
       auth: this._auth,
-      homeDbTable: homeDatabaseTable
+      homeDb: homeDatabase
     })
   }
 

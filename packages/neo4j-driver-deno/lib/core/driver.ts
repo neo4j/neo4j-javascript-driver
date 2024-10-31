@@ -97,7 +97,7 @@ type CreateSession = (args: {
   notificationFilter?: NotificationFilter
   auth?: AuthToken
   log: Logger
-  homeDatabaseTableCallback?: (user: string, table: any) => void
+  homeDatabaseCallback?: (user: string, database: any) => void
   committedDbCallback?: (user: string) => void
   removeFailureFromCache?: (database: string) => void
 }) => Session
@@ -844,19 +844,19 @@ class Driver {
     )
   }
 
-  _homeDatabaseTableCallback (user: string, table: any): void {
+  _homeDatabaseCallback (user: string, table: any): void {
     this.homeDatabaseCache.set(user, table)
   }
 
   _committedDbCallback (database: string, user: string): void {
-    if (this.homeDatabaseCache.get(user) !== undefined && this.homeDatabaseCache.get(user).database !== database) {
+    if (this.homeDatabaseCache.get(user) !== undefined && this.homeDatabaseCache.get(user) !== database) {
       this.homeDatabaseCache.delete(user)
     }
   }
 
   _removeFailureFromCache (database: string): void {
     this.homeDatabaseCache.forEach((_, key) => {
-      if (this.homeDatabaseCache.get(key).database === database) {
+      if (this.homeDatabaseCache.get(key) === database) {
         this.homeDatabaseCache.delete(key)
       }
     })
@@ -889,8 +889,8 @@ class Driver {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const cachedUser = impersonatedUser ?? auth?.principal ?? this._config.user ?? ''
-    const cachedHomeDatabaseRoutingTable = this.homeDatabaseCache.get(cachedUser ?? '')
-    const homeDatabaseTableCallback = this._homeDatabaseTableCallback.bind(this)
+    const cachedHomeDatabase = this.homeDatabaseCache.get(cachedUser)
+    const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
     const committedDbCallback = this._committedDbCallback.bind(this)
     const removeFailureFromCache = this._removeFailureFromCache.bind(this)
     const bookmarks = bookmarkOrBookmarks != null
@@ -902,7 +902,7 @@ class Driver {
       connectionProvider,
       bookmarks,
       config: {
-        cachedHomeDatabaseRoutingTable,
+        cachedHomeDatabase,
         cachedUser,
         ...this._config
       },
@@ -913,7 +913,7 @@ class Driver {
       notificationFilter,
       auth,
       log: this._log,
-      homeDatabaseTableCallback,
+      homeDatabaseCallback,
       committedDbCallback,
       removeFailureFromCache
     })

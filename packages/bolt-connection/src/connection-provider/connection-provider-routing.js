@@ -143,24 +143,30 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, removeFailureFromCache, auth, homeDbTable } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, removeFailureFromCache, auth, homeDb } = {}) {
     let name
     let address
-    let runResolved = false
     const context = { database: database || DEFAULT_DB_NAME }
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
       SESSION_EXPIRED,
       (error, address) => this._handleUnavailability(error, address, context.database),
       (error, address) => {
-        removeFailureFromCache(homeDbTable?.database ?? context.database)
-        return this._handleWriteFailure(error, address, homeDbTable?.database ?? context.database)
+        removeFailureFromCache(homeDb ?? context.database)
+        return this._handleWriteFailure(error, address, homeDb ?? context.database)
       },
       (error, address, conn) =>
         this._handleSecurityError(error, address, conn, context.database)
     )
-    const routingTable = (homeDbTable && !homeDbTable.isStaleFor(accessMode) && this._SSREnabled)
-      ? homeDbTable
+    let currentRoutingTable
+    if (this._SSREnabled() && homeDb !== undefined) {
+      currentRoutingTable = this._routingTableRegistry.get(
+        homeDb,
+        () => new RoutingTable({ database: homeDb })
+      )
+    }
+    const routingTable = (currentRoutingTable && !currentRoutingTable.isStaleFor(accessMode))
+      ? currentRoutingTable
       : await this._freshRoutingTable({
         accessMode,
         database: context.database,
@@ -170,14 +176,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         onDatabaseNameResolved: (databaseName) => {
           context.database = context.database || databaseName
           if (onDatabaseNameResolved) {
-            runResolved = true
+            onDatabaseNameResolved(context.database, this._authenticationProvider?._authTokenManager?._authToken?.principal)
           }
         }
       })
-
-    if (runResolved) {
-      onDatabaseNameResolved(context.database, this._authenticationProvider?._authTokenManager?._authToken?.principal, routingTable)
-    }
 
     // select a target server based on specified access mode
     if (accessMode === READ) {
@@ -360,7 +362,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       database,
       () => new RoutingTable({ database })
     )
-
     if (!currentRoutingTable.isStaleFor(accessMode)) {
       return currentRoutingTable
     }

@@ -68,7 +68,7 @@ class ConnectionProvider {
     onDatabaseNameResolved?: (database?: string) => void
     removeFailureFromCache?: (database?: string) => void
     auth?: AuthToken
-    homeDbTable?: any
+    homeDb?: any
   }): Promise<Connection & Releasable> {
     throw Error('Not implemented')
   }

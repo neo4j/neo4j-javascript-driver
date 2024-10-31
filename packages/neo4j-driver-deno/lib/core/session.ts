@@ -48,7 +48,7 @@ interface TransactionConfig {
 }
 
 interface DbGuess {
-  routingTable: any
+  database: any
   user: string
 }
 
@@ -79,7 +79,7 @@ class Session {
   private readonly _bookmarkManager?: BookmarkManager
   private readonly _notificationFilter?: NotificationFilter
   private readonly _log: Logger
-  private readonly _homeDatabaseTableCallback: Function | undefined
+  private readonly _homeDatabaseCallback: Function | undefined
   private readonly _driverCommittedDbCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
   private _databaseGuess: DbGuess | undefined
@@ -111,7 +111,7 @@ class Session {
     notificationFilter,
     auth,
     log,
-    homeDatabaseTableCallback,
+    homeDatabaseCallback,
     removeFailureFromCache,
     committedDbCallback
   }: {
@@ -127,7 +127,7 @@ class Session {
     notificationFilter?: NotificationFilter
     auth?: AuthToken
     log: Logger
-    homeDatabaseTableCallback?: (user: string, table: any) => void
+    homeDatabaseCallback?: (user: string, database: any) => void
     removeFailureFromCache?: (database: string) => void
     committedDbCallback?: (user: string, database: string) => void
   }) {
@@ -135,10 +135,10 @@ class Session {
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
-    this._homeDatabaseTableCallback = homeDatabaseTableCallback
+    this._homeDatabaseCallback = homeDatabaseCallback
     this._driverCommittedDbCallback = committedDbCallback
-    if (config?.cachedUser !== undefined && config?.cachedHomeDatabaseRoutingTable !== undefined) {
-      this._databaseGuess = { user: config?.cachedUser, routingTable: config?.cachedHomeDatabaseRoutingTable }
+    if (config?.cachedUser !== undefined && config?.cachedHomeDatabase !== undefined) {
+      this._databaseGuess = { user: config?.cachedUser, database: config?.cachedHomeDatabase }
     }
     this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
@@ -275,7 +275,7 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess?.routingTable)) {
+    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess?.database)) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
@@ -331,7 +331,7 @@ class Session {
 
     const mode = Session._validateSessionMode(accessMode)
     const connectionHolder = this._connectionHolderWithMode(mode)
-    connectionHolder.initializeConnection(this._databaseGuess?.routingTable)
+    connectionHolder.initializeConnection(this._databaseGuess?.database)
     this._hasTx = true
 
     const tx = new TransactionPromise({
@@ -528,10 +528,10 @@ class Session {
    * @param {string|undefined} database The resolved database name
    * @returns {void}
    */
-  _onDatabaseNameResolved (database?: string, user?: string, table?: any): void {
-    this._databaseGuess = { user: this._impersonatedUser ?? this._auth?.principal ?? user ?? '', routingTable: table }
-    if (this._homeDatabaseTableCallback != null) {
-      this._homeDatabaseTableCallback(this._impersonatedUser ?? this._auth?.principal ?? user, table)
+  _onDatabaseNameResolved (database?: string, user?: string): void {
+    this._databaseGuess = { user: this._impersonatedUser ?? this._auth?.principal ?? user ?? '', database }
+    if (this._homeDatabaseCallback != null) {
+      this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.principal ?? user, database)
     }
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database ?? ''
