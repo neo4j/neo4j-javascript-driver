@@ -137,9 +137,6 @@ class Session {
     this._fetchSize = fetchSize
     this._homeDatabaseCallback = homeDatabaseCallback
     this._driverCommittedDbCallback = committedDbCallback
-    if (config?.cachedUser !== undefined && config?.cachedHomeDatabase !== undefined) {
-      this._databaseGuess = { user: config?.cachedUser, database: config?.cachedHomeDatabase }
-    }
     this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
@@ -161,7 +158,7 @@ class Session {
       bookmarks,
       connectionProvider,
       impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      onDatabaseNameResolved: this._onDatabaseNameResolved.bind(this),
       getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
       log
     })
@@ -170,7 +167,7 @@ class Session {
     this._impersonatedUser = impersonatedUser
     this._lastBookmarks = bookmarks ?? Bookmarks.empty()
     this._configuredBookmarks = this._lastBookmarks
-    this._transactionExecutor = _createTransactionExecutor({ ...config, commitCallback: this._committedDbCallback.bind(this) })
+    this._transactionExecutor = _createTransactionExecutor(config)
     this._databaseNameResolved = this._database !== ''
     const calculatedWatermaks = this._calculateWatermaks()
     this._lowRecordWatermark = calculatedWatermaks.low
@@ -179,6 +176,9 @@ class Session {
     this._bookmarkManager = bookmarkManager
     this._notificationFilter = notificationFilter
     this._log = log
+    if (config?.cachedUser !== undefined && config?.cachedHomeDatabase !== undefined) {
+      this._databaseGuess = { user: config?.cachedUser, database: config?.cachedHomeDatabase }
+    }
   }
 
   /**
@@ -345,7 +345,8 @@ class Session {
       lowRecordWatermark: this._lowRecordWatermark,
       highRecordWatermark: this._highRecordWatermark,
       notificationFilter: this._notificationFilter,
-      apiTelemetryConfig
+      apiTelemetryConfig,
+      onDbCallback: this._committedDbCallback.bind(this)
     })
     tx._begin(() => this._bookmarks(), txConfig)
     return tx
@@ -666,7 +667,7 @@ function _createTransactionExecutor (config?: {
   commitCallback: any
 }): TransactionExecutor {
   const maxRetryTimeMs = config?.maxTransactionRetryTime ?? null
-  return new TransactionExecutor(maxRetryTimeMs, undefined, undefined, undefined, undefined, config?.commitCallback)
+  return new TransactionExecutor(maxRetryTimeMs)
 }
 
 export default Session

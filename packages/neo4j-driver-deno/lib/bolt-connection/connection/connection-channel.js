@@ -336,15 +336,13 @@ export default class ChannelConnection extends Connection {
                 this._telemetryDisabledConnection = false
               }
 
-              const SSREnabledHint = metadata.hints['ssr.enabled']
-              if (this.serversideRouting !== SSREnabledHint) {
-                this._ssrCallback(SSREnabledHint, true)
-              }
-              if (SSREnabledHint === true) {
+              const SSREnabledHint = true// metadata.hints['ssr.enabled']
+              if (SSREnabledHint) {
                 this.serversideRouting = true
-              } else if (SSREnabledHint === false) {
+              } else {
                 this.serversideRouting = false
               }
+              this._ssrCallback(this.serversideRouting, true)
             }
           }
           resolve(self)

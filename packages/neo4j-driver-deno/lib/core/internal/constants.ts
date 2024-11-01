@@ -39,6 +39,7 @@ const BOLT_PROTOCOL_V5_4: number = 5.4
 const BOLT_PROTOCOL_V5_5: number = 5.5
 const BOLT_PROTOCOL_V5_6: number = 5.6
 const BOLT_PROTOCOL_V5_7: number = 5.7
+const BOLT_PROTOCOL_V5_8: number = 5.8
 
 const TELEMETRY_APIS = {
   MANAGED_TRANSACTION: 0,
@@ -74,5 +75,6 @@ export {
   BOLT_PROTOCOL_V5_5,
   BOLT_PROTOCOL_V5_6,
   BOLT_PROTOCOL_V5_7,
+  BOLT_PROTOCOL_V5_8,
   TELEMETRY_APIS
 }

@@ -844,8 +844,8 @@ class Driver {
     )
   }
 
-  _homeDatabaseCallback (user: string, table: any): void {
-    this.homeDatabaseCache.set(user, table)
+  _homeDatabaseCallback (user: string, database: any): void {
+    this.homeDatabaseCache.set(user, database)
   }
 
   _committedDbCallback (database: string, user: string): void {

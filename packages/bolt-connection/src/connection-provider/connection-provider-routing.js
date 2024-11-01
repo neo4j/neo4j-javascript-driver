@@ -176,7 +176,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         onDatabaseNameResolved: (databaseName) => {
           context.database = context.database || databaseName
           if (onDatabaseNameResolved) {
-            onDatabaseNameResolved(context.database, this._authenticationProvider?._authTokenManager?._authToken?.principal)
+            onDatabaseNameResolved(databaseName, this._authenticationProvider?._authTokenManager?._authToken?.principal)
           }
         }
       })
@@ -679,9 +679,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   }
 
   _channelSsrCallback (isEnabled, opened) {
-    if (isEnabled) {
+    if (isEnabled === true) {
       this._withSSR = this._withSSR + (opened ? 1 : -1)
-    } else {
+    } else if (isEnabled === false) {
       this._withoutSSR = this._withoutSSR + (opened ? 1 : -1)
     }
   }

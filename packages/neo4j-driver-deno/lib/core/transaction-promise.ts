@@ -43,6 +43,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
   private _beginPromise?: Promise<Transaction>
   private _reject?: (error: Error) => void
   private _resolve?: (value: Transaction | PromiseLike<Transaction>) => void
+  private _onDbCallback: (database: string) => void
 
   /**
    * @constructor
@@ -69,7 +70,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     highRecordWatermark,
     lowRecordWatermark,
     notificationFilter,
-    apiTelemetryConfig
+    apiTelemetryConfig,
+    onDbCallback,
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -82,6 +84,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     lowRecordWatermark: number
     notificationFilter?: NotificationFilter
     apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig
+    onDbCallback: (database: string) => void
   }) {
     super({
       connectionHolder,
@@ -96,6 +99,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
       notificationFilter,
       apiTelemetryConfig
     })
+    this._onDbCallback = onDbCallback
   }
 
   /**
@@ -174,7 +178,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
   _begin (bookmarks: () => Promise<Bookmarks>, txConfig: TxConfig): void {
     return super._begin(bookmarks, txConfig, {
       onError: this._onBeginError.bind(this),
-      onComplete: this._onBeginMetadata.bind(this)
+      onComplete: this._onBeginMetadata.bind(this),
+      onDB: this._onDbCallback
     })
   }
 
