@@ -166,7 +166,7 @@ class Transaction {
               if (events != null) {
                 events.onComplete(metadata)
               }
-              if(metadata.db !== undefined && events?.onDB) {
+              if (metadata.db !== undefined && ((events?.onDB) != null)) {
                 events.onDB(metadata.db)
               }
               this._onComplete(metadata)
@@ -238,7 +238,7 @@ class Transaction {
     this._onClose()
     return new Promise((resolve, reject) => {
       committed.result.subscribe({
-        onCompleted: () =>  resolve(),
+        onCompleted: () => resolve(),
         onError: (error: any) => reject(error)
       })
     })

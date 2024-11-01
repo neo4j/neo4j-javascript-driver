@@ -43,7 +43,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
   private _beginPromise?: Promise<Transaction>
   private _reject?: (error: Error) => void
   private _resolve?: (value: Transaction | PromiseLike<Transaction>) => void
-  private _onDbCallback: (database: string) => void
+  private readonly _onDbCallback: (database: string) => void
 
   /**
    * @constructor
@@ -71,7 +71,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     lowRecordWatermark,
     notificationFilter,
     apiTelemetryConfig,
-    onDbCallback,
+    onDbCallback
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
