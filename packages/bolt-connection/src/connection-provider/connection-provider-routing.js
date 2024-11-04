@@ -798,7 +798,6 @@ function _isFailFastError (error) {
 }
 
 function _isFailFastSecurityError (error) {
-  console.error(error)
   return error.code.startsWith('Neo.ClientError.Security.') &&
     ![
       AUTHORIZATION_EXPIRED_CODE

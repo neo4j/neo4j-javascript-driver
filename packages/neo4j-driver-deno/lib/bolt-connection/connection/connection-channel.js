@@ -342,7 +342,9 @@ export default class ChannelConnection extends Connection {
               } else {
                 this.serversideRouting = false
               }
-              this._ssrCallback(this.serversideRouting, true)
+              if (this._ssrCallback !== undefined) {
+                this._ssrCallback(this.serversideRouting, true)
+              }
             }
           }
           resolve(self)
@@ -550,7 +552,9 @@ export default class ChannelConnection extends Connection {
    * @returns {Promise<void>} - A promise that will be resolved when the underlying channel is closed.
    */
   async close () {
-    this._ssrCallback(this.serversideRouting, false)
+    if (this._ssrCallback !== undefined) {
+      this._ssrCallback(this.serversideRouting, false)
+    }
     if (this._log.isDebugEnabled()) {
       this._log.debug('closing')
     }
