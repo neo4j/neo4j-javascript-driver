@@ -84,9 +84,11 @@ export default class RequestMessage {
    * @return {RequestMessage} new INIT message.
    */
   static init (clientName, authToken) {
+    const metadata = Object.assign({}, authToken)
+    metadata.cacheKey = undefined
     return new RequestMessage(
       INIT,
-      [clientName, authToken],
+      [clientName, metadata],
       () => `INIT ${clientName} {...}`
     )
   }
@@ -267,9 +269,11 @@ export default class RequestMessage {
    * @returns {RequestMessage} new LOGON message
    */
   static logon (authToken) {
+    const metadata = Object.assign({}, authToken)
+    metadata.cacheKey = undefined
     return new RequestMessage(
       LOGON,
-      [authToken],
+      [metadata],
       () => 'LOGON { ... }'
     )
   }
