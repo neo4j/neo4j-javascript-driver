@@ -152,7 +152,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       SESSION_EXPIRED,
       (error, address) => this._handleUnavailability(error, address, context.database),
       (error, address) => {
-        removeFailureFromCache(homeDb ?? context.database)
+        if (removeFailureFromCache !== undefined) {
+          removeFailureFromCache(homeDb ?? context.database)
+        }
         return this._handleWriteFailure(error, address, homeDb ?? context.database)
       },
       (error, address, conn) =>
