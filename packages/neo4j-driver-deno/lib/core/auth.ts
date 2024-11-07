@@ -79,7 +79,7 @@ const auth = {
     if (isNotEmpty(parameters)) {
       output.parameters = parameters
     }
-    output.cacheKey = hash(principal +  (isNotEmpty(credentials) ? credentials : "") + (isNotEmpty(realm) ? realm : "") + scheme)
+    output.cacheKey = hash(principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '') + scheme)
     return output
   }
 }
@@ -93,8 +93,7 @@ function isNotEmpty<T extends object | string> (value: T | null | undefined): bo
   )
 }
 
-
-function hash(string: string): string {
+function hash (string: string): string {
   let hash = 0
   for (let i = 0; i < string.length; ++i) {
     hash = Math.imul(31, hash) + string.charCodeAt(i)

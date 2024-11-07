@@ -130,6 +130,7 @@ export default class RequestMessage {
    */
   static hello (userAgent, authToken, routing = null, patchs = null) {
     const metadata = Object.assign({ user_agent: userAgent }, authToken)
+    metadata.cacheKey = undefined
     if (routing) {
       metadata.routing = routing
     }
