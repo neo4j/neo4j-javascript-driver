@@ -32,23 +32,26 @@ const auth = {
         scheme: 'basic',
         principal: username,
         credentials: password,
+        cacheKey: username,
         realm
       }
     } else {
-      return { scheme: 'basic', principal: username, credentials: password }
+      return { scheme: 'basic', principal: username, credentials: password, cacheKey: username }
     }
   },
   kerberos: (base64EncodedTicket: string) => {
     return {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
-      credentials: base64EncodedTicket
+      credentials: base64EncodedTicket,
+      cacheKey: hash(base64EncodedTicket)
     }
   },
   bearer: (base64EncodedToken: string) => {
     return {
       scheme: 'bearer',
-      credentials: base64EncodedToken
+      credentials: base64EncodedToken,
+      cacheKey: hash(base64EncodedToken)
     }
   },
   none: () => {
@@ -76,6 +79,7 @@ const auth = {
     if (isNotEmpty(parameters)) {
       output.parameters = parameters
     }
+    output.cacheKey = hash(principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '') + scheme)
     return output
   }
 }
@@ -87,6 +91,14 @@ function isNotEmpty<T extends object | string> (value: T | null | undefined): bo
     value === '' ||
     (Object.getPrototypeOf(value) === Object.prototype && Object.keys(value).length === 0)
   )
+}
+
+function hash (string: string): string {
+  let hash = 0
+  for (let i = 0; i < string.length; ++i) {
+    hash = Math.imul(31, hash) + string.charCodeAt(i)
+  }
+  return hash.toString()
 }
 
 export default auth

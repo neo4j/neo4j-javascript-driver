@@ -84,8 +84,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private _connectionPromise: Promise<Connection & Releasable | null>
   private readonly _impersonatedUser?: string
   private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
-  private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
-  private readonly removeFailureFromCache?: (databaseName?: string) => void
+  private readonly _onDatabaseNameResolved?: (databaseName: string) => void
+  private readonly removeFailureFromCache?: (databaseName: string) => void
   private readonly _auth?: AuthToken
   private readonly _log: Logger
   private _closed: boolean
@@ -120,8 +120,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
     bookmarks?: Bookmarks
     connectionProvider?: ConnectionProvider
     impersonatedUser?: string
-    onDatabaseNameResolved?: (databaseName?: string) => void
-    removeFailureFromCache?: (databaseName?: string) => void
+    onDatabaseNameResolved?: (database: string) => void
+    removeFailureFromCache?: (database: string) => void
     getConnectionAcquistionBookmarks?: () => Promise<Bookmarks>
     auth?: AuthToken
     log: Logger

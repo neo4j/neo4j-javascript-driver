@@ -98,8 +98,8 @@ type CreateSession = (args: {
   auth?: AuthToken
   log: Logger
   homeDatabaseCallback?: (user: string, database: any) => void
-  committedDbCallback?: (user: string) => void
   removeFailureFromCache?: (database: string) => void
+  beginDbCallback?: (user: string, database: string) => void
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -848,7 +848,7 @@ class Driver {
     this.homeDatabaseCache.set(user, database)
   }
 
-  _committedDbCallback (database: string, user: string): void {
+  _beginDbCallback (database: string, user: string): void {
     if (this.homeDatabaseCache.get(user) !== undefined && this.homeDatabaseCache.get(user) !== database) {
       this.homeDatabaseCache.delete(user)
     }
@@ -888,10 +888,10 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const cachedUser = impersonatedUser ?? auth?.principal ?? this._config.user ?? ''
-    const cachedHomeDatabase = this.homeDatabaseCache.get(cachedUser)
+    const cachedUser = impersonatedUser ?? auth?.cacheKey ?? this._config.user
+    const cachedHomeDatabase = cachedUser !== undefined ? this.homeDatabaseCache.get(cachedUser) : undefined
     const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
-    const committedDbCallback = this._committedDbCallback.bind(this)
+    const beginDbCallback = this._beginDbCallback.bind(this)
     const removeFailureFromCache = this._removeFailureFromCache.bind(this)
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
@@ -914,7 +914,7 @@ class Driver {
       auth,
       log: this._log,
       homeDatabaseCallback,
-      committedDbCallback,
+      beginDbCallback,
       removeFailureFromCache
     })
   }

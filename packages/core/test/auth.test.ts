@@ -16,9 +16,17 @@
  */
 import auth from '../src/auth'
 
+function hash (string: string): string {
+  let hash = 0
+  for (let i = 0; i < string.length; ++i) {
+    hash = Math.imul(31, hash) + string.charCodeAt(i)
+  }
+  return hash.toString()
+}
+
 describe('auth', () => {
   test('.bearer()', () => {
-    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda' })
+    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda', cacheKey: hash('==Qyahiadakkda') })
   })
 
   test.each([
@@ -29,28 +37,32 @@ describe('auth', () => {
         principal: 'user',
         credentials: 'pass',
         realm: 'realm',
-        parameters: { param: 'param' }
+        parameters: { param: 'param' },
+        cacheKey: hash('user' + 'pass' + 'realm' + 'scheme')
       }
     ],
     [
       ['user', '', '', 'scheme', {}],
       {
         scheme: 'scheme',
-        principal: 'user'
+        principal: 'user',
+        cacheKey: hash('user' + 'scheme')
       }
     ],
     [
       ['user', undefined, undefined, 'scheme', undefined],
       {
         scheme: 'scheme',
-        principal: 'user'
+        principal: 'user',
+        cacheKey: hash('user' + 'scheme')
       }
     ],
     [
       ['user', null, null, 'scheme', null],
       {
         scheme: 'scheme',
-        principal: 'user'
+        principal: 'user',
+        cacheKey: hash('user' + 'scheme')
       }
     ]
   ])('.custom()', (args, output) => {

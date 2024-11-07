@@ -65,8 +65,8 @@ class ConnectionProvider {
     database?: string
     bookmarks: bookmarks.Bookmarks
     impersonatedUser?: string
-    onDatabaseNameResolved?: (database?: string) => void
-    removeFailureFromCache?: (database?: string) => void
+    onDatabaseNameResolved?: (database: string) => void
+    removeFailureFromCache?: (database: string) => void
     auth?: AuthToken
     homeDb?: any
   }): Promise<Connection & Releasable> {
