@@ -15,14 +15,7 @@
  * limitations under the License.
  */
 import auth from '../src/auth'
-
-function hash (string: string): string {
-  let hash = 0
-  for (let i = 0; i < string.length; ++i) {
-    hash = Math.imul(31, hash) + string.charCodeAt(i)
-  }
-  return hash.toString()
-}
+import { hash } from '../src/auth-util'
 
 describe('auth', () => {
   test('.bearer()', () => {

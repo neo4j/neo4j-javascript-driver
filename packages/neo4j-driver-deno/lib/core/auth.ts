@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { hash } from './auth-util.ts'
+
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
  * basic authentication token.
@@ -93,12 +95,5 @@ function isNotEmpty<T extends object | string> (value: T | null | undefined): bo
   )
 }
 
-function hash (string: string): string {
-  let hash = 0
-  for (let i = 0; i < string.length; ++i) {
-    hash = Math.imul(31, hash) + string.charCodeAt(i)
-  }
-  return hash.toString()
-}
 
 export default auth
