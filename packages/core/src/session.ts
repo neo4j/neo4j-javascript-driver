@@ -530,9 +530,9 @@ class Session {
    * @returns {void}
    */
   _onDatabaseNameResolved (database?: string, user?: string): void {
-    this._databaseGuess = { user: this._impersonatedUser ?? this._auth?.cacheKey ?? user ?? '', database }
+    this._databaseGuess = { user: this._impersonatedUser ?? user ?? '', database }
     if (this._homeDatabaseCallback != null) {
-      this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? user, database)
+      this._homeDatabaseCallback(this._impersonatedUser ?? user, database)
     }
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database ?? ''

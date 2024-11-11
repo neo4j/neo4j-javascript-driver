@@ -79,7 +79,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._log,
         await this._clientCertificateHolder.getClientCertificate(),
         this._routingContext,
-        undefined,
         this._channelSsrCallback.bind(this)
       )
     })
@@ -178,7 +177,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         onDatabaseNameResolved: (databaseName) => {
           context.database = context.database || databaseName
           if (onDatabaseNameResolved) {
-            onDatabaseNameResolved(databaseName, this._authenticationProvider?._authTokenManager?._authToken?.principal)
+            onDatabaseNameResolved(databaseName, this.auth?.cacheKey ?? this._authenticationProvider?._authTokenManager?._authToken?.cacheKey)
           }
         }
       })

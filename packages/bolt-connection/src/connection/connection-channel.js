@@ -43,8 +43,8 @@ export function createChannelConnection (
   log,
   clientCertificate,
   serversideRouting = null,
-  createChannel = channelConfig => new Channel(channelConfig),
-  ssrCallback
+  ssrCallback = (_) => {},
+  createChannel = channelConfig => new Channel(channelConfig)
 ) {
   const channelConfig = new ChannelConfig(
     address,
