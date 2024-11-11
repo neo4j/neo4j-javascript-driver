@@ -95,5 +95,4 @@ function isNotEmpty<T extends object | string> (value: T | null | undefined): bo
   )
 }
 
-
 export default auth

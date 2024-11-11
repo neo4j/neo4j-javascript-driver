@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-
-export function hash (string: string): string { //PLACEHOLDER HASH FUNCTION
-    let hash = 0
-    for (let i = 0; i < string.length; ++i) {
-      hash = Math.imul(31, hash) + string.charCodeAt(i)
-    }
-    return hash.toString()
+export function hash (string: string): string { // PLACEHOLDER HASH FUNCTION
+  let hash = 0
+  for (let i = 0; i < string.length; ++i) {
+    hash = Math.imul(31, hash) + string.charCodeAt(i)
+  }
+  return hash.toString()
 }
