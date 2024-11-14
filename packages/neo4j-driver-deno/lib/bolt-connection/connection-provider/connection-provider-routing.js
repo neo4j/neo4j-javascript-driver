@@ -160,7 +160,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._handleSecurityError(error, address, conn, context.database)
     )
     let currentRoutingTable
-    if (this.SSREnabled() && homeDb !== undefined) {
+    console.error('AQ DB', database)
+    if (this.SSREnabled() && homeDb !== undefined && database === '') {
       currentRoutingTable = this._routingTableRegistry.get(
         homeDb,
         () => new RoutingTable({ database: homeDb })

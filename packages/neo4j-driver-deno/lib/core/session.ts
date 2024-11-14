@@ -533,7 +533,9 @@ class Session {
   }
 
   _beginDbCallback (database: string): void {
-    if (this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled() !== null && this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled() !== true) {
+    // eslint-disable-next-line
+    // @ts-ignore
+    if (this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled()) { 
       this._databaseGuess = database
       if (!this._databaseNameResolved) {
         if (this._homeDatabaseCallback != null) {
