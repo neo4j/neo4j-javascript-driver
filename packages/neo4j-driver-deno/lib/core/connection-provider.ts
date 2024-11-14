@@ -113,6 +113,10 @@ class ConnectionProvider {
     throw Error('Not implemented')
   }
 
+  SSREnabled (): boolean {
+    return false
+  }
+
   /**
    * This method verifies the connectivity of the database by trying to acquire a connection
    * for each server available in the cluster.

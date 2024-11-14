@@ -158,6 +158,7 @@ describe('#integration ChannelConnection', () => {
       Logger.noOp(),
       null,
       null,
+      undefined,
       () => channel
     )
       .then(c => {

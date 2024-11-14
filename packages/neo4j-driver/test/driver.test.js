@@ -549,10 +549,10 @@ describe('#integration driver', () => {
       const connections1 = openConnectionFrom(driver)
       expect(connections1.length).toEqual(1)
 
-      expect(driver.homeDatabaseCache.get(sharedNeo4j.authToken.principal)).toBe('neo4j')
+      expect(driver.homeDatabaseCache.get(sharedNeo4j.authToken.cacheKey)).toBe('neo4j')
       expect(session1._database).toBe('neo4j')
       const session2 = driver.session({ auth: sharedNeo4j.authToken })
-      expect(session2._databaseGuess.database).toBe('neo4j')
+      expect(session2._databaseGuess).toBe('neo4j')
       await session2.run('CREATE () RETURN 43')
     }
   })

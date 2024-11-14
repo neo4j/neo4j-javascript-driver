@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 import auth from '../src/auth'
-import { hash } from '../src/auth-util'
 
 describe('auth', () => {
   test('.bearer()', () => {
-    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda', cacheKey: hash('==Qyahiadakkda') })
+    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda', cacheKey: '==Qyahiadakkda' })
   })
 
   test.each([
@@ -31,7 +30,7 @@ describe('auth', () => {
         credentials: 'pass',
         realm: 'realm',
         parameters: { param: 'param' },
-        cacheKey: hash('user' + 'pass' + 'realm' + 'scheme')
+        cacheKey: 'user' + 'pass' + 'realm' + 'scheme'
       }
     ],
     [
@@ -39,7 +38,7 @@ describe('auth', () => {
       {
         scheme: 'scheme',
         principal: 'user',
-        cacheKey: hash('user' + 'scheme')
+        cacheKey: 'user' + 'scheme'
       }
     ],
     [
@@ -47,7 +46,7 @@ describe('auth', () => {
       {
         scheme: 'scheme',
         principal: 'user',
-        cacheKey: hash('user' + 'scheme')
+        cacheKey: 'user' + 'scheme'
       }
     ],
     [
@@ -55,7 +54,7 @@ describe('auth', () => {
       {
         scheme: 'scheme',
         principal: 'user',
-        cacheKey: hash('user' + 'scheme')
+        cacheKey: 'user' + 'scheme'
       }
     ]
   ])('.custom()', (args, output) => {

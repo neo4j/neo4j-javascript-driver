@@ -160,7 +160,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._handleSecurityError(error, address, conn, context.database)
     )
     let currentRoutingTable
-    if (this._SSREnabled() && homeDb !== undefined) {
+    if (this.SSREnabled() && homeDb !== undefined) {
       currentRoutingTable = this._routingTableRegistry.get(
         homeDb,
         () => new RoutingTable({ database: homeDb })
@@ -177,7 +177,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         onDatabaseNameResolved: (databaseName) => {
           context.database = context.database || databaseName
           if (onDatabaseNameResolved) {
-            onDatabaseNameResolved(databaseName, this.auth?.cacheKey ?? this._authenticationProvider?._authTokenManager?._authToken?.cacheKey)
+            onDatabaseNameResolved(databaseName)
           }
         }
       })
@@ -203,7 +203,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
     try {
       const connection = await this._connectionPool.acquire({ auth }, address)
-
       if (auth) {
         await this._verifyStickyConnection({
           auth,
@@ -371,7 +370,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
     return this._refreshRoutingTable(currentRoutingTable, bookmarks, impersonatedUser, auth)
       .then(newRoutingTable => {
-        onDatabaseNameResolved(newRoutingTable.database, this._authenticationProvider?._authTokenManager?._authToken?.principal)
+        onDatabaseNameResolved(newRoutingTable.database)
         return newRoutingTable
       })
   }
@@ -687,7 +686,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
   }
 
-  _SSREnabled () {
+  SSREnabled () {
     return this._withSSR > 0 && this._withoutSSR === 0
   }
 }

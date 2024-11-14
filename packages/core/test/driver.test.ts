@@ -70,7 +70,7 @@ describe('Driver', () => {
       const session = driver?.session({ impersonatedUser })
 
       expect(session).not.toBeUndefined()
-      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ impersonatedUser }, impersonatedUser))
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ impersonatedUser }))
     })
 
     it('should create the session without impersonated user', () => {
@@ -91,7 +91,7 @@ describe('Driver', () => {
       const session = driver?.session({ auth })
 
       expect(session).not.toBeUndefined()
-      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ auth }, auth.principal))
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ auth }))
     })
 
     it('should create the session without auth', () => {
@@ -692,11 +692,10 @@ describe('Driver', () => {
     ) => connectionProvider
   }
 
-  function expectedSessionParams (extra: any = {}, cachedUser: string | undefined = undefined): any {
+  function expectedSessionParams (extra: any = {}): any {
     return {
       bookmarks: Bookmarks.empty(),
       config: {
-        cachedUser,
         connectionAcquisitionTimeout: 60000,
         fetchSize: 1000,
         maxConnectionLifetime: 3600000,
@@ -712,7 +711,6 @@ describe('Driver', () => {
       // @ts-expect-error
       log: driver?._log,
       homeDatabaseCallback: expect.any(Function),
-      beginDbCallback: expect.any(Function),
       removeFailureFromCache: expect.any(Function),
       ...extra
     }

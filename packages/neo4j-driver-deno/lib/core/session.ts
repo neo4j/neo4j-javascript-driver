@@ -47,11 +47,6 @@ interface TransactionConfig {
   metadata?: object
 }
 
-interface DbGuess {
-  database: any
-  user: string
-}
-
 /**
  * A Session instance is used for handling the connection and
  * sending queries through the connection.
@@ -80,9 +75,8 @@ class Session {
   private readonly _notificationFilter?: NotificationFilter
   private readonly _log: Logger
   private readonly _homeDatabaseCallback: Function | undefined
-  private readonly _driverBeginDbCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
-  private _databaseGuess: DbGuess | undefined
+  private _databaseGuess: string | undefined
   /**
    * @constructor
    * @protected
@@ -112,8 +106,7 @@ class Session {
     auth,
     log,
     homeDatabaseCallback,
-    removeFailureFromCache,
-    beginDbCallback
+    removeFailureFromCache
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -129,14 +122,12 @@ class Session {
     log: Logger
     homeDatabaseCallback?: (user: string, database: string) => void
     removeFailureFromCache?: (database: string) => void
-    beginDbCallback?: (user: string, database: string) => void
   }) {
     this._mode = mode
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
     this._homeDatabaseCallback = homeDatabaseCallback
-    this._driverBeginDbCallback = beginDbCallback
     this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
@@ -176,9 +167,7 @@ class Session {
     this._bookmarkManager = bookmarkManager
     this._notificationFilter = notificationFilter
     this._log = log
-    if (config?.cachedUser !== undefined && config?.cachedHomeDatabase !== undefined) {
-      this._databaseGuess = { user: config?.cachedUser, database: config?.cachedHomeDatabase }
-    }
+    this._databaseGuess = config?.cachedHomeDatabase 
   }
 
   /**
@@ -275,7 +264,7 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess?.database)) {
+    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess)) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
@@ -331,7 +320,7 @@ class Session {
 
     const mode = Session._validateSessionMode(accessMode)
     const connectionHolder = this._connectionHolderWithMode(mode)
-    connectionHolder.initializeConnection(this._databaseGuess?.database)
+    connectionHolder.initializeConnection(this._databaseGuess)
     this._hasTx = true
 
     const tx = new TransactionPromise({
@@ -529,12 +518,12 @@ class Session {
    * @param {string|undefined} database The resolved database name
    * @returns {void}
    */
-  _onDatabaseNameResolved (database?: string, user?: string): void {
-    this._databaseGuess = { user: this._impersonatedUser ?? user ?? '', database }
-    if (this._homeDatabaseCallback != null) {
-      this._homeDatabaseCallback(this._impersonatedUser ?? user, database)
-    }
+  _onDatabaseNameResolved (database?: string): void {
+    this._databaseGuess = database 
     if (!this._databaseNameResolved) {
+      if (this._homeDatabaseCallback != null) {
+        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? "DEFAULT", database)
+      }
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
       this._readConnectionHolder.setDatabase(normalizedDatabase)
@@ -544,8 +533,18 @@ class Session {
   }
 
   _beginDbCallback (database: string): void {
-    if (this._driverBeginDbCallback !== undefined && this._databaseGuess !== undefined) {
-      this._driverBeginDbCallback(database, this._databaseGuess.user)
+    if(this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled() !== null && this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled() !== true){
+      this._databaseGuess = database
+      if (!this._databaseNameResolved) {
+        if (this._homeDatabaseCallback != null) {
+          this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? "DEFAULT", database)
+        }
+        const normalizedDatabase = database ?? ''
+        this._database = normalizedDatabase
+        this._readConnectionHolder.setDatabase(normalizedDatabase)
+        this._writeConnectionHolder.setDatabase(normalizedDatabase)
+        this._databaseNameResolved = true
+      }
     }
   }
 
@@ -613,6 +612,9 @@ class Session {
    * @returns {void}
    */
   _onCompleteCallback (meta: { bookmark: string | string[], db?: string }, previousBookmarks?: Bookmarks): void {
+    if(meta.db !== undefined) {
+      this._beginDbCallback(meta.db)
+    }
     this._updateBookmarks(new Bookmarks(meta.bookmark), previousBookmarks, meta.db)
   }
 

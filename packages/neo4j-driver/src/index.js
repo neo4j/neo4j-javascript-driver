@@ -189,9 +189,6 @@ function driver (url, authToken, config = {}) {
     typename: routing ? 'Routing' : 'Direct',
     routing
   }
-  if (authToken !== undefined && authToken.scheme === 'basic') {
-    config.user = authToken.principal
-  }
   return new Driver(meta, config, createConnectionProviderFunction())
 
   function createConnectionProviderFunction () {

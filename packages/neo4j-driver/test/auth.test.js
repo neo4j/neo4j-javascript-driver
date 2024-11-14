@@ -17,14 +17,6 @@
 
 import neo4j from '../src'
 
-function hash (string) {
-  let hash = 0
-  for (let i = 0; i < string.length; ++i) {
-    hash = Math.imul(31, hash) + string.charCodeAt(i)
-  }
-  return hash.toString()
-}
-
 describe('#unit auth', () => {
   it('should use correct username and password in basic auth', () => {
     const token = neo4j.auth.basic('cat', 'dog')
@@ -53,7 +45,7 @@ describe('#unit auth', () => {
       scheme: 'kerberos',
       principal: '',
       credentials: 'my-ticket',
-      cacheKey: hash('my-ticket')
+      cacheKey: 'my-ticket'
     })
   })
 
@@ -64,7 +56,7 @@ describe('#unit auth', () => {
       principal: 'cat',
       credentials: 'dog',
       realm: 'apartment',
-      cacheKey: hash('catdogapartmentpets')
+      cacheKey: 'catdogapartmentpets'
     })
   })
 
@@ -79,7 +71,7 @@ describe('#unit auth', () => {
       credentials: 'dog',
       realm: 'apartment',
       parameters: { key1: 'value1', key2: 42 },
-      cacheKey: hash('catdogapartmentpets')
+      cacheKey: 'catdogapartmentpets'
     })
   })
 })

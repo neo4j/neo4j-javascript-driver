@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { hash } from './auth-util'
-
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
  * basic authentication token.
@@ -46,14 +44,14 @@ const auth = {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
       credentials: base64EncodedTicket,
-      cacheKey: hash(base64EncodedTicket)
+      cacheKey: base64EncodedTicket
     }
   },
   bearer: (base64EncodedToken: string) => {
     return {
       scheme: 'bearer',
       credentials: base64EncodedToken,
-      cacheKey: hash(base64EncodedToken)
+      cacheKey: base64EncodedToken
     }
   },
   none: () => {
@@ -81,7 +79,7 @@ const auth = {
     if (isNotEmpty(parameters)) {
       output.parameters = parameters
     }
-    output.cacheKey = hash(principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '') + scheme)
+    output.cacheKey = principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '') + scheme
     return output
   }
 }
