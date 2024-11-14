@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
  * basic authentication token.

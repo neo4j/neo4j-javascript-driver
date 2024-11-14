@@ -882,8 +882,8 @@ class Driver {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     let cachedHomeDatabase
-    if(database !== undefined) {
-      cachedHomeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.cacheKey ?? "DEFAULT")
+    if (database !== undefined) {
+      cachedHomeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.cacheKey ?? 'DEFAULT')
     }
     const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
     const removeFailureFromCache = this._removeFailureFromCache.bind(this)

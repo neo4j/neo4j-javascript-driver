@@ -167,7 +167,7 @@ class Session {
     this._bookmarkManager = bookmarkManager
     this._notificationFilter = notificationFilter
     this._log = log
-    this._databaseGuess = config?.cachedHomeDatabase 
+    this._databaseGuess = config?.cachedHomeDatabase
   }
 
   /**
@@ -519,10 +519,10 @@ class Session {
    * @returns {void}
    */
   _onDatabaseNameResolved (database?: string): void {
-    this._databaseGuess = database 
+    this._databaseGuess = database
     if (!this._databaseNameResolved) {
       if (this._homeDatabaseCallback != null) {
-        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? "DEFAULT", database)
+        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? 'DEFAULT', database)
       }
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
@@ -533,11 +533,11 @@ class Session {
   }
 
   _beginDbCallback (database: string): void {
-    if(this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled() !== null && this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled() !== true){
+    if (this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled() !== null && this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled() !== true) {
       this._databaseGuess = database
       if (!this._databaseNameResolved) {
         if (this._homeDatabaseCallback != null) {
-          this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? "DEFAULT", database)
+          this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? 'DEFAULT', database)
         }
         const normalizedDatabase = database ?? ''
         this._database = normalizedDatabase
@@ -612,7 +612,7 @@ class Session {
    * @returns {void}
    */
   _onCompleteCallback (meta: { bookmark: string | string[], db?: string }, previousBookmarks?: Bookmarks): void {
-    if(meta.db !== undefined) {
+    if (meta.db !== undefined) {
       this._beginDbCallback(meta.db)
     }
     this._updateBookmarks(new Bookmarks(meta.bookmark), previousBookmarks, meta.db)
