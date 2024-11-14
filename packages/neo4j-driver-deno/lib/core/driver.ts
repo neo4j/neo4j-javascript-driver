@@ -881,7 +881,7 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    let cachedHomeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.cacheKey ?? 'DEFAULT')
+    const cachedHomeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.cacheKey ?? 'DEFAULT')
     const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
     const removeFailureFromCache = this._removeFailureFromCache.bind(this)
     const bookmarks = bookmarkOrBookmarks != null
