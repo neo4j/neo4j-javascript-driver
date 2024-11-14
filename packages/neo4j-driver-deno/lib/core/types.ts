@@ -350,8 +350,7 @@ export class Config {
      * where the {@link ClientCertificate} might change over time.
      *
      * @type {ClientCertificate|ClientCertificateProvider|undefined}
-     * @experimental Exposed as preview feature.
-     * @since 5.19
+     * @since 5.27
      */
     this.clientCertificate = undefined
   }
