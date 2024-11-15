@@ -881,7 +881,8 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const cachedHomeDatabase = this.homeDatabaseCache.get(impersonatedUser ?? auth?.cacheKey ?? 'DEFAULT')
+    // eslint-disable-next-line
+    const cachedHomeDatabase = this.homeDatabaseCache.get((impersonatedUser ? 'basic:' + impersonatedUser : undefined) ?? auth?.cacheKey ?? 'DEFAULT')
     const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
     const removeFailureFromCache = this._removeFailureFromCache.bind(this)
     const bookmarks = bookmarkOrBookmarks != null

@@ -522,7 +522,8 @@ class Session {
     this._databaseGuess = database
     if (!this._databaseNameResolved) {
       if (this._homeDatabaseCallback != null) {
-        this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? 'DEFAULT', database)
+        // eslint-disable-next-line
+        this._homeDatabaseCallback((this._impersonatedUser ? 'basic:' + this._impersonatedUser : undefined)  ?? this._auth?.cacheKey ?? 'DEFAULT', database)
       }
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
@@ -538,7 +539,8 @@ class Session {
       this._databaseGuess = database
       if (!this._databaseNameResolved) {
         if (this._homeDatabaseCallback != null) {
-          this._homeDatabaseCallback(this._impersonatedUser ?? this._auth?.cacheKey ?? 'DEFAULT', database)
+          // eslint-disable-next-line
+          this._homeDatabaseCallback((this._impersonatedUser ? 'basic:' + this._impersonatedUser : undefined) ?? this._auth?.cacheKey ?? 'DEFAULT', database)
         }
         const normalizedDatabase = database ?? ''
         this._database = normalizedDatabase

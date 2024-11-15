@@ -24,7 +24,7 @@ describe('#unit auth', () => {
       scheme: 'basic',
       principal: 'cat',
       credentials: 'dog',
-      cacheKey: 'cat'
+      cacheKey: 'basic:cat'
     })
   })
 
@@ -35,7 +35,7 @@ describe('#unit auth', () => {
       principal: 'cat',
       credentials: 'dog',
       realm: 'apartment',
-      cacheKey: 'cat'
+      cacheKey: 'basic:cat'
     })
   })
 
@@ -45,7 +45,7 @@ describe('#unit auth', () => {
       scheme: 'kerberos',
       principal: '',
       credentials: 'my-ticket',
-      cacheKey: 'my-ticket'
+      cacheKey: 'basic:my-ticket'
     })
   })
 
@@ -56,7 +56,7 @@ describe('#unit auth', () => {
       principal: 'cat',
       credentials: 'dog',
       realm: 'apartment',
-      cacheKey: 'catdogapartmentpets'
+      cacheKey: 'pets:catdogapartment'
     })
   })
 
@@ -71,7 +71,7 @@ describe('#unit auth', () => {
       credentials: 'dog',
       realm: 'apartment',
       parameters: { key1: 'value1', key2: 42 },
-      cacheKey: 'catdogapartmentpets'
+      cacheKey: 'pets:catdogapartment'
     })
   })
 })

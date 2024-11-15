@@ -18,7 +18,7 @@ import auth from '../src/auth'
 
 describe('auth', () => {
   test('.bearer()', () => {
-    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda', cacheKey: '==Qyahiadakkda' })
+    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda', cacheKey: 'bearer:==Qyahiadakkda' })
   })
 
   test.each([
@@ -30,7 +30,7 @@ describe('auth', () => {
         credentials: 'pass',
         realm: 'realm',
         parameters: { param: 'param' },
-        cacheKey: 'user' + 'pass' + 'realm' + 'scheme'
+        cacheKey: 'scheme:' + 'user' + 'pass' + 'realm'
       }
     ],
     [
@@ -38,7 +38,7 @@ describe('auth', () => {
       {
         scheme: 'scheme',
         principal: 'user',
-        cacheKey: 'user' + 'scheme'
+        cacheKey: 'scheme:' + 'user'
       }
     ],
     [
@@ -46,7 +46,7 @@ describe('auth', () => {
       {
         scheme: 'scheme',
         principal: 'user',
-        cacheKey: 'user' + 'scheme'
+        cacheKey: 'scheme:' + 'user'
       }
     ],
     [
@@ -54,7 +54,7 @@ describe('auth', () => {
       {
         scheme: 'scheme',
         principal: 'user',
-        cacheKey: 'user' + 'scheme'
+        cacheKey: 'scheme:' + 'user'
       }
     ]
   ])('.custom()', (args, output) => {

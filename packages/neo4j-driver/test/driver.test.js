@@ -181,6 +181,12 @@ describe('#unit driver', () => {
       expect(session._log).toBe(driver._log)
       expect(session._session._log).toBe(driver._log)
     })
+
+    it('should build homedb cache from callback functions')
+    driver = neo4j.driver(
+        `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
+        sharedNeo4j.authToken
+    )
   })
 })
 
@@ -553,6 +559,7 @@ describe('#integration driver', () => {
       expect(session1._database).toBe('neo4j')
       const session2 = driver.session({ auth: sharedNeo4j.authToken })
       expect(session2._databaseGuess).toBe('neo4j')
+      expect(session2._database).toBe('')
       await session2.run('CREATE () RETURN 43')
     }
   })

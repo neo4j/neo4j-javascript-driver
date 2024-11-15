@@ -32,7 +32,7 @@ const auth = {
         scheme: 'basic',
         principal: username,
         credentials: password,
-        cacheKey: username,
+        cacheKey: 'basic:' + username,
         realm
       }
     } else {
@@ -44,14 +44,14 @@ const auth = {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
       credentials: base64EncodedTicket,
-      cacheKey: base64EncodedTicket
+      cacheKey: 'kerberos:' + base64EncodedTicket
     }
   },
   bearer: (base64EncodedToken: string) => {
     return {
       scheme: 'bearer',
       credentials: base64EncodedToken,
-      cacheKey: base64EncodedToken
+      cacheKey: 'bearer:' + base64EncodedToken
     }
   },
   none: () => {
@@ -79,7 +79,7 @@ const auth = {
     if (isNotEmpty(parameters)) {
       output.parameters = parameters
     }
-    output.cacheKey = principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '') + scheme
+    output.cacheKey = scheme + ':' + principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '')
     return output
   }
 }
