@@ -843,12 +843,12 @@ class Driver {
     )
   }
 
-  _checkHomeDbSize(): void {
-    while(this.homeDatabaseCache.size > 1000) {
-      let iterator = this.homeDatabaseCache.entries();
-      let entry = iterator.next();
-      let key = entry.value[0];
-      this.homeDatabaseCache.delete(key);
+  _checkHomeDbSize (): void {
+    while (this.homeDatabaseCache.size > 1000) {
+      const iterator = this.homeDatabaseCache.entries()
+      const entry = iterator.next()
+      const key = entry.value[0]
+      this.homeDatabaseCache.delete(key)
     }
   }
 
