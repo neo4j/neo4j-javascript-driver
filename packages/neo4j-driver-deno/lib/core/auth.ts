@@ -36,7 +36,7 @@ const auth = {
         realm
       }
     } else {
-      return { scheme: 'basic', principal: username, credentials: password, cacheKey: username }
+      return { scheme: 'basic', principal: username, credentials: password, cacheKey: 'basic:' + username }
     }
   },
   kerberos: (base64EncodedTicket: string) => {

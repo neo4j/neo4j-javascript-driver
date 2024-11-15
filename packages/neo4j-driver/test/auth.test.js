@@ -45,7 +45,7 @@ describe('#unit auth', () => {
       scheme: 'kerberos',
       principal: '',
       credentials: 'my-ticket',
-      cacheKey: 'basic:my-ticket'
+      cacheKey: 'kerberos:my-ticket'
     })
   })
 
