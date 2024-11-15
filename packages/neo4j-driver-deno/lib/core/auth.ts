@@ -44,7 +44,7 @@ const auth = {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
       credentials: base64EncodedTicket,
-      cacheKey: 'kerberos:' +  base64EncodedTicket
+      cacheKey: 'kerberos:' + base64EncodedTicket
     }
   },
   bearer: (base64EncodedToken: string) => {
@@ -79,7 +79,7 @@ const auth = {
     if (isNotEmpty(parameters)) {
       output.parameters = parameters
     }
-    output.cacheKey = scheme + ":" + principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '')
+    output.cacheKey = scheme + ':' + principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '')
     return output
   }
 }
