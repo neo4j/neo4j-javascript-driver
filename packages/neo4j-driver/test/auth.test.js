@@ -71,7 +71,7 @@ describe('#unit auth', () => {
       credentials: 'dog',
       realm: 'apartment',
       parameters: { key1: 'value1', key2: 42 },
-      cacheKey: 'pets:catdogapartment'
+      cacheKey: 'pets:catdogapartmentkey1:value1key2:42'
     })
   })
 })

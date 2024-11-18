@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DateTime } from 'neo4j-driver'
 import auth from '../src/auth'
 
 describe('auth', () => {
@@ -30,7 +31,7 @@ describe('auth', () => {
         credentials: 'pass',
         realm: 'realm',
         parameters: { param: 'param' },
-        cacheKey: 'scheme:' + 'user' + 'pass' + 'realm'
+        cacheKey: 'scheme:' + 'user' + 'pass' + 'realm' + 'param:param'
       }
     ],
     [
@@ -59,5 +60,35 @@ describe('auth', () => {
     ]
   ])('.custom()', (args, output) => {
     expect(auth.custom.apply(auth, args)).toEqual(output)
+  })
+
+  test.each([
+    [
+      ['user', 'pass', 'realm', 'scheme', { param: 'param' }],
+      ['user', 'pass', 'realm', 'scheme', { param: 'param' }],
+      true
+    ],
+    [
+      ['user', 'pass', 'realm', 'scheme', { param2: 'param2', param: 'param' }],
+      ['user', 'pass', 'realm', 'scheme', { param: 'param', param2: 'param2' }],
+      true
+    ],
+    [
+      ['user', 'pass', 'realm', 'scheme', { datetime: new DateTime(0, 1, 1, 0, 0, 0, 0, 0) }],
+      ['user', 'pass', 'realm', 'scheme', { datetime: new DateTime(0, 1, 1, 0, 0, 0, 0, 0) }],
+      true
+    ],
+    [
+      ['user', 'pass', 'realm', 'scheme', { datetime: new DateTime(0, 1, 1, 0, 0, 0, 0, 0) }],
+      ['user', 'pass', 'realm', 'scheme', { datetime: new DateTime(0, 1, 2, 0, 0, 0, 0, 0) }],
+      false
+    ]
+
+  ])('.custom().cacheKey', (args1, args2, shouldMatch) => {
+    if (shouldMatch) {
+      expect(auth.custom.apply(auth, args1).cacheKey).toEqual(auth.custom.apply(auth, args2).cacheKey)
+    } else {
+      expect(auth.custom.apply(auth, args1).cacheKey).not.toEqual(auth.custom.apply(auth, args2).cacheKey)
+    }
   })
 })

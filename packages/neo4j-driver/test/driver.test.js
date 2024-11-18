@@ -183,27 +183,34 @@ describe('#unit driver', () => {
     })
   })
 
-  it('should build homedb cache from callback functions', () => {
-    driver = neo4j.driver(
+  describe('homeDatabaseCache', () => {
+    it('should build homedb cache from callback functions', () => {
+      driver = neo4j.driver(
         `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
         sharedNeo4j.authToken
-    )
-    driver._homeDatabaseCallback('DEFAULT', 'neo4j')
-    expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
-  })
+      )
+      driver._homeDatabaseCallback('DEFAULT', 'neo4j')
+      expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
+      driver._homeDatabaseCallback('basic:hi', 'neo4j')
+      expect(driver.homeDatabaseCache.get('basic:hi')).toBe('neo4j')
+      driver._removeFailureFromCache('neo4j')
+      expect(driver.homeDatabaseCache.get('DEFAULT')).toBe(undefined)
+      expect(driver.homeDatabaseCache.get('basic:hi')).toBe(undefined)
+    })
 
-  it('should cap homeDb size', () => {
-    driver = neo4j.driver(
-        `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
-        sharedNeo4j.authToken
-    )
-    for (let i = 0; i < 1100; i++) {
-      driver._homeDatabaseCallback(i.toString(), 'neo4j')
-    }
-    expect(driver.homeDatabaseCache.get('1')).toEqual(undefined)
-    expect(driver.homeDatabaseCache.get('99')).toEqual(undefined)
-    expect(driver.homeDatabaseCache.get('101')).toEqual('neo4j')
-    expect(driver.homeDatabaseCache.get('1001')).toEqual('neo4j')
+    it('should cap homeDb size', () => {
+      driver = neo4j.driver(
+          `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
+          sharedNeo4j.authToken
+      )
+      for (let i = 0; i < 1100; i++) {
+        driver._homeDatabaseCallback(i.toString(), 'neo4j')
+      }
+      expect(driver.homeDatabaseCache.get('1')).toEqual(undefined)
+      expect(driver.homeDatabaseCache.get('99')).toEqual(undefined)
+      expect(driver.homeDatabaseCache.get('101')).toEqual('neo4j')
+      expect(driver.homeDatabaseCache.get('1001')).toEqual('neo4j')
+    })
   })
 })
 

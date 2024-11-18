@@ -64,7 +64,7 @@ const auth = {
     credentials: string,
     realm: string,
     scheme: string,
-    parameters?: object
+    parameters?: any
   ) => {
     const output: any = {
       scheme,
@@ -76,10 +76,17 @@ const auth = {
     if (isNotEmpty(realm)) {
       output.realm = realm
     }
-    if (isNotEmpty(parameters)) {
+    let ordered = ''
+    if (isNotEmpty(parameters) && parameters !== undefined) {
       output.parameters = parameters
+      Object.keys(parameters).sort().forEach((key: string) => {
+        //eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        ordered += `${key}:${parameters[key]}`
+      })
     }
-    output.cacheKey = scheme + ':' + principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '')
+
+
+    output.cacheKey = scheme + ':' + principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '') + ordered
     return output
   }
 }
