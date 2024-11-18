@@ -80,11 +80,10 @@ const auth = {
     if (isNotEmpty(parameters) && parameters !== undefined) {
       output.parameters = parameters
       Object.keys(parameters).sort().forEach((key: string) => {
-        //eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         ordered += `${key}:${parameters[key]}`
       })
     }
-
 
     output.cacheKey = scheme + ':' + principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '') + ordered
     return output
