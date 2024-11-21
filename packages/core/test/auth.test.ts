@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DateTime } from 'neo4j-driver'
 import auth from '../src/auth'
 
 describe('auth', () => {
@@ -74,13 +73,13 @@ describe('auth', () => {
       true
     ],
     [
-      ['user', 'pass', 'realm', 'scheme', { datetime: new DateTime(0, 1, 1, 0, 0, 0, 0, 0) }],
-      ['user', 'pass', 'realm', 'scheme', { datetime: new DateTime(0, 1, 1, 0, 0, 0, 0, 0) }],
+      ['user', 'pass', 'realm', 'scheme', { param: [1, 2, 3] }],
+      ['user', 'pass', 'realm', 'scheme', { param: [1, 2, 3] }],
       true
     ],
     [
-      ['user', 'pass', 'realm', 'scheme', { datetime: new DateTime(0, 1, 1, 0, 0, 0, 0, 0) }],
-      ['user', 'pass', 'realm', 'scheme', { datetime: new DateTime(0, 1, 2, 0, 0, 0, 0, 0) }],
+      ['user', 'pass', 'realm', 'scheme', { param: [1, 2, 3] }],
+      ['user', 'pass', 'realm', 'scheme', { param: [1, 3, 2] }],
       false
     ]
 
