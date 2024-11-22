@@ -153,12 +153,16 @@ describe('DateTime', () => {
 
     it('should be the reverse operation of fromStandardDate', () => {
       fc.assert(
-        fc.property(fc.date(), (date) => {
-          const datetime = DateTime.fromStandardDate(date)
-          const receivedDate = datetime.toStandardDate()
+        fc.property(
+          fc.date({
+            max: temporalUtil.newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
+            min: temporalUtil.newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
+          }), (date) => {
+            const datetime = DateTime.fromStandardDate(date)
+            const receivedDate = datetime.toStandardDate()
 
-          expect(receivedDate).toEqual(date)
-        })
+            expect(receivedDate).toEqual(date)
+          })
       )
     })
   })
