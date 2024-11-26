@@ -375,9 +375,9 @@ export class Date<T extends NumberOrInteger = Integer> {
    * @returns {StandardDate} Standard JavaScript `Date` at `00:00:00.000` UTC.
    */
   toStandardDate (): StandardDate {
-    var res = util.isoStringToStandardDate(this.toString())
-    if(res.getTimezoneOffset() > 0 && res.getTimezoneOffset()%60 !== 0){ //LESS THAN SHOULD MAYBE BE GREATER THAN
-      res.setMinutes(res.getMinutes() + res.getTimezoneOffset()%60)
+    const res = util.isoStringToStandardDate(this.toString())
+    if (res.getTimezoneOffset() > 0 && res.getTimezoneOffset() % 60 !== 0) {
+      res.setMinutes(res.getMinutes() + res.getTimezoneOffset() % 60)
     }
     return res
   }
@@ -669,11 +669,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    * @throws {Error} If the time zone offset is not defined in the object.
    */
   toStandardDate (): StandardDate {
-    var res = util.toStandardDate(this._toUTC())
-    if(res.getTimezoneOffset() > 0 && res.getTimezoneOffset()%60 !== 0){ //LESS THAN SHOULD MAYBE BE GREATER THAN
-      res.setMinutes(res.getMinutes() + res.getTimezoneOffset()%60)
-    }
-    return res
+    return util.toStandardDate(this._toUTC())
   }
 
   /**

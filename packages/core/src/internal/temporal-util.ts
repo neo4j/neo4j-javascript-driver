@@ -349,14 +349,11 @@ export function totalNanoseconds (
  * @return {number} the time zone offset in seconds.
  */
 export function timeZoneOffsetInSeconds (standardDate: Date): number {
-  const secondsPortion = standardDate.getSeconds() >= standardDate.getUTCSeconds()
-    ? standardDate.getSeconds() - standardDate.getUTCSeconds()
-    : standardDate.getSeconds() - standardDate.getUTCSeconds() + 60
-  const offsetInMinutes = standardDate.getTimezoneOffset()
-  if (offsetInMinutes === 0) {
-    return 0 + secondsPortion
-  }
-  return -1 * offsetInMinutes * SECONDS_PER_MINUTE + secondsPortion
+  const secondsPortion = standardDate.getSeconds() - standardDate.getUTCSeconds()
+  const minutesPortion = standardDate.getMinutes() - standardDate.getUTCMinutes()
+  const hoursPortion = standardDate.getHours() - standardDate.getUTCHours()
+  const daysPortion = standardDate.getDay() - standardDate.getUTCDay()
+  return daysPortion * SECONDS_PER_DAY + hoursPortion * SECONDS_PER_HOUR + minutesPortion * SECONDS_PER_MINUTE + secondsPortion
 }
 
 /**
