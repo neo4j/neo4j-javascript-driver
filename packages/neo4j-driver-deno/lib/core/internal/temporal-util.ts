@@ -353,45 +353,38 @@ export function timeZoneOffsetInSeconds (standardDate: Date): number {
   const minutesPortion = standardDate.getMinutes() - standardDate.getUTCMinutes()
   const hoursPortion = standardDate.getHours() - standardDate.getUTCHours()
   const daysPortion = _getDayOffset(standardDate)
-  console.log("UTCDATE:", standardDate.getUTCDate(), standardDate.getDate())
+  console.log('UTCDATE:', standardDate.getUTCDate(), standardDate.getDate())
   console.log(secondsPortion, minutesPortion, hoursPortion, daysPortion)
   return hoursPortion * SECONDS_PER_HOUR + minutesPortion * SECONDS_PER_MINUTE + secondsPortion + daysPortion * SECONDS_PER_DAY
 }
 
-function _getDayOffset(standardDate: Date): number {
-  if(standardDate.getMonth() === standardDate.getUTCMonth()) {
+function _getDayOffset (standardDate: Date): number {
+  if (standardDate.getMonth() === standardDate.getUTCMonth()) {
     return standardDate.getDate() - standardDate.getUTCDate()
-  }
-  else if((standardDate.getFullYear() > standardDate.getUTCFullYear()) || (standardDate.getMonth() > standardDate.getUTCMonth() && standardDate.getFullYear() === standardDate.getUTCFullYear())) {
-    console.log("1", standardDate.getDate(), _daysUntilNextMonth(standardDate.getUTCMonth(), standardDate.getUTCFullYear()), standardDate.getUTCDate())
+  } else if ((standardDate.getFullYear() > standardDate.getUTCFullYear()) || (standardDate.getMonth() > standardDate.getUTCMonth() && standardDate.getFullYear() === standardDate.getUTCFullYear())) {
+    console.log('1', standardDate.getDate(), _daysUntilNextMonth(standardDate.getUTCMonth(), standardDate.getUTCFullYear()), standardDate.getUTCDate())
     return standardDate.getDate() + _daysUntilNextMonth(standardDate.getUTCMonth(), standardDate.getUTCFullYear()) - standardDate.getUTCDate() - 2
-  }
-  else {
-    console.log("2", standardDate.getUTCDate(), _daysUntilNextMonth(standardDate.getMonth(), standardDate.getFullYear()), standardDate.getDate())
+  } else {
+    console.log('2', standardDate.getUTCDate(), _daysUntilNextMonth(standardDate.getMonth(), standardDate.getFullYear()), standardDate.getDate())
     return standardDate.getUTCDate() + _daysUntilNextMonth(standardDate.getMonth(), standardDate.getFullYear()) - standardDate.getDate() - 2
   }
 }
 
-function _daysUntilNextMonth(month: number, year: number): number {
+function _daysUntilNextMonth (month: number, year: number): number {
   console.log(month)
-  if(month === 1) {
-    if (year%400 === 0){
+  if (month === 1) {
+    if (year % 400 === 0) {
       return 29
-    }
-    else if(year%100 === 0){
+    } else if (year % 100 === 0) {
+      return 28
+    } else if (year % 4 === 0) {
+      return 29
+    } else {
       return 28
     }
-    else if(year%4 === 0){
-      return 29
-    }
-    else{
-      return 28
-    }
-  }
-  else if([0, 2, 4, 6, 7, 9, 11].includes(month)) {
+  } else if ([0, 2, 4, 6, 7, 9, 11].includes(month)) {
     return 31
-  }
-  else {
+  } else {
     return 30
   }
 }

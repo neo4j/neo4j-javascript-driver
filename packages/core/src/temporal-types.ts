@@ -375,11 +375,7 @@ export class Date<T extends NumberOrInteger = Integer> {
    * @returns {StandardDate} Standard JavaScript `Date` at `00:00:00.000` UTC.
    */
   toStandardDate (): StandardDate {
-    const res = util.isoStringToStandardDate(this.toString())
-    if (res.getTimezoneOffset() > 0 && res.getTimezoneOffset() % 60 !== 0) {
-      res.setMinutes(res.getMinutes() + res.getTimezoneOffset() % 60)
-    }
-    return res
+    return util.isoStringToStandardDate(this.toString())
   }
 
   /**

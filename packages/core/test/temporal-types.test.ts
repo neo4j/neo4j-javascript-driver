@@ -19,6 +19,7 @@ import { StandardDate } from '../src/graph-types'
 import { LocalDateTime, Date, DateTime, Duration, isDuration, LocalTime, isLocalTime, Time, isTime, isDate, isLocalDateTime, isDateTime } from '../src/temporal-types'
 import { temporalUtil } from '../src/internal'
 import fc from 'fast-check'
+import { timeZoneOffsetInSeconds } from '../src/internal/temporal-util'
 
 const MIN_UTC_IN_MS = -8_640_000_000_000_000
 const MAX_UTC_IN_MS = 8_640_000_000_000_000
@@ -31,9 +32,9 @@ describe('Date', () => {
 
       const standardDate = localDatetime.toStandardDate()
 
-      expect(standardDate.getFullYear()).toEqual(localDatetime.year)
-      expect(standardDate.getMonth()).toEqual(localDatetime.month - 1)
-      expect(standardDate.getDate()).toEqual(localDatetime.day)
+      expect(standardDate.getUTCFullYear()).toEqual(localDatetime.year)
+      expect(standardDate.getUTCMonth()).toEqual(localDatetime.month - 1)
+      expect(standardDate.getUTCDate()).toEqual(localDatetime.day)
     })
 
     it('should be the reverse operation of fromStandardDate but losing time information', () => {
@@ -48,7 +49,7 @@ describe('Date', () => {
             const receivedDate = date.toStandardDate()
 
             const adjustedDateTime = temporalUtil.newDate(standardDate)
-            adjustedDateTime.setHours(0, offset(receivedDate))
+            adjustedDateTime.setHours(0, 0, timeZoneOffsetInSeconds(standardDate))
 
             expect(receivedDate.getFullYear()).toEqual(adjustedDateTime.getFullYear())
             expect(receivedDate.getMonth()).toEqual(adjustedDateTime.getMonth())
