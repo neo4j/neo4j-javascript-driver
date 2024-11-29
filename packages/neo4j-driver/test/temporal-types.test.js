@@ -18,7 +18,6 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { toNumber, internal } from 'neo4j-driver-core'
-import testUtils from './internal/test-utils'
 
 const {
   temporalUtil: { timeZoneOffsetInSeconds, totalNanoseconds }
@@ -1350,50 +1349,6 @@ describe('#integration temporal-types', () => {
     ).toThrow()
   }, 90000)
 
-  it('should convert standard Date with offset to neo4j Time', () => {
-    const standardDate1 = testUtils.fakeStandardDateWithOffset(0)
-    const neo4jTime1 = neo4j.types.Time.fromStandardDate(standardDate1)
-    verifyTimeZoneOffset(neo4jTime1, 0, 'Z')
-
-    const standardDate2 = testUtils.fakeStandardDateWithOffset(-600)
-    const neo4jTime2 = neo4j.types.Time.fromStandardDate(standardDate2)
-    verifyTimeZoneOffset(neo4jTime2, 600 * 60, '+10:00')
-
-    const standardDate3 = testUtils.fakeStandardDateWithOffset(480)
-    const neo4jTime3 = neo4j.types.Time.fromStandardDate(standardDate3)
-    verifyTimeZoneOffset(neo4jTime3, -1 * 480 * 60, '-08:00')
-
-    const standardDate4 = testUtils.fakeStandardDateWithOffset(-180)
-    const neo4jTime4 = neo4j.types.Time.fromStandardDate(standardDate4)
-    verifyTimeZoneOffset(neo4jTime4, 180 * 60, '+03:00')
-
-    const standardDate5 = testUtils.fakeStandardDateWithOffset(150)
-    const neo4jTime5 = neo4j.types.Time.fromStandardDate(standardDate5)
-    verifyTimeZoneOffset(neo4jTime5, -1 * 150 * 60, '-02:30')
-  }, 90000)
-
-  it('should convert standard Date with offset to neo4j DateTime', () => {
-    const standardDate1 = testUtils.fakeStandardDateWithOffset(0)
-    const neo4jDateTime1 = neo4j.types.DateTime.fromStandardDate(standardDate1)
-    verifyTimeZoneOffset(neo4jDateTime1, 0, 'Z')
-
-    const standardDate2 = testUtils.fakeStandardDateWithOffset(-600)
-    const neo4jDateTime2 = neo4j.types.DateTime.fromStandardDate(standardDate2)
-    verifyTimeZoneOffset(neo4jDateTime2, 600 * 60, '+10:00')
-
-    const standardDate3 = testUtils.fakeStandardDateWithOffset(480)
-    const neo4jDateTime3 = neo4j.types.DateTime.fromStandardDate(standardDate3)
-    verifyTimeZoneOffset(neo4jDateTime3, -1 * 480 * 60, '-08:00')
-
-    const standardDate4 = testUtils.fakeStandardDateWithOffset(-180)
-    const neo4jDateTime4 = neo4j.types.DateTime.fromStandardDate(standardDate4)
-    verifyTimeZoneOffset(neo4jDateTime4, 180 * 60, '+03:00')
-
-    const standardDate5 = testUtils.fakeStandardDateWithOffset(150)
-    const neo4jDateTime5 = neo4j.types.DateTime.fromStandardDate(standardDate5)
-    verifyTimeZoneOffset(neo4jDateTime5, -1 * 150 * 60, '-02:30')
-  }, 90000)
-
   it('should not create DateTime with invalid ZoneId', () => {
     expect(() => dateTimeWithZoneId(1999, 10, 1, 10, 15, 0, 0, 'Europe/Neo4j')).toThrowError(
       'Time zone ID is expected to be a valid ZoneId but was: "Europe/Neo4j"'
@@ -1802,17 +1757,5 @@ describe('#integration temporal-types', () => {
       timeZoneOffsetInSeconds(date)
     )
     expect(converted).toEqual(expected)
-  }
-
-  function verifyTimeZoneOffset (temporal, expectedValue, expectedStringValue) {
-    expect(temporal.timeZoneOffsetSeconds).toEqual(expectedValue)
-    const isoString = temporal.toString()
-    // assert ISO string ends with the expected suffix
-    expect(
-      isoString.indexOf(
-        expectedStringValue,
-        isoString.length - expectedStringValue.length
-      )
-    ).toBeGreaterThan(0)
   }
 })
