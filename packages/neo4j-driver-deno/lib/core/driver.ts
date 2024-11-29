@@ -46,6 +46,7 @@ import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import QueryExecutor from './internal/query-executor.ts'
 import { newError } from './error.ts'
 import NotificationFilter from './notification-filter.ts'
+import HomeDatabaseCache from './internal/homedb-cache.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -473,7 +474,7 @@ class Driver {
   private readonly _createSession: CreateSession
   private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
-  homeDatabaseCache: Map<string, any>
+  homeDatabaseCache: HomeDatabaseCache
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -513,7 +514,7 @@ class Driver {
      */
     this._connectionProvider = null
 
-    this.homeDatabaseCache = new Map<string, any>()
+    this.homeDatabaseCache = new HomeDatabaseCache(10000)
 
     this._afterConstruction()
   }
@@ -843,26 +844,12 @@ class Driver {
     )
   }
 
-  _checkHomeDbSize (): void {
-    while (this.homeDatabaseCache.size > 1000) {
-      const iterator = this.homeDatabaseCache.entries()
-      const entry = iterator.next()
-      const key = entry.value[0]
-      this.homeDatabaseCache.delete(key)
-    }
-  }
-
   _homeDatabaseCallback (user: string, database: any): void {
     this.homeDatabaseCache.set(user, database)
-    this._checkHomeDbSize()
   }
 
   _removeFailureFromCache (database: string): void {
-    this.homeDatabaseCache.forEach((_, key) => {
-      if (this.homeDatabaseCache.get(key) === database) {
-        this.homeDatabaseCache.delete(key)
-      }
-    })
+    this.homeDatabaseCache.removeFailedDatabase(database)
   }
 
   /**
