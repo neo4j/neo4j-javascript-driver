@@ -198,16 +198,23 @@ describe('#unit driver', () => {
       expect(driver.homeDatabaseCache.get('basic:hi')).toBe(undefined)
     })
 
-    it('should cap homeDb size', () => {
+    it('should cap homeDb size by removing least recently used', async () => {
       driver = neo4j.driver(
           `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
           sharedNeo4j.authToken
       )
-      for (let i = 0; i < 1050; i++) {
+      for (let i = 0; i < 999; i++) {
+        driver._homeDatabaseCallback(i.toString(), 'neo4j')
+      }
+      driver._homeDatabaseCallback('5', 'neo4j')
+      driver.homeDatabaseCache.get('55')
+      for (let i = 999; i < 1050; i++) {
         driver._homeDatabaseCallback(i.toString(), 'neo4j')
       }
       expect(driver.homeDatabaseCache.get('1')).toEqual(undefined)
       expect(driver.homeDatabaseCache.get('69')).toEqual(undefined)
+      expect(driver.homeDatabaseCache.get('5')).toEqual('neo4j')
+      expect(driver.homeDatabaseCache.get('55')).toEqual('neo4j')
       expect(driver.homeDatabaseCache.get('101')).toEqual('neo4j')
       expect(driver.homeDatabaseCache.get('1001')).toEqual('neo4j')
     })
