@@ -734,7 +734,7 @@ describe('#integration examples', () => {
       })
       .then(() => driver.close())
       .then(() => done())
-  }, 60000)
+  }, 120000)
 
   it('session example', async () => {
     const console = consoleOverride

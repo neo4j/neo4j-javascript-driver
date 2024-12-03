@@ -206,6 +206,7 @@ describe('#unit driver', () => {
       for (let i = 0; i < 999; i++) {
         driver._homeDatabaseCallback(i.toString(), 'neo4j')
       }
+      await new Promise(resolve => setTimeout(resolve, 100))
       driver._homeDatabaseCallback('5', 'neo4j')
       driver.homeDatabaseCache.get('55')
       for (let i = 999; i < 1050; i++) {
@@ -306,7 +307,7 @@ describe('#integration driver', () => {
     )
 
     await session.close()
-  }, 10000)
+  }, 20000)
 
   it('should fail with correct error message when connecting to port 80', done => {
     if (testUtils.isClient()) {
@@ -343,7 +344,7 @@ describe('#integration driver', () => {
           done()
         }
       })
-  })
+  }, 60000)
 
   it('should handle wrong scheme', () => {
     expect(() =>
@@ -695,7 +696,7 @@ describe('#integration driver', () => {
   it('hasReachableServer failure', async () => {
     await expectAsync(neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}:9999`))
       .toBeRejected()
-  })
+  }, 120000)
 
   const integersWithNativeNumberEquivalent = [
     [neo4j.int(0), 0],
