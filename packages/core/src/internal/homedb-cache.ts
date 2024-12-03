@@ -34,11 +34,9 @@ export default class HomeDatabaseCache {
   }
 
   private _pruneCache (): void {
-    console.log(this.map.size)
     if (this.map.size > 1000) {
       const sortedArray = Array.from(this.map.entries()).sort((a, b) => a[1].lastUsed - b[1].lastUsed)
-      for (let i = 0; i < 70; i++) { //
-        console.error(sortedArray[i])
+      for (let i = 0; i < 70; i++) { // c * max_size * logn(max_size), c is set to 0.01
         this.map.delete(sortedArray[i][0])
       }
     }
