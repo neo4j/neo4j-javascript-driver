@@ -193,9 +193,34 @@ describe('#unit driver', () => {
       expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
       driver._homeDatabaseCallback('basic:hi', 'neo4j')
       expect(driver.homeDatabaseCache.get('basic:hi')).toBe('neo4j')
+    })
+
+    it('should change homedb entries with new info', () => {
+      driver = neo4j.driver(
+        `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
+        sharedNeo4j.authToken
+      )
+      driver._homeDatabaseCallback('DEFAULT', 'neo4j')
+      expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
+      driver._homeDatabaseCallback('DEFAULT', 'neo5j')
+      expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo5j')
+    })
+
+    it('should remove entries in homeDb cache when their database fails', () => {
+      driver = neo4j.driver(
+        `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
+        sharedNeo4j.authToken
+      )
+      driver._homeDatabaseCallback('DEFAULT', 'neo4j')
+      expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
+      driver._homeDatabaseCallback('basic:hi', 'neo4j')
+      expect(driver.homeDatabaseCache.get('basic:hi')).toBe('neo4j')
+      driver._homeDatabaseCallback('basic:hello', 'neo5j')
+      expect(driver.homeDatabaseCache.get('basic:hello')).toBe('neo5j')
       driver._removeFailureFromCache('neo4j')
       expect(driver.homeDatabaseCache.get('DEFAULT')).toBe(undefined)
       expect(driver.homeDatabaseCache.get('basic:hi')).toBe(undefined)
+      expect(driver.homeDatabaseCache.get('basic:hello')).toBe('neo5j')
     })
 
     it('should cap homeDb size by removing least recently used', async () => {
