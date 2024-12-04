@@ -599,26 +599,27 @@ describe('#integration driver', () => {
     expect(connections1[0]).not.toEqual(connections2[0])
   })
 
-  it('should build home database cache', async () => {
-    driver = neo4j.driver(
-      `neo4j://${sharedNeo4j.hostnameWithBoltPort}`,
-      sharedNeo4j.authToken
-    )
-    if (protocolVersion >= 5.1) {
-      const session1 = driver.session({ auth: sharedNeo4j.authToken })
-      await session1.run('CREATE () RETURN 42')
-
-      // one connection should be established
-      const connections1 = openConnectionFrom(driver)
-      expect(connections1.length).toEqual(1)
-
-      expect(driver.homeDatabaseCache.get(sharedNeo4j.authToken.cacheKey)).toBe('neo4j')
-      expect(session1._database).toBe('neo4j')
-      const session2 = driver.session({ auth: sharedNeo4j.authToken })
-      expect(session2._databaseGuess).toBe('neo4j')
-      expect(session2._database).toBe('')
-      await session2.run('CREATE () RETURN 43')
-    }
+  describe('HomeDatabaseCache"', () => {
+    [['with driver auth', {}, 'DEFAULT'],
+      ['with session auth', { auth: sharedNeo4j.authToken }, sharedNeo4j.authToken.cacheKey],
+      ['with impersonated user', { impersonatedUser: 'neo4j' }, 'basic:neo4j']].forEach(([string, auth, key]) => {
+      it('should build home database cache ' + string, async () => {
+        driver = neo4j.driver(
+          `neo4j://${sharedNeo4j.hostnameWithBoltPort}`,
+          sharedNeo4j.authToken
+        )
+        if (protocolVersion >= 5.1) {
+          const session1 = driver.session(auth)
+          await session1.run('CREATE () RETURN 42')
+          expect(driver.homeDatabaseCache.get(key)).toBe('neo4j') // should have set the homedb in cache
+          expect(session1._database).toBe('neo4j') // should have pinned database to the session
+          const session2 = driver.session(auth)
+          expect(session2._databaseGuess).toBe('neo4j') // second session should use the homedb as a guess...
+          expect(session2._database).toBe('') // ...but should not pin this to the session.
+          await session2.run('CREATE () RETURN 43')
+        }
+      })
+    })
   })
 
   it('should discard old connections', async () => {
