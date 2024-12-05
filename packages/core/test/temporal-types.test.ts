@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { StandardDate } from '../src/graph-types'
 import { LocalDateTime, Date, DateTime, Duration, isDuration, LocalTime, isLocalTime, Time, isTime, isDate, isLocalDateTime, isDateTime } from '../src/temporal-types'
 import { temporalUtil } from '../src/internal'
 import fc from 'fast-check'
@@ -110,17 +109,16 @@ describe('DateTime', () => {
 
       const standardDate = datetime.toStandardDate()
 
-      expect(standardDate.getFullYear()).toEqual(datetime.year)
-      expect(standardDate.getMonth()).toEqual(datetime.month - 1)
-      expect(standardDate.getDate()).toEqual(datetime.day)
-      const offsetInMinutes = offset(standardDate)
-      const offsetAdjust = offsetInMinutes - (datetime.timeZoneOffsetSeconds ?? 0) / 60
-      const hourDiff = Math.abs(offsetAdjust / 60)
+      expect(standardDate.getUTCFullYear()).toEqual(datetime.year)
+      expect(standardDate.getUTCMonth()).toEqual(datetime.month - 1)
+      expect(standardDate.getUTCDate()).toEqual(datetime.day)
+      const offsetAdjust = (datetime.timeZoneOffsetSeconds ?? 0) / 60
+      const hourDiff = Math.abs((offsetAdjust - offsetAdjust % 60) / 60)
       const minuteDiff = Math.abs(offsetAdjust % 60)
-      expect(standardDate.getHours()).toBe(datetime.hour - hourDiff)
-      expect(standardDate.getMinutes()).toBe(datetime.minute - minuteDiff)
-      expect(standardDate.getSeconds()).toBe(datetime.second)
-      expect(standardDate.getMilliseconds()).toBe(Math.round(datetime.nanosecond / 1000000))
+      expect(standardDate.getUTCHours()).toBe(datetime.hour - hourDiff)
+      expect(standardDate.getUTCMinutes()).toBe(datetime.minute - minuteDiff)
+      expect(standardDate.getUTCSeconds()).toBe(datetime.second)
+      expect(standardDate.getUTCMilliseconds()).toBe(Math.round(datetime.nanosecond / 1000000))
     })
 
     it('should convert to a standard date (offset)', () => {
@@ -128,17 +126,16 @@ describe('DateTime', () => {
 
       const standardDate = datetime.toStandardDate()
 
-      expect(standardDate.getFullYear()).toEqual(datetime.year)
-      expect(standardDate.getMonth()).toEqual(datetime.month - 1)
-      expect(standardDate.getDate()).toEqual(datetime.day)
-      const offsetInMinutes = offset(standardDate)
-      const offsetAdjust = offsetInMinutes - (datetime.timeZoneOffsetSeconds ?? 0) / 60
-      const hourDiff = Math.abs(offsetAdjust / 60)
+      expect(standardDate.getUTCFullYear()).toEqual(datetime.year)
+      expect(standardDate.getUTCMonth()).toEqual(datetime.month - 1)
+      expect(standardDate.getUTCDate()).toEqual(datetime.day)
+      const offsetAdjust = (datetime.timeZoneOffsetSeconds ?? 0) / 60
+      const hourDiff = Math.abs((offsetAdjust - offsetAdjust % 60) / 60)
       const minuteDiff = Math.abs(offsetAdjust % 60)
-      expect(standardDate.getHours()).toBe(datetime.hour - hourDiff)
-      expect(standardDate.getMinutes()).toBe(datetime.minute - minuteDiff)
-      expect(standardDate.getSeconds()).toBe(datetime.second)
-      expect(standardDate.getMilliseconds()).toBe(Math.round(datetime.nanosecond / 1000000))
+      expect(standardDate.getUTCHours()).toBe(datetime.hour - hourDiff)
+      expect(standardDate.getUTCMinutes()).toBe(datetime.minute - minuteDiff)
+      expect(standardDate.getUTCSeconds()).toBe(datetime.second)
+      expect(standardDate.getUTCMilliseconds()).toBe(Math.round(datetime.nanosecond / 1000000))
     })
 
     it('should not convert to a standard date (zoneid)', () => {
@@ -285,15 +282,3 @@ describe('isDateTime', () => {
     }
   })
 })
-
-/**
- * The offset in StandardDate is the number of minutes
- * to sum to the date and time to get the UTC time.
- *
- * This function change the sign of the offset,
- * this way using the most common meaning.
- * The time to add to UTC to get the local time.
- */
-function offset (date: StandardDate): number {
-  return date.getTimezoneOffset() * -1
-}
