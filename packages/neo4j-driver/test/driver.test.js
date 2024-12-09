@@ -608,19 +608,15 @@ describe('#integration driver', () => {
           `neo4j://${sharedNeo4j.hostnameWithBoltPort}`,
           sharedNeo4j.authToken
         )
-        if (protocolVersion >= 5.1) {
-          try {
-            const session1 = driver.session(auth)
-            await session1.run('CREATE () RETURN 42')
-            expect(driver.homeDatabaseCache.get(key)).toBe('neo4j') // should have set the homedb in cache
-            expect(session1._database).toBe('neo4j') // should have pinned database to the session
-            const session2 = driver.session(auth)
-            expect(session2._databaseGuess).toBe('neo4j') // second session should use the homedb as a guess...
-            expect(session2._database).toBe('') // ...but should not pin this to the session.
-            await session2.run('CREATE () RETURN 43')
-          } catch (e) {
-            expect(e.toString()).toContain('not supported in community edition')
-          }
+        if (protocolVersion >= 5.8 && (!string.includes('impersonated') || driver.supportsUserImpersonation())) {
+          const session1 = driver.session(auth)
+          await session1.run('CREATE () RETURN 42')
+          expect(driver.homeDatabaseCache.get(key)).toBe('neo4j') // should have set the homedb in cache
+          expect(session1._database).toBe('neo4j') // should have pinned database to the session
+          const session2 = driver.session(auth)
+          expect(session2._databaseGuess).toBe('neo4j') // second session should use the homedb as a guess...
+          expect(session2._database).toBe('') // ...but should not pin this to the session.
+          await session2.run('CREATE () RETURN 43')
         }
       })
     })
