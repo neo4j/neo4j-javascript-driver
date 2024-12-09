@@ -599,7 +599,7 @@ describe('#integration driver', () => {
     expect(connections1[0]).not.toEqual(connections2[0])
   })
 
-  describe('HomeDatabaseCache"', () => {
+  describe('HomeDatabaseCache', () => {
     [['with driver auth', {}, 'DEFAULT'],
       ['with session auth', { auth: sharedNeo4j.authToken }, sharedNeo4j.authToken.cacheKey],
       ['with impersonated user', { impersonatedUser: 'neo4j' }, 'basic:neo4j']].forEach(([string, auth, key]) => {
