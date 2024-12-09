@@ -368,10 +368,9 @@ function _getDayOffset (standardDate: Date): number {
 
 function _daysUntilNextMonth (month: number, year: number): number {
   if (month === 1) {
-    if (year % 400  === 0|| (year % 4 === 0 && year % 100 !== 0)) {
+    if (year % 400 === 0 || (year % 4 === 0 && year % 100 !== 0)) {
       return 29
-    }
-    else {
+    } else {
       return 28
     }
   } else if ([0, 2, 4, 6, 7, 9, 11].includes(month)) {
