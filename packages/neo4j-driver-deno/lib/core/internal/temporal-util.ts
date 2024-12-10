@@ -350,10 +350,9 @@ export function timeZoneOffsetInSeconds (standardDate: Date): number {
   return hoursPortion * SECONDS_PER_HOUR + minutesPortion * SECONDS_PER_MINUTE + secondsPortion + daysPortion * SECONDS_PER_DAY
 }
 
-
 /**
  * Get the difference in days from the given JavaScript date in local time and UTC.
- * 
+ *
  * @private
  * @param {global.Date} standardDate the date to evaluate
  * @returns  {number} the difference in days between date local time and UTC
@@ -368,10 +367,9 @@ function _getDayOffset (standardDate: Date): number {
   }
 }
 
-
 /**
  * Get the number of days in a month, including a check for leap years.
- * 
+ *
  * @private
  * @param {number} month the month of the date to evalutate
  * @param {number} year the month of the date to evalutate
