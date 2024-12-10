@@ -46,7 +46,7 @@ describe('Date', () => {
             const date = Date.fromStandardDate(standardDate)
             const receivedDate = date.toStandardDate()
 
-            expect(receivedDate.getUTCFullYear()).toEqual(standardDate.getFullYear())
+            expect(receivedDate.getUTCFullYear()).toEqual(standardDate.getFullYear()) // Date converts from local time but to UTC
             expect(receivedDate.getUTCMonth()).toEqual(standardDate.getMonth())
             expect(receivedDate.getUTCDate()).toEqual(standardDate.getDate())
             expect(receivedDate.getUTCHours()).toEqual(0)
@@ -111,7 +111,7 @@ describe('DateTime', () => {
 
       expect(standardDate.getUTCFullYear()).toEqual(datetime.year)
       expect(standardDate.getUTCMonth()).toEqual(datetime.month - 1)
-      expect(standardDate.getUTCDate()).toEqual(datetime.day)
+      expect(standardDate.getUTCDate()).toEqual(datetime.day) // The datetime in this test will never cross the date line in conversion, it is therefore safe to use UTC here to avoid machine timezone from altering the result of the test.
       const offsetAdjust = (datetime.timeZoneOffsetSeconds ?? 0) / 60
       const hourDiff = Math.abs((offsetAdjust - offsetAdjust % 60) / 60)
       const minuteDiff = Math.abs(offsetAdjust % 60)
