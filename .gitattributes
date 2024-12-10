@@ -1,0 +1,2 @@
+# configure github not to display generated files
+/packages/neo4j-driver-deno/lib/** linguist-generated=true
