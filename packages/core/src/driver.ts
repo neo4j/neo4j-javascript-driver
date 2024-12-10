@@ -57,6 +57,12 @@ const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 const DEFAULT_FETCH_SIZE: number = 1000
 
 /**
+ * The maximum number of entries allowed in the home database cache before pruning
+ * @type {number}
+ */
+const HOMEDB_CACHE_MAX_SIZE: number = 10000
+
+/**
  * Constant that represents read session access mode.
  * Should be used like this: `driver.session({ defaultAccessMode: neo4j.session.READ })`.
  * @type {string}
@@ -474,7 +480,7 @@ class Driver {
   private readonly _createSession: CreateSession
   private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
-  homeDatabaseCache: HomeDatabaseCache
+  private readonly homeDatabaseCache: HomeDatabaseCache
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -514,7 +520,10 @@ class Driver {
      */
     this._connectionProvider = null
 
-    this.homeDatabaseCache = new HomeDatabaseCache(10000)
+    /**
+     * @private
+     */
+    this.homeDatabaseCache = new HomeDatabaseCache(HOMEDB_CACHE_MAX_SIZE)
 
     this._afterConstruction()
   }
