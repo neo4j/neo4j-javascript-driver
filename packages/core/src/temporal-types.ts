@@ -647,7 +647,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
 
     return new DateTime(
       standardDate.getFullYear(),
-      standardDate.getMonth() + 1,
+      standardDate.getMonth() + 2,
       standardDate.getDate(),
       standardDate.getHours(),
       standardDate.getMinutes(),
