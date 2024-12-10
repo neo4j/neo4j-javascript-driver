@@ -88,7 +88,7 @@ export class TransactionExecutor {
 
     this._setTimeout = dependencies.setTimeout
     this._clearTimeout = dependencies.clearTimeout
-    
+
     this._inFlightTimeoutIds = []
     this.pipelineBegin = false
     this.telemetryApi = TELEMETRY_APIS.MANAGED_TRANSACTION
