@@ -189,6 +189,7 @@ function driver (url, authToken, config = {}) {
     typename: routing ? 'Routing' : 'Direct',
     routing
   }
+
   return new Driver(meta, config, createConnectionProviderFunction())
 
   function createConnectionProviderFunction () {

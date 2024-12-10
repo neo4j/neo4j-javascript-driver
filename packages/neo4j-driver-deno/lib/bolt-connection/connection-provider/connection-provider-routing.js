@@ -203,6 +203,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
     try {
       const connection = await this._connectionPool.acquire({ auth }, address)
+
       if (auth) {
         await this._verifyStickyConnection({
           auth,
@@ -362,6 +363,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       database,
       () => new RoutingTable({ database })
     )
+
     if (!currentRoutingTable.isStaleFor(accessMode)) {
       return currentRoutingTable
     }

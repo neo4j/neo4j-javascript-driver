@@ -927,6 +927,7 @@ class Driver {
         createHostNameResolver(this._config)
       )
     }
+
     return this._connectionProvider
   }
 }

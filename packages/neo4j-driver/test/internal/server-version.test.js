@@ -172,7 +172,7 @@ describe('#integration ServerVersion', () => {
     await expectAsync(ServerVersion.fromDriver(driver)).toBeRejected()
 
     await driver.close()
-  }, 120000)
+  })
 })
 
 function verifyVersion (
