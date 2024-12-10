@@ -480,7 +480,7 @@ class Driver {
   private readonly _createSession: CreateSession
   private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
-  private homeDatabaseCache: HomeDatabaseCache
+  private readonly homeDatabaseCache: HomeDatabaseCache
 
   /**
    * You should not be calling this directly, instead use {@link driver}.

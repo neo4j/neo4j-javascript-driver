@@ -17,7 +17,7 @@
 
 /**
  * Cache which maps users to their last known home database, along with the last time the entry was accessed.
- * 
+ *
  * @private
  */
 export default class HomeDatabaseCache {
@@ -31,7 +31,7 @@ export default class HomeDatabaseCache {
 
   /**
    * Updates or add an entry to the cache, and prunes the cache if above the maximum allowed size
-   * 
+   *
    * @param {string} user cache key for the user to set
    * @param {string} database new home database to set for the user
    */
@@ -42,7 +42,7 @@ export default class HomeDatabaseCache {
 
   /**
    * retrieves the last known home database for a user
-   * 
+   *
    * @param {string} user cache key for the user to get
    */
   get (user: string): string | undefined {
@@ -56,7 +56,7 @@ export default class HomeDatabaseCache {
 
   /**
    * removes the entry for a given user in the cache
-   * 
+   *
    * @param {string} user cache key for the user to remove
    */
   delete (user: string): void {
@@ -65,7 +65,7 @@ export default class HomeDatabaseCache {
 
   /**
    * removes all entries listing a given database from the cache
-   * 
+   *
    * @param {string} database the name of the database to clear from the cache
    */
   removeFailedDatabase (database: string): void {
