@@ -894,6 +894,7 @@ class Driver {
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
+
     return this._createSession({
       mode: sessionMode,
       database: database ?? '',
