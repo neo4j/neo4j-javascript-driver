@@ -91,7 +91,7 @@ class ConnectionProvider {
   }
 
   /**
-   * This method checks whether the backend database supports transaction config functionality
+   * This method checks whether the backend database supports user impersonation functionality
    * by checking protocol handshake result.
    *
    * @returns {Promise<boolean>}
