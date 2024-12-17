@@ -149,7 +149,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
       SESSION_EXPIRED,
-      (error, address) => this._handleUnavailability(error, address, context.database),
+      (error, address) => {
+        if (removeFailureFromCache !== undefined) {
+          removeFailureFromCache(homeDb ?? context.database)
+        }
+        return this._handleUnavailability(error, address, context.database)
+      },
       (error, address) => {
         if (removeFailureFromCache !== undefined) {
           removeFailureFromCache(homeDb ?? context.database)

@@ -47,6 +47,7 @@ const features = [
   'Optimization:MinimalBookmarksSet',
   'Optimization:MinimalResets',
   'Optimization:AuthPipelining',
+  'Optimization:HomeDbCacheBasicPrincipalIsImpersonatedUser',
   'Detail:NumberIsNumber'
 ]
 
