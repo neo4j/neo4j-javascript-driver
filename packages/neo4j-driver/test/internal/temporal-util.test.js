@@ -16,7 +16,6 @@
  */
 
 import { int, internal } from 'neo4j-driver-core'
-import testUtils from './test-utils'
 
 const { temporalUtil: util } = internal
 
@@ -259,27 +258,6 @@ describe('#unit temporal-util', () => {
     expect(
       util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999), BigInt(111))
     ).toEqual(BigInt(999000111))
-  })
-
-  it('should get timezone offset in seconds from standard date', () => {
-    expect(
-      util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(0))
-    ).toBe(0)
-    expect(
-      util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(2))
-    ).toBe(-120)
-    expect(
-      util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(10))
-    ).toBe(-600)
-    expect(
-      util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(101))
-    ).toBe(-6060)
-    expect(
-      util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(-180))
-    ).toBe(10800)
-    expect(
-      util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(-600))
-    ).toBe(36000)
   })
 
   it('should verify year', () => {

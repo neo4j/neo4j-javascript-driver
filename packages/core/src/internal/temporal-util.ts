@@ -339,24 +339,54 @@ export function totalNanoseconds (
 /**
  * Get the time zone offset in seconds from the given standard JavaScript date.
  *
- * <b>Implementation note:</b>
- * Time zone offset returned by the standard JavaScript date is the difference, in minutes, from local time to UTC.
- * So positive value means offset is behind UTC and negative value means it is ahead.
- * For Neo4j temporal types, like `Time` or `DateTime` offset is in seconds and represents difference from UTC to local time.
- * This is different from standard JavaScript dates and that's why implementation negates the returned value.
- *
  * @param {global.Date} standardDate the standard JavaScript date.
  * @return {number} the time zone offset in seconds.
  */
 export function timeZoneOffsetInSeconds (standardDate: Date): number {
-  const secondsPortion = standardDate.getSeconds() >= standardDate.getUTCSeconds()
-    ? standardDate.getSeconds() - standardDate.getUTCSeconds()
-    : standardDate.getSeconds() - standardDate.getUTCSeconds() + 60
-  const offsetInMinutes = standardDate.getTimezoneOffset()
-  if (offsetInMinutes === 0) {
-    return 0 + secondsPortion
+  const secondsPortion = standardDate.getSeconds() - standardDate.getUTCSeconds()
+  const minutesPortion = standardDate.getMinutes() - standardDate.getUTCMinutes()
+  const hoursPortion = standardDate.getHours() - standardDate.getUTCHours()
+  const daysPortion = _getDayOffset(standardDate)
+  return hoursPortion * SECONDS_PER_HOUR + minutesPortion * SECONDS_PER_MINUTE + secondsPortion + daysPortion * SECONDS_PER_DAY
+}
+
+/**
+ * Get the difference in days from the given JavaScript date in local time and UTC.
+ *
+ * @private
+ * @param {global.Date} standardDate the date to evaluate
+ * @returns  {number} the difference in days between date local time and UTC
+ */
+function _getDayOffset (standardDate: Date): number {
+  if (standardDate.getMonth() === standardDate.getUTCMonth()) {
+    return standardDate.getDate() - standardDate.getUTCDate()
+  } else if ((standardDate.getFullYear() > standardDate.getUTCFullYear()) || (standardDate.getMonth() > standardDate.getUTCMonth() && standardDate.getFullYear() === standardDate.getUTCFullYear())) {
+    return standardDate.getDate() + _daysUntilNextMonth(standardDate.getUTCMonth(), standardDate.getUTCFullYear()) - standardDate.getUTCDate()
+  } else {
+    return standardDate.getDate() - (standardDate.getUTCDate() + _daysUntilNextMonth(standardDate.getMonth(), standardDate.getFullYear()))
   }
-  return -1 * offsetInMinutes * SECONDS_PER_MINUTE + secondsPortion
+}
+
+/**
+ * Get the number of days in a month, including a check for leap years.
+ *
+ * @private
+ * @param {number} month the month of the date to evalutate
+ * @param {number} year the month of the date to evalutate
+ * @returns {number} the total number of days in the month evaluated
+ */
+function _daysUntilNextMonth (month: number, year: number): number {
+  if (month === 1) {
+    if (year % 400 === 0 || (year % 4 === 0 && year % 100 !== 0)) {
+      return 29
+    } else {
+      return 28
+    }
+  } else if ([0, 2, 4, 6, 7, 9, 11].includes(month)) {
+    return 31
+  } else {
+    return 30
+  }
 }
 
 /**
