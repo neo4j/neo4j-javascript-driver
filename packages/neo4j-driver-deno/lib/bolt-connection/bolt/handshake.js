@@ -95,16 +95,15 @@ function newNegotiation (channel, buffer, log) {
       // select capabilities and respond
       const capabilites = 0
       selectionBuffer.writeVarInt(capabilites)
-      channel.write(selectionBuffer).then(() => {
-        resolve({
-          protocolVersion: Number(major + '.' + minor),
-          capabilites: 0,
-          consumeRemainingBuffer: consumer => {
-            if (buffer.hasRemaining()) {
-              consumer(buffer.readSlice(buffer.remaining()))
-            }
+      channel.write(selectionBuffer)
+      resolve({
+        protocolVersion: Number(major + '.' + minor),
+        capabilites: 0,
+        consumeRemainingBuffer: consumer => {
+          if (buffer.hasRemaining()) {
+            consumer(buffer.readSlice(buffer.remaining()))
           }
-        })
+        }
       })
     } catch (e) {
       reject(e)
