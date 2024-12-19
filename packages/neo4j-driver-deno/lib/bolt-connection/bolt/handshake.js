@@ -118,9 +118,9 @@ function newNegotiation (channel, buffer, log) {
 function newHandshakeBuffer () {
   return createHandshakeMessage([
     version(255, 1),
-    version(5, 7),
-    [version(5, 5), version(5, 0)],
-    [version(4, 4), version(4, 1)]
+    [version(5, 7), version(5, 0)],
+    [version(4, 4), version(4, 0)],
+    version(3, 0)
   ])
 }
 
