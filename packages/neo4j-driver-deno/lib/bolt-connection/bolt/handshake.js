@@ -70,16 +70,58 @@ function parseNegotiatedResponse (buffer, log) {
   return Number(h[3] + '.' + h[2])
 }
 
+function newNegotiation (channel, buffer, log) {
+  const numVersions = buffer.readVarInt()
+  let versions = []
+  for (let i = 0; i < numVersions; i++) {
+    const h = [
+      buffer.readUInt8(),
+      buffer.readUInt8(),
+      buffer.readUInt8(),
+      buffer.readUInt8()
+    ]
+    versions = versions.concat([h])
+  }
+  buffer.readVarInt()
+  // parse supported capabilities
+  // select preferrable protocol and respond
+  const major = versions[0][3]
+  const minor = versions[0][2]
+
+  return new Promise((resolve, reject) => {
+    try {
+      const selectionBuffer = alloc(5)
+      selectionBuffer.writeInt32((minor << 8) | major)
+      // select capabilities and respond
+      const capabilites = 0
+      selectionBuffer.writeVarInt(capabilites)
+      channel.write(selectionBuffer).then(() => {
+        resolve({
+          protocolVersion: Number(major + '.' + minor),
+          capabilites: 0,
+          consumeRemainingBuffer: consumer => {
+            if (buffer.hasRemaining()) {
+              consumer(buffer.readSlice(buffer.remaining()))
+            }
+          }
+        })
+      })
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
 /**
  * @return {BaseBuffer}
  * @private
  */
 function newHandshakeBuffer () {
   return createHandshakeMessage([
-    [version(5, 7), version(5, 0)],
-    [version(4, 4), version(4, 2)],
-    version(4, 1),
-    version(3, 0)
+    version(255, 1),
+    version(5, 7),
+    [version(5, 5), version(5, 0)],
+    [version(4, 4), version(4, 1)]
   ])
 }
 
@@ -91,8 +133,10 @@ function newHandshakeBuffer () {
 /**
  * @typedef HandshakeResult
  * @property {number} protocolVersion The protocol version negotiated in the handshake
+ * @property {number} capabilites A bitmask representing the capabilities negotiated in the handshake
  * @property {function(BufferConsumerCallback)} consumeRemainingBuffer A function to consume the remaining buffer if it exists
  */
+
 /**
  * Shake hands using the channel and return the protocol version
  *
@@ -101,6 +145,23 @@ function newHandshakeBuffer () {
  * @returns {Promise<HandshakeResult>} Promise of protocol version and consumeRemainingBuffer
  */
 export default function handshake (channel, log) {
+  return initialHandshake(channel, log).then((result) => {
+    if (result.protocolVersion === 255.1) {
+      return newNegotiation(channel, result.buffer, log)
+    } else {
+      return result
+    }
+  })
+}
+
+/**
+ * Shake hands using the channel and return the protocol version, or the improved handshake protocol if communicating with a newer server.
+ *
+ * @param {Channel} channel the channel use to shake hands
+ * @param {Logger} log the log object
+ * @returns {Promise<HandshakeResult>} Promise of protocol version and consumeRemainingBuffer
+ */
+function initialHandshake (channel, log) {
   return new Promise((resolve, reject) => {
     const handshakeErrorHandler = error => {
       reject(error)
@@ -115,9 +176,10 @@ export default function handshake (channel, log) {
       try {
         // read the response buffer and initialize the protocol
         const protocolVersion = parseNegotiatedResponse(buffer, log)
-
         resolve({
           protocolVersion,
+          capabilites: 0,
+          buffer,
           consumeRemainingBuffer: consumer => {
             if (buffer.hasRemaining()) {
               consumer(buffer.readSlice(buffer.remaining()))

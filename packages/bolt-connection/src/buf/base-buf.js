@@ -47,6 +47,10 @@ export default class BaseBuffer {
     throw new Error('Not implemented')
   }
 
+  getVarInt (position) {
+    throw new Error('Not implemented')
+  }
+
   putUInt8 (position, val) {
     throw new Error('Not implemented')
   }
@@ -245,6 +249,15 @@ export default class BaseBuffer {
   }
 
   /**
+   * Read from state position
+   */
+  readVarInt () {
+    const int = this.getVarInt(this.position)
+    this._updatePos(int.length)
+    return int.value
+  }
+
+  /**
    * Write to state position.
    * @param val
    */
@@ -298,6 +311,17 @@ export default class BaseBuffer {
    */
   writeFloat64 (val) {
     this.putFloat64(this._updatePos(8), val)
+  }
+
+  writeVarInt (val) {
+    while (val > 1) {
+      let int = val % 128
+      if (val >= 128) {
+        int += 128
+      }
+      val = val / 128
+      this.putInt8(this._updatePos(1), int)
+    }
   }
 
   /**
