@@ -19,6 +19,8 @@ import { alloc } from '../channel/index.js'
 import { newError } from '../../core/index.ts'
 
 const BOLT_MAGIC_PREAMBLE = 0x6060b017
+const AVAILABLE_BOLT_PROTOCOLS = [5.7, 5.5, 5.4, 5.3, 5.2, 5.1, 5.0, 4.4, 4.3, 4.2, 4.1, 4.0, 3.0]
+const DESIRED_CAPABILITES = 0
 
 function version (major, minor) {
   return {
@@ -80,25 +82,33 @@ function newNegotiation (channel, buffer, log) {
       buffer.readUInt8(),
       buffer.readUInt8()
     ]
-    versions = versions.concat([h])
+    versions = versions.concat(getVersions(h))
   }
-  buffer.readVarInt()
+  const capabilityBitMask = buffer.readVarInt()
+  const capabilites = selectCapabilites(capabilityBitMask)
+
   // parse supported capabilities
   // select preferrable protocol and respond
-  const major = versions[0][3]
-  const minor = versions[0][2]
+  let major
+  let minor
+  for (let i = 0; i < versions.length; i++) {
+    const version = versions[i]
+    if (AVAILABLE_BOLT_PROTOCOLS.includes(Number(version.major + '.' + version.minor))) {
+      major = version.major
+      minor = version.minor
+      break
+    }
+  }
 
   return new Promise((resolve, reject) => {
     try {
       const selectionBuffer = alloc(5)
       selectionBuffer.writeInt32((minor << 8) | major)
-      // select capabilities and respond
-      const capabilites = 0
       selectionBuffer.writeVarInt(capabilites)
       channel.write(selectionBuffer)
       resolve({
         protocolVersion: Number(major + '.' + minor),
-        capabilites: 0,
+        capabilites,
         consumeRemainingBuffer: consumer => {
           if (buffer.hasRemaining()) {
             consumer(buffer.readSlice(buffer.remaining()))
@@ -192,4 +202,18 @@ function initialHandshake (channel, log) {
 
     channel.write(newHandshakeBuffer())
   })
+}
+
+function getVersions (versionArray) {
+  const resultArr = []
+  const major = versionArray[3]
+  const minor = versionArray[2]
+  for (let i = 0; i <= versionArray[1]; i++) {
+    resultArr.push({ major, minor: minor - i })
+  }
+  return resultArr
+}
+
+function selectCapabilites (capabilityBitMask) {
+  return DESIRED_CAPABILITES // capabilites are currently unused and will always be 0.
 }
