@@ -47,6 +47,7 @@ import QueryExecutor from './internal/query-executor.ts'
 import { newError } from './error.ts'
 import NotificationFilter from './notification-filter.ts'
 import HomeDatabaseCache from './internal/homedb-cache.ts'
+import { cacheKey } from './internal/auth-utils.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -57,8 +58,7 @@ const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 const DEFAULT_FETCH_SIZE: number = 1000
 
 /**
- * The maximum number of entries allowed in the home database cache before pruning
- * @type {number}
+ * The maximum number of entries allowed in the home database cache before pruning.
  */
 const HOMEDB_CACHE_MAX_SIZE: number = 10000
 
@@ -104,7 +104,7 @@ type CreateSession = (args: {
   notificationFilter?: NotificationFilter
   auth?: AuthToken
   log: Logger
-  homeDatabaseCallback?: (user: string, database: any) => void
+  homeDatabaseCallback?: (impersonatedUser: string, user: string, database: any) => void
   removeFailureFromCache?: (database: string) => void
 }) => Session
 
@@ -117,7 +117,6 @@ interface DriverConfig {
   logging?: LoggingConfig
   notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
-  user?: string | undefined
 }
 
 /**
@@ -853,8 +852,15 @@ class Driver {
     )
   }
 
-  _homeDatabaseCallback (user: string, database: any): void {
-    this.homeDatabaseCache.set(user, database)
+  _homeDatabaseCallback (impersonatedUser: string, user: string, database: any): void {
+    let cacheKey = "DEFAULT"
+    if(impersonatedUser !== undefined) {
+      cacheKey = "basic:" + impersonatedUser
+    }
+    else if(user !== undefined) {
+      cacheKey = user
+    }
+    this.homeDatabaseCache.set(cacheKey, database)
   }
 
   _removeFailureFromCache (database: string): void {
@@ -888,7 +894,7 @@ class Driver {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     // eslint-disable-next-line
-    const cachedHomeDatabase = this.homeDatabaseCache.get((impersonatedUser ? 'basic:' + impersonatedUser : undefined) ?? auth?.cacheKey ?? 'DEFAULT')
+    const cachedHomeDatabase = this.homeDatabaseCache.get((impersonatedUser ? 'basic:' + impersonatedUser : undefined) ?? cacheKey(auth) ?? 'DEFAULT')
     const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
     const removeFailureFromCache = this._removeFailureFromCache.bind(this)
     const bookmarks = bookmarkOrBookmarks != null

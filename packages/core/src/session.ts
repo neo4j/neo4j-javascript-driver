@@ -37,6 +37,7 @@ import BookmarkManager from './bookmark-manager'
 import { RecordShape } from './record'
 import NotificationFilter from './notification-filter'
 import { Logger } from './internal/logger'
+import { cacheKey } from './internal/auth-utils'
 
 type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
@@ -89,8 +90,12 @@ class Session {
    * @param {boolean} args.reactive - Whether this session should create reactive streams
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
    * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
-   * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
+   * @param {BookmarkManager} args.bookmarkManager - The bookmark manager used for this session.
    * @param {NotificationFilter} args.notificationFilter - The notification filter used for this session.
+   * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
+   * @param {Logger} args.log - the logger used for logs in this session.
+   * @param {(impersonatedUser:string, user:string database:string) => void} args.homeDatabaseCallback - callback used to update the home database cache
+   * @param {(database:string) => void} args.removeFailureFromCache - callback used to remove all entries containing a failing database from the home database cache
    */
   constructor ({
     mode,
@@ -120,7 +125,7 @@ class Session {
     notificationFilter?: NotificationFilter
     auth?: AuthToken
     log: Logger
-    homeDatabaseCallback?: (user: string, database: string) => void
+    homeDatabaseCallback?: (impersonatedUser: string, user: string, database: string) => void
     removeFailureFromCache?: (database: string) => void
   }) {
     this._mode = mode
@@ -523,7 +528,7 @@ class Session {
     if (!this._databaseNameResolved) {
       if (this._homeDatabaseCallback != null) {
         // eslint-disable-next-line
-        this._homeDatabaseCallback((this._impersonatedUser ? 'basic:' + this._impersonatedUser : undefined)  ?? this._auth?.cacheKey ?? 'DEFAULT', database)
+        this._homeDatabaseCallback(this._impersonatedUser, cacheKey(this._auth), database)
       }
       const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
@@ -540,7 +545,7 @@ class Session {
       if (!this._databaseNameResolved) {
         if (this._homeDatabaseCallback != null) {
           // eslint-disable-next-line
-          this._homeDatabaseCallback((this._impersonatedUser ? 'basic:' + this._impersonatedUser : undefined) ?? this._auth?.cacheKey ?? 'DEFAULT', database)
+          this._homeDatabaseCallback(this._impersonatedUser, cacheKey(this._auth), database)
         }
         const normalizedDatabase = database ?? ''
         this._database = normalizedDatabase

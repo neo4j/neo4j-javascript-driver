@@ -34,6 +34,8 @@ let idGenerator = 0
  * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
  * @param {Logger} log - configured logger.
  * @param {clientCertificate} clientCertificate - configured client certificate
+ * @param ssrCallback - callback function used to update the counts of ssr enabled and disabled connections
+ * @param createChannel - function taking a channelConfig object and creating a channel with it
  * @return {Connection} - new connection.
  */
 export function createChannelConnection (
@@ -43,7 +45,7 @@ export function createChannelConnection (
   log,
   clientCertificate,
   serversideRouting = null,
-  ssrCallback = (_) => {},
+  ssrCallback,
   createChannel = channelConfig => new Channel(channelConfig)
 ) {
   const channelConfig = new ChannelConfig(
@@ -112,9 +114,11 @@ export default class ChannelConnection extends Connection {
    * @param {ConnectionErrorHandler} errorHandler the error handler.
    * @param {ServerAddress} address - the server address to connect to.
    * @param {Logger} log - the configured logger.
-   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
-   * @param {Chunker} chunker the chunker
-   * @param protocolSupplier Bolt protocol supplier
+   * @param {boolean} disableLosslessIntegers - if this connection should convert all received integers to native JS numbers.
+   * @param {Chunker} chunker - the chunker
+   * @param protocolSupplier - Bolt protocol supplier
+   * @param {boolean} telemetryDisabled - wether telemetry has been disabled in driver config.
+   * @param ssrCallback - callback function used to update the counts of ssr enabled and disabled connections.
    */
   constructor (
     channel,
@@ -127,7 +131,7 @@ export default class ChannelConnection extends Connection {
     notificationFilter,
     protocolSupplier,
     telemetryDisabled,
-    ssrCallback
+    ssrCallback = (_) => {}
   ) {
     super(errorHandler)
     this._authToken = null
@@ -337,14 +341,12 @@ export default class ChannelConnection extends Connection {
               }
 
               const SSREnabledHint = metadata.hints['ssr.enabled']
-              if (SSREnabledHint) {
+              if (SSREnabledHint === true) {
                 this.serversideRouting = true
               } else {
                 this.serversideRouting = false
               }
-              if (this._ssrCallback !== undefined) {
-                this._ssrCallback(this.serversideRouting, true)
-              }
+              this._ssrCallback(this.serversideRouting, 'OPEN')
             }
           }
           resolve(self)
@@ -552,9 +554,7 @@ export default class ChannelConnection extends Connection {
    * @returns {Promise<void>} - A promise that will be resolved when the underlying channel is closed.
    */
   async close () {
-    if (this._ssrCallback !== undefined) {
-      this._ssrCallback(this.serversideRouting, false)
-    }
+    this._ssrCallback(this.serversideRouting, 'CLOSE')
     if (this._log.isDebugEnabled()) {
       this._log.debug('closing')
     }

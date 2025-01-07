@@ -685,11 +685,21 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
   }
 
-  _channelSsrCallback (isEnabled, opened) {
-    if (isEnabled === true) {
-      this._withSSR = this._withSSR + (opened ? 1 : -1)
-    } else if (isEnabled === false) {
-      this._withoutSSR = this._withoutSSR + (opened ? 1 : -1)
+  _channelSsrCallback (isEnabled, action) {
+    if (action === 'OPEN') {
+      if (isEnabled === true) {
+        this._withSSR = this._withSSR + 1
+      } else if (isEnabled === false) {
+        this._withoutSSR = this._withoutSSR + 1
+      }
+    } else if (action === 'CLOSE') {
+      if (isEnabled === true) {
+        this._withSSR = this._withSSR - 1
+      } else if (isEnabled === false) {
+        this._withoutSSR = this._withoutSSR - 1
+      }
+    } else {
+      throw newError("Channel SSR Callback invoked with action other than 'OPEN' or 'CLOSE'")
     }
   }
 

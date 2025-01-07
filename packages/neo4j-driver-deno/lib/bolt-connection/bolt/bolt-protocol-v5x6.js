@@ -16,7 +16,7 @@
  */
 import BoltProtocolV5x5 from './bolt-protocol-v5x5.js'
 
-import transformersFactories from './bolt-protocol-v5x5.transformer.js'
+import transformersFactories from './bolt-protocol-v5x6.transformer.js'
 import Transformer from './transformer.js'
 
 import { internal } from '../../core/index.ts'

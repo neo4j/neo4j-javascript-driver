@@ -32,26 +32,23 @@ const auth = {
         scheme: 'basic',
         principal: username,
         credentials: password,
-        cacheKey: 'basic:' + username,
         realm
       }
     } else {
-      return { scheme: 'basic', principal: username, credentials: password, cacheKey: 'basic:' + username }
+      return { scheme: 'basic', principal: username, credentials: password }
     }
   },
   kerberos: (base64EncodedTicket: string) => {
     return {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
-      credentials: base64EncodedTicket,
-      cacheKey: 'kerberos:' + base64EncodedTicket
+      credentials: base64EncodedTicket
     }
   },
   bearer: (base64EncodedToken: string) => {
     return {
       scheme: 'bearer',
-      credentials: base64EncodedToken,
-      cacheKey: 'bearer:' + base64EncodedToken
+      credentials: base64EncodedToken
     }
   },
   none: () => {
@@ -76,16 +73,9 @@ const auth = {
     if (isNotEmpty(realm)) {
       output.realm = realm
     }
-    let ordered = ''
     if (isNotEmpty(parameters) && parameters !== undefined) {
       output.parameters = parameters
-      Object.keys(parameters).sort().forEach((key: string) => {
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        ordered += `${key}:${parameters[key]}`
-      })
     }
-
-    output.cacheKey = scheme + ':' + principal + (isNotEmpty(credentials) ? credentials : '') + (isNotEmpty(realm) ? realm : '') + ordered
     return output
   }
 }

@@ -84,11 +84,9 @@ export default class RequestMessage {
    * @return {RequestMessage} new INIT message.
    */
   static init (clientName, authToken) {
-    const auth = Object.assign({}, authToken)
-    auth.cacheKey = undefined
     return new RequestMessage(
       INIT,
-      [clientName, auth],
+      [clientName, authToken],
       () => `INIT ${clientName} {...}`
     )
   }
@@ -132,7 +130,6 @@ export default class RequestMessage {
    */
   static hello (userAgent, authToken, routing = null, patchs = null) {
     const metadata = Object.assign({ user_agent: userAgent }, authToken)
-    metadata.cacheKey = undefined
     if (routing) {
       metadata.routing = routing
     }
@@ -269,11 +266,9 @@ export default class RequestMessage {
    * @returns {RequestMessage} new LOGON message
    */
   static logon (authToken) {
-    const auth = Object.assign({}, authToken)
-    auth.cacheKey = undefined
     return new RequestMessage(
       LOGON,
-      [auth],
+      [authToken],
       () => 'LOGON { ... }'
     )
   }

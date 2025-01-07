@@ -23,8 +23,7 @@ describe('#unit auth', () => {
     expect(token).toEqual({
       scheme: 'basic',
       principal: 'cat',
-      credentials: 'dog',
-      cacheKey: 'basic:cat'
+      credentials: 'dog'
     })
   })
 
@@ -34,8 +33,7 @@ describe('#unit auth', () => {
       scheme: 'basic',
       principal: 'cat',
       credentials: 'dog',
-      realm: 'apartment',
-      cacheKey: 'basic:cat'
+      realm: 'apartment'
     })
   })
 
@@ -44,8 +42,7 @@ describe('#unit auth', () => {
     expect(token).toEqual({
       scheme: 'kerberos',
       principal: '',
-      credentials: 'my-ticket',
-      cacheKey: 'kerberos:my-ticket'
+      credentials: 'my-ticket'
     })
   })
 
@@ -55,8 +52,7 @@ describe('#unit auth', () => {
       scheme: 'pets',
       principal: 'cat',
       credentials: 'dog',
-      realm: 'apartment',
-      cacheKey: 'pets:catdogapartment'
+      realm: 'apartment'
     })
   })
 
@@ -70,8 +66,7 @@ describe('#unit auth', () => {
       principal: 'cat',
       credentials: 'dog',
       realm: 'apartment',
-      parameters: { key1: 'value1', key2: 42 },
-      cacheKey: 'pets:catdogapartmentkey1:value1key2:42'
+      parameters: { key1: 'value1', key2: 42 }
     })
   })
 })

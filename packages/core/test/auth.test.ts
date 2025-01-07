@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 import auth from '../src/auth'
+import { cacheKey } from '../src/internal/auth-utils'
 
 describe('auth', () => {
   test('.bearer()', () => {
-    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda', cacheKey: 'bearer:==Qyahiadakkda' })
+    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda' })
   })
 
   test.each([
@@ -29,32 +30,28 @@ describe('auth', () => {
         principal: 'user',
         credentials: 'pass',
         realm: 'realm',
-        parameters: { param: 'param' },
-        cacheKey: 'scheme:' + 'user' + 'pass' + 'realm' + 'param:param'
+        parameters: { param: 'param' }
       }
     ],
     [
       ['user', '', '', 'scheme', {}],
       {
         scheme: 'scheme',
-        principal: 'user',
-        cacheKey: 'scheme:' + 'user'
+        principal: 'user'
       }
     ],
     [
       ['user', undefined, undefined, 'scheme', undefined],
       {
         scheme: 'scheme',
-        principal: 'user',
-        cacheKey: 'scheme:' + 'user'
+        principal: 'user'
       }
     ],
     [
       ['user', null, null, 'scheme', null],
       {
         scheme: 'scheme',
-        principal: 'user',
-        cacheKey: 'scheme:' + 'user'
+        principal: 'user'
       }
     ]
   ])('.custom()', (args, output) => {
@@ -83,11 +80,45 @@ describe('auth', () => {
       false
     ]
 
-  ])('.custom().cacheKey', (args1, args2, shouldMatch) => {
+  ])('custom token cacheKey', (args1, args2, shouldMatch) => {
     if (shouldMatch) {
-      expect(auth.custom.apply(auth, args1).cacheKey).toEqual(auth.custom.apply(auth, args2).cacheKey)
+      expect(cacheKey(auth.custom.apply(auth, args1))).toEqual(cacheKey(auth.custom.apply(auth, args2)))
     } else {
-      expect(auth.custom.apply(auth, args1).cacheKey).not.toEqual(auth.custom.apply(auth, args2).cacheKey)
+      expect(cacheKey(auth.custom.apply(auth, args1))).not.toEqual(cacheKey(auth.custom.apply(auth, args2)))
     }
+  })
+
+  test.each([
+    [
+      {
+        scheme: 'basic',
+        principal: 'user',
+        credentials: 'password'
+      },
+      'basic:user'
+    ],
+    [
+      {
+        scheme: 'bearer',
+        credentials: 'Base64EncodedString'
+      },
+      'bearer:Base64EncodedString'
+    ],
+    [
+      {
+        scheme: 'kerberos',
+        credentials: 'Base64EncodedString'
+      },
+      'kerberos:Base64EncodedString'
+    ],
+    [
+      {
+        scheme: 'none',
+        credentials: ''
+      },
+      'none'
+    ]
+  ])('token cacheKey', (token, expected) => {
+    expect(cacheKey(token)).toEqual(expected)
   })
 })

@@ -48,7 +48,6 @@ export interface AuthToken {
   credentials: string
   realm?: string
   parameters?: Parameters
-  cacheKey?: string
 }
 
 export interface BoltAgent {
