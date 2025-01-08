@@ -854,9 +854,9 @@ class Driver {
 
   _homeDatabaseCallback (impersonatedUser: string, user: string, database: any): void {
     let cacheKey = 'DEFAULT'
-    if (impersonatedUser !== undefined && impersonatedUser !== "" && impersonatedUser !== null) {
+    if (impersonatedUser !== undefined && impersonatedUser !== '' && impersonatedUser !== null) {
       cacheKey = 'basic:' + impersonatedUser
-    } else if (user !== undefined && user !== "" && user !== null) {
+    } else if (user !== undefined && user !== '' && user !== null) {
       cacheKey = user
     }
     this.homeDatabaseCache.set(cacheKey, database)

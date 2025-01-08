@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import auth from '../src/auth'
-import { cacheKey } from '../src/internal/auth-utils'
+import { cacheKey } from '../src/internal/auth-util'
 
 describe('auth', () => {
   test('.bearer()', () => {

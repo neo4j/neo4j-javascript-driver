@@ -47,7 +47,7 @@ import QueryExecutor from './internal/query-executor'
 import { newError } from './error'
 import NotificationFilter from './notification-filter'
 import HomeDatabaseCache from './internal/homedb-cache'
-import { cacheKey } from './internal/auth-utils'
+import { cacheKey } from './internal/auth-util'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 

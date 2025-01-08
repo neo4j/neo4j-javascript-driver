@@ -78,7 +78,7 @@ class Session {
   private readonly _homeDatabaseCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
   private _databaseGuess: string | undefined
-  private _isRoutingSession: boolean
+  private readonly _isRoutingSession: boolean
   /**
    * @constructor
    * @protected

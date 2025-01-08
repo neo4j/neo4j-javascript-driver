@@ -238,10 +238,10 @@ describe('#unit driver', () => {
         driver._homeDatabaseCallback(undefined, i.toString(), 'neo4j')
       }
       expect(driver.homeDatabaseCache.get('1')).toEqual(undefined)
-      expect(driver.homeDatabaseCache.get('69')).toEqual(undefined)
+      expect(driver.homeDatabaseCache.get('901')).toEqual(undefined)
       expect(driver.homeDatabaseCache.get('5')).toEqual('neo4j')
       expect(driver.homeDatabaseCache.get('55')).toEqual('neo4j')
-      expect(driver.homeDatabaseCache.get('101')).toEqual('neo4j')
+      expect(driver.homeDatabaseCache.get('1001')).toEqual('neo4j')
       expect(driver.homeDatabaseCache.get('10001')).toEqual('neo4j')
     })
   })
