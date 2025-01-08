@@ -37,7 +37,7 @@ import BookmarkManager from './bookmark-manager.ts'
 import { RecordShape } from './record.ts'
 import NotificationFilter from './notification-filter.ts'
 import { Logger } from './internal/logger.ts'
-import { cacheKey } from './internal/auth-utils.ts'
+import { cacheKey } from './internal/auth-util.ts'
 
 type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T

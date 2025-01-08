@@ -47,7 +47,7 @@ import QueryExecutor from './internal/query-executor.ts'
 import { newError } from './error.ts'
 import NotificationFilter from './notification-filter.ts'
 import HomeDatabaseCache from './internal/homedb-cache.ts'
-import { cacheKey } from './internal/auth-utils.ts'
+import { cacheKey } from './internal/auth-util.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
