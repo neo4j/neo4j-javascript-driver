@@ -180,7 +180,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
       afterComplete,
       flush = true,
       highRecordWatermark = Number.MAX_VALUE,
-      lowRecordWatermark = Number.MAX_VALUE
+      lowRecordWatermark = Number.MAX_VALUE,
+      onDb
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -192,7 +193,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
       beforeComplete,
       afterComplete,
       highRecordWatermark,
-      lowRecordWatermark
+      lowRecordWatermark,
+      onDb
     })
 
     // passing in a database name on this protocol version throws an error

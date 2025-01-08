@@ -78,6 +78,7 @@ class Session {
   private readonly _homeDatabaseCallback: Function | undefined
   private readonly _auth: AuthToken | undefined
   private _databaseGuess: string | undefined
+  private _isRoutingSession: boolean
   /**
    * @constructor
    * @protected
@@ -173,6 +174,7 @@ class Session {
     this._notificationFilter = notificationFilter
     this._log = log
     this._databaseGuess = config?.cachedHomeDatabase
+    this._isRoutingSession = config?.routingDriver ?? false
   }
 
   /**
@@ -216,7 +218,8 @@ class Session {
         fetchSize: this._fetchSize,
         lowRecordWatermark: this._lowRecordWatermark,
         highRecordWatermark: this._highRecordWatermark,
-        notificationFilter: this._notificationFilter
+        notificationFilter: this._notificationFilter,
+        onDb: this._onDatabaseNameResolved.bind(this)
       })
     })
     this._results.push(result)
@@ -340,7 +343,7 @@ class Session {
       highRecordWatermark: this._highRecordWatermark,
       notificationFilter: this._notificationFilter,
       apiTelemetryConfig,
-      onDbCallback: this._beginDbCallback.bind(this)
+      onDbCallback: this._onDatabaseNameResolved.bind(this)
     })
     tx._begin(() => this._bookmarks(), txConfig)
     return tx
@@ -524,27 +527,10 @@ class Session {
    * @returns {void}
    */
   _onDatabaseNameResolved (database?: string): void {
-    this._databaseGuess = database
-    if (!this._databaseNameResolved) {
-      if (this._homeDatabaseCallback != null) {
-        // eslint-disable-next-line
-        this._homeDatabaseCallback(this._impersonatedUser, cacheKey(this._auth), database)
-      }
-      const normalizedDatabase = database ?? ''
-      this._database = normalizedDatabase
-      this._readConnectionHolder.setDatabase(normalizedDatabase)
-      this._writeConnectionHolder.setDatabase(normalizedDatabase)
-      this._databaseNameResolved = true
-    }
-  }
-
-  _beginDbCallback (database: string): void {
-    // eslint-disable-next-line
-    if (this._connectionHolderWithMode(this._mode).connectionProvider()?.SSREnabled()) { 
+    if (this._isRoutingSession) {
       this._databaseGuess = database
       if (!this._databaseNameResolved) {
         if (this._homeDatabaseCallback != null) {
-          // eslint-disable-next-line
           this._homeDatabaseCallback(this._impersonatedUser, cacheKey(this._auth), database)
         }
         const normalizedDatabase = database ?? ''
@@ -620,9 +606,6 @@ class Session {
    * @returns {void}
    */
   _onCompleteCallback (meta: { bookmark: string | string[], db?: string }, previousBookmarks?: Bookmarks): void {
-    if (meta.db !== undefined) {
-      this._beginDbCallback(meta.db)
-    }
     this._updateBookmarks(new Bookmarks(meta.bookmark), previousBookmarks, meta.db)
   }
 
@@ -674,7 +657,6 @@ class Session {
  */
 function _createTransactionExecutor (config?: {
   maxTransactionRetryTime: number | null
-  commitCallback: any
 }): TransactionExecutor {
   const maxRetryTimeMs = config?.maxTransactionRetryTime ?? null
   return new TransactionExecutor(maxRetryTimeMs)

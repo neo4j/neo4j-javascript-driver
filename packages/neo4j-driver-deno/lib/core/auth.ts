@@ -35,7 +35,7 @@ const auth = {
         realm
       }
     } else {
-      return { scheme: 'basic', principal: username, credentials: password}
+      return { scheme: 'basic', principal: username, credentials: password }
     }
   },
   kerberos: (base64EncodedTicket: string) => {
@@ -48,7 +48,7 @@ const auth = {
   bearer: (base64EncodedToken: string) => {
     return {
       scheme: 'bearer',
-      credentials: base64EncodedToken,
+      credentials: base64EncodedToken
     }
   },
   none: () => {

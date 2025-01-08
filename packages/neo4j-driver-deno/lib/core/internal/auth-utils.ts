@@ -17,34 +17,30 @@
 
 import { AuthToken } from '../types.ts'
 
-export function cacheKey(auth?: AuthToken): string | undefined {
-  if(auth === undefined) {
+export function cacheKey (auth?: AuthToken): string | undefined {
+  if (auth === undefined) {
     return undefined
   }
-  if(auth.scheme === 'basic') {
-    return 'basic:' + (auth.principal ?? "")
-  }
-  else if (auth.scheme === 'kerberos') {
+  if (auth.scheme === 'basic') {
+    return 'basic:' + (auth.principal ?? '')
+  } else if (auth.scheme === 'kerberos') {
     return 'kerberos:' + auth.credentials
-  }
-  else if (auth.scheme === 'bearer') {
+  } else if (auth.scheme === 'bearer') {
     return 'bearer:' + auth.credentials
-  }
-  else if (auth.scheme === 'none') {
-    return "none"
-  }
-  else {
+  } else if (auth.scheme === 'none') {
+    return 'none'
+  } else {
     let ordered = ''
     if (auth.parameters !== undefined) {
       Object.keys(auth.parameters).sort().forEach((key: string) => {
         if (auth.parameters !== undefined) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            ordered += `${key}:${auth.parameters[key]}`
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          ordered += `${key}:${auth.parameters[key]}`
         }
       })
     }
-    let credentialString = (auth.credentials !== undefined && auth.credentials !== "") ? 'credentials:' + auth.credentials : ""
-    let realmString = (auth.realm !== undefined && auth.realm !== "") ? 'realm:' + auth.realm : ""
-    return 'scheme:' + auth.scheme + 'principal:' + (auth.principal ?? "") + credentialString + realmString + 'parameters:' + ordered
+    const credentialString = (auth.credentials !== undefined && auth.credentials !== '') ? 'credentials:' + auth.credentials : ''
+    const realmString = (auth.realm !== undefined && auth.realm !== '') ? 'realm:' + auth.realm : ''
+    return 'scheme:' + auth.scheme + 'principal:' + (auth.principal ?? '') + credentialString + realmString + 'parameters:' + ordered
   }
 }

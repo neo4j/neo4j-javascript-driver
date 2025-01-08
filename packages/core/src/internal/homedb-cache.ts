@@ -23,14 +23,16 @@
 export default class HomeDatabaseCache {
   maxSize: number
   map: Map<string, HomeDatabaseEntry>
+  pruneCount: number
 
   constructor (maxSize: number) {
     this.maxSize = maxSize
+    this.pruneCount = Math.max(Math.round(0.01 * maxSize * Math.log(maxSize)), 1)
     this.map = new Map()
   }
 
   /**
-   * Updates or add an entry to the cache, and prunes the cache if above the maximum allowed size
+   * Updates or adds an entry to the cache, and prunes the cache if above the maximum allowed size
    *
    * @param {string} user cache key for the user to set
    * @param {string} database new home database to set for the user
@@ -82,7 +84,7 @@ export default class HomeDatabaseCache {
   private _pruneCache (): void {
     if (this.map.size > this.maxSize) {
       const sortedArray = Array.from(this.map.entries()).sort((a, b) => a[1].lastUsed - b[1].lastUsed)
-      for (let i = 0; i < 70; i++) { // c * max_size * logn(max_size), c is set to 0.01
+      for (let i = 0; i < this.pruneCount; i++) {
         this.map.delete(sortedArray[i][0])
       }
     }

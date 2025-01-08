@@ -166,9 +166,9 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._referenceCount
   }
 
-  initializeConnection (homeDatabaseTable?: any): boolean {
+  initializeConnection (homeDatabase?: string): boolean {
     if (this._referenceCount === 0 && (this._connectionProvider != null)) {
-      this._connectionPromise = this._createConnectionPromise(this._connectionProvider, homeDatabaseTable)
+      this._connectionPromise = this._createConnectionPromise(this._connectionProvider, homeDatabase)
     } else {
       this._referenceCount++
       return false
@@ -180,7 +180,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private async _createConnectionPromise (connectionProvider: ConnectionProvider, homeDatabase?: string): Promise<Connection & Releasable | null> {
     return await connectionProvider.acquireConnection({
       accessMode: this._mode,
-      database: this._database ?? '',
+      database: this._database,
       bookmarks: await this._getBookmarks(),
       impersonatedUser: this._impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,

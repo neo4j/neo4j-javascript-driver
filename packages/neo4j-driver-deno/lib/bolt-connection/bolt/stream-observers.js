@@ -79,7 +79,8 @@ class ResultStreamObserver extends StreamObserver {
     server,
     highRecordWatermark = Number.MAX_VALUE,
     lowRecordWatermark = Number.MAX_VALUE,
-    enrichMetadata
+    enrichMetadata,
+    onDb
   } = {}) {
     super()
 
@@ -113,6 +114,7 @@ class ResultStreamObserver extends StreamObserver {
     this._paused = false
     this._pulled = !reactive
     this._haveRecordStreamed = false
+    this._onDb = onDb
   }
 
   /**
@@ -317,6 +319,10 @@ class ResultStreamObserver extends StreamObserver {
         for (let i = 0; i < meta.fields.length; i++) {
           this._fieldLookup[meta.fields[i]] = i
         }
+      }
+
+      if (meta.db !== null && this._onDb !== undefined) {
+        this._onDb(meta.db)
       }
 
       if (meta.fields != null) {
