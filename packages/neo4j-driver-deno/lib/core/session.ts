@@ -527,7 +527,7 @@ class Session {
       this._databaseGuess = database
       if (!this._databaseNameResolved) {
         if (this._homeDatabaseCallback != null) {
-          this._homeDatabaseCallback(this._impersonatedUser, cacheKey(this._auth), database)
+          this._homeDatabaseCallback(cacheKey(this._auth, this._impersonatedUser), database)
         }
         const normalizedDatabase = database ?? ''
         this._database = normalizedDatabase

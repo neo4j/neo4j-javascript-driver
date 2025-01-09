@@ -851,13 +851,7 @@ class Driver {
     )
   }
 
-  _homeDatabaseCallback (impersonatedUser: string, user: string, database: any): void {
-    let cacheKey = 'DEFAULT'
-    if (impersonatedUser !== undefined && impersonatedUser !== '' && impersonatedUser !== null) {
-      cacheKey = 'basic:' + impersonatedUser
-    } else if (user !== undefined && user !== '' && user !== null) {
-      cacheKey = user
-    }
+  _homeDatabaseCallback (cacheKey: string, database: any): void {
     this.homeDatabaseCache.set(cacheKey, database)
   }
 
@@ -888,7 +882,7 @@ class Driver {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     // eslint-disable-next-line
-    const cachedHomeDatabase = this.homeDatabaseCache.get((impersonatedUser ? 'basic:' + impersonatedUser : undefined) ?? cacheKey(auth) ?? 'DEFAULT')
+    const cachedHomeDatabase = this.homeDatabaseCache.get(cacheKey(auth, impersonatedUser))
     const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)

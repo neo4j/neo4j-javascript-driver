@@ -84,8 +84,7 @@ describe('Driver', () => {
       const auth = {
         scheme: 'basic',
         principal: 'the imposter',
-        credentials: 'super safe password',
-        cacheKey: 'basic:the imposter'
+        credentials: 'super safe password'
       }
 
       const session = driver?.session({ auth })

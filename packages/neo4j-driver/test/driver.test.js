@@ -584,7 +584,7 @@ describe('#integration driver', () => {
 
   describe('HomeDatabaseCache', () => {
     [['with driver auth', {}, 'DEFAULT'],
-      ['with session auth', { auth: sharedNeo4j.authToken }, sharedNeo4j.authToken.cacheKey],
+      ['with session auth', { auth: sharedNeo4j.authToken }, 'basic:neo4j'],
       ['with impersonated user', { impersonatedUser: 'neo4j' }, 'basic:neo4j']].forEach(([string, auth, key]) => {
       it('should build home database cache ' + string, async () => {
         driver = neo4j.driver(

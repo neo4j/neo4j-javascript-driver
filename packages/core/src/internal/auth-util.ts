@@ -17,9 +17,12 @@
 
 import { AuthToken } from '../types'
 
-export function cacheKey (auth?: AuthToken): string | undefined {
+export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
+  if (impersonatedUser !== undefined && impersonatedUser !== '') {
+    return 'basic:' + impersonatedUser
+  }
   if (auth === undefined) {
-    return undefined
+    return 'DEFAULT'
   }
   if (auth.scheme === 'basic') {
     return 'basic:' + (auth.principal ?? '')
