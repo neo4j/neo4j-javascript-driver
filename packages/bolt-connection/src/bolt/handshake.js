@@ -72,17 +72,17 @@ function parseNegotiatedResponse (buffer, log) {
   return Number(h[3] + '.' + h[2])
 }
 
-function newNegotiation (channel, buffer, log) {
+function handshakeNegotiationV2 (channel, buffer, log) {
   const numVersions = buffer.readVarInt()
   let versions = []
   for (let i = 0; i < numVersions; i++) {
-    const h = [
+    const versionRange = [
       buffer.readUInt8(),
       buffer.readUInt8(),
       buffer.readUInt8(),
       buffer.readUInt8()
     ]
-    versions = versions.concat(getVersions(h))
+    versions = versions.concat(getVersions(versionRange))
   }
   const capabilityBitMask = buffer.readVarInt()
   const capabilites = selectCapabilites(capabilityBitMask)
@@ -91,6 +91,7 @@ function newNegotiation (channel, buffer, log) {
   // select preferrable protocol and respond
   let major
   let minor
+  versions.sort((a, b) => Number(a.major + '.' + a.minor) - Number(b.major + '.' + b.minor))
   for (let i = 0; i < versions.length; i++) {
     const version = versions[i]
     if (AVAILABLE_BOLT_PROTOCOLS.includes(Number(version.major + '.' + version.minor))) {
@@ -156,7 +157,7 @@ function newHandshakeBuffer () {
 export default function handshake (channel, log) {
   return initialHandshake(channel, log).then((result) => {
     if (result.protocolVersion === 255.1) {
-      return newNegotiation(channel, result.buffer, log)
+      return handshakeNegotiationV2(channel, result.buffer, log)
     } else {
       return result
     }
