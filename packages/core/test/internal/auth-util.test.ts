@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { auth } from 'neo4j-driver-core'
+import auth from '../../src/auth'
 import { cacheKey } from '../../src/internal/auth-util'
 
 describe('#unit cacheKey()', () => {
