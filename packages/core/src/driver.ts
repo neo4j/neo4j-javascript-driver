@@ -105,7 +105,6 @@ type CreateSession = (args: {
   auth?: AuthToken
   log: Logger
   homeDatabaseCallback?: (impersonatedUser: string, user: string, database: any) => void
-  removeFailureFromCache?: (database: string) => void
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -862,10 +861,6 @@ class Driver {
     this.homeDatabaseCache.set(cacheKey, database)
   }
 
-  _removeFailureFromCache (database: string): void {
-    this.homeDatabaseCache.removeFailedDatabase(database)
-  }
-
   /**
    * @private
    */
@@ -895,7 +890,6 @@ class Driver {
     // eslint-disable-next-line
     const cachedHomeDatabase = this.homeDatabaseCache.get((impersonatedUser ? 'basic:' + impersonatedUser : undefined) ?? cacheKey(auth) ?? 'DEFAULT')
     const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
-    const removeFailureFromCache = this._removeFailureFromCache.bind(this)
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
@@ -917,8 +911,7 @@ class Driver {
       notificationFilter,
       auth,
       log: this._log,
-      homeDatabaseCallback,
-      removeFailureFromCache
+      homeDatabaseCallback
     })
   }
 

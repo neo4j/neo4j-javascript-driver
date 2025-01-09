@@ -85,7 +85,6 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private readonly _impersonatedUser?: string
   private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
   private readonly _onDatabaseNameResolved?: (databaseName: string) => void
-  private readonly removeFailureFromCache?: (databaseName: string) => void
   private readonly _auth?: AuthToken
   private readonly _log: Logger
   private _closed: boolean
@@ -99,7 +98,6 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @property {ConnectionProvider} params.connectionProvider - the connection provider to acquire connections from.
    * @property {string?} params.impersonatedUser - the user which will be impersonated
    * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
-   * @property {function (databaseName:string?)} param.removeFailureFromCache - Callback for deleting lost db from cache
    * @property {function():Promise<Bookmarks>} params.getConnectionAcquistionBookmarks - called for getting Bookmarks for acquiring connections
    * @property {AuthToken} params.auth - the target auth for the to-be-acquired connection
    */
@@ -110,7 +108,6 @@ class ConnectionHolder implements ConnectionHolderInterface {
     connectionProvider,
     impersonatedUser,
     onDatabaseNameResolved,
-    removeFailureFromCache,
     getConnectionAcquistionBookmarks,
     auth,
     log
@@ -121,7 +118,6 @@ class ConnectionHolder implements ConnectionHolderInterface {
     connectionProvider?: ConnectionProvider
     impersonatedUser?: string
     onDatabaseNameResolved?: (database: string) => void
-    removeFailureFromCache?: (database: string) => void
     getConnectionAcquistionBookmarks?: () => Promise<Bookmarks>
     auth?: AuthToken
     log: Logger
@@ -135,7 +131,6 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
-    this.removeFailureFromCache = removeFailureFromCache
     this._auth = auth
     this._log = log
     this._logError = this._logError.bind(this)
@@ -184,7 +179,6 @@ class ConnectionHolder implements ConnectionHolderInterface {
       bookmarks: await this._getBookmarks(),
       impersonatedUser: this._impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,
-      removeFailureFromCache: this.removeFailureFromCache,
       auth: this._auth,
       homeDb: homeDatabase
     })

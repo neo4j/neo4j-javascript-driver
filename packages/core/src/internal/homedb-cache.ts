@@ -66,19 +66,6 @@ export default class HomeDatabaseCache {
   }
 
   /**
-   * removes all entries listing a given database from the cache
-   *
-   * @param {string} database the name of the database to clear from the cache
-   */
-  removeFailedDatabase (database: string): void {
-    this.map.forEach((_, key) => {
-      if (this.map.get(key)?.database === database) {
-        this.map.delete(key)
-      }
-    })
-  }
-
-  /**
    * Removes a number of the oldest entries in the cache if the number of entries has exceeded the maximum size.
    */
   private _pruneCache (): void {

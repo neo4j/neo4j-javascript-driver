@@ -712,7 +712,6 @@ describe('Driver', () => {
       // @ts-expect-error
       log: driver?._log,
       homeDatabaseCallback: expect.any(Function),
-      removeFailureFromCache: expect.any(Function),
       ...extra
     }
   }

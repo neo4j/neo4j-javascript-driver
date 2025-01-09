@@ -96,7 +96,6 @@ class Session {
    * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
    * @param {Logger} args.log - the logger used for logs in this session.
    * @param {(impersonatedUser:string, user:string database:string) => void} args.homeDatabaseCallback - callback used to update the home database cache
-   * @param {(database:string) => void} args.removeFailureFromCache - callback used to remove all entries containing a failing database from the home database cache
    */
   constructor ({
     mode,
@@ -111,8 +110,7 @@ class Session {
     notificationFilter,
     auth,
     log,
-    homeDatabaseCallback,
-    removeFailureFromCache
+    homeDatabaseCallback
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -127,7 +125,6 @@ class Session {
     auth?: AuthToken
     log: Logger
     homeDatabaseCallback?: (impersonatedUser: string, user: string, database: string) => void
-    removeFailureFromCache?: (database: string) => void
   }) {
     this._mode = mode
     this._database = database
@@ -144,7 +141,6 @@ class Session {
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved.bind(this),
-      removeFailureFromCache,
       getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
       log
     })

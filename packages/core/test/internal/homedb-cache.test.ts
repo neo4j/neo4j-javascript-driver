@@ -25,19 +25,6 @@ describe('#unit HomeDatabaseCache', () => {
     cache.set('basic:hi', 'neo4j')
     expect(cache.get('basic:hi')).toBe('neo4j')
   })
-  it('should remove entries in homeDb cache when their database fails', () => {
-    const cache = new HomeDatabaseCache(10000)
-    cache.set('DEFAULT', 'neo4j')
-    expect(cache.get('DEFAULT')).toBe('neo4j')
-    cache.set('basic:hi', 'neo4j')
-    expect(cache.get('basic:hi')).toBe('neo4j')
-    cache.set('basic:hello', 'neo5j')
-    expect(cache.get('basic:hello')).toBe('neo5j')
-    cache.removeFailedDatabase('neo4j')
-    expect(cache.get('DEFAULT')).toBe(undefined)
-    expect(cache.get('basic:hi')).toBe(undefined)
-    expect(cache.get('basic:hello')).toBe('neo5j')
-  })
 
   it('should cap homeDb size by removing least recently used', async () => {
     const cache = new HomeDatabaseCache(1000)

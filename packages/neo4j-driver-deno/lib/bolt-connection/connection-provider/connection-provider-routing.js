@@ -142,27 +142,16 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, removeFailureFromCache, auth, homeDb } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth, homeDb } = {}) {
     let name
     let address
     const context = { database: database || DEFAULT_DB_NAME }
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
       SESSION_EXPIRED,
-      (error, address) => {
-        if (removeFailureFromCache !== undefined) {
-          removeFailureFromCache(homeDb ?? context.database)
-        }
-        return this._handleUnavailability(error, address, context.database)
-      },
-      (error, address) => {
-        if (removeFailureFromCache !== undefined) {
-          removeFailureFromCache(homeDb ?? context.database)
-        }
-        return this._handleWriteFailure(error, address, homeDb ?? context.database)
-      },
-      (error, address, conn) =>
-        this._handleSecurityError(error, address, conn, context.database)
+      (error, address) => this._handleUnavailability(error, address, context.database),
+      (error, address) => this._handleWriteFailure(error, address, homeDb ?? context.database),
+      (error, address, conn) => this._handleSecurityError(error, address, conn, context.database)
     )
     let currentRoutingTable
     if (this.SSREnabled() && homeDb !== undefined && database === '') {
