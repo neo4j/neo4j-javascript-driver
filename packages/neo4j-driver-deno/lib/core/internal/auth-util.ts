@@ -18,11 +18,11 @@
 import { AuthToken } from '../types.ts'
 
 export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
-  if(impersonatedUser !== undefined && impersonatedUser !== "") {
-    return "basic:" + impersonatedUser
+  if (impersonatedUser !== undefined && impersonatedUser !== '') {
+    return 'basic:' + impersonatedUser
   }
   if (auth === undefined) {
-    return "DEFAULT"
+    return 'DEFAULT'
   }
   if (auth.scheme === 'basic') {
     return 'basic:' + (auth.principal ?? '')
