@@ -97,8 +97,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
       reactive = false,
       fetchSize = FETCH_ALL,
       highRecordWatermark = Number.MAX_VALUE,
-      lowRecordWatermark = Number.MAX_VALUE,
-      onDb
+      lowRecordWatermark = Number.MAX_VALUE
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -114,8 +113,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
       beforeComplete,
       afterComplete,
       highRecordWatermark,
-      lowRecordWatermark,
-      onDb
+      lowRecordWatermark
     })
 
     // passing notification filter on this protocol version throws an error

@@ -18,11 +18,13 @@ import BoltProtocolV5x7 from './bolt-protocol-v5x7'
 
 import transformersFactories from './bolt-protocol-v5x8.transformer'
 import Transformer from './transformer'
+import RequestMessage from './request-message'
+import { ResultStreamObserver } from './stream-observers'
 
 import { internal } from 'neo4j-driver-core'
 
 const {
-  constants: { BOLT_PROTOCOL_V5_8 }
+  constants: { BOLT_PROTOCOL_V5_8, FETCH_ALL }
 } = internal
 
 export default class BoltProtocol extends BoltProtocolV5x7 {
@@ -35,5 +37,68 @@ export default class BoltProtocol extends BoltProtocolV5x7 {
       this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)))
     }
     return this._transformer
+  }
+
+  run (
+    query,
+    parameters,
+    {
+      bookmarks,
+      txConfig,
+      database,
+      mode,
+      impersonatedUser,
+      notificationFilter,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete,
+      flush = true,
+      reactive = false,
+      fetchSize = FETCH_ALL,
+      highRecordWatermark = Number.MAX_VALUE,
+      lowRecordWatermark = Number.MAX_VALUE,
+      onDb
+    } = {}
+  ) {
+    const observer = new ResultStreamObserver({
+      server: this._server,
+      reactive,
+      fetchSize,
+      moreFunction: this._requestMore.bind(this),
+      discardFunction: this._requestDiscard.bind(this),
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete,
+      highRecordWatermark,
+      lowRecordWatermark,
+      enrichMetadata: this._enrichMetadata,
+      onDb
+    })
+
+    const flushRun = reactive
+    this.write(
+      RequestMessage.runWithMetadata5x5(query, parameters, {
+        bookmarks,
+        txConfig,
+        database,
+        mode,
+        impersonatedUser,
+        notificationFilter
+      }),
+      observer,
+      flushRun && flush
+    )
+
+    if (!reactive) {
+      this.write(RequestMessage.pull({ n: fetchSize }), observer, flush)
+    }
+
+    return observer
   }
 }

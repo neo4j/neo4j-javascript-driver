@@ -104,8 +104,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
       reactive = false,
       fetchSize = FETCH_ALL,
       highRecordWatermark = Number.MAX_VALUE,
-      lowRecordWatermark = Number.MAX_VALUE,
-      onDb
+      lowRecordWatermark = Number.MAX_VALUE
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -121,8 +120,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
       beforeComplete,
       afterComplete,
       highRecordWatermark,
-      lowRecordWatermark,
-      onDb
+      lowRecordWatermark
     })
 
     // passing impersonated user on this protocol version throws an error
