@@ -104,7 +104,7 @@ type CreateSession = (args: {
   notificationFilter?: NotificationFilter
   auth?: AuthToken
   log: Logger
-  homeDatabaseCallback?: (impersonatedUser: string, user: string, database: any) => void
+  homeDatabaseCallback?: (user: string, database: any) => void
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor

@@ -189,9 +189,9 @@ describe('#unit driver', () => {
         `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
         sharedNeo4j.authToken
       )
-      driver._homeDatabaseCallback(undefined, 'DEFAULT', 'neo4j')
+      driver._homeDatabaseCallback('DEFAULT', 'neo4j')
       expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
-      driver._homeDatabaseCallback(undefined, 'basic:hi', 'neo4j')
+      driver._homeDatabaseCallback('basic:hi', 'neo4j')
       expect(driver.homeDatabaseCache.get('basic:hi')).toBe('neo4j')
     })
 
@@ -200,9 +200,9 @@ describe('#unit driver', () => {
         `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
         sharedNeo4j.authToken
       )
-      driver._homeDatabaseCallback(undefined, 'DEFAULT', 'neo4j')
+      driver._homeDatabaseCallback('DEFAULT', 'neo4j')
       expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
-      driver._homeDatabaseCallback(undefined, 'DEFAULT', 'neo5j')
+      driver._homeDatabaseCallback('DEFAULT', 'neo5j')
       expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo5j')
     })
 
@@ -212,13 +212,13 @@ describe('#unit driver', () => {
           sharedNeo4j.authToken
       )
       for (let i = 0; i < 9999; i++) {
-        driver._homeDatabaseCallback(undefined, i.toString(), 'neo4j')
+        driver._homeDatabaseCallback(i.toString(), 'neo4j')
       }
       await new Promise(resolve => setTimeout(resolve, 100))
-      driver._homeDatabaseCallback(undefined, '5', 'neo4j')
+      driver._homeDatabaseCallback('5', 'neo4j')
       driver.homeDatabaseCache.get('55')
       for (let i = 9999; i < 10050; i++) {
-        driver._homeDatabaseCallback(undefined, i.toString(), 'neo4j')
+        driver._homeDatabaseCallback(i.toString(), 'neo4j')
       }
       expect(driver.homeDatabaseCache.get('1')).toEqual(undefined)
       expect(driver.homeDatabaseCache.get('901')).toEqual(undefined)

@@ -124,7 +124,7 @@ class Session {
     notificationFilter?: NotificationFilter
     auth?: AuthToken
     log: Logger
-    homeDatabaseCallback?: (impersonatedUser: string, user: string, database: string) => void
+    homeDatabaseCallback?: (user: string, database: string) => void
   }) {
     this._mode = mode
     this._database = database
