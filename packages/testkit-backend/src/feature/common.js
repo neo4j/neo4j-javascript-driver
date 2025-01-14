@@ -32,6 +32,7 @@ const features = [
   'Feature:API:ConnectionAcquisitionTimeout',
   'Feature:API:Driver.ExecuteQuery',
   'Feature:API:Driver.ExecuteQuery:WithAuth',
+  'Feature:API:Driver:MaxConnectionLifetime',
   'Feature:API:Driver:NotificationsConfig',
   'Feature:API:Driver:GetServerInfo',
   'Feature:API:Driver.SupportsSessionAuth',

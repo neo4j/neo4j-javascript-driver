@@ -339,15 +339,9 @@ export default class ChannelConnection extends Connection {
               if (telemetryEnabledHint === true) {
                 this._telemetryDisabledConnection = false
               }
-
-              const SSREnabledHint = metadata.hints['ssr.enabled']
-              if (SSREnabledHint === true) {
-                this.serversideRouting = true
-              } else {
-                this.serversideRouting = false
-              }
-              this._ssrCallback(this.serversideRouting, 'OPEN')
+              this.SSREnabledHint = metadata.hints['ssr.enabled']
             }
+            this._ssrCallback(this.SSREnabledHint ?? false, 'OPEN')
           }
           resolve(self)
         }
@@ -554,7 +548,7 @@ export default class ChannelConnection extends Connection {
    * @returns {Promise<void>} - A promise that will be resolved when the underlying channel is closed.
    */
   async close () {
-    this._ssrCallback(this.serversideRouting, 'CLOSE')
+    this._ssrCallback(this.SSREnabledHint ?? false, 'CLOSE')
     if (this._log.isDebugEnabled()) {
       this._log.debug('closing')
     }

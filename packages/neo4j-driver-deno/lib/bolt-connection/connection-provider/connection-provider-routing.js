@@ -143,8 +143,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * its arguments.
    */
   async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth, homeDb } = {}) {
-    let name
-    let address
     const context = { database: database || DEFAULT_DB_NAME }
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
@@ -153,29 +151,40 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       (error, address) => this._handleWriteFailure(error, address, homeDb ?? context.database),
       (error, address, conn) => this._handleSecurityError(error, address, conn, context.database)
     )
-    let currentRoutingTable
+
+    let conn
     if (this.SSREnabled() && homeDb !== undefined && database === '') {
-      currentRoutingTable = this._routingTableRegistry.get(
+      const currentRoutingTable = this._routingTableRegistry.get(
         homeDb,
         () => new RoutingTable({ database: homeDb })
       )
-    }
-    const routingTable = (currentRoutingTable && !currentRoutingTable.isStaleFor(accessMode))
-      ? currentRoutingTable
-      : await this._freshRoutingTable({
-        accessMode,
-        database: context.database,
-        bookmarks,
-        impersonatedUser,
-        auth,
-        onDatabaseNameResolved: (databaseName) => {
-          context.database = context.database || databaseName
-          if (onDatabaseNameResolved) {
-            onDatabaseNameResolved(databaseName)
-          }
+      if (currentRoutingTable && !currentRoutingTable.isStaleFor(accessMode)) {
+        conn = await this.getConnectionFromRoutingTable(currentRoutingTable, auth, accessMode, databaseSpecificErrorHandler)
+        if (this.SSREnabled()) {
+          return conn
         }
-      })
+        conn.release()
+      }
+    }
+    const routingTable = await this._freshRoutingTable({
+      accessMode,
+      database: context.database,
+      bookmarks,
+      impersonatedUser,
+      auth,
+      onDatabaseNameResolved: (databaseName) => {
+        context.database = context.database || databaseName
+        if (onDatabaseNameResolved) {
+          onDatabaseNameResolved(databaseName)
+        }
+      }
+    })
+    return this.getConnectionFromRoutingTable(routingTable, auth, accessMode, databaseSpecificErrorHandler)
+  }
 
+  async getConnectionFromRoutingTable (routingTable, auth, accessMode, databaseSpecificErrorHandler) {
+    let name
+    let address
     // select a target server based on specified access mode
     if (accessMode === READ) {
       address = this._loadBalancingStrategy.selectReader(routingTable.readers)
