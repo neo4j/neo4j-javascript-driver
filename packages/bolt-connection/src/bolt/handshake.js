@@ -91,7 +91,7 @@ function handshakeNegotiationV2 (channel, buffer, log) {
   // select preferrable protocol and respond
   let major
   let minor
-  versions.sort((a, b) => Number(a.major + '.' + a.minor) - Number(b.major + '.' + b.minor))
+  versions.sort((a, b) => Number(b.major + '.' + b.minor) - Number(a.major + '.' + a.minor))
   for (let i = 0; i < versions.length; i++) {
     const version = versions[i]
     if (AVAILABLE_BOLT_PROTOCOLS.includes(Number(version.major + '.' + version.minor))) {
