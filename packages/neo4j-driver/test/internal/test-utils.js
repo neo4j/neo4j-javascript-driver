@@ -24,6 +24,12 @@ function isServer () {
   return !isClient()
 }
 
+function fakeStandardDateWithOffset (offsetMinutes) {
+  const date = new Date()
+  date.getTimezoneOffset = () => offsetMinutes
+  return date
+}
+
 const matchers = {
   toBeElementOf: function (util, customEqualityTesters) {
     return {
@@ -132,6 +138,7 @@ function spyProtocolWrite (protocol, callRealMethod = false) {
 export default {
   isClient,
   isServer,
+  fakeStandardDateWithOffset,
   matchers,
   MessageRecordingConnection,
   spyProtocolWrite
