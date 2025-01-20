@@ -61,7 +61,7 @@ const auth = {
     credentials: string,
     realm: string,
     scheme: string,
-    parameters?: any
+    parameters?: object
   ) => {
     const output: any = {
       scheme,
@@ -73,7 +73,7 @@ const auth = {
     if (isNotEmpty(realm)) {
       output.realm = realm
     }
-    if (isNotEmpty(parameters) && parameters !== undefined) {
+    if (isNotEmpty(parameters)) {
       output.parameters = parameters
     }
     return output

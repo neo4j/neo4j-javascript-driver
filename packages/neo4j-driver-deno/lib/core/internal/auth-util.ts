@@ -36,10 +36,9 @@ export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
     let ordered = ''
     if (auth.parameters !== undefined) {
       Object.keys(auth.parameters).sort().forEach((key: string) => {
-        if (auth.parameters !== undefined) {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          ordered += `${key}:${auth.parameters[key]}`
-        }
+        // @ts-ignore: undefined check is already made 
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions 
+        ordered += `${key}:${auth.parameters[key]}`
       })
     }
     const credentialString = (auth.credentials !== undefined && auth.credentials !== '') ? 'credentials:' + auth.credentials : ''
