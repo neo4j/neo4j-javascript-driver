@@ -269,7 +269,7 @@ describe('#unit BoltProtocolV5x6', () => {
 
     const clientName = 'js-driver/1.2.3'
     const boltAgent = {
-      product: 'neo4j-javascript/5.6',
+      product: 'neo4j-javascript/5.23',
       platform: 'netbsd 1.1.1; Some arch',
       languageDetails: 'Node/16.0.1 (v8 1.7.0)'
     }
@@ -311,7 +311,7 @@ describe('#unit BoltProtocolV5x6', () => {
     utils.spyProtocolWrite(protocol)
 
     const boltAgent = {
-      product: 'neo4j-javascript/5.6',
+      product: 'neo4j-javascript/5.23',
       platform: 'netbsd 1.1.1; Some arch',
       languageDetails: 'Node/16.0.1 (v8 1.7.0)'
     }
