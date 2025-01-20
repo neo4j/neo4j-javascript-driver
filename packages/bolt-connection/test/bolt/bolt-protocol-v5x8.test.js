@@ -320,7 +320,7 @@ describe('#unit BoltProtocolV5x8', () => {
     utils.spyProtocolWrite(protocol)
 
     const boltAgent = {
-      product: 'neo4j-javascript/5.8',
+      product: 'neo4j-javascript/5.28',
       platform: 'netbsd 1.1.1; Some arch',
       languageDetails: 'Node/16.0.1 (v8 1.7.0)'
     }
