@@ -23,9 +23,9 @@ describe('#unit cacheKey()', () => {
     ['basic', auth.basic('hello', 'basic'), 'basic:hello'],
     ['kerberos', auth.kerberos('kerberosString'), 'kerberos:kerberosString'],
     ['bearer', auth.bearer('bearerToken'), 'bearer:bearerToken'],
-    ['custom without parameters', auth.custom('hello', 'custom', 'realm', 'scheme'), 'scheme:schemeprincipal:hellocredentials:customrealm:realmparameters:'],
-    ['custom with parameters', auth.custom('hello', 'custom', 'realm', 'scheme', { array: [1, 2, 3] }), 'scheme:schemeprincipal:hellocredentials:customrealm:realmparameters:array:1,2,3']
-  ])('should create correct cacheKey for % auth toke', (_, token, expectedKey) => {
+    ['custom without parameters', auth.custom('hello', 'custom', 'realm', 'scheme'), '["credentials","custom","principal","hello","realm","realm","scheme","scheme"]'],
+    ['custom with parameters', auth.custom('hello', 'custom', 'realm', 'scheme', { array: [1, 2, 3] }), '["credentials","custom","parameters",["array",[1,2,3]],"principal","hello","realm","realm","scheme","scheme"]']
+  ])('should create correct cacheKey for % auth token', (_, token, expectedKey) => {
     expect(cacheKey(token)).toEqual(expectedKey)
   })
 })

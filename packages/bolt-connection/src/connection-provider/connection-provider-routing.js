@@ -687,13 +687,13 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     if (action === 'OPEN') {
       if (isEnabled === true) {
         this._withSSR = this._withSSR + 1
-      } else if (isEnabled === false) {
+      } else {
         this._withoutSSR = this._withoutSSR + 1
       }
     } else if (action === 'CLOSE') {
       if (isEnabled === true) {
         this._withSSR = this._withSSR - 1
-      } else if (isEnabled === false) {
+      } else {
         this._withoutSSR = this._withoutSSR - 1
       }
     } else {

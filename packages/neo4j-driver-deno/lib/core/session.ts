@@ -95,7 +95,7 @@ class Session {
    * @param {NotificationFilter} args.notificationFilter - The notification filter used for this session.
    * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
    * @param {Logger} args.log - the logger used for logs in this session.
-   * @param {(impersonatedUser:string, user:string database:string) => void} args.homeDatabaseCallback - callback used to update the home database cache
+   * @param {(user:string, database:string) => void} args.homeDatabaseCallback - callback used to update the home database cache
    */
   constructor ({
     mode,
@@ -526,14 +526,14 @@ class Session {
     if (this._isRoutingSession) {
       this._databaseGuess = database
       if (!this._databaseNameResolved) {
-        if (this._homeDatabaseCallback != null) {
-          this._homeDatabaseCallback(cacheKey(this._auth, this._impersonatedUser), database)
-        }
         const normalizedDatabase = database ?? ''
         this._database = normalizedDatabase
         this._readConnectionHolder.setDatabase(normalizedDatabase)
         this._writeConnectionHolder.setDatabase(normalizedDatabase)
         this._databaseNameResolved = true
+        if (this._homeDatabaseCallback != null) {
+          this._homeDatabaseCallback(cacheKey(this._auth, this._impersonatedUser), database)
+        }
       }
     }
   }

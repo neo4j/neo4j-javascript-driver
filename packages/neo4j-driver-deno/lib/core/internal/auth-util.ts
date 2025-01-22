@@ -18,7 +18,7 @@
 import { AuthToken } from '../types.ts'
 
 export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
-  if (impersonatedUser !== undefined && impersonatedUser !== null) {
+  if (impersonatedUser != null) {
     return 'basic:' + impersonatedUser
   }
   if (auth === undefined) {
@@ -26,23 +26,28 @@ export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
   }
   if (auth.scheme === 'basic') {
     return 'basic:' + (auth.principal ?? '')
-  } else if (auth.scheme === 'kerberos') {
-    return 'kerberos:' + auth.credentials
-  } else if (auth.scheme === 'bearer') {
-    return 'bearer:' + auth.credentials
-  } else if (auth.scheme === 'none') {
-    return 'none'
-  } else {
-    let ordered = ''
-    if (auth.parameters !== undefined) {
-      Object.keys(auth.parameters).sort().forEach((key: string) => {
-        // @ts-expect-error: undefined check is already made
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        ordered += `${key}:${auth.parameters[key]}`
-      })
-    }
-    const credentialString = (auth.credentials !== undefined && auth.credentials !== '') ? 'credentials:' + auth.credentials : ''
-    const realmString = (auth.realm !== undefined && auth.realm !== '') ? 'realm:' + auth.realm : ''
-    return 'scheme:' + auth.scheme + 'principal:' + (auth.principal ?? '') + credentialString + realmString + 'parameters:' + ordered
   }
+  if (auth.scheme === 'kerberos') {
+    return 'kerberos:' + auth.credentials
+  }
+  if (auth.scheme === 'bearer') {
+  return 'bearer:' + auth.credentials
+  }
+  if (auth.scheme === 'none') {
+    return 'none'
+  }
+  return JSON.stringify(orderedObject(auth))
+}
+
+function orderedObject(obj: object): any[] {
+  let ordered: any[] = []
+  Object.keys(obj).sort().forEach((key: string) => {
+    // @ts-expect-error: undefined check is already made
+    let entry:any = obj[key]
+    if(typeof entry === "object" && !(entry instanceof Array)) {
+      entry = orderedObject(entry)
+    }
+    ordered = ordered.concat([key, entry])
+  })
+  return ordered
 }
