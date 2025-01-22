@@ -40,7 +40,7 @@ export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
 }
 
 function orderedObject (obj: object): object {
-  let ordered = {}
+  const ordered = {}
   Object.keys(obj).sort().forEach((key: string) => {
     // @ts-expect-error: undefined check is already made
     let entry: any = obj[key]
