@@ -39,15 +39,16 @@ export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
   return JSON.stringify(orderedObject(auth))
 }
 
-function orderedObject (obj: object): any[] {
-  let ordered: any[] = []
+function orderedObject (obj: object): object {
+  let ordered = {}
   Object.keys(obj).sort().forEach((key: string) => {
     // @ts-expect-error: undefined check is already made
     let entry: any = obj[key]
     if (typeof entry === 'object' && !(entry instanceof Array)) {
       entry = orderedObject(entry)
     }
-    ordered = ordered.concat([key, entry])
+    // @ts-expect-error: undefined check is already made
+    ordered[key] = entry
   })
   return ordered
 }
