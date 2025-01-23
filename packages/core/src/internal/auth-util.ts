@@ -37,19 +37,5 @@ export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
   if (auth.scheme === 'none') {
     return 'none'
   }
-  return stringify(orderedObject(auth))
-}
-
-function orderedObject (obj: object): object {
-  const ordered = {}
-  Object.keys(obj).sort().forEach((key: string) => {
-    // @ts-expect-error: no way to avoid implicit 'any'
-    let entry: any = obj[key]
-    if (typeof entry === 'object' && !(entry instanceof Array)) {
-      entry = orderedObject(entry)
-    }
-    // @ts-expect-error: no way to avoid implicit 'any'
-    ordered[key] = entry
-  })
-  return ordered
+  return stringify(auth, { sortedElements: true })
 }

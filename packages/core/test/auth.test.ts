@@ -70,6 +70,11 @@ describe('auth', () => {
       true
     ],
     [
+      ['user', 'pass', 'realm', 'scheme', { a: { param2: 'param2', param: 'param' } }],
+      ['user', 'pass', 'realm', 'scheme', { a: { param: 'param', param2: 'param2' } }],
+      true
+    ],
+    [
       ['user', 'pass', 'realm', 'scheme', { param: [1, 2, 3] }],
       ['user', 'pass', 'realm', 'scheme', { param: [1, 2, 3] }],
       true
