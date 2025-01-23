@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { stringify } from '../json.ts'
 import { AuthToken } from '../types.ts'
 
 export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
@@ -36,7 +37,7 @@ export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
   if (auth.scheme === 'none') {
     return 'none'
   }
-  return JSON.stringify(orderedObject(auth))
+  return stringify(orderedObject(auth))
 }
 
 function orderedObject (obj: object): object {
