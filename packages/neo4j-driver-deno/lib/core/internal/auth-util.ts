@@ -37,5 +37,5 @@ export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
   if (auth.scheme === 'none') {
     return 'none'
   }
-  return stringify(auth,  {stableObjectOrder: true})
+  return stringify(auth, { sortedElements: true })
 }

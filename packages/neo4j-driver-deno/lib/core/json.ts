@@ -19,7 +19,7 @@ import { isBrokenObject, getBrokenObjectReason } from './internal/object-util.ts
 
 interface StringifyOpts {
   useCustomToString?: boolean
-  stableObjectOrder?: boolean
+  sortedElements?: boolean
 }
 
 /**
@@ -41,26 +41,24 @@ export function stringify (val: any, opts?: StringifyOpts): string {
       return `${value}n`
     }
 
-    if (opts?.stableObjectOrder === true &&
+    if (opts?.sortedElements === true &&
       typeof value === 'object' &&
-      !Array.isArray(value)) 
-    {
+      !Array.isArray(value)) {
       return Object.keys(value).sort().reduce(
-        (obj, key) => { 
+        (obj, key) => {
           // @ts-expect-error: no way to avoid implicit 'any'
-          obj[key] = value[key]; 
-          return obj;
-          }, 
+          obj[key] = value[key]
+          return obj
+        },
         {}
-      );
+      )
     }
 
     if (opts?.useCustomToString === true &&
       typeof value === 'object' &&
       !Array.isArray(value) &&
       typeof value.toString === 'function' &&
-      value.toString !== Object.prototype.toString) 
-    {
+      value.toString !== Object.prototype.toString) {
       return value?.toString()
     }
 
