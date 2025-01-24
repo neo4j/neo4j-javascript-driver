@@ -77,10 +77,10 @@ const auth = {
       output.realm = realm
     }
     if (isNotEmpty(parameters)) {
-      try{
+      try {
         stringify(parameters)
       } catch (e) {
-        throw newError("Circular references in custom auth token parameters", undefined, e)
+        throw newError('Circular references in custom auth token parameters', undefined, e)
       }
       output.parameters = parameters
     }
