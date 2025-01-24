@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { newError } from './error.ts'
+import { stringify } from './json.ts'
+
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
  * basic authentication token.
@@ -74,6 +77,11 @@ const auth = {
       output.realm = realm
     }
     if (isNotEmpty(parameters)) {
+      try{
+        stringify(parameters)
+      } catch (e) {
+        throw newError("Circular references in custom auth token parameters", undefined, e)
+      }
       output.parameters = parameters
     }
     return output
