@@ -140,6 +140,7 @@ class Transaction {
   _begin (getBookmarks: () => Promise<Bookmarks>, txConfig: TxConfig, events?: {
     onError: (error: Error) => void
     onComplete: (metadata: any) => void
+    onDB: (database: string) => void
   }): void {
     this._connectionHolder
       .getConnection()
@@ -164,6 +165,9 @@ class Transaction {
             afterComplete: (metadata: any) => {
               if (events != null) {
                 events.onComplete(metadata)
+              }
+              if (metadata.db !== undefined && ((events?.onDB) != null)) {
+                events.onDB(metadata.db)
               }
               this._onComplete(metadata)
             }

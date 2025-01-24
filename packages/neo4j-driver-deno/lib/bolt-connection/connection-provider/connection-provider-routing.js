@@ -78,7 +78,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._createConnectionErrorHandler(),
         this._log,
         await this._clientCertificateHolder.getClientCertificate(),
-        this._routingContext
+        this._routingContext,
+        this._channelSsrCallback.bind(this)
       )
     })
 
@@ -99,6 +100,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
 
     this._refreshRoutingTable = functional.reuseOngoingRequest(this._refreshRoutingTable, this)
+    this._withSSR = 0
+    this._withoutSSR = 0
   }
 
   _createConnectionErrorHandler () {
@@ -139,19 +142,30 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth } = {}) {
-    let name
-    let address
+  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth, homeDb } = {}) {
     const context = { database: database || DEFAULT_DB_NAME }
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
       SESSION_EXPIRED,
       (error, address) => this._handleUnavailability(error, address, context.database),
-      (error, address) => this._handleWriteFailure(error, address, context.database),
-      (error, address, conn) =>
-        this._handleSecurityError(error, address, conn, context.database)
+      (error, address) => this._handleWriteFailure(error, address, homeDb ?? context.database),
+      (error, address, conn) => this._handleSecurityError(error, address, conn, context.database)
     )
 
+    let conn
+    if (this.SSREnabled() && homeDb !== undefined && database === '') {
+      const currentRoutingTable = this._routingTableRegistry.get(
+        homeDb,
+        () => new RoutingTable({ database: homeDb })
+      )
+      if (currentRoutingTable && !currentRoutingTable.isStaleFor(accessMode)) {
+        conn = await this.getConnectionFromRoutingTable(currentRoutingTable, auth, accessMode, databaseSpecificErrorHandler)
+        if (this.SSREnabled()) {
+          return conn
+        }
+        conn.release()
+      }
+    }
     const routingTable = await this._freshRoutingTable({
       accessMode,
       database: context.database,
@@ -165,7 +179,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         }
       }
     })
+    return this.getConnectionFromRoutingTable(routingTable, auth, accessMode, databaseSpecificErrorHandler)
+  }
 
+  async getConnectionFromRoutingTable (routingTable, auth, accessMode, databaseSpecificErrorHandler) {
+    let name
+    let address
     // select a target server based on specified access mode
     if (accessMode === READ) {
       address = this._loadBalancingStrategy.selectReader(routingTable.readers)
@@ -662,6 +681,28 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     if (routingTable && address) {
       routingTable.forgetRouter(address)
     }
+  }
+
+  _channelSsrCallback (isEnabled, action) {
+    if (action === 'OPEN') {
+      if (isEnabled === true) {
+        this._withSSR = this._withSSR + 1
+      } else {
+        this._withoutSSR = this._withoutSSR + 1
+      }
+    } else if (action === 'CLOSE') {
+      if (isEnabled === true) {
+        this._withSSR = this._withSSR - 1
+      } else {
+        this._withoutSSR = this._withoutSSR - 1
+      }
+    } else {
+      throw newError("Channel SSR Callback invoked with action other than 'OPEN' or 'CLOSE'")
+    }
+  }
+
+  SSREnabled () {
+    return this._withSSR > 0 && this._withoutSSR === 0
   }
 }
 

@@ -182,6 +182,52 @@ describe('#unit driver', () => {
       expect(session._session._log).toBe(driver._log)
     })
   })
+
+  describe('homeDatabaseCache', () => {
+    it('should build homedb cache from callback functions', () => {
+      driver = neo4j.driver(
+        `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
+        sharedNeo4j.authToken
+      )
+      driver._homeDatabaseCallback('DEFAULT', 'neo4j')
+      expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
+      driver._homeDatabaseCallback('basic:hi', 'neo4j')
+      expect(driver.homeDatabaseCache.get('basic:hi')).toBe('neo4j')
+    })
+
+    it('should change homedb entries with new info', () => {
+      driver = neo4j.driver(
+        `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
+        sharedNeo4j.authToken
+      )
+      driver._homeDatabaseCallback('DEFAULT', 'neo4j')
+      expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo4j')
+      driver._homeDatabaseCallback('DEFAULT', 'neo5j')
+      expect(driver.homeDatabaseCache.get('DEFAULT')).toBe('neo5j')
+    })
+
+    it('should cap homeDb size by removing least recently used', async () => {
+      driver = neo4j.driver(
+          `neo4j+ssc://${sharedNeo4j.hostnameWithBoltPort}`,
+          sharedNeo4j.authToken
+      )
+      for (let i = 0; i < 9999; i++) {
+        driver._homeDatabaseCallback(i.toString(), 'neo4j')
+      }
+      await new Promise(resolve => setTimeout(resolve, 100))
+      driver._homeDatabaseCallback('5', 'neo4j')
+      driver.homeDatabaseCache.get('55')
+      for (let i = 9999; i < 10050; i++) {
+        driver._homeDatabaseCallback(i.toString(), 'neo4j')
+      }
+      expect(driver.homeDatabaseCache.get('1')).toEqual(undefined)
+      expect(driver.homeDatabaseCache.get('901')).toEqual(undefined)
+      expect(driver.homeDatabaseCache.get('5')).toEqual('neo4j')
+      expect(driver.homeDatabaseCache.get('55')).toEqual('neo4j')
+      expect(driver.homeDatabaseCache.get('1001')).toEqual('neo4j')
+      expect(driver.homeDatabaseCache.get('10001')).toEqual('neo4j')
+    })
+  })
 })
 
 describe('#integration driver', () => {
@@ -534,6 +580,33 @@ describe('#integration driver', () => {
     expect(connections2.length).toEqual(1)
 
     expect(connections1[0]).not.toEqual(connections2[0])
+  })
+
+  describe('HomeDatabaseCache', () => {
+    [['with driver auth', {}, 'DEFAULT'],
+      ['with session auth', { auth: sharedNeo4j.authToken }, 'basic:neo4j'],
+      ['with impersonated user', { impersonatedUser: 'neo4j' }, 'basic:neo4j']].forEach(([string, auth, key]) => {
+      it('should build home database cache ' + string, async () => {
+        driver = neo4j.driver(
+          `neo4j://${sharedNeo4j.hostnameWithBoltPort}`,
+          sharedNeo4j.authToken
+        )
+        if (protocolVersion >= 5.8) {
+          try {
+            const session1 = driver.session(auth)
+            await session1.run('CREATE () RETURN 42')
+            expect(driver.homeDatabaseCache.get(key)).toBe('neo4j') // should have set the homedb in cache
+            expect(session1._database).toBe('neo4j') // should have pinned database to the session
+            const session2 = driver.session(auth)
+            expect(session2._databaseGuess).toBe('neo4j') // second session should use the homedb as a guess...
+            expect(session2._database).toBe('') // ...but should not pin this to the session.
+            await session2.run('CREATE () RETURN 43')
+          } catch (e) {
+            expect(e.message.includes('Impersonation is not supported in community edition.')).toBe(true)
+          }
+        }
+      })
+    })
   })
 
   it('should discard old connections', async () => {

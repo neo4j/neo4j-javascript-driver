@@ -56,7 +56,9 @@ class ConnectionProvider {
    * @property {string} param.database - the target database for the to-be-acquired connection
    * @property {Bookmarks} param.bookmarks - the bookmarks to send to routing discovery
    * @property {string} param.impersonatedUser - the impersonated user
-   * @property {function (databaseName:string?)} param.onDatabaseNameResolved - Callback called when the database name get resolved
+   * @property {function (databaseName:string)} param.onDatabaseNameResolved - Callback called when the database name get resolved
+   * @property {AuthToken} param.auth - auth token used to authorize for connection acquisition
+   * @property {string} param.homeDb - the driver's best guess at the current home database for the user
    * @returns {Promise<Connection>}
    */
   acquireConnection (param?: {
@@ -64,8 +66,9 @@ class ConnectionProvider {
     database?: string
     bookmarks: bookmarks.Bookmarks
     impersonatedUser?: string
-    onDatabaseNameResolved?: (databaseName?: string) => void
+    onDatabaseNameResolved?: (database: string) => void
     auth?: AuthToken
+    homeDb?: string
   }): Promise<Connection & Releasable> {
     throw Error('Not implemented')
   }
@@ -108,6 +111,10 @@ class ConnectionProvider {
    */
   supportsSessionAuth (): Promise<boolean> {
     throw Error('Not implemented')
+  }
+
+  SSREnabled (): boolean {
+    return false
   }
 
   /**

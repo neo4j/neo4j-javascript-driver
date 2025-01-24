@@ -37,6 +37,7 @@ import BookmarkManager from './bookmark-manager'
 import { RecordShape } from './record'
 import NotificationFilter from './notification-filter'
 import { Logger } from './internal/logger'
+import { cacheKey } from './internal/auth-util'
 
 type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
@@ -74,6 +75,10 @@ class Session {
   private readonly _bookmarkManager?: BookmarkManager
   private readonly _notificationFilter?: NotificationFilter
   private readonly _log: Logger
+  private readonly _homeDatabaseCallback: Function | undefined
+  private readonly _auth: AuthToken | undefined
+  private _databaseGuess: string | undefined
+  private readonly _isRoutingSession: boolean
   /**
    * @constructor
    * @protected
@@ -86,8 +91,11 @@ class Session {
    * @param {boolean} args.reactive - Whether this session should create reactive streams
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
    * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
-   * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
+   * @param {BookmarkManager} args.bookmarkManager - The bookmark manager used for this session.
    * @param {NotificationFilter} args.notificationFilter - The notification filter used for this session.
+   * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
+   * @param {Logger} args.log - the logger used for logs in this session.
+   * @param {(user:string, database:string) => void} args.homeDatabaseCallback - callback used to update the home database cache
    */
   constructor ({
     mode,
@@ -101,7 +109,8 @@ class Session {
     bookmarkManager,
     notificationFilter,
     auth,
-    log
+    log,
+    homeDatabaseCallback
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -115,12 +124,14 @@ class Session {
     notificationFilter?: NotificationFilter
     auth?: AuthToken
     log: Logger
+    homeDatabaseCallback?: (user: string, database: string) => void
   }) {
     this._mode = mode
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
-    this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
+    this._homeDatabaseCallback = homeDatabaseCallback
+    this._auth = auth
     this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
@@ -129,7 +140,7 @@ class Session {
       bookmarks,
       connectionProvider,
       impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      onDatabaseNameResolved: this._onDatabaseNameResolved.bind(this),
       getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
       log
     })
@@ -140,7 +151,7 @@ class Session {
       bookmarks,
       connectionProvider,
       impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      onDatabaseNameResolved: this._onDatabaseNameResolved.bind(this),
       getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks,
       log
     })
@@ -158,6 +169,8 @@ class Session {
     this._bookmarkManager = bookmarkManager
     this._notificationFilter = notificationFilter
     this._log = log
+    this._databaseGuess = config?.cachedHomeDatabase
+    this._isRoutingSession = config?.routingDriver ?? false
   }
 
   /**
@@ -201,7 +214,8 @@ class Session {
         fetchSize: this._fetchSize,
         lowRecordWatermark: this._lowRecordWatermark,
         highRecordWatermark: this._highRecordWatermark,
-        notificationFilter: this._notificationFilter
+        notificationFilter: this._notificationFilter,
+        onDb: this._onDatabaseNameResolved.bind(this)
       })
     })
     this._results.push(result)
@@ -254,7 +268,7 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection()) {
+    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess)) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
@@ -310,7 +324,7 @@ class Session {
 
     const mode = Session._validateSessionMode(accessMode)
     const connectionHolder = this._connectionHolderWithMode(mode)
-    connectionHolder.initializeConnection()
+    connectionHolder.initializeConnection(this._databaseGuess)
     this._hasTx = true
 
     const tx = new TransactionPromise({
@@ -324,7 +338,8 @@ class Session {
       lowRecordWatermark: this._lowRecordWatermark,
       highRecordWatermark: this._highRecordWatermark,
       notificationFilter: this._notificationFilter,
-      apiTelemetryConfig
+      apiTelemetryConfig,
+      onDbCallback: this._onDatabaseNameResolved.bind(this)
     })
     tx._begin(() => this._bookmarks(), txConfig)
     return tx
@@ -516,12 +531,18 @@ class Session {
    * @returns {void}
    */
   _onDatabaseNameResolved (database?: string): void {
-    if (!this._databaseNameResolved) {
-      const normalizedDatabase = database ?? ''
-      this._database = normalizedDatabase
-      this._readConnectionHolder.setDatabase(normalizedDatabase)
-      this._writeConnectionHolder.setDatabase(normalizedDatabase)
-      this._databaseNameResolved = true
+    if (this._isRoutingSession) {
+      this._databaseGuess = database
+      if (!this._databaseNameResolved) {
+        const normalizedDatabase = database ?? ''
+        this._database = normalizedDatabase
+        this._readConnectionHolder.setDatabase(normalizedDatabase)
+        this._writeConnectionHolder.setDatabase(normalizedDatabase)
+        this._databaseNameResolved = true
+        if (this._homeDatabaseCallback != null) {
+          this._homeDatabaseCallback(cacheKey(this._auth, this._impersonatedUser), database)
+        }
+      }
     }
   }
 

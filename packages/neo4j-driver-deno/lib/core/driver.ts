@@ -46,6 +46,8 @@ import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import QueryExecutor from './internal/query-executor.ts'
 import { newError } from './error.ts'
 import NotificationFilter from './notification-filter.ts'
+import HomeDatabaseCache from './internal/homedb-cache.ts'
+import { cacheKey } from './internal/auth-util.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -54,6 +56,11 @@ const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
  * @type {number}
  */
 const DEFAULT_FETCH_SIZE: number = 1000
+
+/**
+ * The maximum number of entries allowed in the home database cache before pruning.
+ */
+const HOMEDB_CACHE_MAX_SIZE: number = 10000
 
 /**
  * Constant that represents read session access mode.
@@ -97,6 +104,7 @@ type CreateSession = (args: {
   notificationFilter?: NotificationFilter
   auth?: AuthToken
   log: Logger
+  homeDatabaseCallback?: (user: string, database: any) => void
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -470,6 +478,7 @@ class Driver {
   private readonly _createSession: CreateSession
   private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
+  private readonly homeDatabaseCache: HomeDatabaseCache
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -508,6 +517,11 @@ class Driver {
      * @protected
      */
     this._connectionProvider = null
+
+    /**
+     * @private
+     */
+    this.homeDatabaseCache = new HomeDatabaseCache(HOMEDB_CACHE_MAX_SIZE)
 
     this._afterConstruction()
   }
@@ -837,6 +851,10 @@ class Driver {
     )
   }
 
+  _homeDatabaseCallback (cacheKey: string, database: any): void {
+    this.homeDatabaseCache.set(cacheKey, database)
+  }
+
   /**
    * @private
    */
@@ -863,6 +881,9 @@ class Driver {
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
+    // eslint-disable-next-line
+    const cachedHomeDatabase = this.homeDatabaseCache.get(cacheKey(auth, impersonatedUser))
+    const homeDatabaseCallback = this._homeDatabaseCallback.bind(this)
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
@@ -872,14 +893,19 @@ class Driver {
       database: database ?? '',
       connectionProvider,
       bookmarks,
-      config: this._config,
+      config: {
+        cachedHomeDatabase,
+        routingDriver: this._supportsRouting(),
+        ...this._config
+      },
       reactive,
       impersonatedUser,
       fetchSize,
       bookmarkManager,
       notificationFilter,
       auth,
-      log: this._log
+      log: this._log,
+      homeDatabaseCallback
     })
   }
 
