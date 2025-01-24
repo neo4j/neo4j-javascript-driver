@@ -42,8 +42,8 @@ export function stringify (val: any, opts?: StringifyOpts): string {
     }
 
     if (opts?.sortedElements === true &&
-      typeof value === 'object' &&
-      !Array.isArray(value)) {
+        typeof value === 'object' &&
+        !Array.isArray(value)) {
       return Object.keys(value).sort().reduce(
         (obj, key) => {
           // @ts-expect-error: no way to avoid implicit 'any'
@@ -55,10 +55,10 @@ export function stringify (val: any, opts?: StringifyOpts): string {
     }
 
     if (opts?.useCustomToString === true &&
-      typeof value === 'object' &&
-      !Array.isArray(value) &&
-      typeof value.toString === 'function' &&
-      value.toString !== Object.prototype.toString) {
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        typeof value.toString === 'function' &&
+        value.toString !== Object.prototype.toString) {
       return value?.toString()
     }
 
