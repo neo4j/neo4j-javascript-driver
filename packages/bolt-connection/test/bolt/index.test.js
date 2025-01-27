@@ -54,7 +54,7 @@ describe('#unit Bolt', () => {
       const protocolVersion3 = '00 00 00 03'
 
       expect(writtenBuffer.toHex()).toEqual(
-        `${boltMagicPreamble} ${handshakev2} ${protocolVersion5x7to5x0} ${protocolVersion4x4to4x0} ${protocolVersion3}`
+        `${boltMagicPreamble} ${handshakev2} ${protocolVersion5x7to5x0} ${protocolVersion4x4to4x2} ${protocolVersion3}`
       )
     })
 
