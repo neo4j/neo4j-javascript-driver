@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import BoltProtocolV5x3 from '../../src/bolt/bolt-protocol-v5x3'
+import BoltProtocolV5x8 from '../../src/bolt/bolt-protocol-v5x8'
 import RequestMessage from '../../src/bolt/request-message'
 import { v2, structure } from '../../src/packstream'
 import utils from '../test-utils'
@@ -49,14 +49,25 @@ const {
   temporalUtil
 } = internal
 
-describe('#unit BoltProtocolV5x3', () => {
+describe('#unit BoltProtocolV5x8', () => {
   beforeEach(() => {
     expect.extend(utils.matchers)
   })
 
+  telemetryBehaviour.protocolSupportsTelemetry(newProtocol)
+
+  it('should enrich error metadata', () => {
+    const protocol = new BoltProtocolV5x8()
+    const enrichedData = protocol.enrichErrorMetadata({ neo4j_code: 'hello', diagnostic_record: {} })
+    expect(enrichedData.code).toBe('hello')
+    expect(enrichedData.diagnostic_record.OPERATION).toBe('')
+    expect(enrichedData.diagnostic_record.OPERATION_CODE).toBe('0')
+    expect(enrichedData.diagnostic_record.CURRENT_SCHEMA).toBe('/')
+  })
+
   it('should request routing information', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
     const routingContext = { someContextParam: 'value' }
     const databaseName = 'name'
@@ -77,7 +88,7 @@ describe('#unit BoltProtocolV5x3', () => {
 
   it('should request routing information sending bookmarks', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
     const routingContext = { someContextParam: 'value' }
     const listOfBookmarks = ['a', 'b', 'c']
@@ -110,7 +121,7 @@ describe('#unit BoltProtocolV5x3', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const query = 'RETURN $x, $y'
@@ -150,7 +161,7 @@ describe('#unit BoltProtocolV5x3', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const query = 'RETURN $x, $y'
@@ -191,7 +202,7 @@ describe('#unit BoltProtocolV5x3', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
@@ -221,7 +232,7 @@ describe('#unit BoltProtocolV5x3', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
@@ -241,14 +252,14 @@ describe('#unit BoltProtocolV5x3', () => {
   })
 
   it('should return correct bolt version number', () => {
-    const protocol = new BoltProtocolV5x3(null, null, false)
+    const protocol = new BoltProtocolV5x8(null, null, false)
 
-    expect(protocol.version).toBe(5.3)
+    expect(protocol.version).toBe(5.8)
   })
 
   it('should update metadata', () => {
     const metadata = { t_first: 1, t_last: 2, db_hits: 3, some_other_key: 4 }
-    const protocol = new BoltProtocolV5x3(null, null, false)
+    const protocol = new BoltProtocolV5x8(null, null, false)
 
     const transformedMetadata = protocol.transformMetadata(metadata)
 
@@ -262,12 +273,12 @@ describe('#unit BoltProtocolV5x3', () => {
 
   it('should initialize connection', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const clientName = 'js-driver/1.2.3'
     const boltAgent = {
-      product: 'neo4j-javascript/5.9',
+      product: 'neo4j-javascript/5.28',
       platform: 'netbsd 1.1.1; Some arch',
       languageDetails: 'Node/16.0.1 (v8 1.7.0)'
     }
@@ -299,17 +310,17 @@ describe('#unit BoltProtocolV5x3', () => {
   })
 
   it.each([
-    'javascript-driver/5.5.0',
+    'javascript-driver/5.8.0',
     '',
     undefined,
     null
   ])('should always use the user agent set by the user', (userAgent) => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const boltAgent = {
-      product: 'neo4j-javascript/5.9',
+      product: 'neo4j-javascript/5.28',
       platform: 'netbsd 1.1.1; Some arch',
       languageDetails: 'Node/16.0.1 (v8 1.7.0)'
     }
@@ -344,7 +355,7 @@ describe('#unit BoltProtocolV5x3', () => {
     [true, false]
   )('should logon to the server [flush=%s]', (flush) => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const authToken = { username: 'neo4j', password: 'secret' }
@@ -365,7 +376,7 @@ describe('#unit BoltProtocolV5x3', () => {
     [true, false]
   )('should logoff from the server [flush=%s]', (flush) => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.logoff({ flush })
@@ -390,7 +401,7 @@ describe('#unit BoltProtocolV5x3', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
@@ -409,7 +420,7 @@ describe('#unit BoltProtocolV5x3', () => {
 
   it('should commit', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.commitTransaction()
@@ -422,7 +433,7 @@ describe('#unit BoltProtocolV5x3', () => {
 
   it('should rollback', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.rollbackTransaction()
@@ -435,7 +446,7 @@ describe('#unit BoltProtocolV5x3', () => {
 
   it('should support logoff', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x3(recorder, null, false)
+    const protocol = new BoltProtocolV5x8(recorder, null, false)
 
     expect(protocol.supportsReAuth).toBe(true)
   })
@@ -449,7 +460,7 @@ describe('#unit BoltProtocolV5x3', () => {
     ])(
       'should create unpacker with disableLosslessIntegers=%p and useBigInt=%p',
       (disableLosslessIntegers, useBigInt) => {
-        const protocol = new BoltProtocolV5x3(null, null, {
+        const protocol = new BoltProtocolV5x8(null, null, {
           disableLosslessIntegers,
           useBigInt
         })
@@ -462,16 +473,16 @@ describe('#unit BoltProtocolV5x3', () => {
   })
 
   describe('notificationFilter', () => {
-    notificationFilterBehaviour.shouldSupportNotificationFilterOnInitialize(newProtocol)
-    notificationFilterBehaviour.shouldSupportNotificationFilterOnBeginTransaction(newProtocol)
-    notificationFilterBehaviour.shouldSupportNotificationFilterOnRun(newProtocol)
+    notificationFilterBehaviour.shouldSupportGqlNotificationFilterOnInitialize(newProtocol)
+    notificationFilterBehaviour.shouldSupportGqlNotificationFilterOnBeginTransaction(newProtocol)
+    notificationFilterBehaviour.shouldSupportGqlNotificationFilterOnRun(newProtocol)
   })
 
   describe('watermarks', () => {
     it('.run() should configure watermarks', () => {
       const recorder = new utils.MessageRecordingConnection()
       const protocol = utils.spyProtocolWrite(
-        new BoltProtocolV5x3(recorder, null, false)
+        new BoltProtocolV5x8(recorder, null, false)
       )
 
       const query = 'RETURN $x, $y'
@@ -490,12 +501,12 @@ describe('#unit BoltProtocolV5x3', () => {
 
   describe('packstream', () => {
     it('should configure v2 packer', () => {
-      const protocol = new BoltProtocolV5x3(null, null, false)
+      const protocol = new BoltProtocolV5x8(null, null, false)
       expect(protocol.packer()).toBeInstanceOf(v2.Packer)
     })
 
     it('should configure v2 unpacker', () => {
-      const protocol = new BoltProtocolV5x3(null, null, false)
+      const protocol = new BoltProtocolV5x8(null, null, false)
       expect(protocol.unpacker()).toBeInstanceOf(v2.Unpacker)
     })
   })
@@ -507,7 +518,7 @@ describe('#unit BoltProtocolV5x3', () => {
       ['UnboundRelationship', new UnboundRelationship(1, 'a', { b: 'c' }, '1')],
       ['Path', new Path(new Node(1, [], {}), new Node(2, [], {}), [])]
     ])('should resultant function not pack graph types (%s)', (_, graphType) => {
-      const protocol = new BoltProtocolV5x3(
+      const protocol = new BoltProtocolV5x8(
         new utils.MessageRecordingConnection(),
         null,
         false
@@ -544,7 +555,7 @@ describe('#unit BoltProtocolV5x3', () => {
       ['Point3D', new Point(1, 1, 1, 1)]
     ])('should pack spatial types and temporal types (%s)', (_, object) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x3(
+      const protocol = new BoltProtocolV5x8(
         new utils.MessageRecordingConnection(),
         buffer,
         {
@@ -663,7 +674,7 @@ describe('#unit BoltProtocolV5x3', () => {
     ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
       const buffer = alloc(256)
       const loggerFunction = jest.fn()
-      const protocol = new BoltProtocolV5x3(
+      const protocol = new BoltProtocolV5x8(
         new utils.MessageRecordingConnection(),
         buffer,
         {
@@ -726,7 +737,7 @@ describe('#unit BoltProtocolV5x3', () => {
             )
             const buffer = alloc(256)
             const loggerFunction = jest.fn()
-            const protocol = new BoltProtocolV5x3(
+            const protocol = new BoltProtocolV5x8(
               new utils.MessageRecordingConnection(),
               buffer,
               {
@@ -774,7 +785,7 @@ describe('#unit BoltProtocolV5x3', () => {
           const object = DateTime.fromStandardDate(date)
           const buffer = alloc(256)
           const loggerFunction = jest.fn()
-          const protocol = new BoltProtocolV5x3(
+          const protocol = new BoltProtocolV5x8(
             new utils.MessageRecordingConnection(),
             buffer,
             {
@@ -853,7 +864,7 @@ describe('#unit BoltProtocolV5x3', () => {
       ]
     ])('should unpack graph types (%s)', (_, struct, graphObject) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x3(
+      const protocol = new BoltProtocolV5x8(
         new utils.MessageRecordingConnection(),
         buffer,
         false
@@ -1005,7 +1016,7 @@ describe('#unit BoltProtocolV5x3', () => {
       ]
     ])('should not unpack with wrong size (%s)', (_, struct) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x3(
+      const protocol = new BoltProtocolV5x8(
         new utils.MessageRecordingConnection(),
         buffer,
         false
@@ -1101,7 +1112,7 @@ describe('#unit BoltProtocolV5x3', () => {
       ]
     ])('should unpack spatial types and temporal types (%s)', (_, struct, object) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x3(
+      const protocol = new BoltProtocolV5x8(
         new utils.MessageRecordingConnection(),
         buffer,
         {
@@ -1130,7 +1141,7 @@ describe('#unit BoltProtocolV5x3', () => {
       ]
     ])('should unpack deprecated temporal types as unknown structs (%s)', (_, struct) => {
       const buffer = alloc(256)
-      const protocol = new BoltProtocolV5x3(
+      const protocol = new BoltProtocolV5x8(
         new utils.MessageRecordingConnection(),
         buffer,
         {
@@ -1147,13 +1158,422 @@ describe('#unit BoltProtocolV5x3', () => {
       const unpacked = protocol.unpack(buffer)
       expect(unpacked).toEqual(struct)
     })
+  })
 
-    describe('Bolt 5.4', () => {
-      telemetryBehaviour.protocolNotSupportsTelemetry(newProtocol)
+  describe('result metadata enrichment', () => {
+    it('run should configure BoltProtocolV5x8._enrichMetadata as enrichMetadata', () => {
+      const database = 'testdb'
+      const bookmarks = new Bookmarks([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx2'
+      ])
+      const txConfig = new TxConfig({
+        timeout: 5000,
+        metadata: { x: 1, y: 'something' }
+      })
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV5x8(recorder, null, false)
+      utils.spyProtocolWrite(protocol)
+
+      const query = 'RETURN $x, $y'
+      const parameters = { x: 'x', y: 'y' }
+
+      const observer = protocol.run(query, parameters, {
+        bookmarks,
+        txConfig,
+        database,
+        mode: WRITE
+      })
+
+      expect(observer._enrichMetadata).toBe(protocol._enrichMetadata)
     })
+
+    describe('BoltProtocolV5x8._enrichMetadata', () => {
+      const protocol = newProtocol()
+
+      it('should handle empty metadata', () => {
+        const metadata = protocol._enrichMetadata({})
+
+        expect(metadata).toEqual({})
+      })
+
+      it('should handle metadata with random objects', () => {
+        const metadata = protocol._enrichMetadata({
+          a: 1133,
+          b: 345
+        })
+
+        expect(metadata).toEqual({
+          a: 1133,
+          b: 345
+        })
+      })
+
+      it('should handle metadata not change notifications ', () => {
+        const metadata = protocol._enrichMetadata({
+          a: 1133,
+          b: 345,
+          notifications: [
+            {
+              severity: 'WARNING',
+              category: 'HINT'
+            }
+          ]
+        })
+
+        expect(metadata).toEqual({
+          a: 1133,
+          b: 345,
+          notifications: [
+            {
+              severity: 'WARNING',
+              category: 'HINT'
+            }
+          ]
+        })
+      })
+
+      it.each([
+        [null, null],
+        [undefined, undefined],
+        [[], []],
+        [statusesWithDiagnosticRecord(null, null), statusesWithDiagnosticRecord(null, null)],
+        [statusesWithDiagnosticRecord(undefined, undefined), statusesWithDiagnosticRecord({
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/'
+        },
+        {
+          OPERATION: '',
+          OPERATION_CODE: '0',
+          CURRENT_SCHEMA: '/'
+        })],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/'
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/'
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C'
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' }
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F'
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: 'G'
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: 'G'
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: 'G',
+            _position: {
+              offset: 1,
+              line: 2,
+              column: 3
+            }
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: 'A',
+            OPERATION_CODE: 'B',
+            CURRENT_SCHEMA: '/C',
+            _status_parameters: { d: 'E' },
+            _severity: 'F',
+            _classification: 'G',
+            _position: {
+              offset: 1,
+              line: 2,
+              column: 3
+            }
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: '0',
+            CURRENT_SCHEMA: '/'
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: '/'
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: null
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: null,
+            _position: null
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: null,
+            OPERATION_CODE: null,
+            CURRENT_SCHEMA: null,
+            _status_parameters: null,
+            _severity: null,
+            _classification: null,
+            _position: null
+          })
+        ],
+        [
+          statusesWithDiagnosticRecord({
+            OPERATION: undefined,
+            OPERATION_CODE: undefined,
+            CURRENT_SCHEMA: undefined,
+            _status_parameters: undefined,
+            _severity: undefined,
+            _classification: undefined,
+            _position: undefined
+          }),
+          statusesWithDiagnosticRecord({
+            OPERATION: undefined,
+            OPERATION_CODE: undefined,
+            CURRENT_SCHEMA: undefined,
+            _status_parameters: undefined,
+            _severity: undefined,
+            _classification: undefined,
+            _position: undefined
+          })
+        ],
+        [
+          [{
+            gql_status: '03N33',
+            status_description: 'info: description',
+            neo4j_code: 'Neo.Info.My.Code',
+            title: 'Mitt title',
+            diagnostic_record: {
+              _classification: 'SOME',
+              _severity: 'INFORMATION'
+            }
+          }],
+          [{
+            gql_status: '03N33',
+            status_description: 'info: description',
+            neo4j_code: 'Neo.Info.My.Code',
+            title: 'Mitt title',
+            diagnostic_record: {
+              OPERATION: '',
+              OPERATION_CODE: '0',
+              CURRENT_SCHEMA: '/',
+              _classification: 'SOME',
+              _severity: 'INFORMATION'
+            }
+          }]
+        ],
+        [
+          [{
+            gql_status: '03N33',
+            status_description: 'info: description',
+            neo4j_code: 'Neo.Info.My.Code',
+            description: 'description',
+            title: 'Mitt title',
+            diagnostic_record: {
+              _classification: 'SOME',
+              _severity: 'INFORMATION'
+            }
+          }],
+          [{
+            gql_status: '03N33',
+            status_description: 'info: description',
+            neo4j_code: 'Neo.Info.My.Code',
+            title: 'Mitt title',
+            description: 'description',
+            diagnostic_record: {
+              OPERATION: '',
+              OPERATION_CODE: '0',
+              CURRENT_SCHEMA: '/',
+              _classification: 'SOME',
+              _severity: 'INFORMATION'
+            }
+          }]
+        ],
+        [
+          [{
+            gql_status: '03N33',
+            status_description: 'info: description',
+            description: 'description'
+          }],
+          [{
+            gql_status: '03N33',
+            status_description: 'info: description',
+            description: 'description',
+            diagnostic_record: {
+              OPERATION: '',
+              OPERATION_CODE: '0',
+              CURRENT_SCHEMA: '/'
+            }
+          }]
+        ]
+      ])('should handle statuses (%o) ', (statuses, expectedStatuses) => {
+        const metadata = protocol._enrichMetadata({
+          a: 1133,
+          b: 345,
+          statuses
+        })
+
+        expect(metadata).toEqual({
+          a: 1133,
+          b: 345,
+          statuses: expectedStatuses
+        })
+      })
+    })
+
+    function statusesWithDiagnosticRecord (...diagnosticRecords) {
+      return diagnosticRecords.map(diagnosticRecord => {
+        return {
+          gql_status: '00000',
+          status_description: 'note: successful completion',
+          diagnostic_record: diagnosticRecord
+        }
+      })
+    }
   })
 
   function newProtocol (recorder) {
-    return new BoltProtocolV5x3(recorder, null, false, undefined, undefined, () => {})
+    return new BoltProtocolV5x8(recorder, null, false, undefined, undefined, () => {})
   }
 })

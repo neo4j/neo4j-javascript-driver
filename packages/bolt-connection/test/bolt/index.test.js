@@ -49,8 +49,8 @@ describe('#unit Bolt', () => {
 
       const boltMagicPreamble = '60 60 b0 17'
       const handshakev2 = '00 00 01 ff'
-      const protocolVersion5x7to5x0 = '00 07 07 05'
-      const protocolVersion4x4to4x0 = '00 04 04 04'
+      const protocolVersion5x7to5x0 = '00 08 08 05'
+      const protocolVersion4x4to4x2 = '00 02 04 04'
       const protocolVersion3 = '00 00 00 03'
 
       expect(writtenBuffer.toHex()).toEqual(

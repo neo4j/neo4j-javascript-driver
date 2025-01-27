@@ -84,7 +84,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private _connectionPromise: Promise<Connection & Releasable | null>
   private readonly _impersonatedUser?: string
   private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
-  private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
+  private readonly _onDatabaseNameResolved?: (databaseName: string) => void
   private readonly _auth?: AuthToken
   private readonly _log: Logger
   private _closed: boolean
@@ -117,7 +117,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     bookmarks?: Bookmarks
     connectionProvider?: ConnectionProvider
     impersonatedUser?: string
-    onDatabaseNameResolved?: (databaseName?: string) => void
+    onDatabaseNameResolved?: (database: string) => void
     getConnectionAcquistionBookmarks?: () => Promise<Bookmarks>
     auth?: AuthToken
     log: Logger
@@ -161,9 +161,9 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._referenceCount
   }
 
-  initializeConnection (): boolean {
+  initializeConnection (homeDatabase?: string): boolean {
     if (this._referenceCount === 0 && (this._connectionProvider != null)) {
-      this._connectionPromise = this._createConnectionPromise(this._connectionProvider)
+      this._connectionPromise = this._createConnectionPromise(this._connectionProvider, homeDatabase)
     } else {
       this._referenceCount++
       return false
@@ -172,14 +172,15 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return true
   }
 
-  private async _createConnectionPromise (connectionProvider: ConnectionProvider): Promise<Connection & Releasable | null> {
+  private async _createConnectionPromise (connectionProvider: ConnectionProvider, homeDatabase?: string): Promise<Connection & Releasable | null> {
     return await connectionProvider.acquireConnection({
       accessMode: this._mode,
       database: this._database,
       bookmarks: await this._getBookmarks(),
       impersonatedUser: this._impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,
-      auth: this._auth
+      auth: this._auth,
+      homeDb: homeDatabase
     })
   }
 

@@ -67,6 +67,9 @@ export function NewDriver ({ neo4j }, context, data, wire) {
   if ('connectionTimeoutMs' in data) {
     config.connectionTimeout = data.connectionTimeoutMs
   }
+  if ('maxConnectionLifetimeMs' in data) {
+    config.maxConnectionLifetime = data.maxConnectionLifetimeMs
+  }
   if ('fetchSize' in data) {
     config.fetchSize = data.fetchSize
   }

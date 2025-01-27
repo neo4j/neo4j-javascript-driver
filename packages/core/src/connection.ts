@@ -58,6 +58,7 @@ interface RunQueryConfig extends BeginTransactionConfig {
   highRecordWatermark: number
   lowRecordWatermark: number
   reactive: boolean
+  onDb?: (database: string) => void
 }
 
 /**

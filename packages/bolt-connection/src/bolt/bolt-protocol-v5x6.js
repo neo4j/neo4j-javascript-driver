@@ -16,7 +16,7 @@
  */
 import BoltProtocolV5x5 from './bolt-protocol-v5x5'
 
-import transformersFactories from './bolt-protocol-v5x5.transformer'
+import transformersFactories from './bolt-protocol-v5x6.transformer'
 import Transformer from './transformer'
 
 import { internal } from 'neo4j-driver-core'

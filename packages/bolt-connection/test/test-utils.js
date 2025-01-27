@@ -31,12 +31,6 @@ function isServer () {
   return !isClient()
 }
 
-function fakeStandardDateWithOffset (offsetMinutes) {
-  const date = new Date()
-  date.getTimezoneOffset = () => offsetMinutes
-  return date
-}
-
 const matchers = {
   toBeElementOf: function (actual, expected) {
     if (expected === undefined) {
@@ -161,7 +155,6 @@ function arbitraryTimeZoneId () {
 export default {
   isClient,
   isServer,
-  fakeStandardDateWithOffset,
   matchers,
   MessageRecordingConnection,
   spyProtocolWrite,
