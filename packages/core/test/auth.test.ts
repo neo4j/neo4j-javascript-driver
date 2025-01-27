@@ -18,6 +18,12 @@ import auth from '../src/auth'
 import { cacheKey } from '../src/internal/auth-util'
 
 describe('auth', () => {
+  test('.custom() should crash with circular references in parameters', () => {
+    const params = { a: '', b: {} }
+    params.b = params
+    expect(() => auth.custom('test', 'pass', 'realm', 'scheme', params)).toThrow('Circular references in custom auth token parameters')
+  })
+
   test('.bearer()', () => {
     expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda' })
   })
