@@ -182,6 +182,20 @@ export default class BaseBuffer {
     this.putUInt8(p + 7, val & 0xff)
   }
 
+  putVarInt (p, val) {
+    let length = 0
+    while (val > 1) {
+      let int = val % 128
+      if (val >= 128) {
+        int += 128
+      }
+      val = val / 128
+      this.putInt8(p + length, int)
+      length += 1
+    }
+    return length
+  }
+
   /**
    * @param position
    * @param other
@@ -314,14 +328,8 @@ export default class BaseBuffer {
   }
 
   writeVarInt (val) {
-    while (val > 1) {
-      let int = val % 128
-      if (val >= 128) {
-        int += 128
-      }
-      val = val / 128
-      this.putInt8(this._updatePos(1), int)
-    }
+    const length = this.putVarInt(this.position, val)
+    this._updatePos(length)
   }
 
   /**
