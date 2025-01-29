@@ -190,7 +190,7 @@ export default class BaseBuffer {
         int += 128
       }
       val = val / 128
-      this.putInt8(p + length, int)
+      this.putUInt8(p + length, int)
       length += 1
     }
     return length
