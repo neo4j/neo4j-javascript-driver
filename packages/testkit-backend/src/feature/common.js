@@ -11,6 +11,7 @@ const features = [
   'Feature:API:SSLConfig',
   'Feature:API:SSLSchemes',
   'Feature:API:Type.Temporal',
+  'Feature:API:Type.Spatial',
   'AuthorizationExpiredTreatment',
   'ConfHint:connection.recv_timeout_seconds',
   'Feature:Impersonation',
