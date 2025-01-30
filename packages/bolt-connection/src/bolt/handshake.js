@@ -19,7 +19,7 @@ import { alloc } from '../channel'
 import { newError } from 'neo4j-driver-core'
 
 const BOLT_MAGIC_PREAMBLE = 0x6060b017
-const AVAILABLE_BOLT_PROTOCOLS = [5.8, 5.7, 5.6, 5.4, 5.3, 5.2, 5.1, 5.0, 4.4, 4.3, 4.2, 3.0] // bolt protocols the client supports, ordered by preference
+const AVAILABLE_BOLT_PROTOCOLS = [5.8, 5.7, 5.6, 5.4, 5.3, 5.2, 5.1, 5.0, 4.4, 4.3, 4.2, 3.0] // bolt protocols the client will accept, ordered by preference
 const DESIRED_CAPABILITES = 0
 
 function version (major, minor) {
@@ -87,8 +87,6 @@ function handshakeNegotiationV2 (channel, buffer, log) {
   const capabilityBitMask = buffer.readVarInt()
   const capabilites = selectCapabilites(capabilityBitMask)
 
-  // parse supported capabilities
-  // select preferrable protocol and respond
   let major
   let minor
   versions.sort((a, b) => Number(b.major + '.' + b.minor) - Number(a.major + '.' + a.minor))
