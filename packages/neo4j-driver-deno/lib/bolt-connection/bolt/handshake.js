@@ -87,9 +87,15 @@ function handshakeNegotiationV2 (channel, buffer, log) {
   const capabilityBitMask = buffer.readVarInt()
   const capabilites = selectCapabilites(capabilityBitMask)
 
-  let major
-  let minor
-  versions.sort((a, b) => Number(b.major + '.' + b.minor) - Number(a.major + '.' + a.minor))
+  let major = 0
+  let minor = 0
+  versions.sort((a, b) => {
+    if (Number(a.major) !== Number(b.major)) {
+      return Number(b.major) - Number(a.major)
+    } else {
+      return Number(b.minor) - Number(a.minor)
+    }
+  })
   for (let i = 0; i < versions.length; i++) {
     const version = versions[i]
     if (AVAILABLE_BOLT_PROTOCOLS.includes(Number(version.major + '.' + version.minor))) {
