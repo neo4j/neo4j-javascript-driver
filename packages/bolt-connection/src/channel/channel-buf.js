@@ -37,6 +37,18 @@ export default class ChannelBuffer extends BaseBuffer {
     return this._buffer.readDoubleBE(position)
   }
 
+  getVarInt (position) {
+    let i = 0
+    let currentValue = this._buffer.readInt8(position + i)
+    let total = currentValue % 128
+    while (currentValue / 128 >= 1) {
+      i += 1
+      currentValue = this._buffer.readInt8(position + i)
+      total += currentValue % 128
+    }
+    return { length: i + 1, value: total }
+  }
+
   putUInt8 (position, val) {
     this._buffer.writeUInt8(val, position)
   }
