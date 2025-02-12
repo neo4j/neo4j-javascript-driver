@@ -92,7 +92,8 @@ describe('#integration Bolt V3 API', () => {
       if (
         e.code !== 'Neo.ClientError.Transaction.TransactionTimedOut' &&
         e.code !== 'Neo.TransientError.Transaction.LockClientStopped' &&
-        e.code !== 'Neo.ClientError.Transaction.LockClientStopped'
+        e.code !== 'Neo.ClientError.Transaction.LockClientStopped' &&
+        e.code !== 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration'
       ) {
         fail('Expected transaction timeout error but got: ' + e.code)
       }
