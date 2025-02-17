@@ -241,6 +241,15 @@ export function ResultConsume (_, context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
 
+  if (('recordIt' in result)) {
+    return result.recordIt.return().then(summary => {
+      if (summary.value) {
+        summary = summary.value
+      }
+      console.error(summary)
+      wire.writeResponse(responses.Summary({ summary }, { binder: context.binder }))
+    }).catch(e => wire.writeError(e))
+  }
   return result.summary().then(summary => {
     wire.writeResponse(responses.Summary({ summary }, { binder: context.binder }))
   }).catch(e => wire.writeError(e))
