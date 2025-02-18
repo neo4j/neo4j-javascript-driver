@@ -38,7 +38,10 @@ Please note that `@next` only points to pre-releases that are not suitable for p
 To get the latest stable release omit `@next` part altogether or use `@latest` instead.
 
 ```javascript
+// If you are using CommonJS
 var neo4j = require('neo4j-driver')
+// Alternatively, if you are using ES6
+import neo4j from 'neo4j-driver'
 ```
 
 Driver instance should be closed when Node.js application exits:
