@@ -246,7 +246,6 @@ export function ResultConsume (_, context, data, wire) {
       if (summary.value) {
         summary = summary.value
       }
-      console.error(summary)
       wire.writeResponse(responses.Summary({ summary }, { binder: context.binder }))
     }).catch(e => wire.writeError(e))
   }
