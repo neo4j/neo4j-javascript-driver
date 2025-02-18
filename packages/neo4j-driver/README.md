@@ -287,77 +287,43 @@ rxSession
   })
 ```
 
-### Consuming Records
-
-#### Consuming Records with Streaming API
+### ExecuteQuery Function
 
 ```javascript
-// Run a Cypher statement, reading the result in a streaming manner as records arrive:
-driver
-  .executeQuery('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
-    nameParam: 'Alice'
-  })
-  .subscribe({
-    onKeys: keys => {
-      console.log(keys)
-    },
-    onNext: record => {
-      console.log(record.get('name'))
-    },
-    onCompleted: () => {
-      session.close() // returns a Promise
-    },
-    onError: error => {
-      console.log(error)
+// Since 5.8.0, the driver has offered a way to run a single query transaction with minimal boilerplate.
+// The driver.executeQuery() function features the same automatic retries as transaction functions.
+// 
+var executeQueryResultPromise = driver
+  .executeQuery(
+    "MATCH (alice:Person {name: $nameParam}) RETURN alice.DOB AS DateOfBirth", 
+    {
+      nameParam: 'Alice'
+    }, 
+    {
+      routing: 'READ', 
+      database: 'neo4j'
     }
-  })
+  )
 ```
 
-Subscriber API allows following combinations of `onKeys`, `onNext`, `onCompleted` and `onError` callback invocations:
-
-- zero or one `onKeys`,
-- zero or more `onNext` followed by `onCompleted` when operation was successful. `onError` will not be invoked in this case
-- zero or more `onNext` followed by `onError` when operation failed. Callback `onError` might be invoked after couple `onNext` invocations because records are streamed lazily by the database. `onCompleted` will not be invoked in this case.
-
-#### Consuming Records with Promise API
+### Auto-Commit/Implicit Transaction
 
 ```javascript
-// the Promise way, where the complete result is collected before we act on it:
-driver
-  .executeQuery('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
-    nameParam: 'James'
-  })
-  .then(result => {
-    result.records.forEach(record => {
-      console.log(record.get('name'))
-    })
-  })
-  .catch(error => {
-    console.log(error)
-  })
-  .then(() => session.close())
-```
+// This is the most basic and limited form with which to run a Cypher query. 
+// The driver will not automatically retry implicit transactions.
+// This function should only be used when the other driver query interfaces do not fit the purpose.
+// Implicit transactions are the only ones that can be used for CALL { …​ } IN TRANSACTIONS queries. 
 
-#### Consuming Records with Reactive API
-
-```javascript
-rxSession
-  .executeRead(txc =>
-    txc
-      .run('MERGE (james:Person {name: $nameParam}) RETURN james.name AS name', {
-        nameParam: 'Bob'
-    })
+var implicitTxResultPromise = session
+  .run(
+    "CALL { …​ } IN TRANSACTIONS", 
+    {
+      param1: 'param'
+    }, 
+    {
+      database: 'neo4j'
+    }
   )
-  .records()
-  .pipe(
-    map(record => record.get('name')),
-    concatWith(rxSession.close())
-  )
-  .subscribe({
-    next: data => console.log(data),
-    complete: () => console.log('completed'),
-    error: err => console.log(err)
-  })
 ```
 
 ### Explicit Transactions
@@ -434,6 +400,79 @@ rxSession
     next: data => console.log(data),
     complete: () => console.log('completed'),
     error: error => console.log(error)
+  })
+```
+
+### Consuming Records
+
+#### Consuming Records with Streaming API
+
+```javascript
+// Run a Cypher statement, reading the result in a streaming manner as records arrive:
+driver
+  .executeQuery('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
+    nameParam: 'Alice'
+  })
+  .subscribe({
+    onKeys: keys => {
+      console.log(keys)
+    },
+    onNext: record => {
+      console.log(record.get('name'))
+    },
+    onCompleted: () => {
+      session.close() // returns a Promise
+    },
+    onError: error => {
+      console.log(error)
+    }
+  })
+```
+
+Subscriber API allows following combinations of `onKeys`, `onNext`, `onCompleted` and `onError` callback invocations:
+
+- zero or one `onKeys`,
+- zero or more `onNext` followed by `onCompleted` when operation was successful. `onError` will not be invoked in this case
+- zero or more `onNext` followed by `onError` when operation failed. Callback `onError` might be invoked after couple `onNext` invocations because records are streamed lazily by the database. `onCompleted` will not be invoked in this case.
+
+#### Consuming Records with Promise API
+
+```javascript
+// the Promise way, where the complete result is collected before we act on it:
+driver
+  .executeQuery('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
+    nameParam: 'James'
+  })
+  .then(result => {
+    result.records.forEach(record => {
+      console.log(record.get('name'))
+    })
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .then(() => session.close())
+```
+
+#### Consuming Records with Reactive API
+
+```javascript
+rxSession
+  .executeRead(txc =>
+    txc
+      .run('MERGE (james:Person {name: $nameParam}) RETURN james.name AS name', {
+        nameParam: 'Bob'
+    })
+  )
+  .records()
+  .pipe(
+    map(record => record.get('name')),
+    concatWith(rxSession.close())
+  )
+  .subscribe({
+    next: data => console.log(data),
+    complete: () => console.log('completed'),
+    error: err => console.log(err)
   })
 ```
 
