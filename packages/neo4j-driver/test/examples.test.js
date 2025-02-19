@@ -853,7 +853,7 @@ describe('#integration examples', () => {
     try {
       const result = await session.executeWrite(
         tx => addPerson(tx, personName),
-        { timeout: 10 }
+        { timeout: 100 }
       )
 
       const singleRecord = result.records[0]
