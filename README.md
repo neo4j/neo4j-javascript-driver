@@ -307,6 +307,15 @@ var executeQueryResultPromise = driver
       database: 'neo4j'
     }
   )
+
+// returned Promise can be later consumed like this:
+executeQueryResultPromise
+  .then(result => {
+    console.log(result.records)
+  })
+  .catch(error => {
+    console.log(error)
+  })
 ```
 
 ### Auto-Commit/Implicit Transaction
@@ -327,6 +336,16 @@ var implicitTxResultPromise = session
       database: 'neo4j'
     }
   )
+
+// returned Promise can be later consumed like this:
+implicitTxResultPromise
+  .then(result => {
+    console.log(result.records)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .then(() => session.close())
 ```
 
 ### Explicit Transactions
