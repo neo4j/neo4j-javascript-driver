@@ -240,7 +240,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
   /**
    * Provides a async iterator over the records in the result.
    *
-   * *Should not be combined with {@link Result#subscribe} or ${@link Result#then} functions.*
+   * *Should not be combined with {@link Result#subscribe} or {@link Result#then} functions.*
    *
    * @public
    * @returns {PeekableAsyncIterator<Record<R>, ResultSummary>} The async iterator for the Results
