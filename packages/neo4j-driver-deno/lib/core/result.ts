@@ -158,9 +158,9 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): MappedResult<T>
   /**
    * Maps the records of this result to a provided type or according to provided Rules.
-   * 
-   * NOTE: This modifies the Result object itself, and can not be run on a Result that is already being consumed. 
-   * 
+   *
+   * NOTE: This modifies the Result object itself, and can not be run on a Result that is already being consumed.
+   *
    * @example
    * class Person {
    *  constructor (
@@ -173,22 +173,22 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    *  name: RulesFactories.asString(),
    *  born: RulesFactories.asNumber({ acceptBigInt: true, optional: true })
    * }
-   * 
+   *
    * await session.executeRead(async (tx: Transaction) => {
-   * let txres = tx.run(`MATCH (p:Person)-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(c:Person) 
-   * WHERE id(p) <> id(c) 
+   * let txres = tx.run(`MATCH (p:Person)-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(c:Person)
+   * WHERE id(p) <> id(c)
    * RETURN p.name as name, p.born as born`).as<Person>(personRules)
-   * 
-   * @param {GenericConstructor<T> | Rules} constructorOrRules 
-   * @param {Rules} rules 
+   *
+   * @param {GenericConstructor<T> | Rules} constructorOrRules
+   * @param {Rules} rules
    * @returns {MappedResult<T>}
    */
   as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): MappedResult<T> {
-    if(this._p != null) {
-      throw newError("Cannot call .as() on a Result that is being consumed")
+    if (this._p != null) {
+      throw newError('Cannot call .as() on a Result that is being consumed')
     }
     // @ts-expect-error
-    this._mapper = (r => r.as(constructorOrRules, rules))
+    this._mapper = r => r.as(constructorOrRules, rules)
     // @ts-expect-error
     return this
   }

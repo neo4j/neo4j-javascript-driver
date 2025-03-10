@@ -33,24 +33,23 @@ export type Rules = Record<string, Rule>
 
 const rulesRegistry: Record<string, Rules> = {}
 
-
 /**
  * Registers a set of {@link Rules} to be used by {@link hydratedResultTransformer} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
- * 
+ *
  * @example
  * // The following code:
  * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
  *  resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(Person, personClassRules)
  * })
- * 
+ *
  * can instead be written:
  * neo4j.mapping.register(Person, personClassRules)
- * 
+ *
  * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
  *  resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(Person)
  * })
- * 
- * 
+ *
+ *
  * @param {GenericConstructor} constructor The constructor function of the class to set rules for
  * @param {Rules} rules The rules to set for the provided class
  */

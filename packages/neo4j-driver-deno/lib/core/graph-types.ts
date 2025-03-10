@@ -85,7 +85,7 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
 
   /**
    * Hydrates an object of a given type with the properties of the node
-   * 
+   *
    * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}
@@ -218,7 +218,7 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
 
   /**
    * Hydrates an object of a given type with the properties of the relationship
-   * 
+   *
    * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}
@@ -355,7 +355,7 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
 
   /**
    * Hydrates an object of a given type with the properties of the relationship
-   * 
+   *
    * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}

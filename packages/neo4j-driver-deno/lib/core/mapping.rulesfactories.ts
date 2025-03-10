@@ -24,37 +24,37 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
 
 /**
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.
- * 
+ *
  * @property {function(rule: ?Rule & { acceptBigInt?: boolean })} asNumber Create a {@link Rule} that validates the value is a Number.
- * 
+ *
  * @property {function(rule: ?Rule & { acceptNumber?: boolean })} AsBigInt Create a {@link Rule} that validates the value is a BigInt.
- * 
+ *
  * @property {function(rule: ?Rule)} asNode Create a {@link Rule} that validates the value is a {@link Node}.
- * 
+ *
  * @property {function(rule: ?Rule)} asRelationship Create a {@link Rule} that validates the value is a {@link Relationship}.
- * 
+ *
  * @property {function(rule: ?Rule)} asPath Create a {@link Rule} that validates the value is a {@link Path}.
- * 
+ *
  * @property {function(rule: ?Rule & { toString?: boolean })} asDuration Create a {@link Rule} that validates the value is a {@link Duration}.
- * 
+ *
  * @property {function(rule: ?Rule & { toString?: boolean })} asLocalTime Create a {@link Rule} that validates the value is a {@link LocalTime}.
- * 
+ *
  * @property {function(rule: ?Rule & { toString?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
- * 
+ *
  * @property {function(rule: ?Rule & { toString?: boolean })} asTime Create a {@link Rule} that validates the value is a {@link Time}.
- * 
+ *
  * @property {function(rule: ?Rule & { toString?: boolean })} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
- * 
+ *
  * @property {function(rule: ?Rule & { toString?: boolean })} asDate Create a {@link Rule} that validates the value is a {@link Date}.
- * 
+ *
  * @property {function(rule: ?Rule)} asPoint Create a {@link Rule} that validates the value is a {@link Point}.
- * 
+ *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
  */
 export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a String.
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -70,7 +70,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Number}.
-   * 
+   *
    * @param {Rule & { acceptBigInt?: boolean }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -78,7 +78,7 @@ export const RulesFactories = Object.freeze({
     return {
       validate: (value: any, field: string) => {
         if (typeof value === 'object' && value.low !== undefined && value.high !== undefined && Object.keys(value).length === 2) {
-          throw new TypeError(`Number returned as Object. To use asNumber mapping, set disableLosslessIntegers or useBigInt to true in driver config object`)
+          throw new TypeError('Number returned as Object. To use asNumber mapping, set disableLosslessIntegers or useBigInt to true in driver config object')
         }
         if (typeof value !== 'number' && (rule?.acceptBigInt !== true || typeof value !== 'bigint')) {
           throw new TypeError(`${field} should be a number but received ${typeof value}`)
@@ -95,7 +95,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link BigInt}.
-   * 
+   *
    * @param {Rule & { acceptNumber?: boolean }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -117,7 +117,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Node}.
-   * 
+   *
    * @example
    * const actingJobsRules: Rules = {
    *  // Converts the person node to a Person object in accordance with provided rules
@@ -127,7 +127,7 @@ export const RulesFactories = Object.freeze({
    *  // Returns the movie node as a Node
    *  movie: neo4j.RulesFactories.asNode({}),
    * }
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -143,7 +143,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Relationship}.
-   * 
+   *
    * @param {Rule} rule Configurations for the rule.
    * @returns {Rule} A new rule for the value
    */
@@ -159,7 +159,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is an {@link UnboundRelationship}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -175,7 +175,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Path}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -191,7 +191,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Point}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -207,7 +207,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Duration}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -224,7 +224,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalTime}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -241,7 +241,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Time}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -258,7 +258,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Date}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -275,7 +275,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalDateTime}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -292,7 +292,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link DateTime}
-   * 
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -309,7 +309,7 @@ export const RulesFactories = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a List. Optionally taking a rule for hydrating the contained values.
-   * 
+   *
    * @param {Rule & { apply?: Rule }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */

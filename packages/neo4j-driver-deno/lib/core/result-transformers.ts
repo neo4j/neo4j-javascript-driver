@@ -265,32 +265,32 @@ class ResultTransformers {
   hydratedResultTransformer <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
   /**
    * Creates a {@link ResultTransformer} which maps the result to a hydrated object
-   * 
+   *
    * @example
-   * 
+   *
    * class Person {
    *   constructor (name) {
    *     this.name = name
    * }
-   * 
+   *
    * const personRules: Rules = {
    *    name: neo4j.RulesFactories.asString()
    * }
-   * 
+   *
    * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
    *   resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(Person, personClassRules)
    * })
-   * 
-   * // Alternatively, the rules can be registered in the mapping registry. 
+   *
+   * // Alternatively, the rules can be registered in the mapping registry.
    * // This registry exists in global memory and will persist even between driver instances.
-   * 
+   *
    * neo4j.mapping.register(Person, PersonRules)
-   * 
+   *
    * // after registering the rule the transformer will follow them when mapping to the provided type
    * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
    *   resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(Person)
    * })
-   * 
+   *
    * // A hydratedResultTransformer can be used without providing or registering Rules beforehand, but in such case the mapping will be done without any type validation
    *
    * @returns {ResultTransformer<ResultSummary<T>>} The result transformer
