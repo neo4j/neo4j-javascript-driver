@@ -264,10 +264,9 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
         const records: Array<Record<R>> = []
         const observer = {
           onNext: (record: Record<R>) => {
-            if(this._mapper != null) {
+            if (this._mapper != null) {
               records.push(this._mapper(record) as unknown as Record)
-            }
-            else {
+            } else {
               records.push(record as unknown as Record)
             }
           },
