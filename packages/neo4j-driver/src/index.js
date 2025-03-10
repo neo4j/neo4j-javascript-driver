@@ -82,7 +82,10 @@ import {
   resolveCertificateProvider,
   Vector,
   VectorType,
-  vector
+  vector,
+  Rules,
+  RulesFactories,
+  mapping
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -288,7 +291,8 @@ const types = {
   Time,
   Integer,
   Vector,
-  VectorType
+  VectorType,
+  Rules
 }
 
 /**
@@ -410,7 +414,9 @@ const forExport = {
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
-  vector
+  vector,
+  RulesFactories,
+  mapping
 }
 
 export {
@@ -486,6 +492,8 @@ export {
   clientCertificateProviders,
   vector,
   Vector,
-  VectorType
+  VectorType,
+  RulesFactories,
+  mapping
 }
 export default forExport

@@ -61,6 +61,8 @@ interface QueryResult<R extends RecordShape = RecordShape> {
   summary: ResultSummary
 }
 
+export interface MappedResult<T> extends Result<RecordShape<PropertyKey, T>> {}
+
 /**
  * Interface to observe updates on the Result which is being produced.
  *
@@ -122,6 +124,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
   private _summary: ResultSummary | null
   private _error: Error | null
   private readonly _watermarks: { high: number, low: number }
+  private _mapper: Function
 
   /**
    * Inject the observer to be used.
@@ -151,11 +154,43 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
     this._watermarks = watermarks
   }
 
-  as <T extends {} = Object>(rules: Rules): Promise<{ records: T[], summary: ResultSummary }>
-  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): Promise<{ records: T[], summary: ResultSummary }>
-  as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): Promise<{ records: T[], summary: ResultSummary }> {
+  as <T extends {} = Object>(rules: Rules): MappedResult<T>
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): MappedResult<T>
+  /**
+   * Maps the records of this result to a provided type or according to provided Rules.
+   * 
+   * NOTE: This modifies the Result object itself, and can not be run on a Result that is already being consumed. 
+   * 
+   * @example
+   * class Person {
+   *  constructor (
+   *    public readonly name: string,
+   *    public readonly born?: number
+   *  ) {}
+   * }
+   *
+   * const personRules: Rules = {
+   *  name: RulesFactories.asString(),
+   *  born: RulesFactories.asNumber({ acceptBigInt: true, optional: true })
+   * }
+   * 
+   * await session.executeRead(async (tx: Transaction) => {
+   * let txres = tx.run(`MATCH (p:Person)-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(c:Person) 
+   * WHERE id(p) <> id(c) 
+   * RETURN p.name as name, p.born as born`).as<Person>(personRules)
+   * 
+   * @param {GenericConstructor<T> | Rules} constructorOrRules 
+   * @param {Rules} rules 
+   * @returns {MappedResult<T>}
+   */
+  as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): MappedResult<T> {
+    if(this._p != null) {
+      throw newError("Cannot call .as() on a Result that is being consumed")
+    }
     // @ts-expect-error
-    return this._getOrCreatePromise(r => r.as(constructorOrRules, rules))
+    this._mapper = (r => r.as(constructorOrRules, rules))
+    // @ts-expect-error
+    return this
   }
 
   /**
@@ -223,13 +258,13 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise<O = Record> (mapper: (r: Record) => O = r => r as unknown as R): Promise<QueryResult<R>> {
+  private _getOrCreatePromise (): Promise<QueryResult<R>> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
         const records: Array<Record<R>> = []
         const observer = {
           onNext: (record: Record<R>) => {
-            records.push(mapper(record) as unknown as Record)
+            records.push(this._mapper(record) as unknown as Record)
           },
           onCompleted: (summary: ResultSummary) => {
             resolve({ records, summary })
@@ -580,7 +615,11 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
 
     const observer = {
       onNext: (record: Record) => {
-        observer._push({ done: false, value: record })
+        if (this._mapper != null) {
+          observer._push({ done: false, value: this._mapper(record) })
+        } else {
+          observer._push({ done: false, value: record })
+        }
       },
       onCompleted: (summary: ResultSummary) => {
         observer._push({ done: true, value: summary })

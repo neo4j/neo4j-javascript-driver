@@ -83,6 +83,13 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
     this.elementId = _valueOrGetDefault(elementId, () => identity.toString())
   }
 
+  /**
+   * Hydrates an object of a given type with the properties of the node
+   * 
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
+   * @param {Rules} [rules] {@link Rules} for the hydration
+   * @returns {T}
+   */
   as <T extends {} = Object>(rules: Rules): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
@@ -209,6 +216,13 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
     this.endNodeElementId = _valueOrGetDefault(endNodeElementId, () => end.toString())
   }
 
+  /**
+   * Hydrates an object of a given type with the properties of the relationship
+   * 
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
+   * @param {Rules} [rules] {@link Rules} for the hydration
+   * @returns {T}
+   */
   as <T extends {} = Object>(rules: Rules): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
@@ -339,6 +353,13 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
     )
   }
 
+  /**
+   * Hydrates an object of a given type with the properties of the relationship
+   * 
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
+   * @param {Rules} [rules] {@link Rules} for the hydration
+   * @returns {T}
+   */
   as <T extends {} = Object>(rules: Rules): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
