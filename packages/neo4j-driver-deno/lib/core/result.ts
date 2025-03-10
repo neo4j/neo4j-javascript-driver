@@ -264,7 +264,12 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
         const records: Array<Record<R>> = []
         const observer = {
           onNext: (record: Record<R>) => {
-            records.push(this._mapper(record) as unknown as Record)
+            if(this._mapper != null) {
+              records.push(this._mapper(record) as unknown as Record)
+            }
+            else {
+              records.push(record as unknown as Record)
+            }
           },
           onCompleted: (summary: ResultSummary) => {
             resolve({ records, summary })
