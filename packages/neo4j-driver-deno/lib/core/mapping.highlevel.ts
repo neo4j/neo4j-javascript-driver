@@ -31,19 +31,17 @@ export interface Rule {
 
 export type Rules = Record<string, Rule>
 
-type nameMapper = {
+interface nameMapper {
   from: (name: string) => string
   to: (name: string) => string
 }
 
 const rulesRegistry: Record<string, Rules> = {}
 
-
-let nameMapping: nameMapper =  {
+let nameMapping: nameMapper = {
   from: (name) => name,
   to: (name) => name
 }
-
 
 /**
  * Registers a set of {@link Rules} to be used by {@link hydratedResultTransformer} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
@@ -69,19 +67,19 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
   rulesRegistry[constructor.toString()] = rules
 }
 
-export function setNameMapping(newMapping: nameMapper): void {
+export function setNameMapping (newMapping: nameMapper): void {
   nameMapping = newMapping
 }
 
 export const nameMappers = {
   pascalToCamel: {
-    from: (name:String) => name.charAt(0).toLowerCase() + name.slice(1),
-    to: (name:String) => name.charAt(0).toUpperCase() + name.slice(1)
+    from: (name: String) => name.charAt(0).toLowerCase() + name.slice(1),
+    to: (name: String) => name.charAt(0).toUpperCase() + name.slice(1)
   },
   camelToPascal: {
-    from: (name:String) => name.charAt(0).toUpperCase() + name.slice(1),
-    to: (name:String) => name.charAt(0).toLowerCase() + name.slice(1)
-  },
+    from: (name: String) => name.charAt(0).toUpperCase() + name.slice(1),
+    to: (name: String) => name.charAt(0).toLowerCase() + name.slice(1)
+  }
 }
 
 export const mapping = {
