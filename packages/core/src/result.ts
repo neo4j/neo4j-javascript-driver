@@ -124,7 +124,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
   private _summary: ResultSummary | null
   private _error: Error | null
   private readonly _watermarks: { high: number, low: number }
-  private _mapper: Function
+  private _mapper: Function | null
 
   /**
    * Inject the observer to be used.
@@ -151,6 +151,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
     this._keys = null
     this._summary = null
     this._error = null
+    this._mapper = null
     this._watermarks = watermarks
   }
 

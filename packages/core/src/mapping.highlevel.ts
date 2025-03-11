@@ -31,7 +31,17 @@ export interface Rule {
 
 export type Rules = Record<string, Rule>
 
+interface nameMapper {
+  from: (name: string) => string
+  to: (name: string) => string
+}
+
 const rulesRegistry: Record<string, Rules> = {}
+
+let nameMapping: nameMapper = {
+  from: (name) => name,
+  to: (name) => name
+}
 
 /**
  * Registers a set of {@link Rules} to be used by {@link hydratedResultTransformer} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
@@ -57,8 +67,25 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
   rulesRegistry[constructor.toString()] = rules
 }
 
+export function setNameMapping (newMapping: nameMapper): void {
+  nameMapping = newMapping
+}
+
+export const nameMappers = {
+  pascalToCamel: {
+    from: (name: String) => name.charAt(0).toLowerCase() + name.slice(1),
+    to: (name: String) => name.charAt(0).toUpperCase() + name.slice(1)
+  },
+  camelToPascal: {
+    from: (name: String) => name.charAt(0).toUpperCase() + name.slice(1),
+    to: (name: String) => name.charAt(0).toLowerCase() + name.slice(1)
+  }
+}
+
 export const mapping = {
-  register
+  register,
+  setNameMapping,
+  nameMappers
 }
 
 interface Gettable { get: <V>(key: string) => V }
@@ -72,12 +99,13 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 
   for (const [key, rule] of Object.entries(theRules ?? {})) {
     vistedKeys.push(key)
-    _apply(gettable, obj, key, rule)
+    _apply(gettable, obj, nameMapping.to(key), rule)
   }
 
   for (const key of Object.getOwnPropertyNames(obj)) {
-    if (!vistedKeys.includes(key)) {
-      _apply(gettable, obj, key, theRules?.[key])
+    const mappedkey = nameMapping.from(key)
+    if (!vistedKeys.includes(mappedkey)) {
+      _apply(gettable, obj, key, theRules?.[mappedkey])
     }
   }
 
@@ -90,7 +118,7 @@ function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: R
   const processedValue = valueAs(value, field, rule)
 
   // @ts-expect-error
-  obj[key] = processedValue ?? obj[key]
+  obj[nameMapping.from(key)] = processedValue ?? obj[key]
 }
 
 export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
