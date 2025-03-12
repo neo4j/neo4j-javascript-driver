@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import { NameConvention, nameConventions } from './mapping.nameconventions.ts'
+
 /**
  * constructor function of any class
  */
@@ -32,15 +34,15 @@ export interface Rule {
 export type Rules = Record<string, Rule>
 
 interface nameMapper {
-  from: (name: string) => string
-  to: (name: string) => string
+  from: NameConvention | undefined
+  to: NameConvention | undefined
 }
 
 const rulesRegistry: Record<string, Rules> = {}
 
 let nameMapping: nameMapper = {
-  from: (name) => name,
-  to: (name) => name
+  from: undefined,
+  to: undefined
 }
 
 /**
@@ -67,25 +69,19 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
   rulesRegistry[constructor.toString()] = rules
 }
 
-export function setNameMapping (newMapping: nameMapper): void {
-  nameMapping = newMapping
+export function setDatabaseNameMapping (newMapping: NameConvention): void {
+  nameMapping.from = newMapping
 }
 
-export const nameMappers = {
-  pascalToCamel: {
-    from: (name: String) => name.charAt(0).toLowerCase() + name.slice(1),
-    to: (name: String) => name.charAt(0).toUpperCase() + name.slice(1)
-  },
-  camelToPascal: {
-    from: (name: String) => name.charAt(0).toUpperCase() + name.slice(1),
-    to: (name: String) => name.charAt(0).toLowerCase() + name.slice(1)
-  }
+export function setCodeNameMapping (newMapping: NameConvention): void {
+  nameMapping.to = newMapping
 }
 
 export const mapping = {
   register,
-  setNameMapping,
-  nameMappers
+  setDatabaseNameMapping,
+  setCodeNameMapping,
+  nameConventions,
 }
 
 interface Gettable { get: <V>(key: string) => V }
@@ -99,11 +95,16 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 
   for (const [key, rule] of Object.entries(theRules ?? {})) {
     vistedKeys.push(key)
-    _apply(gettable, obj, nameMapping.to(key), rule)
+    if(nameMapping.from !== undefined && nameMapping.to !== undefined) {
+      _apply(gettable, obj, nameMapping.from.encode(nameMapping.to.tokenize(key)), rule)
+    }
+    else {
+      _apply(gettable, obj, key, rule)
+    }
   }
 
   for (const key of Object.getOwnPropertyNames(obj)) {
-    const mappedkey = nameMapping.from(key)
+    const mappedkey = (nameMapping.from !== undefined && nameMapping.to !== undefined) ? nameMapping.to.encode(nameMapping.from.tokenize(key)) : key
     if (!vistedKeys.includes(mappedkey)) {
       _apply(gettable, obj, key, theRules?.[mappedkey])
     }
@@ -116,9 +117,9 @@ function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: R
   const value = gettable.get(rule?.from ?? key)
   const field = `${obj.constructor.name}#${key}`
   const processedValue = valueAs(value, field, rule)
-
+  const mappedkey = (nameMapping.from !== undefined && nameMapping.to !== undefined) ? nameMapping.to.encode(nameMapping.from.tokenize(key)) : key
   // @ts-expect-error
-  obj[nameMapping.from(key)] = processedValue ?? obj[key]
+  obj[mappedkey] = processedValue ?? obj[key]
 }
 
 export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
