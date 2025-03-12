@@ -40,7 +40,7 @@ interface nameMapper {
 
 const rulesRegistry: Record<string, Rules> = {}
 
-let nameMapping: nameMapper = {
+const nameMapping: nameMapper = {
   from: undefined,
   to: undefined
 }
@@ -81,7 +81,7 @@ export const mapping = {
   register,
   setDatabaseNameMapping,
   setCodeNameMapping,
-  nameConventions,
+  nameConventions
 }
 
 interface Gettable { get: <V>(key: string) => V }
@@ -95,10 +95,9 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 
   for (const [key, rule] of Object.entries(theRules ?? {})) {
     vistedKeys.push(key)
-    if(nameMapping.from !== undefined && nameMapping.to !== undefined) {
+    if (nameMapping.from !== undefined && nameMapping.to !== undefined) {
       _apply(gettable, obj, nameMapping.from.encode(nameMapping.to.tokenize(key)), rule)
-    }
-    else {
+    } else {
       _apply(gettable, obj, key, rule)
     }
   }
