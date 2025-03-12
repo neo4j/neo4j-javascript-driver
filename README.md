@@ -103,7 +103,7 @@ import neo4j from 'https://cdn.jsdelivr.net/npm/neo4j-driver@X.Y.Z/lib/browser/n
 ```
 
 It is not required to explicitly close the driver on a web page. Web browser should gracefully close all open
-WebSockets when the page is unloaded. However, driver instance should be explicitly closed when it's lifetime
+WebSockets when the page is unloaded. However, driver instance should be explicitly closed when its lifetime
 is not the same as the lifetime of the web page:
 
 ```javascript
@@ -116,13 +116,13 @@ driver.close() // returns a Promise
 
 ```javascript
 // Create a driver instance, for the user `neo4j` with password `password`.
-// It should be enough to have a single driver per database per application.
+// It should be enough to have a single driver per DBMS per application.
 var driver = neo4j.driver(
   'neo4j://localhost',
   neo4j.auth.basic('neo4j', 'password')
 )
 
-// Close the driver when application exits.
+// Close the driver when the application exits.
 // This closes all used network connections.
 await driver.close()
 ```
@@ -295,15 +295,14 @@ rxSession
 ```javascript
 // Since 5.8.0, the driver has offered a way to run a single query transaction with minimal boilerplate.
 // The driver.executeQuery() function features the same automatic retries as transaction functions.
-// 
 var executeQueryResultPromise = driver
   .executeQuery(
-    "MATCH (alice:Person {name: $nameParam}) RETURN alice.DOB AS DateOfBirth", 
+    "MATCH (alice:Person {name: $nameParam}) RETURN alice.DOB AS DateOfBirth",
     {
       nameParam: 'Alice'
-    }, 
+    },
     {
-      routing: 'READ', 
+      routing: 'READ',
       database: 'neo4j'
     }
   )
@@ -321,17 +320,17 @@ executeQueryResultPromise
 ### Auto-Commit/Implicit Transaction
 
 ```javascript
-// This is the most basic and limited form with which to run a Cypher query. 
+// This is the most basic and limited form with which to run a Cypher query.
 // The driver will not automatically retry implicit transactions.
 // This function should only be used when the other driver query interfaces do not fit the purpose.
-// Implicit transactions are the only ones that can be used for CALL { …​ } IN TRANSACTIONS queries. 
+// Implicit transactions are the only ones that can be used for CALL { … } IN TRANSACTIONS queries.
 
 var implicitTxResultPromise = session
   .run(
-    "CALL { …​ } IN TRANSACTIONS", 
+    "CALL { … } IN TRANSACTIONS",
     {
       param1: 'param'
-    }, 
+    },
     {
       database: 'neo4j'
     }
