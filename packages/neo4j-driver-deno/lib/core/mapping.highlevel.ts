@@ -35,7 +35,7 @@ export type Rules = Record<string, Rule>
 
 const rulesRegistry: Record<string, Rules> = {}
 
-let nameMapping: (name:string) => string = (name) => name
+let nameMapping: (name: string) => string = (name) => name
 
 /**
  * Registers a set of {@link Rules} to be used by {@link hydratedResultTransformer} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
@@ -61,13 +61,13 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
   rulesRegistry[constructor.toString()] = rules
 }
 
-export function translatePropertyNames(translationFunction: (name: string) => string): void {
+export function translatePropertyNames (translationFunction: (name: string) => string): void {
   nameMapping = translationFunction
 }
 
-export function defaultNameTranslation(from: string, to: string): ((name: string) => string) {
+export function defaultNameTranslation (from: string, to: string): ((name: string) => string) {
   // @ts-expect-error
-  return (name:string) => nameConventions[from].encode(nameConventions[to].tokenize(name))
+  return (name: string) => nameConventions[from].encode(nameConventions[to].tokenize(name))
 }
 
 export const mapping = {
