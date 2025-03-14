@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { NameConvention, nameConventions } from './mapping.nameconventions'
+import { nameConventions } from './mapping.nameconventions'
 
 /**
  * constructor function of any class
@@ -33,17 +33,9 @@ export interface Rule {
 
 export type Rules = Record<string, Rule>
 
-interface nameMapper {
-  from: NameConvention | undefined
-  to: NameConvention | undefined
-}
-
 const rulesRegistry: Record<string, Rules> = {}
 
-const nameMapping: nameMapper = {
-  from: undefined,
-  to: undefined
-}
+let nameMapping: (name: string) => string = (name) => name
 
 /**
  * Registers a set of {@link Rules} to be used by {@link hydratedResultTransformer} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
@@ -69,19 +61,19 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
   rulesRegistry[constructor.toString()] = rules
 }
 
-export function setDatabaseNameMapping (newMapping: NameConvention): void {
-  nameMapping.from = newMapping
+export function translatePropertyNames (translationFunction: (name: string) => string): void {
+  nameMapping = translationFunction
 }
 
-export function setCodeNameMapping (newMapping: NameConvention): void {
-  nameMapping.to = newMapping
+export function defaultNameTranslation (from: string, to: string): ((name: string) => string) {
+  // @ts-expect-error
+  return (name: string) => nameConventions[from].encode(nameConventions[to].tokenize(name))
 }
 
 export const mapping = {
   register,
-  setDatabaseNameMapping,
-  setCodeNameMapping,
-  nameConventions
+  translatePropertyNames,
+  defaultNameTranslation
 }
 
 interface Gettable { get: <V>(key: string) => V }
@@ -95,17 +87,12 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 
   for (const [key, rule] of Object.entries(theRules ?? {})) {
     vistedKeys.push(key)
-    if (nameMapping.from !== undefined && nameMapping.to !== undefined) {
-      _apply(gettable, obj, nameMapping.from.encode(nameMapping.to.tokenize(key)), rule)
-    } else {
-      _apply(gettable, obj, key, rule)
-    }
+    _apply(gettable, obj, key, rule)
   }
 
   for (const key of Object.getOwnPropertyNames(obj)) {
-    const mappedkey = (nameMapping.from !== undefined && nameMapping.to !== undefined) ? nameMapping.to.encode(nameMapping.from.tokenize(key)) : key
-    if (!vistedKeys.includes(mappedkey)) {
-      _apply(gettable, obj, key, theRules?.[mappedkey])
+    if (!vistedKeys.includes(key)) {
+      _apply(gettable, obj, key, theRules?.[key])
     }
   }
 
@@ -113,12 +100,12 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 }
 
 function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: Rule): void {
-  const value = gettable.get(rule?.from ?? key)
+  const mappedkey = nameMapping(key)
+  const value = gettable.get(rule?.from ?? mappedkey)
   const field = `${obj.constructor.name}#${key}`
   const processedValue = valueAs(value, field, rule)
-  const mappedkey = (nameMapping.from !== undefined && nameMapping.to !== undefined) ? nameMapping.to.encode(nameMapping.from.tokenize(key)) : key
   // @ts-expect-error
-  obj[mappedkey] = processedValue ?? obj[key]
+  obj[key] = processedValue ?? obj[key]
 }
 
 export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
