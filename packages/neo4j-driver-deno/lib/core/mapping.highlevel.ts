@@ -72,16 +72,16 @@ export function clearMappingRegistry (): void {
 /**
  * Sets a default name translation from record keys to object properties.
  * If providing a function, provide a function that maps FROM your object properties names TO record key names.
- * 
+ *
  * The function defaultNameTranslation can be used to provide a prewritten translation function between some common naming conventions.
- * 
+ *
  * @example
  * //if the keys on records from the database are in ALLCAPS
  * mapping.translatePropertyNames((name) => name.toUpperCase())
- * 
+ *
  * //if you utilize PacalCase in the database and camelCase in JavaScript code.
- * mapping.translatePropertyNames(mapping.defaultNameTranslation("PascalCase", "camelCase")) 
- * 
+ * mapping.translatePropertyNames(mapping.defaultNameTranslation("PascalCase", "camelCase"))
+ *
  * //if a type has one odd mapping you can override the translation with the rule
  * const personRules = {
  *  firstName: neo4j.RulesFactories.asString(),
@@ -92,7 +92,7 @@ export function clearMappingRegistry (): void {
  * record.as<Person>(personRules)
  * //or by registering them to the mapping registry
  * mapping.register(Person, personRules)
- * 
+ *
  * @param {function} translationFunction A function translating the names of your JS object property names to record key names
  */
 export function translatePropertyNames (translationFunction: (name: string) => string): void {
@@ -101,9 +101,9 @@ export function translatePropertyNames (translationFunction: (name: string) => s
 
 /**
  * Creates a translation frunction from record key names to object property names, for use with the {@link translatePropertyNames} function
- * 
+ *
  * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SNAKE_CAPS"
- * 
+ *
  * @param {string} databaseConvention The naming convention in use in database result Records
  * @param {string} codeConvention The naming convention in use in JavaScript object properties
  * @returns {function} translation function
