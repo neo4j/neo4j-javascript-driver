@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 
+import { newError } from './error.ts'
 import { nameConventions } from './mapping.nameconventions.ts'
 
 /**
@@ -33,7 +34,7 @@ export interface Rule {
 
 export type Rules = Record<string, Rule>
 
-const rulesRegistry: Record<string, Rules> = {}
+let rulesRegistry: Record<string, Rules> = {}
 
 let nameMapping: (name: string) => string = (name) => name
 
@@ -61,17 +62,73 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
   rulesRegistry[constructor.toString()] = rules
 }
 
+/**
+ * Clears all registered type mappings from the mapping registry.
+ */
+export function clearMappingRegistry (): void {
+  rulesRegistry = {}
+}
+
+/**
+ * Sets a default name translation from record keys to object properties.
+ * If providing a function, provide a function that maps FROM your object properties names TO record key names.
+ * 
+ * The function defaultNameTranslation can be used to provide a prewritten translation function between some common naming conventions.
+ * 
+ * @example
+ * //if the keys on records from the database are in ALLCAPS
+ * mapping.translatePropertyNames((name) => name.toUpperCase())
+ * 
+ * //if you utilize PacalCase in the database and camelCase in JavaScript code.
+ * mapping.translatePropertyNames(mapping.defaultNameTranslation("PascalCase", "camelCase")) 
+ * 
+ * //if a type has one odd mapping you can override the translation with the rule
+ * const personRules = {
+ *  firstName: neo4j.RulesFactories.asString(),
+ *  bornAt: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true })
+ *  weird_name-property: neo4j.RulesFactories.asString({from: 'homeTown'})
+ * }
+ * //These rules can then be used by providing them to a hydratedResultsMapper
+ * record.as<Person>(personRules)
+ * //or by registering them to the mapping registry
+ * mapping.register(Person, personRules)
+ * 
+ * @param {function} translationFunction A function translating the names of your JS object property names to record key names
+ */
 export function translatePropertyNames (translationFunction: (name: string) => string): void {
   nameMapping = translationFunction
 }
 
-export function defaultNameTranslation (from: string, to: string): ((name: string) => string) {
+/**
+ * Creates a translation frunction from record key names to object property names, for use with the {@link translatePropertyNames} function
+ * 
+ * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SNAKE_CAPS"
+ * 
+ * @param {string} databaseConvention The naming convention in use in database result Records
+ * @param {string} codeConvention The naming convention in use in JavaScript object properties
+ * @returns {function} translation function
+ */
+export function defaultNameTranslation (databaseConvention: string, codeConvention: string): ((name: string) => string) {
+  const keys = Object.keys(nameConventions)
+  if (!(databaseConvention in keys)) {
+    throw newError(
+      `Naming convention ${databaseConvention} is not recognized, 
+      please provide a recognized name convention or manually provide a translation function`
+    )
+  }
+  if (!(codeConvention in keys)) {
+    throw newError(
+      `Naming convention ${codeConvention} is not recognized, 
+      please provide a recognized name convention or manually provide a translation function`
+    )
+  }
   // @ts-expect-error
-  return (name: string) => nameConventions[from].encode(nameConventions[to].tokenize(name))
+  return (name: string) => nameConventions[databaseConvention].encode(nameConventions[codeConvention].tokenize(name))
 }
 
 export const mapping = {
   register,
+  clearMappingRegistry,
   translatePropertyNames,
   defaultNameTranslation
 }
