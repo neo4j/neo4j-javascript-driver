@@ -1564,6 +1564,126 @@ describe('#integration examples', () => {
     })
   })
 
+  describe('Record Object Mapping', () => {
+    it('Record mapping', async () => {
+      const driver = driverGlobal
+
+      await driver.executeQuery(
+        `MERGE (p1:Person {name: $name1, born: $born1})
+         MERGE (p2:Person {name: $name2, born: $born2})
+         MERGE (m:Movie {title: $title, tagline: $tagline})
+         MERGE (p1)-[:ACTED_IN {characterName: $char1}]->(m)
+         MERGE (p2)-[:ACTED_IN {characterName: $char2}]->(m)
+        `, {
+          name1: 'Max',
+          born1: 2024,
+          name2: 'TBD',
+          born2: 2030,
+          title: 'Neo4j JavaScript Driver',
+          tagline: 'The best driver for the best database!',
+          char1: 'current dev',
+          char2: 'next dev'
+        })
+
+      class ActingJobs {
+        constructor (
+          Person,
+          Movie,
+          Costars
+        ) {
+          this.Person = Person
+          this.Movie = Movie
+          this.Costars = Costars
+        }
+      }
+
+      class Movie {
+        constructor (
+          Title,
+          Released,
+          Tagline
+        ) {
+          this.Title = Title
+          this.Released = Released
+          this.Tagline = Tagline
+        }
+      }
+
+      class Person {
+        constructor (
+          Name,
+          Born
+        ) {
+          this.Name = Name
+          this.Born = Born
+        }
+      }
+
+      class Role {
+        constructor (
+          Name
+        ) {
+          this.Name = Name
+        }
+      }
+
+      const personRules = {
+        Name: neo4j.RulesFactories.asString(),
+        Born: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true })
+      }
+
+      const movieRules = {
+        Title: neo4j.RulesFactories.asString(),
+        Released: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true, from: 'release' }),
+        Tagline: neo4j.RulesFactories.asString({ optional: true })
+      }
+
+      const roleRules = {
+        Name: neo4j.RulesFactories.asString({ from: 'characterName' })
+      }
+
+      const actingJobsRules = {
+        Person: neo4j.RulesFactories.asNode({
+          convert: (node) => node.as(Person, personRules)
+        }),
+        Role: neo4j.RulesFactories.asRelationship({
+          convert: (rel) => rel.as(Role, roleRules)
+        }),
+        Movie: neo4j.RulesFactories.asNode({
+          convert: (node) => node.as(Movie, movieRules)
+        }),
+        Costars: neo4j.RulesFactories.asList({
+          apply: neo4j.RulesFactories.asNode({
+            convert: (node) => node.as(Person, personRules)
+          })
+        })
+      }
+
+      neo4j.mapping.translatePropertyNames(neo4j.mapping.defaultNameTranslation('camelCase', 'PascalCase'))
+      neo4j.mapping.register(Person, personRules)
+      neo4j.mapping.register(Movie, movieRules)
+      neo4j.mapping.register(ActingJobs, actingJobsRules)
+      neo4j.mapping.register(Role, roleRules)
+      const session = driver.session()
+
+      const res = await session.executeRead(async (tx) => {
+        const txres = tx.run(
+          `MATCH (p:Person)-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(c:Person)
+          WHERE id(p) <> id(c) AND p.name = "Max"
+          RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`
+        )
+        return txres.as(ActingJobs)
+      })
+
+      expect(res.records[0].Person.Born).toBe(2024)
+      expect(res.records[0].Role.Name).toBe('current dev')
+      expect(res.records[0].Costars[0].Name).toBe('TBD')
+
+      neo4j.mapping.clearMappingRegistry()
+      session.close()
+    })
+  })
+
   it('should control flow by resume and pause the stream', async () => {
     const driver = driverGlobal
     const callCostlyApi = async () => {}

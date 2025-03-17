@@ -110,16 +110,16 @@ export function translatePropertyNames (translationFunction: (name: string) => s
  */
 export function defaultNameTranslation (databaseConvention: string, codeConvention: string): ((name: string) => string) {
   const keys = Object.keys(nameConventions)
-  if (!(databaseConvention in keys)) {
+  if (!keys.includes(databaseConvention)) {
     throw newError(
       `Naming convention ${databaseConvention} is not recognized, 
-      please provide a recognized name convention or manually provide a translation function`
+      please provide a recognized name convention or manually provide a translation function.`
     )
   }
-  if (!(codeConvention in keys)) {
+  if (!keys.includes(codeConvention)) {
     throw newError(
       `Naming convention ${codeConvention} is not recognized, 
-      please provide a recognized name convention or manually provide a translation function`
+      please provide a recognized name convention or manually provide a translation function.`
     )
   }
   // @ts-expect-error
