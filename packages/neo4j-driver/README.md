@@ -44,7 +44,7 @@ var neo4j = require('neo4j-driver')
 import neo4j from 'neo4j-driver'
 ```
 
-Driver instance should be closed when Node.js application exits:
+Driver instance should be closed when the application exits:
 
 ```javascript
 driver.close() // returns a Promise
@@ -226,7 +226,7 @@ readTxResultPromise
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
+  .finally(() => session.close())
 ```
 
 #### Reading with Reactive Session
@@ -270,7 +270,7 @@ writeTxResultPromise
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
+  .finally(() => session.close())
 ```
 
 #### Writing with Reactive Session
@@ -345,7 +345,7 @@ implicitTxResultPromise
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
+  .finally(() => session.close())
 ```
 
 ### Explicit Transactions
@@ -431,9 +431,11 @@ rxSession
 
 ```javascript
 // Run a Cypher statement, reading the result in a streaming manner as records arrive:
-driver
-  .executeQuery('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
-    nameParam: 'Alice'
+session
+  .executeWrite(tx => {
+    return tx.run('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
+      nameParam: 'Alice'
+    })
   })
   .subscribe({
     onKeys: keys => {
@@ -473,7 +475,6 @@ driver
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
 ```
 
 #### Consuming Records with Reactive API
