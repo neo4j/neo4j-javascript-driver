@@ -279,7 +279,7 @@ writeTxResultPromise
 rxSession
   .executeWrite(txc =>
     txc
-      .run("MERGE (alice:Person {name: 'James'}) RETURN alice.name AS name")
+      .run("MERGE (alice:Person {name: 'Alice'}) RETURN alice.name AS name")
       .records()
       .pipe(map(record => record.get('name')))
   )
@@ -484,7 +484,7 @@ rxSession
   .executeWrite(txc =>
     txc
       .run('MERGE (james:Person {name: $nameParam}) RETURN james.name AS name', {
-        nameParam: 'Bob'
+        nameParam: 'James'
       })
       .records()
     )
