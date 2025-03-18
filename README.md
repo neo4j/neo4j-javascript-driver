@@ -436,20 +436,20 @@ session
     return tx.run('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
       nameParam: 'Alice'
     })
-  })
-  .subscribe({
-    onKeys: keys => {
-      console.log(keys)
-    },
-    onNext: record => {
-      console.log(record.get('name'))
-    },
-    onCompleted: () => {
-      session.close() // returns a Promise
-    },
-    onError: error => {
-      console.log(error)
-    }
+    .subscribe({
+      onKeys: keys => {
+        console.log(keys)
+      },
+      onNext: record => {
+        console.log(record.get('name'))
+      },
+      onCompleted: () => {
+        session.close() // returns a Promise
+      },
+      onError: error => {
+        console.log(error)
+      }
+    })
   })
 ```
 
@@ -481,16 +481,16 @@ driver
 
 ```javascript
 rxSession
-  .executeRead(txc =>
+  .executeWrite(txc =>
     txc
       .run('MERGE (james:Person {name: $nameParam}) RETURN james.name AS name', {
         nameParam: 'Bob'
-    })
-  )
-  .records()
+      })
+      .records()
+    )
   .pipe(
     map(record => record.get('name')),
-    concatWith(rxSession.close())
+    concatWith(session.close())
   )
   .subscribe({
     next: data => console.log(data),
