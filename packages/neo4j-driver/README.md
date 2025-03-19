@@ -2,7 +2,7 @@
 
 This is the official Neo4j driver for JavaScript.
 
-Starting with 5.0, the Neo4j Drivers will be moving to a monthly release cadence. A minor version will be released on the last Friday of each month so as to maintain versioning consistency with the core product (Neo4j DBMS) which has also moved to a monthly cadence.
+As of the 5.28.0 LTS release, the driver is no longer on a monthly release cadence. Minor version releases will happen when there are sufficient new features or improvements to warrant them. This is to reduce the required work of users updating their driver. 
 
 As a policy, patch versions will not be released except on rare occasions. Bug fixes and updates will go into the latest minor version and users should upgrade to that. Driver upgrades within a major version will never contain breaking API changes.
 
