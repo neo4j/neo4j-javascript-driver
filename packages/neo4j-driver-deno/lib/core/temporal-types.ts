@@ -23,7 +23,7 @@ import {
   assertValidDate
 } from './internal/util.ts'
 import { newError } from './error.ts'
-import Integer, { int, toNumber } from './integer.ts'
+import Integer, { int, toNumber, isInt } from './integer.ts'
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,
@@ -79,6 +79,14 @@ export class Duration<T extends NumberOrInteger = Integer> {
      * @type {NumberOrInteger}
      */
     this.nanoseconds = util.normalizeNanosecondsForDuration(nanoseconds) as T
+    if (typeof this.months === 'number' && isInt(this.nanoseconds) && isInt(this.seconds)) {
+      this.seconds = this.seconds.toNumber() as T
+      this.nanoseconds = this.nanoseconds.toNumber() as T
+    }
+    if (typeof this.months === 'bigint' && isInt(this.nanoseconds) && isInt(this.seconds)) {
+      this.seconds = this.seconds.toBigInt() as T
+      this.nanoseconds = this.nanoseconds.toBigInt() as T
+    }
     Object.freeze(this)
   }
 
