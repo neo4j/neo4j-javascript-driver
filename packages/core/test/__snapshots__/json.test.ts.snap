@@ -12,11 +12,11 @@ exports[`json .stringify should handle DateTime in list 1`] = `"[{"year":2024,"m
 
 exports[`json .stringify should handle DateTime in object 1`] = `"{"key":{"year":2024,"month":6,"day":13,"hour":10,"minute":0,"second":30,"nanosecond":134,"timeZoneOffsetSeconds":-3600,"timeZoneId":"Europe/Berlin"}}"`;
 
-exports[`json .stringify should handle Duration 1`] = `"{"months":10,"days":2,"seconds":{"low":35,"high":0},"nanoseconds":{"low":100,"high":0}}"`;
+exports[`json .stringify should handle Duration 1`] = `"{"months":10,"days":2,"seconds":35,"nanoseconds":100}"`;
 
-exports[`json .stringify should handle Duration in list 1`] = `"[{"months":10,"days":2,"seconds":{"low":35,"high":0},"nanoseconds":{"low":100,"high":0}}]"`;
+exports[`json .stringify should handle Duration in list 1`] = `"[{"months":10,"days":2,"seconds":35,"nanoseconds":100}]"`;
 
-exports[`json .stringify should handle Duration in object 1`] = `"{"key":{"months":10,"days":2,"seconds":{"low":35,"high":0},"nanoseconds":{"low":100,"high":0}}}"`;
+exports[`json .stringify should handle Duration in object 1`] = `"{"key":{"months":10,"days":2,"seconds":35,"nanoseconds":100}}"`;
 
 exports[`json .stringify should handle Integer 1`] = `"{"low":5,"high":0}"`;
 
