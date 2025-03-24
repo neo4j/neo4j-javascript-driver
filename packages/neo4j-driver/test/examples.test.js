@@ -1566,12 +1566,13 @@ describe('#integration examples', () => {
 
   describe('Record Object Mapping', () => {
     it('Record mapping', async () => {
-      const driver = driverGlobal
+      const driver = neo4j.driver(uri, sharedNeo4j.authToken, { disableLosslessIntegers: true })
 
+      // Setting up the contents of the database for the test.
       await driver.executeQuery(
         `MERGE (p1:Person {name: $name1, born: $born1})
          MERGE (p2:Person {name: $name2, born: $born2})
-         MERGE (m:Movie {title: $title, tagline: $tagline})
+         MERGE (m:Movie {title: $title, release: $release, tagline: $tagline})
          MERGE (p1)-[:ACTED_IN {characterName: $char1}]->(m)
          MERGE (p2)-[:ACTED_IN {characterName: $char2}]->(m)
         `, {
@@ -1579,12 +1580,14 @@ describe('#integration examples', () => {
           born1: 2024,
           name2: 'TBD',
           born2: 2030,
+          release: 2015,
           title: 'Neo4j JavaScript Driver',
           tagline: 'The best driver for the best database!',
           char1: 'current dev',
           char2: 'next dev'
         })
 
+      // A few dummy classes for the test.
       class ActingJobs {
         constructor (
           Person,
@@ -1627,6 +1630,7 @@ describe('#integration examples', () => {
         }
       }
 
+      // Create rules for the hydration of the created types
       const personRules = {
         Name: neo4j.RulesFactories.asString(),
         Born: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true })
@@ -1643,27 +1647,34 @@ describe('#integration examples', () => {
       }
 
       const actingJobsRules = {
+        // The following rule unpacks the person node from the result into a Person object.
+        // The rules for the types don't need to be provided as we will be registering the rules for Person, Role and Movie in the mapping registry
         Person: neo4j.RulesFactories.asNode({
-          convert: (node) => node.as(Person, personRules)
+          convert: (node) => node.as(Person)
         }),
         Role: neo4j.RulesFactories.asRelationship({
-          convert: (rel) => rel.as(Role, roleRules)
+          convert: (rel) => rel.as(Role)
         }),
         Movie: neo4j.RulesFactories.asNode({
-          convert: (node) => node.as(Movie, movieRules)
+          convert: (node) => node.as(Movie)
         }),
         Costars: neo4j.RulesFactories.asList({
           apply: neo4j.RulesFactories.asNode({
-            convert: (node) => node.as(Person, personRules)
+            convert: (node) => node.as(Person)
           })
         })
       }
 
-      neo4j.mapping.translatePropertyNames(neo4j.mapping.defaultNameTranslation('camelCase', 'PascalCase'))
+      // Register the rules for the custom types in the mapping registry.
+      // This is optional, but not doing it means that rules must be provided for every conversion.
+      neo4j.mapping.register(Role, roleRules)
       neo4j.mapping.register(Person, personRules)
       neo4j.mapping.register(Movie, movieRules)
       neo4j.mapping.register(ActingJobs, actingJobsRules)
-      neo4j.mapping.register(Role, roleRules)
+
+      // The code uses PascalCase for property names, while the cypher has camelCase. This issue can be solved with the following line.
+      neo4j.mapping.translatePropertyNames(neo4j.mapping.defaultNameTranslation('camelCase', 'PascalCase'))
+
       const session = driver.session()
 
       const res = await session.executeRead(async (tx) => {
@@ -1679,8 +1690,25 @@ describe('#integration examples', () => {
       expect(res.records[0].Role.Name).toBe('current dev')
       expect(res.records[0].Costars[0].Name).toBe('TBD')
 
-      neo4j.mapping.clearMappingRegistry()
       session.close()
+
+      // alternatively, conversions can be performed with hydratedResultTransformers
+      const executeQueryRes = await driver.executeQuery(
+        `MATCH (p:Person)-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(c:Person)
+        WHERE id(p) <> id(c) AND p.name = "Max"
+        RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`,
+        {},
+        { resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(ActingJobs) }
+      )
+
+      expect(executeQueryRes.records[0].Person.Born).toBe(2024)
+      expect(executeQueryRes.records[0].Role.Name).toBe('current dev')
+      expect(executeQueryRes.records[0].Costars[0].Name).toBe('TBD')
+
+      // The following line removes all rules from the mapping registry, this is run here just to not interfere with other tests.
+      neo4j.mapping.clearMappingRegistry()
+
+      driver.close()
     })
   })
 
