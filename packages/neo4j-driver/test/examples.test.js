@@ -1101,8 +1101,8 @@ describe('#integration examples', () => {
         expect(neo4j.isDuration(durationField)).toEqual(true)
         expect(durationField.months.toInt()).toEqual(duration.months)
         expect(durationField.days.toInt()).toEqual(duration.days)
-        expect(durationField.seconds).toEqual(duration.seconds)
-        expect(durationField.nanoseconds).toEqual(duration.nanoseconds)
+        expect(durationField.seconds.toInt()).toEqual(duration.seconds)
+        expect(durationField.nanoseconds.toInt()).toEqual(duration.nanoseconds)
       } finally {
         await session.close()
       }
