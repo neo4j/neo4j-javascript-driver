@@ -39,8 +39,7 @@ type KeyFile = string | { path: string, password?: string }
  *
  * @interface
  * @see https://nodejs.org/api/tls.html#tlscreatesecurecontextoptions
- * @experimental Exposed as preview feature.
- * @since 5.19
+ * @since 5.27
  */
 export default class ClientCertificate {
   public readonly certfile: string | string[]
@@ -74,8 +73,8 @@ export default class ClientCertificate {
 /**
  * Provides a client certificate to the driver for mutual TLS.
  *
- * The driver will call {@link ClientCertificateProvider#hasUpdate()} to check if the client wants to update the certificate.
- * If so, it will call {@link ClientCertificateProvider#getCertificate()} to get the new certificate.
+ * The driver will call {@link ClientCertificateProvider#hasUpdate} to check if the client wants to update the certificate.
+ * If so, it will call {@link ClientCertificateProvider#getClientCertificate} to get the new certificate.
  *
  * The certificate is only used as a second factor for authentication authenticating the client.
  * The DMBS user still needs to authenticate with an authentication token.
@@ -87,8 +86,7 @@ export default class ClientCertificate {
  * Should fetching the certificate be particularly slow, it might be necessary to increase the timeout.
  *
  * @interface
- * @experimental Exposed as preview feature.
- * @since 5.19
+ * @since 5.27
  */
 export class ClientCertificateProvider {
   /**
@@ -103,7 +101,7 @@ export class ClientCertificateProvider {
   /**
    * Returns the certificate to use for new connections.
    *
-   * Will be called by the driver after {@link ClientCertificateProvider#hasUpdate()} returned true
+   * Will be called by the driver after {@link ClientCertificateProvider#hasUpdate} returned true
    * or when the driver establishes the first connection.
    *
    * @returns {Promise<ClientCertificate>|ClientCertificate} the certificate to use for new connections
@@ -116,8 +114,7 @@ export class ClientCertificateProvider {
 /**
  * Interface for  {@link ClientCertificateProvider} which provides update certificate function.
  * @interface
- * @experimental Exposed as preview feature.
- * @since 5.19
+ * @since 5.27
  */
 export class RotatingClientCertificateProvider extends ClientCertificateProvider {
   /**
@@ -136,8 +133,7 @@ export class RotatingClientCertificateProvider extends ClientCertificateProvider
 /**
  * Defines the object which holds the common {@link ClientCertificateProviders} used in the Driver
  *
- * @experimental Exposed as preview feature.
- * @since 5.19
+ * @since 5.27
  */
 class ClientCertificateProviders {
   /**
@@ -161,8 +157,7 @@ class ClientCertificateProviders {
 /**
  * Holds the common {@link ClientCertificateProviders} used in the Driver.
  *
- * @experimental Exposed as preview feature.
- * @since 5.19
+ * @since 5.27
  */
 const clientCertificateProviders: ClientCertificateProviders = new ClientCertificateProviders()
 

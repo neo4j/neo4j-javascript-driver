@@ -33,6 +33,8 @@ describe('QueryExecutor', () => {
     }
   }
 
+  const aAbortController = new AbortController()
+
   it.each([
     ['bookmarkManager set', { bookmarkManager: aBookmarkManager }, { bookmarkManager: aBookmarkManager }],
     ['bookmarkManager undefined', { bookmarkManager: undefined }, { bookmarkManager: undefined }],
@@ -41,7 +43,10 @@ describe('QueryExecutor', () => {
     ['impersonatedUser set', { impersonatedUser: 'anUser' }, { impersonatedUser: 'anUser' }],
     ['impersonatedUser undefined', { impersonatedUser: undefined }, { impersonatedUser: undefined }],
     ['auth set', { auth: { scheme: 'none', credentials: '' } }, { auth: { scheme: 'none', credentials: '' } }],
-    ['auth undefined', { auth: undefined }, { auth: undefined }]
+    ['auth undefined', { auth: undefined }, { auth: undefined }],
+    ['signal set', { signal: aAbortController.signal }, { }],
+    ['signal set signal', { signal: {} as unknown as AbortSignal }, { }],
+    ['signal undefined', { signal: undefined }, { }]
   ])('should redirect % to the session creation', async (_, executorConfig, expectConfig) => {
     const { queryExecutor, createSession } = createExecutor()
 
@@ -208,6 +213,56 @@ describe('QueryExecutor', () => {
         expect(errorGot).toBe(closeError)
       }
     })
+
+    whenAbortSignalIsEventTarget(() => {
+      it('should configure listener and remove at end', async () => {
+        const { queryExecutor, sessionsCreated } = createExecutor()
+        const controller = new AbortController()
+        const signal = controller.signal
+        // @ts-expect-error
+        const addListenerSpy = jest.spyOn(signal, 'addEventListener')
+        // @ts-expect-error
+        const removerListenerSpy = jest.spyOn(signal, 'removeEventListener')
+
+        const promise = queryExecutor.execute({ ...baseConfig, signal }, 'query')
+
+        expect(addListenerSpy).toHaveBeenCalled()
+        expect(removerListenerSpy).not.toHaveBeenCalled()
+
+        await promise
+
+        expect(removerListenerSpy).toHaveBeenCalled()
+
+        // Default expectations
+        expect(sessionsCreated.length).toBe(1)
+        const [{ spyOnExecuteRead }] = sessionsCreated
+        expect(spyOnExecuteRead).toHaveBeenCalled()
+      })
+
+      it('should close session when abort', async () => {
+        const { queryExecutor, sessionsCreated } = createExecutor()
+        const controller = new AbortController()
+        const signal = controller.signal
+        // @ts-expect-error
+        const removerListenerSpy = jest.spyOn(signal, 'removeEventListener')
+
+        const promise = queryExecutor.execute({ ...baseConfig, signal }, 'query')
+
+        controller.abort()
+
+        // Expect to close session
+        expect(sessionsCreated[0].session.close).toHaveBeenCalled()
+
+        await promise
+
+        expect(removerListenerSpy).toHaveBeenCalled()
+
+        // Default expectations
+        expect(sessionsCreated.length).toBe(1)
+        const [{ spyOnExecuteRead }] = sessionsCreated
+        expect(spyOnExecuteRead).toHaveBeenCalled()
+      })
+    })
   })
 
   describe('when routing="WRITE"', () => {
@@ -364,6 +419,56 @@ describe('QueryExecutor', () => {
         expect(errorGot).toBe(closeError)
       }
     })
+
+    whenAbortSignalIsEventTarget(() => {
+      it('should configure listener and remove at end', async () => {
+        const { queryExecutor, sessionsCreated } = createExecutor()
+        const controller = new AbortController()
+        const signal = controller.signal
+        // @ts-expect-error
+        const addListenerSpy = jest.spyOn(signal, 'addEventListener')
+        // @ts-expect-error
+        const removerListenerSpy = jest.spyOn(signal, 'removeEventListener')
+
+        const promise = queryExecutor.execute({ ...baseConfig, signal }, 'query')
+
+        expect(addListenerSpy).toHaveBeenCalled()
+        expect(removerListenerSpy).not.toHaveBeenCalled()
+
+        await promise
+
+        expect(removerListenerSpy).toHaveBeenCalled()
+
+        // Default expectations
+        expect(sessionsCreated.length).toBe(1)
+        const [{ spyOnExecuteWrite }] = sessionsCreated
+        expect(spyOnExecuteWrite).toHaveBeenCalled()
+      })
+
+      it('should close session when abort', async () => {
+        const { queryExecutor, sessionsCreated } = createExecutor()
+        const controller = new AbortController()
+        const signal = controller.signal
+        // @ts-expect-error
+        const removerListenerSpy = jest.spyOn(signal, 'removeEventListener')
+
+        const promise = queryExecutor.execute({ ...baseConfig, signal }, 'query')
+
+        controller.abort()
+
+        // Expect to close session
+        expect(sessionsCreated[0].session.close).toHaveBeenCalled()
+
+        await promise
+
+        expect(removerListenerSpy).toHaveBeenCalled()
+
+        // Default expectations
+        expect(sessionsCreated.length).toBe(1)
+        const [{ spyOnExecuteWrite }] = sessionsCreated
+        expect(spyOnExecuteWrite).toHaveBeenCalled()
+      })
+    })
   })
 
   function createExecutor ({
@@ -455,3 +560,10 @@ describe('QueryExecutor', () => {
     }
   }
 })
+
+function whenAbortSignalIsEventTarget (fn: () => unknown): void {
+  // @ts-expect-error AbortSignal doesn't implements EventTarget on this TS Config.
+  if (typeof AbortSignal.prototype.addEventListener === 'function') {
+    describe('when abort signal is event target', fn)
+  }
+}

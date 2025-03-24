@@ -222,6 +222,32 @@ describe('NodeChannel', () => {
       })
     })
   })
+
+  describe('._HandleConnectionError()', () => {
+    it('should set open false if connection error on destroyed socket', () => {
+      const address = ServerAddress.fromUrl('bolt://localhost:9999')
+      const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
+      const channel = new NodeChannel(channelConfig)
+
+      channel._handleConnectionError(newError('mock error',
+        SERVICE_UNAVAILABLE))
+
+      return expect(channel._open).toBe(true)
+    })
+
+    it('should not set open false if connection error on not destroyed socket', () => {
+      const address = ServerAddress.fromUrl('bolt://localhost:9999')
+      const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
+      const channel = new NodeChannel(channelConfig)
+
+      channel._conn.destroyed = true
+
+      channel._handleConnectionError(newError('mock error',
+        SERVICE_UNAVAILABLE))
+
+      return expect(channel._open).toBe(false)
+    })
+  })
 })
 
 function createMockedChannel (connected, config = { connectionTimeout: 30000 }) {

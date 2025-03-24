@@ -40,6 +40,10 @@
           "repository": "https://github.com/neo4j/neo4j-javascript-driver"
         }
       }
+    },
+    {
+      "name": "esdoc-type-inference-plugin", 
+      "option": {"enable": false}
     }
   ]
 }

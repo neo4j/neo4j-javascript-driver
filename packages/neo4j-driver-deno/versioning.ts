@@ -10,8 +10,8 @@ export async function setVersion (rootOutDir: string, version: string = currentV
   );
 }
 
-const thisFilePath = join(Deno.cwd(), 'versioning.ts');
-if (Deno.mainModule.endsWith(thisFilePath)) {
+const thisFilePath = join(Deno.cwd().replace(" ", "%20"), 'versioning.ts');
+if (Deno.mainModule.replace(" ", "%20").endsWith(thisFilePath)) {
   const parsedArgs = parse(Deno.args, {
     string: ["version", "output", 'filename'],
     unknown: (arg) => {

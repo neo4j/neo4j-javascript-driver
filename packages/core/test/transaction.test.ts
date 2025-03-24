@@ -566,7 +566,8 @@ function newTransactionPromise ({
     impersonatedUser: '',
     highRecordWatermark,
     lowRecordWatermark,
-    notificationFilter
+    notificationFilter,
+    onDbCallback: (_: string) => { }
   })
 
   return transaction

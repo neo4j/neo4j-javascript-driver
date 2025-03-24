@@ -16,7 +16,6 @@
  */
 
 import DirectConnectionProvider from '../../src/connection-provider/connection-provider-direct'
-import { Pool } from '../../src/pool'
 import { Connection, DelegateConnection } from '../../src/connection'
 import { authTokenManagers, internal, newError, ServerInfo, staticAuthTokenManager } from 'neo4j-driver-core'
 import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
@@ -25,7 +24,8 @@ import LivenessCheckProvider from '../../src/connection-provider/liveness-check-
 
 const {
   serverAddress: { ServerAddress },
-  logger: { Logger }
+  logger: { Logger },
+  pool: { Pool }
 } = internal
 
 describe('#unit DirectConnectionProvider', () => {

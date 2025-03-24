@@ -24,7 +24,7 @@ import { ConfiguredCustomResolver } from '../src/internal/resolver'
 import { LogLevel } from '../src/types'
 import resultTransformers from '../src/result-transformers'
 import Record, { RecordShape } from '../src/record'
-import { validNotificationFilters } from './utils/notification-filters.fixtures'
+import { invalidNotificationFilters, validNotificationFilters } from './utils/notification-filters.fixtures'
 
 describe('Driver', () => {
   let driver: Driver | null
@@ -473,6 +473,8 @@ describe('Driver', () => {
           key: 'value'
         }
       }
+      const aAbortController = new AbortController()
+
       async function aTransformer (result: Result): Promise<string> {
         const summary = await result.summary()
         return summary.database.name ?? 'no-db-set'
@@ -488,7 +490,8 @@ describe('Driver', () => {
         ['config.bookmarkManager=null', 'q', {}, { bookmarkManager: null }, extendsDefaultWith({ bookmarkManager: undefined })],
         ['config.bookmarkManager set to non-null/empty', 'q', {}, { bookmarkManager: theBookmarkManager }, extendsDefaultWith({ bookmarkManager: theBookmarkManager })],
         ['config.resultTransformer set', 'q', {}, { resultTransformer: aTransformer }, extendsDefaultWith({ resultTransformer: aTransformer })],
-        ['config.transactionConfig set', 'q', {}, { transactionConfig: aTransactionConfig }, extendsDefaultWith({ transactionConfig: aTransactionConfig })]
+        ['config.transactionConfig set', 'q', {}, { transactionConfig: aTransactionConfig }, extendsDefaultWith({ transactionConfig: aTransactionConfig })],
+        ['config.signal set', 'q', {}, { signal: aAbortController.signal }, extendsDefaultWith({ signal: aAbortController.signal })]
       ])('should handle the params for %s', async (_, query, params, config, buildExpectedConfig) => {
         const spiedExecute = jest.spyOn(queryExecutor, 'execute')
 
@@ -603,6 +606,21 @@ describe('Driver', () => {
 
         await driver.close()
       })
+
+      it.each(
+        invalidNotificationFilters()
+      )('should fail on invalid notification filters', async (notificationFilter?: NotificationFilter) => {
+        const createConnectionProviderMock = jest.fn(mockCreateConnectonProvider(connectionProvider))
+
+        expect(() => new Driver(
+          META_INFO,
+          { notificationFilter },
+          createConnectionProviderMock,
+          createSession
+        )).toThrow(new Error('The notificationFilter can\'t have both "disabledCategories" and  "disabledClassifications" configured at the same time.'))
+
+        expect(createConnectionProviderMock).not.toHaveBeenCalled()
+      })
     })
 
     describe('config', () => {
@@ -681,7 +699,8 @@ describe('Driver', () => {
         fetchSize: 1000,
         maxConnectionLifetime: 3600000,
         maxConnectionPoolSize: 100,
-        connectionTimeout: 30000
+        connectionTimeout: 30000,
+        routingDriver: false
       },
       connectionProvider,
       database: '',
@@ -691,6 +710,7 @@ describe('Driver', () => {
       impersonatedUser: undefined,
       // @ts-expect-error
       log: driver?._log,
+      homeDatabaseCallback: expect.any(Function),
       ...extra
     }
   }

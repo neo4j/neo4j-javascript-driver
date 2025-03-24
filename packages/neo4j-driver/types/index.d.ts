@@ -55,6 +55,7 @@ import {
   RecordShape,
   ResultSummary,
   Notification,
+  GqlStatusObject,
   NotificationPosition,
   Plan,
   ProfiledPlan,
@@ -77,13 +78,17 @@ import {
   resultTransformers,
   ResultTransformer,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   NotificationCategory,
+  NotificationClassification,
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification,
   NotificationFilterMinimumSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   AuthTokenAndExpiration,
@@ -253,6 +258,7 @@ declare const forExport: {
   ProfiledPlan: typeof ProfiledPlan
   QueryStatistics: typeof QueryStatistics
   Notification: typeof Notification
+  GqlStatusObject: typeof GqlStatusObject
   ServerInfo: typeof ServerInfo
   NotificationPosition: NotificationPosition
   Session: typeof Session
@@ -284,8 +290,10 @@ declare const forExport: {
   bookmarkManager: typeof bookmarkManager
   resultTransformers: typeof resultTransformers
   notificationCategory: typeof notificationCategory
+  notificationClassification: typeof notificationClassification
   notificationSeverityLevel: typeof notificationSeverityLevel
   notificationFilterDisabledCategory: typeof notificationFilterDisabledCategory
+  notificationFilterDisabledClassification: typeof notificationFilterDisabledClassification
   notificationFilterMinimumSeverityLevel: typeof notificationFilterMinimumSeverityLevel
   logging: typeof logging
   clientCertificateProviders: typeof clientCertificateProviders
@@ -330,6 +338,7 @@ export {
   ProfiledPlan,
   QueryStatistics,
   Notification,
+  GqlStatusObject,
   ServerInfo,
   NotificationPosition,
   Session,
@@ -361,8 +370,10 @@ export {
   bookmarkManager,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   logging,
   clientCertificateProviders
@@ -378,9 +389,11 @@ export type {
   RecordShape,
   ResultTransformer,
   NotificationCategory,
+  NotificationClassification,
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification,
   NotificationFilterMinimumSeverityLevel,
   AuthTokenManager,
   AuthTokenAndExpiration,

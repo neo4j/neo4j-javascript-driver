@@ -34,6 +34,8 @@ let idGenerator = 0
  * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
  * @param {Logger} log - configured logger.
  * @param {clientCertificate} clientCertificate - configured client certificate
+ * @param ssrCallback - callback function used to update the counts of ssr enabled and disabled connections
+ * @param createChannel - function taking a channelConfig object and creating a channel with it
  * @return {Connection} - new connection.
  */
 export function createChannelConnection (
@@ -43,6 +45,7 @@ export function createChannelConnection (
   log,
   clientCertificate,
   serversideRouting = null,
+  ssrCallback,
   createChannel = channelConfig => new Channel(channelConfig)
 ) {
   const channelConfig = new ChannelConfig(
@@ -89,7 +92,8 @@ export function createChannelConnection (
         chunker,
         config.notificationFilter,
         createProtocol,
-        config.telemetryDisabled
+        config.telemetryDisabled,
+        ssrCallback
       )
 
       // forward all pending bytes to the dechunker
@@ -110,9 +114,11 @@ export default class ChannelConnection extends Connection {
    * @param {ConnectionErrorHandler} errorHandler the error handler.
    * @param {ServerAddress} address - the server address to connect to.
    * @param {Logger} log - the configured logger.
-   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
-   * @param {Chunker} chunker the chunker
-   * @param protocolSupplier Bolt protocol supplier
+   * @param {boolean} disableLosslessIntegers - if this connection should convert all received integers to native JS numbers.
+   * @param {Chunker} chunker - the chunker
+   * @param protocolSupplier - Bolt protocol supplier
+   * @param {boolean} telemetryDisabled - wether telemetry has been disabled in driver config.
+   * @param ssrCallback - callback function used to update the counts of ssr enabled and disabled connections.
    */
   constructor (
     channel,
@@ -124,7 +130,8 @@ export default class ChannelConnection extends Connection {
     chunker, // to be removed,
     notificationFilter,
     protocolSupplier,
-    telemetryDisabled
+    telemetryDisabled,
+    ssrCallback = (_) => {}
   ) {
     super(errorHandler)
     this._authToken = null
@@ -143,6 +150,7 @@ export default class ChannelConnection extends Connection {
     this._notificationFilter = notificationFilter
     this._telemetryDisabledDriverConfig = telemetryDisabled === true
     this._telemetryDisabledConnection = true
+    this._ssrCallback = ssrCallback
 
     // connection from the database, returned in response for HELLO message and might not be available
     this._dbConnectionId = null
@@ -331,7 +339,9 @@ export default class ChannelConnection extends Connection {
               if (telemetryEnabledHint === true) {
                 this._telemetryDisabledConnection = false
               }
+              this.SSREnabledHint = metadata.hints['ssr.enabled']
             }
+            this._ssrCallback(this.SSREnabledHint ?? false, 'OPEN')
           }
           resolve(self)
         }
@@ -441,7 +451,7 @@ export default class ChannelConnection extends Connection {
             reject(error)
           } else {
             const neo4jError = this._handleProtocolError(
-              'Received FAILURE as a response for RESET: ' + error
+              `Received FAILURE as a response for RESET: ${error}`
             )
             reject(neo4jError)
           }
@@ -538,6 +548,7 @@ export default class ChannelConnection extends Connection {
    * @returns {Promise<void>} - A promise that will be resolved when the underlying channel is closed.
    */
   async close () {
+    this._ssrCallback(this.SSREnabledHint ?? false, 'CLOSE')
     if (this._log.isDebugEnabled()) {
       this._log.debug('closing')
     }

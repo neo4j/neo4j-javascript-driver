@@ -29,6 +29,10 @@ import BoltProtocolV5x1 from './bolt-protocol-v5x1'
 import BoltProtocolV5x2 from './bolt-protocol-v5x2'
 import BoltProtocolV5x3 from './bolt-protocol-v5x3'
 import BoltProtocolV5x4 from './bolt-protocol-v5x4'
+import BoltProtocolV5x5 from './bolt-protocol-v5x5'
+import BoltProtocolV5x6 from './bolt-protocol-v5x6'
+import BoltProtocolV5x7 from './bolt-protocol-v5x7'
+import BoltProtocolV5x8 from './bolt-protocol-v5x8'
 // eslint-disable-next-line no-unused-vars
 import { Chunker, Dechunker } from '../channel'
 import ResponseHandler from './response-handler'
@@ -62,6 +66,7 @@ export default function create ({
   const createResponseHandler = protocol => {
     const responseHandler = new ResponseHandler({
       transformMetadata: protocol.transformMetadata.bind(protocol),
+      enrichErrorMetadata: protocol.enrichErrorMetadata.bind(protocol),
       log,
       observer
     })
@@ -223,6 +228,38 @@ function createProtocol (
         serversideRouting)
     case 5.4:
       return new BoltProtocolV5x4(server,
+        chunker,
+        packingConfig,
+        createResponseHandler,
+        log,
+        onProtocolError,
+        serversideRouting)
+    case 5.5:
+      return new BoltProtocolV5x5(server,
+        chunker,
+        packingConfig,
+        createResponseHandler,
+        log,
+        onProtocolError,
+        serversideRouting)
+    case 5.6:
+      return new BoltProtocolV5x6(server,
+        chunker,
+        packingConfig,
+        createResponseHandler,
+        log,
+        onProtocolError,
+        serversideRouting)
+    case 5.7:
+      return new BoltProtocolV5x7(server,
+        chunker,
+        packingConfig,
+        createResponseHandler,
+        log,
+        onProtocolError,
+        serversideRouting)
+    case 5.8:
+      return new BoltProtocolV5x8(server,
         chunker,
         packingConfig,
         createResponseHandler,

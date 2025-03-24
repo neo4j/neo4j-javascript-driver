@@ -33,6 +33,8 @@ import BoltProtocolV5x1 from '../../src/bolt/bolt-protocol-v5x1'
 import BoltProtocolV5x2 from '../../src/bolt/bolt-protocol-v5x2'
 import BoltProtocolV5x3 from '../../src/bolt/bolt-protocol-v5x3'
 import BoltProtocolV5x4 from '../../src/bolt/bolt-protocol-v5x4'
+import BoltProtocolV5x5 from '../../src/bolt/bolt-protocol-v5x5'
+import BoltProtocolV5x6 from '../../src/bolt/bolt-protocol-v5x6'
 
 const {
   logger: { Logger }
@@ -46,13 +48,13 @@ describe('#unit Bolt', () => {
       const writtenBuffer = channel.written[0]
 
       const boltMagicPreamble = '60 60 b0 17'
-      const protocolVersion5x4to5x0 = '00 04 04 05'
+      const handshakev2 = '00 00 01 ff'
+      const protocolVersion5x8to5x0 = '00 08 08 05'
       const protocolVersion4x4to4x2 = '00 02 04 04'
-      const protocolVersion4x1 = '00 00 01 04'
       const protocolVersion3 = '00 00 00 03'
 
       expect(writtenBuffer.toHex()).toEqual(
-        `${boltMagicPreamble} ${protocolVersion5x4to5x0} ${protocolVersion4x4to4x2} ${protocolVersion4x1} ${protocolVersion3}`
+        `${boltMagicPreamble} ${handshakev2} ${protocolVersion5x8to5x0} ${protocolVersion4x4to4x2} ${protocolVersion3}`
       )
     })
 
@@ -390,7 +392,9 @@ describe('#unit Bolt', () => {
         v(5.1, BoltProtocolV5x1),
         v(5.2, BoltProtocolV5x2),
         v(5.3, BoltProtocolV5x3),
-        v(5.4, BoltProtocolV5x4)
+        v(5.4, BoltProtocolV5x4),
+        v(5.5, BoltProtocolV5x5),
+        v(5.6, BoltProtocolV5x6)
       ]
 
       availableProtocols.forEach(lambda)

@@ -1,7 +1,12 @@
+const WGS_84_2D_CRS_CODE = BigInt(4326)
+const CARTESIAN_2D_CRS_CODE = BigInt(7203)
+
+const WGS_84_3D_CRS_CODE = BigInt(4979)
+const CARTESIAN_3D_CRS_CODE = BigInt(9157)
 
 export default function CypherNativeBinders (neo4j) {
   function valueResponse (name, value) {
-    return { name: name, data: { value: value } }
+    return { name, data: { value } }
   }
   function objectToCypher (obj) {
     return objectMapper(obj, nativeToCypher)
@@ -124,7 +129,8 @@ export default function CypherNativeBinders (neo4j) {
         month: x.month,
         day: x.day
       })
-    } else if (neo4j.isDateTime(x) || neo4j.isLocalDateTime(x)) {
+    }
+    if (neo4j.isDateTime(x) || neo4j.isLocalDateTime(x)) {
       return structResponse('CypherDateTime', {
         year: x.year,
         month: x.month,
@@ -136,7 +142,8 @@ export default function CypherNativeBinders (neo4j) {
         utc_offset_s: x.timeZoneOffsetSeconds || (x.timeZoneId == null ? undefined : 0),
         timezone_id: x.timeZoneId
       })
-    } else if (neo4j.isTime(x) || neo4j.isLocalTime(x)) {
+    }
+    if (neo4j.isTime(x) || neo4j.isLocalTime(x)) {
       return structResponse('CypherTime', {
         hour: x.hour,
         minute: x.minute,
@@ -144,12 +151,28 @@ export default function CypherNativeBinders (neo4j) {
         nanosecond: x.nanosecond,
         utc_offset_s: x.timeZoneOffsetSeconds
       })
-    } else if (neo4j.isDuration(x)) {
+    }
+    if (neo4j.isDuration(x)) {
       return structResponse('CypherDuration', {
         months: x.months,
         days: x.days,
         seconds: x.seconds,
         nanoseconds: x.nanoseconds
+      })
+    }
+
+    if (x instanceof neo4j.types.Point) {
+      let system = 'unknown'
+      if (x.srid === WGS_84_2D_CRS_CODE || x.srid === WGS_84_3D_CRS_CODE) {
+        system = 'wgs84'
+      } else if (x.srid === CARTESIAN_2D_CRS_CODE || x.srid === CARTESIAN_3D_CRS_CODE) {
+        system = 'cartesian'
+      }
+      return structResponse('CypherPoint', {
+        system,
+        x: x.x,
+        y: x.y,
+        z: x.z == null ? undefined : x.z
       })
     }
 
@@ -246,6 +269,21 @@ export default function CypherNativeBinders (neo4j) {
           acc[key] = cypherToNative(val)
           return acc
         }, {})
+      case 'CypherPoint':
+        if (data.system === 'wgs84') {
+          if (data.z != null) {
+            return new neo4j.Point(WGS_84_3D_CRS_CODE, data.x, data.y, data.z)
+          } else {
+            return new neo4j.Point(WGS_84_2D_CRS_CODE, data.x, data.y)
+          }
+        } else if (data.system === 'cartesian') {
+          if (data.z != null) {
+            return new neo4j.Point(CARTESIAN_3D_CRS_CODE, data.x, data.y, data.z)
+          } else {
+            return new neo4j.Point(CARTESIAN_2D_CRS_CODE, data.x, data.y)
+          }
+        }
+        throw new Error(`Unknown Point system '${data.system}'`)
     }
     console.log(`Type ${name} is not handle by cypherToNative`, c)
     const err = 'Unable to convert ' + c + ' to native type'

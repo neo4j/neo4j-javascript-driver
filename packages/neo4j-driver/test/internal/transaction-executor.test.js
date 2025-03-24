@@ -143,7 +143,7 @@ describe('#unit TransactionExecutor', () => {
       await testNoRetryOnUnknownError([OOM_ERROR], 1)
     }, 30000)
 
-    it('should not retry when transaction work returns promise rejected with unknown error', async () => {
+    it('should not retry when transaction work returns promise rejected with unexpected error', async () => {
       await testNoRetryOnUnknownError([UNKNOWN_ERROR], 1)
     }, 30000)
 
@@ -155,7 +155,7 @@ describe('#unit TransactionExecutor', () => {
       await testNoRetryOnUnknownError([LOCKS_TERMINATED_ERROR], 1)
     }, 30000)
 
-    it('should not retry when transaction work returns promise rejected with unknown error type', async () => {
+    it('should not retry when transaction work returns promise rejected with unexpected error type', async () => {
       class MyTestError extends Error {
         constructor (message, code) {
           super(message)

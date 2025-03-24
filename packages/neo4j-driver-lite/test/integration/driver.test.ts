@@ -44,7 +44,7 @@ describe('neo4j-driver-lite', () => {
     expect(result.records.length).toEqual(1)
     expect(result.records[0].length).toEqual(1)
     result.records[0].forEach(val => expect(val).toEqual(int(2)))
-  })
+  }, 10000)
 
   test('hasReachableServer success', async () => {
     await expect(neo4j.hasReachableServer(`${Config.scheme}://${Config.hostname}:${Config.boltPort}`)).resolves.toBe(true)

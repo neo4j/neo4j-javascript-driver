@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { NotificationFilter, notificationFilterDisabledCategory, notificationFilterMinimumSeverityLevel } from '../../src'
+import { notificationFilterDisabledClassification } from '../../src/notification-filter'
 
 export function validNotificationFilters (): Array<NotificationFilter | undefined> {
   return [
@@ -40,6 +41,54 @@ export function validNotificationFilters (): Array<NotificationFilter | undefine
     {
       minimumSeverityLevel: notificationFilterMinimumSeverityLevel.INFORMATION,
       disabledCategories: [notificationFilterDisabledCategory.GENERIC, notificationFilterDisabledCategory.PERFORMANCE]
+    },
+    {
+      disabledClassifications: []
+    },
+    {
+      disabledClassifications: ['DEPRECATION']
+    },
+    {
+      disabledClassifications: [notificationFilterDisabledClassification.GENERIC, notificationFilterDisabledClassification.PERFORMANCE]
+    },
+    {
+      disabledClassifications: [notificationFilterDisabledClassification.GENERIC, 'PERFORMANCE']
+    },
+    {
+      minimumSeverityLevel: notificationFilterMinimumSeverityLevel.INFORMATION,
+      disabledClassifications: [notificationFilterDisabledClassification.GENERIC, notificationFilterDisabledClassification.PERFORMANCE]
+    }
+  ]
+}
+
+export function invalidNotificationFilters (): Array<NotificationFilter | undefined> {
+  return [
+    {
+      disabledCategories: [],
+      disabledClassifications: []
+    },
+    {
+      disabledCategories: [notificationFilterDisabledCategory.GENERIC, notificationFilterDisabledCategory.PERFORMANCE],
+      disabledClassifications: []
+    },
+    {
+      disabledCategories: [],
+      disabledClassifications: [notificationFilterDisabledClassification.GENERIC, notificationFilterDisabledClassification.PERFORMANCE]
+    },
+    {
+      minimumSeverityLevel: notificationFilterMinimumSeverityLevel.INFORMATION,
+      disabledCategories: [],
+      disabledClassifications: []
+    },
+    {
+      minimumSeverityLevel: notificationFilterMinimumSeverityLevel.INFORMATION,
+      disabledCategories: [notificationFilterDisabledCategory.GENERIC, notificationFilterDisabledCategory.PERFORMANCE],
+      disabledClassifications: []
+    },
+    {
+      minimumSeverityLevel: notificationFilterMinimumSeverityLevel.INFORMATION,
+      disabledCategories: [],
+      disabledClassifications: [notificationFilterDisabledClassification.GENERIC, notificationFilterDisabledClassification.PERFORMANCE]
     }
   ]
 }

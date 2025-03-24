@@ -121,7 +121,7 @@ export default class RxResult {
    *
    * This method won't need to be called in normal stream operation. It only applies to the case when the stream is paused.
    *
-   * This method is method won't start the consuming records if the ${@link records()} stream didn't get subscribed.
+   * This method is method won't start the consuming records if the {@link records} stream didn't get subscribed.
    * @experimental
    * @returns {Promise<void>} - A promise that resolves when the stream is resumed.
    */

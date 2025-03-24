@@ -240,7 +240,7 @@ describe('Result', () => {
           await expect(result.summary()).rejects.toThrow(expectedError)
         })
 
-        it('should resolve summary pushe afterwards', done => {
+        it('should resolve summary push afterwards', done => {
           const metadata = {
             resultConsumedAfter: 20,
             resultAvailableAfter: 124,

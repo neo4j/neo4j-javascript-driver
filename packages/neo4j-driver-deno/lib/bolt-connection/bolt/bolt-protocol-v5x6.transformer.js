@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-import PoolConfig, {
-  DEFAULT_ACQUISITION_TIMEOUT,
-  DEFAULT_MAX_SIZE
-} from './pool-config.js'
-import Pool from './pool.js'
+import v5x5 from './bolt-protocol-v5x5.transformer.js'
 
-export default Pool
-export { Pool, PoolConfig, DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE }
+export default {
+  ...v5x5
+}

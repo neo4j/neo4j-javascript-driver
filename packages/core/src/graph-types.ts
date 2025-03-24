@@ -349,6 +349,7 @@ Object.defineProperty(
  * Test if given object is an instance of {@link UnboundRelationship} class.
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link UnboundRelationship}, `false` otherwise.
+ * @access private
  */
 function isUnboundRelationship<
     T extends NumberOrInteger = Integer,

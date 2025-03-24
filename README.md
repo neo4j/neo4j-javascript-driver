@@ -188,7 +188,106 @@ var rxSession = driver.rxSession({
 })
 ```
 
-### Executing Queries
+### Transaction functions
+
+```javascript
+// Transaction functions provide a convenient API with minimal boilerplate and
+// retries on network fluctuations and transient errors. Maximum retry time is
+// configured on the driver level and is 30 seconds by default:
+// Applies both to standard and reactive sessions.
+neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'password'), {
+  maxTransactionRetryTime: 30000
+})
+```
+
+#### Reading with Async Session
+
+```javascript
+// It is possible to execute read transactions that will benefit from automatic
+// retries on both single instance ('bolt' URI scheme) and Causal Cluster
+// ('neo4j' URI scheme) and will get automatic load balancing in cluster deployments
+var readTxResultPromise = session.executeRead(txc => {
+  // used transaction will be committed automatically, no need for explicit commit/rollback
+
+  var result = txc.run('MATCH (person:Person) RETURN person.name AS name')
+  // at this point it is possible to either return the result or process it and return the
+  // result of processing it is also possible to run more statements in the same transaction
+  return result
+})
+
+// returned Promise can be later consumed like this:
+readTxResultPromise
+  .then(result => {
+    console.log(result.records)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .then(() => session.close())
+```
+
+#### Reading with Reactive Session
+
+```javascript
+rxSession
+  .executeRead(txc =>
+    txc
+      .run('MATCH (person:Person) RETURN person.name AS name')
+      .records()
+      .pipe(map(record => record.get('name')))
+  )
+  .subscribe({
+    next: data => console.log(data),
+    complete: () => console.log('completed'),
+    error: err => console.log(error)
+  })
+```
+
+#### Writing with Async Session
+
+```javascript
+// It is possible to execute write transactions that will benefit from automatic retries
+// on both single instance ('bolt' URI scheme) and Causal Cluster ('neo4j' URI scheme)
+var writeTxResultPromise = session.executeWrite(async txc => {
+  // used transaction will be committed automatically, no need for explicit commit/rollback
+
+  var result = await txc.run(
+    "MERGE (alice:Person {name : 'Alice'}) RETURN alice.name AS name"
+  )
+  // at this point it is possible to either return the result or process it and return the
+  // result of processing it is also possible to run more statements in the same transaction
+  return result.records.map(record => record.get('name'))
+})
+
+// returned Promise can be later consumed like this:
+writeTxResultPromise
+  .then(namesArray => {
+    console.log(namesArray)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .then(() => session.close())
+```
+
+#### Writing with Reactive Session
+
+```javascript
+rxSession
+  .executeWrite(txc =>
+    txc
+      .run("MERGE (alice:Person {name: 'James'}) RETURN alice.name AS name")
+      .records()
+      .pipe(map(record => record.get('name')))
+  )
+  .subscribe({
+    next: data => console.log(data),
+    complete: () => console.log('completed'),
+    error: error => console.log(error)
+  })
+```
+
+### Consuming Records
 
 #### Consuming Records with Streaming API
 
@@ -255,105 +354,6 @@ rxSession
     next: data => console.log(data),
     complete: () => console.log('completed'),
     error: err => console.log(err)
-  })
-```
-
-### Transaction functions
-
-```javascript
-// Transaction functions provide a convenient API with minimal boilerplate and
-// retries on network fluctuations and transient errors. Maximum retry time is
-// configured on the driver level and is 30 seconds by default:
-// Applies both to standard and reactive sessions.
-neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'password'), {
-  maxTransactionRetryTime: 30000
-})
-```
-
-#### Reading with Async Session
-
-```javascript
-// It is possible to execute read transactions that will benefit from automatic
-// retries on both single instance ('bolt' URI scheme) and Causal Cluster
-// ('neo4j' URI scheme) and will get automatic load balancing in cluster deployments
-var readTxResultPromise = session.readTransaction(txc => {
-  // used transaction will be committed automatically, no need for explicit commit/rollback
-
-  var result = txc.run('MATCH (person:Person) RETURN person.name AS name')
-  // at this point it is possible to either return the result or process it and return the
-  // result of processing it is also possible to run more statements in the same transaction
-  return result
-})
-
-// returned Promise can be later consumed like this:
-readTxResultPromise
-  .then(result => {
-    console.log(result.records)
-  })
-  .catch(error => {
-    console.log(error)
-  })
-  .then(() => session.close())
-```
-
-#### Reading with Reactive Session
-
-```javascript
-rxSession
-  .readTransaction(txc =>
-    txc
-      .run('MATCH (person:Person) RETURN person.name AS name')
-      .records()
-      .pipe(map(record => record.get('name')))
-  )
-  .subscribe({
-    next: data => console.log(data),
-    complete: () => console.log('completed'),
-    error: err => console.log(error)
-  })
-```
-
-#### Writing with Async Session
-
-```javascript
-// It is possible to execute write transactions that will benefit from automatic retries
-// on both single instance ('bolt' URI scheme) and Causal Cluster ('neo4j' URI scheme)
-var writeTxResultPromise = session.writeTransaction(async txc => {
-  // used transaction will be committed automatically, no need for explicit commit/rollback
-
-  var result = await txc.run(
-    "MERGE (alice:Person {name : 'Alice'}) RETURN alice.name AS name"
-  )
-  // at this point it is possible to either return the result or process it and return the
-  // result of processing it is also possible to run more statements in the same transaction
-  return result.records.map(record => record.get('name'))
-})
-
-// returned Promise can be later consumed like this:
-writeTxResultPromise
-  .then(namesArray => {
-    console.log(namesArray)
-  })
-  .catch(error => {
-    console.log(error)
-  })
-  .then(() => session.close())
-```
-
-#### Writing with Reactive Session
-
-```javascript
-rxSession
-  .writeTransaction(txc =>
-    txc
-      .run("MERGE (alice:Person {name: 'James'}) RETURN alice.name AS name")
-      .records()
-      .pipe(map(record => record.get('name')))
-  )
-  .subscribe({
-    next: data => console.log(data),
-    complete: () => console.log('completed'),
-    error: error => console.log(error)
   })
 ```
 

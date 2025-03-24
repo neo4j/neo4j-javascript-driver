@@ -29,6 +29,7 @@ import * as serverAddress from './server-address'
 import * as resolver from './resolver'
 import * as objectUtil from './object-util'
 import * as boltAgent from './bolt-agent/index'
+import * as pool from './pool'
 
 export {
   util,
@@ -44,5 +45,6 @@ export {
   serverAddress,
   resolver,
   objectUtil,
-  boltAgent
+  boltAgent,
+  pool
 }

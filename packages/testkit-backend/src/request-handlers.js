@@ -1,4 +1,5 @@
 import * as responses from './responses.js'
+import configurableConsole from './console.configurable.js'
 
 export function throwFrontendError () {
   throw new Error('TestKit FrontendError')
@@ -65,6 +66,9 @@ export function NewDriver ({ neo4j }, context, data, wire) {
   }
   if ('connectionTimeoutMs' in data) {
     config.connectionTimeout = data.connectionTimeoutMs
+  }
+  if ('maxConnectionLifetimeMs' in data) {
+    config.maxConnectionLifetime = data.maxConnectionLifetimeMs
   }
   if ('fetchSize' in data) {
     config.fetchSize = data.fetchSize
@@ -237,7 +241,10 @@ export function ResultConsume (_, context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
 
-  return result.summary().then(summary => {
+  let summaryPromise = 'recordIt' in result
+    ? (async () => {return (await result.recordIt.return()).value})()
+    : result.summary()
+  return summaryPromise.then(summary => {
     wire.writeResponse(responses.Summary({ summary }, { binder: context.binder }))
   }).catch(e => wire.writeError(e))
 }
@@ -376,6 +383,9 @@ export function StartTest (_, context, { testName }, wire) {
   } else {
     context.logLevel = null
   }
+
+  configurableConsole.setLevel(context.logLevel || context.environmentLogLevel)
+
   const shouldRunTest = context.getShouldRunTestFunction()
   shouldRunTest(testName, {
     onRun: () => {

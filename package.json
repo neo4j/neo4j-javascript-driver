@@ -24,6 +24,9 @@
       "yarn run standard",
       "git add"
     ],
+    "*.md": [
+      "git add"
+    ],
     "packages/core/**/*.ts": [
       "yarn run ts-standard::core",
       "git add"

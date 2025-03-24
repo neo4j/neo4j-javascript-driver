@@ -268,8 +268,6 @@ export default class NodeChannel {
             self.onmessage(new ChannelBuffer(buffer))
           }
         })
-
-        self._conn.on('error', self._handleConnectionError)
         self._conn.on('end', self._handleConnectionTerminated)
 
         // Drain all pending messages
@@ -292,6 +290,9 @@ export default class NodeChannel {
       'and that you have compatible encryption settings both on Neo4j server and driver. ' +
       'Note that the default encryption setting has changed in Neo4j 4.0.'
     if (err.message) msg += ' Caused by: ' + err.message
+    if (this._conn.destroyed) {
+      this._open = false
+    }
     this._error = newError(msg, this._connectionErrorCode)
     if (this.onerror) {
       this.onerror(this._error)

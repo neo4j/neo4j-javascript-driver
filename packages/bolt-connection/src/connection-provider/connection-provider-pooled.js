@@ -16,8 +16,7 @@
  */
 
 import { createChannelConnection, ConnectionErrorHandler } from '../connection'
-import Pool, { PoolConfig } from '../pool'
-import { error, ConnectionProvider, ServerInfo, newError } from 'neo4j-driver-core'
+import { error, ConnectionProvider, ServerInfo, newError, internal } from 'neo4j-driver-core'
 import AuthenticationProvider from './authentication-provider'
 import { object } from '../lang'
 import LivenessCheckProvider from './liveness-check-provider'
@@ -30,6 +29,12 @@ const AUTHENTICATION_ERRORS = [
   'Neo.ClientError.Security.TokenExpired',
   'Neo.ClientError.Security.Unauthorized'
 ]
+
+const {
+  pool: {
+    Pool, PoolConfig
+  }
+} = internal
 
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (

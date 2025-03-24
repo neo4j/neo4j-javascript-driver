@@ -47,6 +47,18 @@ function mapNotification (notification) {
   }
 }
 
+function mapGqlStatusObject (binder) {
+  return (gqlStatusObject) => {
+    return {
+      ...gqlStatusObject,
+      position: gqlStatusObject.position || null,
+      rawSeverity: gqlStatusObject.rawSeverity !== undefined ? gqlStatusObject.rawSeverity : null,
+      rawClassification: gqlStatusObject.rawClassification !== undefined ? gqlStatusObject.rawClassification : null,
+      diagnosticRecord: binder.objectToCypher(gqlStatusObject.diagnosticRecord)
+    }
+  }
+}
+
 export function nativeToTestkitSummary (summary, binder) {
   return {
     ...binder.objectMemberBitIntToNumber(summary),
@@ -62,6 +74,7 @@ export function nativeToTestkitSummary (summary, binder) {
     counters: mapCounters(summary.counters),
     plan: mapPlan(summary.plan),
     profile: mapProfile(summary.profile, false, binder),
-    notifications: summary.notifications.map(mapNotification)
+    notifications: summary.notifications.map(mapNotification),
+    gqlStatusObjects: summary.gqlStatusObjects.map(mapGqlStatusObject(binder))
   }
 }

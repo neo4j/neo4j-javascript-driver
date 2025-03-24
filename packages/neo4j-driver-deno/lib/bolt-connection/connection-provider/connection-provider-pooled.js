@@ -16,8 +16,7 @@
  */
 
 import { createChannelConnection, ConnectionErrorHandler } from '../connection/index.js'
-import Pool, { PoolConfig } from '../pool/index.js'
-import { error, ConnectionProvider, ServerInfo, newError } from '../../core/index.ts'
+import { error, ConnectionProvider, ServerInfo, newError, internal } from '../../core/index.ts'
 import AuthenticationProvider from './authentication-provider.js'
 import { object } from '../lang/index.js'
 import LivenessCheckProvider from './liveness-check-provider.js'
@@ -30,6 +29,12 @@ const AUTHENTICATION_ERRORS = [
   'Neo.ClientError.Security.TokenExpired',
   'Neo.ClientError.Security.Unauthorized'
 ]
+
+const {
+  pool: {
+    Pool, PoolConfig
+  }
+} = internal
 
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (

@@ -29,6 +29,7 @@ import * as serverAddress from './server-address.ts'
 import * as resolver from './resolver/index.ts'
 import * as objectUtil from './object-util.ts'
 import * as boltAgent from './bolt-agent/index.ts'
+import * as pool from './pool/index.ts'
 
 export {
   util,
@@ -44,5 +45,6 @@ export {
   serverAddress,
   resolver,
   objectUtil,
-  boltAgent
+  boltAgent,
+  pool
 }

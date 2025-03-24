@@ -298,7 +298,7 @@ export class Config {
     this.resolver = undefined
 
     /**
-     * Configure filter for Notification objects returned in {@Link ResultSummary#notifications}.
+     * Configure filter for Notification objects returned in {@link ResultSummary#notifications}.
      *
      * See {@link SessionConfig#notificationFilter} for usage instructions.
      *
@@ -350,8 +350,7 @@ export class Config {
      * where the {@link ClientCertificate} might change over time.
      *
      * @type {ClientCertificate|ClientCertificateProvider|undefined}
-     * @experimental Exposed as preview feature.
-     * @since 5.19
+     * @since 5.27
      */
     this.clientCertificate = undefined
   }

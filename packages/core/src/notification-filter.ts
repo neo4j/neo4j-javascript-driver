@@ -16,8 +16,9 @@
  */
 import {
   NotificationCategory,
+  NotificationClassification,
   NotificationSeverityLevel
-} from './result-summary'
+} from './notification'
 
 type ExcludeUnknown<T> = Exclude<T, 'UNKNOWN'>
 type OFF = 'OFF'
@@ -39,7 +40,7 @@ Object.freeze(notificationFilterMinimumSeverityLevel)
 
 type NotificationFilterDisabledCategory = ExcludeUnknown<NotificationCategory>
 /**
- * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC'} NotificationFilterDisabledCategory
+ * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'SCHEMA'} NotificationFilterDisabledCategory
  */
 /**
  * Constants that represents the disabled categories in the {@link NotificationFilter}
@@ -52,9 +53,23 @@ const notificationFilterDisabledCategory: EnumRecord<NotificationFilterDisabledC
   TOPOLOGY: 'TOPOLOGY',
   SECURITY: 'SECURITY',
   DEPRECATION: 'DEPRECATION',
-  GENERIC: 'GENERIC'
+  GENERIC: 'GENERIC',
+  SCHEMA: 'SCHEMA'
 }
 Object.freeze(notificationFilterDisabledCategory)
+
+type NotificationFilterDisabledClassification = ExcludeUnknown<NotificationClassification>
+/**
+ * @typedef {NotificationFilterDisabledCategory} NotificationFilterDisabledClassification
+ * @experimental
+ */
+/**
+ * Constants that represents the disabled classifications in the {@link NotificationFilter}
+ *
+ * @type {notificationFilterDisabledCategory}
+ * @experimental
+ */
+const notificationFilterDisabledClassification: EnumRecord<NotificationFilterDisabledClassification> = notificationFilterDisabledCategory
 
 /**
  * The notification filter object which can be configured in
@@ -67,6 +82,7 @@ Object.freeze(notificationFilterDisabledCategory)
 class NotificationFilter {
   minimumSeverityLevel?: NotificationFilterMinimumSeverityLevel
   disabledCategories?: NotificationFilterDisabledCategory[]
+  disabledClassifications?: NotificationFilterDisabledClassification[]
 
   /**
    * @constructor
@@ -83,9 +99,25 @@ class NotificationFilter {
 
     /**
      * Categories the user would like to opt-out of receiving.
+     *
+     *
+     * This property is equivalent to {@link NotificationFilter#disabledClassifications}
+     * and it must not be enabled at same time.
+     *
      * @type {?NotificationFilterDisabledCategory[]}
      */
     this.disabledCategories = undefined
+
+    /**
+     * Classifications the user would like to opt-out of receiving.
+     *
+     * This property is equivalent to {@link NotificationFilter#disabledCategories}
+     * and it must not be enabled at same time.
+     *
+     * @type {?NotificationFilterDisabledClassification[]}
+     * @experimental
+     */
+    this.disabledClassifications = undefined
 
     throw new Error('Not implemented')
   }
@@ -95,10 +127,12 @@ export default NotificationFilter
 
 export {
   notificationFilterMinimumSeverityLevel,
-  notificationFilterDisabledCategory
+  notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification
 }
 
 export type {
   NotificationFilterMinimumSeverityLevel,
-  NotificationFilterDisabledCategory
+  NotificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification
 }

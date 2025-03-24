@@ -18,6 +18,8 @@
 import {
   newError,
   Neo4jError,
+  newGQLError,
+  GQLError,
   isRetriableError,
   PROTOCOL_ERROR,
   SERVICE_UNAVAILABLE,
@@ -57,26 +59,32 @@ import { isPoint, Point } from './spatial-types'
 import ResultSummary, {
   queryType,
   ServerInfo,
-  Notification,
-  NotificationPosition,
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Stats,
-  NotificationSeverityLevel,
-  NotificationCategory,
-  notificationCategory,
-  notificationSeverityLevel
+  Stats
 } from './result-summary'
+import Notification, {
+  NotificationPosition,
+  NotificationSeverityLevel,
+  NotificationClassification,
+  NotificationCategory,
+  GqlStatusObject,
+  notificationCategory,
+  notificationClassification,
+  notificationSeverityLevel
+} from './notification'
 import NotificationFilter, {
   notificationFilterDisabledCategory,
   NotificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
+  NotificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel
 } from './notification-filter'
 import Result, { QueryResult, ResultObserver } from './result'
 import EagerResult from './result-eager'
-import ConnectionProvider from './connection-provider'
+import ConnectionProvider, { Releasable } from './connection-provider'
 import Connection from './connection'
 import Transaction from './transaction'
 import ManagedTransaction from './transaction-managed'
@@ -110,6 +118,8 @@ const forExport = {
   authTokenManagers,
   newError,
   Neo4jError,
+  newGQLError,
+  GQLError,
   isRetriableError,
   error,
   Integer,
@@ -148,6 +158,7 @@ const forExport = {
   queryType,
   ServerInfo,
   Notification,
+  GqlStatusObject,
   Plan,
   ProfiledPlan,
   QueryStatistics,
@@ -160,6 +171,7 @@ const forExport = {
   Session,
   Driver,
   Connection,
+  Releasable,
   types,
   driver,
   json,
@@ -168,8 +180,10 @@ const forExport = {
   routing,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider
@@ -179,6 +193,8 @@ export {
   authTokenManagers,
   newError,
   Neo4jError,
+  newGQLError,
+  GQLError,
   isRetriableError,
   error,
   Integer,
@@ -217,6 +233,7 @@ export {
   queryType,
   ServerInfo,
   Notification,
+  GqlStatusObject,
   Plan,
   ProfiledPlan,
   QueryStatistics,
@@ -224,6 +241,7 @@ export {
   Result,
   EagerResult,
   ConnectionProvider,
+  Releasable,
   Connection,
   Transaction,
   ManagedTransaction,
@@ -239,8 +257,10 @@ export {
   routing,
   resultTransformers,
   notificationCategory,
+  notificationClassification,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
+  notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider
@@ -265,9 +285,11 @@ export type {
   RecordShape,
   ResultTransformer,
   NotificationCategory,
+  NotificationClassification,
   NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
+  NotificationFilterDisabledClassification,
   NotificationFilterMinimumSeverityLevel,
   ClientCertificate,
   ClientCertificateProvider,

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError, json } from '../../core/index.ts'
+import { newError, newGQLError, json } from '../../core/index.ts'
 
 // Signature bytes for each response message type
 const SUCCESS = 0x70 // 0111 0000 // SUCCESS <metadata>
@@ -70,10 +70,11 @@ export default class ResponseHandler {
    * @param {Logger} log The logger
    * @param {ResponseHandler~Observer} observer Object which will be notified about errors
    */
-  constructor ({ transformMetadata, log, observer } = {}) {
+  constructor ({ transformMetadata, enrichErrorMetadata, log, observer } = {}) {
     this._pendingObservers = []
     this._log = log
     this._transformMetadata = transformMetadata || NO_OP_IDENTITY
+    this._enrichErrorMetadata = enrichErrorMetadata || NO_OP_IDENTITY
     this._observer = Object.assign(
       {
         onObserversCountChange: NO_OP,
@@ -115,11 +116,7 @@ export default class ResponseHandler {
           this._log.debug(`S: FAILURE ${json.stringify(msg)}`)
         }
         try {
-          const standardizedCode = _standardizeCode(payload.code)
-          const error = newError(payload.message, standardizedCode)
-          this._currentFailure = this._observer.onErrorApplyTransformation(
-            error
-          )
+          this._currentFailure = this._handleErrorPayload(this._enrichErrorMetadata(payload))
           this._currentObserver.onError(this._currentFailure)
         } finally {
           this._updateCurrentObserver()
@@ -195,6 +192,23 @@ export default class ResponseHandler {
 
   _resetFailure () {
     this._currentFailure = null
+  }
+
+  _handleErrorPayload (payload) {
+    const standardizedCode = _standardizeCode(payload.code)
+    const cause = payload.cause != null ? this._handleErrorCause(payload.cause) : undefined
+    const error = newError(payload.message, standardizedCode, cause, payload.gql_status, payload.description, payload.diagnostic_record)
+    return this._observer.onErrorApplyTransformation(
+      error
+    )
+  }
+
+  _handleErrorCause (payload) {
+    const cause = payload.cause != null ? this._handleErrorCause(payload.cause) : undefined
+    const error = newGQLError(payload.message, cause, payload.gql_status, payload.description, payload.diagnostic_record)
+    return this._observer.onErrorApplyTransformation(
+      error
+    )
   }
 }
 

@@ -47,6 +47,10 @@
         "enabled": true,
         "path": "../core/docs"
       }
+    },
+    {
+      "name": "esdoc-type-inference-plugin", 
+      "option": {"enable": false}
     }
   ]
 }

@@ -15,13 +15,10 @@
  * limitations under the License.
  */
 
-import Pool from '../../src/pool/pool'
-import PoolConfig from '../../src/pool/pool-config'
-import { newError, error, internal } from 'neo4j-driver-core'
-
-const {
-  serverAddress: { ServerAddress }
-} = internal
+import Pool from '../../../src/internal/pool/pool'
+import PoolConfig from '../../../src/internal/pool/pool-config'
+import { ServerAddress } from '../../../src/internal/server-address'
+import { newError, error } from '../../../src'
 
 const { SERVICE_UNAVAILABLE } = error
 
@@ -30,9 +27,9 @@ describe('#unit Pool', () => {
     // Given
     let counter = 0
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release))
+    const pool = new Pool<Resource>({
+      create: async (_: unknown, server: ServerAddress, release: (address: ServerAddress, resource: Resource) => Promise<void>) =>
+        await Promise.resolve(new Resource(server, counter++, release))
     })
 
     // When
@@ -49,9 +46,9 @@ describe('#unit Pool', () => {
     // Given a pool that allocates
     let counter = 0
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release))
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release))
     })
 
     // When
@@ -71,9 +68,9 @@ describe('#unit Pool', () => {
     let counter = 0
     const address1 = ServerAddress.fromUrl('bolt://localhost:7687')
     const address2 = ServerAddress.fromUrl('bolt://localhost:7688')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release))
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release))
     })
 
     // When
@@ -97,14 +94,14 @@ describe('#unit Pool', () => {
   it('frees if validate returns false', async () => {
     // Given a pool that allocates
     let counter = 0
-    const destroyed = []
+    const destroyed: Resource[] = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_acquisitionContext, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_acquisitionContext, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         destroyed.push(res)
-        return Promise.resolve()
+        return await Promise.resolve()
       },
       validateOnRelease: res => false,
       config: new PoolConfig(1000, 60000)
@@ -126,14 +123,14 @@ describe('#unit Pool', () => {
   it('should release resources and process acquisitions when destroy connection', async () => {
     // Given a pool that allocates
     let counter = 0
-    const destroyed = []
+    const destroyed: Resource[] = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_acquisitionContext, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_acquisitionContext, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         destroyed.push(res)
-        return Promise.resolve()
+        return await Promise.resolve()
       },
       validateOnRelease: res => false,
       config: new PoolConfig(2, 10000)
@@ -172,14 +169,14 @@ describe('#unit Pool', () => {
     // Given a pool that allocates
     let counter = 0
     const theMadeUpError = new Error('I made this error for testing')
-    const destroyed = []
+    const destroyed: Resource[] = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_acquisitionContext, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_acquisitionContext, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         destroyed.push(res)
-        return Promise.reject(theMadeUpError)
+        return await Promise.reject(theMadeUpError)
       },
       validateOnRelease: res => false,
       config: new PoolConfig(2, 3000)
@@ -218,14 +215,14 @@ describe('#unit Pool', () => {
     // Given a pool that allocates
     let counter = 0
     const theMadeUpError = new Error('I made this error for testing')
-    const destroyed = []
+    const destroyed: Resource[] = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_acquisitionContext, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_acquisitionContext, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         destroyed.push(res)
-        return Promise.reject(theMadeUpError)
+        return await Promise.reject(theMadeUpError)
       },
       validateOnRelease: res => true,
       config: new PoolConfig(2, 3000)
@@ -266,16 +263,16 @@ describe('#unit Pool', () => {
   it('frees if validateOnRelease returns Promise.resolve(false)', async () => {
     // Given a pool that allocates
     let counter = 0
-    const destroyed = []
+    const destroyed: Resource[] = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_acquisitionContext, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_acquisitionContext, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         destroyed.push(res)
-        return Promise.resolve()
+        return await Promise.resolve()
       },
-      validateOnRelease: res => Promise.resolve(false),
+      validateOnRelease: async res => await Promise.resolve(false),
       config: new PoolConfig(1000, 60000)
     })
 
@@ -297,14 +294,14 @@ describe('#unit Pool', () => {
     let counter = 0
     const destroyed = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_acquisitionContext, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_acquisitionContext, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         destroyed.push(res)
-        return Promise.resolve()
+        return await Promise.resolve()
       },
-      validateOnRelease: res => Promise.resolve(true),
+      validateOnRelease: async res => await Promise.resolve(true),
       config: new PoolConfig(1000, 60000)
     })
 
@@ -322,16 +319,16 @@ describe('#unit Pool', () => {
   it('frees if validateOnAcquire returns Promise.resolve(false)', async () => {
     // Given a pool that allocates
     let counter = 0
-    const destroyed = []
+    const destroyed: Resource[] = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_acquisitionContext, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_acquisitionContext, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         destroyed.push(res)
-        return Promise.resolve()
+        return await Promise.resolve()
       },
-      validateOnAcquire: res => Promise.resolve(false),
+      validateOnAcquire: async res => await Promise.resolve(false),
       config: new PoolConfig(1000, 60000)
     })
 
@@ -357,14 +354,14 @@ describe('#unit Pool', () => {
     let counter = 0
     const destroyed = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_acquisitionContext, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_acquisitionContext, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         destroyed.push(res)
-        return Promise.resolve()
+        return await Promise.resolve()
       },
-      validateOnAcquire: res => Promise.resolve(true),
+      validateOnAcquire: async res => await Promise.resolve(true),
       config: new PoolConfig(1000, 60000)
     })
 
@@ -388,12 +385,12 @@ describe('#unit Pool', () => {
     let counter = 0
     const address1 = ServerAddress.fromUrl('bolt://localhost:7687')
     const address2 = ServerAddress.fromUrl('bolt://localhost:7688')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         res.destroyed = true
-        return Promise.resolve()
+        return await Promise.resolve()
       }
     })
 
@@ -428,12 +425,12 @@ describe('#unit Pool', () => {
     let counter = 0
     const address1 = ServerAddress.fromUrl('bolt://localhost:7687')
     const address2 = ServerAddress.fromUrl('bolt://localhost:7688')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         res.destroyed = true
-        return Promise.resolve()
+        return await Promise.resolve()
       }
     })
 
@@ -473,12 +470,12 @@ describe('#unit Pool', () => {
   it('destroys resource when key was purged', async () => {
     let counter = 0
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         res.destroyed = true
-        return Promise.resolve()
+        return await Promise.resolve()
       }
     })
 
@@ -498,12 +495,12 @@ describe('#unit Pool', () => {
   it('destroys resource when pool is purged even if a new pool is created for the same address', async () => {
     let counter = 0
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         res.destroyed = true
-        return Promise.resolve()
+        return await Promise.resolve()
       }
     })
 
@@ -540,12 +537,12 @@ describe('#unit Pool', () => {
     const address2 = ServerAddress.fromUrl('bolt://localhost:7688')
     const address3 = ServerAddress.fromUrl('bolt://localhost:7689')
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         res.destroyed = true
-        return Promise.resolve()
+        return await Promise.resolve()
       }
     })
 
@@ -558,7 +555,7 @@ describe('#unit Pool', () => {
       pool.acquire({}, address3)
     ]
     const values = await Promise.all(acquiredResources)
-    await Promise.all(values.map(resource => resource.close()))
+    await Promise.all(values.map(async resource => await resource.close()))
 
     await pool.close()
 
@@ -568,10 +565,10 @@ describe('#unit Pool', () => {
   it('should fail to acquire when closed', async () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, 0, release)),
-      destroy: res => {
-        return Promise.resolve()
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, 0, release)),
+      destroy: async res => {
+        return await Promise.resolve()
       }
     })
 
@@ -586,11 +583,11 @@ describe('#unit Pool', () => {
   it('should fail to acquire when closed with idle connections', async () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, 0, release)),
-      destroy: res => {
-        return Promise.resolve()
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, 0, release)),
+      destroy: async res => {
+        return await Promise.resolve()
       }
     })
 
@@ -613,12 +610,12 @@ describe('#unit Pool', () => {
     const address2 = ServerAddress.fromUrl('bolt://localhost:7688')
     const address3 = ServerAddress.fromUrl('bolt://localhost:7689')
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         res.destroyed = true
-        return Promise.resolve()
+        return await Promise.resolve()
       }
     })
 
@@ -650,12 +647,12 @@ describe('#unit Pool', () => {
     const address2 = ServerAddress.fromUrl('bolt://localhost:7688')
     const address3 = ServerAddress.fromUrl('bolt://localhost:7689')
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         res.destroyed = true
-        return Promise.resolve()
+        return await Promise.resolve()
       }
     })
 
@@ -684,15 +681,15 @@ describe('#unit Pool', () => {
     let validated = true
     let counter = 0
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => {
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => {
         res.destroyed = true
-        return Promise.resolve()
+        return await Promise.resolve()
       },
-      validateOnAcquire: (context, _res) => {
-        if (context.triggerValidation) {
+      validateOnAcquire: (context: any, _res) => {
+        if (context.triggerValidation === true) {
           validated = !validated
           return validated
         }
@@ -712,8 +709,8 @@ describe('#unit Pool', () => {
     const absentAddress = ServerAddress.fromUrl('bolt://localhost:7688')
 
     const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, 42, release))
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, 42, release))
     })
 
     await pool.acquire({}, existingAddress)
@@ -725,8 +722,8 @@ describe('#unit Pool', () => {
 
   it('reports zero active resources when empty', () => {
     const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, 42, release))
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, 42, release))
     })
 
     expect(
@@ -743,8 +740,8 @@ describe('#unit Pool', () => {
   it('reports active resources', async () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, 42, release))
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, 42, release))
     })
 
     const acquiredResources = [
@@ -761,16 +758,16 @@ describe('#unit Pool', () => {
 
   it('reports active resources when they are acquired', async () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, 42, release))
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, 42, release))
     })
 
     // three new resources are created and returned to the pool
     const r0 = await pool.acquire({}, address)
     const r1 = await pool.acquire({}, address)
     const r2 = await pool.acquire({}, address)
-    await [r0, r1, r2].map(v => v.close())
+    await [r0, r1, r2].map(async v => await v.close())
 
     // three idle resources are acquired from the pool
     const acquiredResources = [
@@ -789,9 +786,9 @@ describe('#unit Pool', () => {
 
   it('does not report resources that are returned to the pool', async () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, 42, release))
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, 42, release))
     })
 
     const r0 = await pool.acquire({}, address)
@@ -819,10 +816,10 @@ describe('#unit Pool', () => {
     let counter = 0
 
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => Promise.resolve(),
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => await Promise.resolve(),
       config: new PoolConfig(2, 5000)
     })
 
@@ -831,7 +828,7 @@ describe('#unit Pool', () => {
 
     setTimeout(() => {
       expectNumberOfAcquisitionRequests(pool, address, 1)
-      r1.close()
+      ignore(r1.close())
     }, 1000)
 
     const r2 = await pool.acquire({}, address)
@@ -843,9 +840,9 @@ describe('#unit Pool', () => {
 
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => Promise.resolve(),
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => await Promise.resolve(),
       config: new PoolConfig(2, 1000)
     })
 
@@ -861,14 +858,14 @@ describe('#unit Pool', () => {
   const address = ServerAddress.fromUrl('bolt://localhost:7687')
 
   it('should consider pending connects when evaluating max pool size', async () => {
-    const conns = []
+    const conns: any[] = []
     const pool = new Pool({
       // Hook into connection creation to track when and what connections that are
       // created.
-      create: (_, server, release) => {
+      create: async (_, server, release) => {
         // Create a fake connection that makes it possible control when it's connected
         // and released from the outer scope.
-        const conn = {
+        const conn: any = {
           server,
           release
         }
@@ -879,7 +876,7 @@ describe('#unit Pool', () => {
         // Put the connection in a list in outer scope even though there only should be
         // one when the test is succeeding.
         conns.push(conn)
-        return promise
+        return await promise
       },
       // Setup pool to only allow one connection
       config: new PoolConfig(1, 100000)
@@ -908,13 +905,200 @@ describe('#unit Pool', () => {
     expect(conns.length).toEqual(1)
   })
 
+  it('should count connection on validation process when eval max pool size', async () => {
+    const conns: any[] = []
+    const pool = new Pool<any>({
+      // Hook into connection creation to track when and what connections that are
+      // created.
+      create: async (_, server, release) => {
+        // Create a fake connection that makes it possible control when it's connected
+        // and released from the outer scope.
+        const conn: any = {
+          server,
+          release
+        }
+        conns.push(conn)
+        return conn
+      },
+      validateOnAcquire: async (context, resource: any) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
+          if (resource.promises == null) {
+            resource.promises = []
+          }
+          resource.promises.push({
+            resolve,
+            reject
+          })
+        })
+
+        return await promise
+      },
+      // Setup pool to only allow one connection
+      config: new PoolConfig(1, 100000)
+    })
+
+    // Make the first request for a connection, this will return a connection instantaneously
+    const conn0 = await pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // Releasing connection back to the pool, so it can be re-acquired.
+    await conn0.release(address, conn0)
+
+    // Request the same connection again, it will wait until resolve get called.
+    const req0 = pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // Request other connection, this should also resolve the same connection1.
+    const req1 = pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // connection 1 is valid
+    conns[0].promises[0].resolve(true)
+
+    // getting the connection 1
+    const conn1 = await req0
+    expect(conn0).toBe(conn1)
+    await conn1.release(address, conn1)
+
+    // connection 2 is valid
+    conns[0].promises[1].resolve(true)
+
+    // getting the connection 2
+    const conn2 = await req1
+    expect(conn0).toBe(conn2)
+    await conn2.release(address, conn2)
+  })
+
+  it('should create new connection if the current one breaks due to being invalid', async () => {
+    const conns: any[] = []
+    const pool = new Pool<any>({
+      // Hook into connection creation to track when and what connections that are
+      // created.
+      create: async (_, server, release) => {
+        // Create a fake connection that makes it possible control when it's connected
+        // and released from the outer scope.
+        const conn: any = {
+          server,
+          release
+        }
+        conns.push(conn)
+        return conn
+      },
+      validateOnAcquire: async (context, resource: any) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
+          if (resource.promises == null) {
+            resource.promises = []
+          }
+          resource.promises.push({
+            resolve,
+            reject
+          })
+        })
+
+        return await promise
+      },
+      // Setup pool to only allow one connection
+      config: new PoolConfig(1, 100000)
+    })
+
+    // Make the first request for a connection, this will return a connection instantaneously
+    const conn0 = await pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // Releasing connection back to the pool, so it can be re-acquired.
+    await conn0.release(address, conn0)
+
+    // Request the same connection again, it will wait until resolve get called.
+    const req0 = pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // Request other connection, this should also resolve the same connection2.
+    const req1 = pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // should resolve the promise with the configured value
+    conns[0].promises[0].resolve(false)
+
+    // getting the connection 1
+    const conn1 = await req0
+    expect(conn0).not.toBe(conn1)
+    await conn1.release(address, conn1)
+    expect(conns.length).toEqual(2)
+
+    // connection 2 is valid
+    conns[1].promises[0].resolve(true)
+
+    // getting the connection 2
+    const conn2 = await req1
+    expect(conn1).toBe(conn2)
+    await conn2.release(address, conn2)
+    expect(conns.length).toEqual(2)
+  })
+
+  it('should create new connection if the current one breaks from error during validation', async () => {
+    const conns: any[] = []
+    const pool = new Pool<any>({
+      // Hook into connection creation to track when and what connections that are
+      // created.
+      create: async (_, server, release) => {
+        // Create a fake connection that makes it possible control when it's connected
+        // and released from the outer scope.
+        const conn: any = {
+          server,
+          release
+        }
+        conns.push(conn)
+        return conn
+      },
+      validateOnAcquire: async (context, resource: any) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
+          if (resource.promises == null) {
+            resource.promises = []
+          }
+          resource.promises.push({
+            resolve,
+            reject
+          })
+        })
+
+        return await promise
+      },
+      // Setup pool to only allow one connection
+      config: new PoolConfig(1, 100000)
+    })
+    // Make the first request for a connection, this will return a connection instantaneously
+    const conn0 = await pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // Releasing connection back to the pool, so it can be re-acquired.
+    await conn0.release(address, conn0)
+
+    // Request the same connection again, it will wait until resolve get called.
+    const req0 = pool.acquire({}, address)
+    expect(conns.length).toEqual(1)
+
+    // should resolve the promise with the configured value
+    conns[0].promises[0].reject(new Error('Failed'))
+    await expect(async () => await req0).rejects.toThrow()
+
+    // Request other connection, this should also resolve the same connection.
+    const conn2 = await pool.acquire({}, address)
+    expect(conns.length).toEqual(2)
+
+    await conn2.release(address, conn2)
+    expect(conns.length).toEqual(2)
+    expect(conn0).not.toBe(conn2)
+    expect(idleResources(pool, address)).toBe(1)
+    expect(resourceInUse(pool, address)).toBe(0)
+  })
+
   it('should not time out if max pool size is not set', async () => {
     let counter = 0
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => Promise.resolve()
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => await Promise.resolve()
     })
 
     await pool.acquire({}, address)
@@ -930,10 +1114,10 @@ describe('#unit Pool', () => {
     let counter = 0
 
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => Promise.resolve(),
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => await Promise.resolve(),
       config: new PoolConfig(2, acquisitionTimeout)
     })
 
@@ -947,8 +1131,8 @@ describe('#unit Pool', () => {
     // double-release used to cause deletion of acquire requests in the pool and failure of the timeout
     // such background failure made this test fail, not the existing assertions
     setTimeout(() => {
-      resource1.close()
-      resource2.close()
+      ignore(resource1.close())
+      ignore(resource2.close())
     }, acquisitionTimeout)
 
     // Remember that both code paths are ok with this test, either a success with a valid resource
@@ -972,10 +1156,10 @@ describe('#unit Pool', () => {
     const acquisitionTimeout = 1000
     let counter = 0
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => Promise.resolve(),
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => await Promise.resolve(),
       validateOnAcquire: (_, res) => resourceValidOnlyOnceValidationFunction(res),
       validateOnRelease: resourceValidOnlyOnceValidationFunction,
       config: new PoolConfig(1, acquisitionTimeout)
@@ -988,7 +1172,7 @@ describe('#unit Pool', () => {
     // release the resource before the acquisition timeout, it should be treated as invalid
     setTimeout(() => {
       expectNumberOfAcquisitionRequests(pool, address, 1)
-      resource1.close()
+      ignore(resource1.close())
     }, acquisitionTimeout / 2)
 
     const resource2 = await pool.acquire({}, address)
@@ -1002,10 +1186,10 @@ describe('#unit Pool', () => {
     const acquisitionTimeout = 1000
     let counter = 0
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, counter++, release)),
-      destroy: res => Promise.resolve(),
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, counter++, release)),
+      destroy: async res => await Promise.resolve(),
       validateOnAcquire: (_, res) => resourceValidOnlyOnceValidationFunction(res),
       validateOnRelease: resourceValidOnlyOnceValidationFunction,
       config: new PoolConfig(2, acquisitionTimeout)
@@ -1022,8 +1206,8 @@ describe('#unit Pool', () => {
     // release both resources before the acquisition timeout, they should be treated as invalid
     setTimeout(() => {
       expectNumberOfAcquisitionRequests(pool, address, 1)
-      resource1.close()
-      resource2.close()
+      ignore(resource1.close())
+      ignore(resource2.close())
     }, acquisitionTimeout / 2)
 
     const resource3 = await pool.acquire({}, address)
@@ -1038,10 +1222,10 @@ describe('#unit Pool', () => {
     let installIdleObserverCount = 0
     let removeIdleObserverCount = 0
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, resourceCount++, release)),
-      destroy: res => Promise.resolve(),
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, resourceCount++, release)),
+      destroy: async res => await Promise.resolve(),
       installIdleObserver: (resource, observer) => {
         installIdleObserverCount++
       },
@@ -1053,7 +1237,7 @@ describe('#unit Pool', () => {
     const r1 = await pool.acquire({}, address)
     const r2 = await pool.acquire({}, address)
     const r3 = await pool.acquire({}, address)
-    await [r1, r2, r3].map(r => r.close())
+    await [r1, r2, r3].map(async r => await r.close())
 
     expect(installIdleObserverCount).toEqual(3)
     expect(removeIdleObserverCount).toEqual(0)
@@ -1070,10 +1254,10 @@ describe('#unit Pool', () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     let resourceCount = 0
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, resourceCount++, release)),
-      destroy: res => Promise.resolve(),
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, resourceCount++, release)),
+      destroy: async res => await Promise.resolve(),
       installIdleObserver: (resource, observer) => {
         resource.observer = observer
       },
@@ -1109,10 +1293,10 @@ describe('#unit Pool', () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     let resourceCount = 0
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, resourceCount++, release)),
-      destroy: res => Promise.resolve(),
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, resourceCount++, release)),
+      destroy: async res => await Promise.resolve(),
       installIdleObserver: (resource, observer) => {
         resource.observer = observer
       },
@@ -1137,12 +1321,12 @@ describe('#unit Pool', () => {
     const acquisitionTimeout = 1000
     let counter = 0
 
-    const pool = new Pool({
-      create: (_, server, release) =>
-        new Promise(resolve => setTimeout(
+    const pool = new Pool<Resource>({
+      create: async (_, server, release) =>
+        await new Promise(resolve => setTimeout(
           () => resolve(new Resource(server, counter++, release))
           , acquisitionTimeout + 10)),
-      destroy: res => Promise.resolve(),
+      destroy: async res => await Promise.resolve(),
       validateOnAcquire: (_, res) => resourceValidOnlyOnceValidationFunction(res),
       validateOnRelease: resourceValidOnlyOnceValidationFunction,
       config: new PoolConfig(1, acquisitionTimeout)
@@ -1160,7 +1344,7 @@ describe('#unit Pool', () => {
       )
 
       const numberOfIdleResourceAfterResourceGetCreated = await new Promise(resolve =>
-        setTimeout(() => resolve(idleResources(pool, address)), 11))
+        setTimeout(() => resolve(idleResources(pool, address)), 15))
 
       expect(numberOfIdleResourceAfterResourceGetCreated).toEqual(1)
       expect(counter).toEqual(1)
@@ -1170,24 +1354,24 @@ describe('#unit Pool', () => {
   it('should purge resources in parallel', async () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     let resourceCount = 0
-    const resourcesReleased = []
-    let resolveRelease
+    const resourcesReleased: Resource[] = []
+    let resolveRelease: (r: Resource) => void
     const releasePromise = new Promise((resolve) => {
       resolveRelease = resolve
     })
 
     const pool = new Pool({
-      create: (_, server, release) =>
-        Promise.resolve(new Resource(server, resourceCount++, release)),
-      destroy: res => {
+      create: async (_, server, release) =>
+        await Promise.resolve(new Resource(server, resourceCount++, release)),
+      destroy: async (res: Resource) => {
         resourcesReleased.push(res)
         resourceCount--
         // Only destroy when the last resource
         // get destroyed
         if (resourceCount === 0) {
-          resolveRelease()
+          resolveRelease(res)
         }
-        return releasePromise
+        return await releasePromise.then()
       }
     })
 
@@ -1208,9 +1392,9 @@ describe('#unit Pool', () => {
       // Given
       let counter = 0
       const address = ServerAddress.fromUrl('bolt://localhost:7687')
-      const pool = new Pool({
-        create: (_, server, release) =>
-          Promise.resolve(new Resource(server, counter++, release))
+      const pool = new Pool<Resource>({
+        create: async (_, server, release) =>
+          await Promise.resolve(new Resource(server, counter++, release))
       })
 
       // When
@@ -1227,9 +1411,9 @@ describe('#unit Pool', () => {
       // Given a pool that allocates
       let counter = 0
       const address = ServerAddress.fromUrl('bolt://localhost:7687')
-      const pool = new Pool({
-        create: (_, server, release) =>
-          Promise.resolve(new Resource(server, counter++, release))
+      const pool = new Pool<Resource>({
+        create: async (_, server, release) =>
+          await Promise.resolve(new Resource(server, counter++, release))
       })
 
       // When
@@ -1247,10 +1431,10 @@ describe('#unit Pool', () => {
     it('should fail to acquire when closed', async () => {
       const address = ServerAddress.fromUrl('bolt://localhost:7687')
       const pool = new Pool({
-        create: (_, server, release) =>
-          Promise.resolve(new Resource(server, 0, release)),
-        destroy: res => {
-          return Promise.resolve()
+        create: async (_, server, release) =>
+          await Promise.resolve(new Resource(server, 0, release)),
+        destroy: async res => {
+          return await Promise.resolve()
         }
       })
 
@@ -1265,11 +1449,11 @@ describe('#unit Pool', () => {
     it('should fail to acquire when closed with idle connections', async () => {
       const address = ServerAddress.fromUrl('bolt://localhost:7687')
 
-      const pool = new Pool({
-        create: (_, server, release) =>
-          Promise.resolve(new Resource(server, 0, release)),
-        destroy: res => {
-          return Promise.resolve()
+      const pool = new Pool<Resource>({
+        create: async (_, server, release) =>
+          await Promise.resolve(new Resource(server, 0, release)),
+        destroy: async res => {
+          return await Promise.resolve()
         }
       })
 
@@ -1289,10 +1473,10 @@ describe('#unit Pool', () => {
       let counter = 0
 
       const address = ServerAddress.fromUrl('bolt://localhost:7687')
-      const pool = new Pool({
-        create: (_, server, release) =>
-          Promise.resolve(new Resource(server, counter++, release)),
-        destroy: res => Promise.resolve(),
+      const pool = new Pool<Resource>({
+        create: async (_, server, release) =>
+          await Promise.resolve(new Resource(server, counter++, release)),
+        destroy: async res => await Promise.resolve(),
         config: new PoolConfig(2, 5000)
       })
 
@@ -1301,7 +1485,7 @@ describe('#unit Pool', () => {
 
       setTimeout(() => {
         expectNumberOfAcquisitionRequests(pool, address, 1)
-        r1.close()
+        ignore(r1.close())
       }, 1000)
 
       expect(r1).not.toBe(r0)
@@ -1313,10 +1497,10 @@ describe('#unit Pool', () => {
       let counter = 0
 
       const address = ServerAddress.fromUrl('bolt://localhost:7687')
-      const pool = new Pool({
-        create: (_, server, release) =>
-          Promise.resolve(new Resource(server, counter++, release)),
-        destroy: res => Promise.resolve(),
+      const pool = new Pool<Resource>({
+        create: async (_, server, release) =>
+          await Promise.resolve(new Resource(server, counter++, release)),
+        destroy: async res => await Promise.resolve(),
         config: new PoolConfig(2, 5000)
       })
 
@@ -1325,7 +1509,7 @@ describe('#unit Pool', () => {
 
       setTimeout(() => {
         expectNumberOfAcquisitionRequests(pool, address, 1)
-        r1.close()
+        ignore(r1.close())
       }, 1000)
 
       expect(r1).not.toBe(r0)
@@ -1336,12 +1520,12 @@ describe('#unit Pool', () => {
     it('should handle a sequence of request new and the regular request', async () => {
       let counter = 0
 
-      const destroy = jest.fn(res => Promise.resolve())
+      const destroy = jest.fn(async res => await Promise.resolve())
       const removeIdleObserver = jest.fn(res => undefined)
       const address = ServerAddress.fromUrl('bolt://localhost:7687')
       const pool = new Pool({
-        create: (_, server, release) =>
-          Promise.resolve(new Resource(server, counter++, release)),
+        create: async (_, server, release) =>
+          await Promise.resolve(new Resource(server, counter++, release)),
         destroy,
         removeIdleObserver,
         config: new PoolConfig(1, 5000)
@@ -1394,9 +1578,10 @@ describe('#unit Pool', () => {
   })
 })
 
-function expectNoPendingAcquisitionRequests (pool) {
+function expectNoPendingAcquisitionRequests (pool: Pool): void {
+  // @ts-expect-error
   const acquireRequests = pool._acquireRequests
-  Object.values(acquireRequests).forEach(requests => {
+  Object.values(acquireRequests).forEach((requests: any) => {
     if (Array.isArray(requests) && requests.length === 0) {
       requests = undefined
     }
@@ -1404,33 +1589,37 @@ function expectNoPendingAcquisitionRequests (pool) {
   })
 }
 
-function expectNoIdleResources (pool, address) {
+function expectNoIdleResources (pool: Pool, address: ServerAddress): void {
   if (pool.has(address)) {
+    // @ts-expect-error
     expect(pool._pools[address.asKey()].length).toBe(0)
   }
 }
 
-function idleResources (pool, address) {
+function idleResources (pool: Pool, address: ServerAddress): number | undefined {
   if (pool.has(address)) {
+    // @ts-expect-error
     return pool._pools[address.asKey()].length
   }
   return undefined
 }
 
-function resourceInUse (pool, address) {
+function resourceInUse (pool: Pool, address: ServerAddress): number | undefined {
   if (pool.has(address)) {
+    // @ts-expect-error
     return pool._pools[address.asKey()]._elementsInUse.size
   }
   return undefined
 }
 
-function expectNumberOfAcquisitionRequests (pool, address, expectedNumber) {
+function expectNumberOfAcquisitionRequests (pool: Pool, address: ServerAddress, expectedNumber: number): void {
+  // @ts-expect-error
   expect(pool._acquireRequests[address.asKey()].length).toEqual(expectedNumber)
 }
 
-function resourceValidOnlyOnceValidationFunction (resource) {
+function resourceValidOnlyOnceValidationFunction (resource: Resource): boolean {
   // all resources are valid only once
-  if (resource.validatedOnce) {
+  if (resource.validatedOnce === true) {
     return false
   } else {
     resource.validatedOnce = true
@@ -1438,15 +1627,24 @@ function resourceValidOnlyOnceValidationFunction (resource) {
   }
 }
 
+function ignore <T> (value: T | Promise<T>): void {
+  Promise.resolve(value).catch(e => console.error('Error ignore, should not happen', e))
+}
+
 class Resource {
-  constructor (key, id, release) {
-    this.id = id
-    this.key = key
+  public destroyed: boolean
+  public observer?: any
+  public validatedOnce?: boolean
+
+  constructor (
+    public key: ServerAddress,
+    public id: number,
+    public release: (key: ServerAddress, r: Resource) => (Promise<void> | void)) {
     this.release = release
     this.destroyed = false
   }
 
-  close () {
+  close (): Promise<void> | void {
     return this.release(this.key, this)
   }
 }

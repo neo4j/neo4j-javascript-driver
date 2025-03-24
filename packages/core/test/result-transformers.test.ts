@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-import { EagerResult, newError, Record, Result, ResultSummary } from '../src'
+import { EagerResult, Integer, newError, Record, Result, ResultSummary } from '../src'
 import resultTransformers from '../src/result-transformers'
 import ResultStreamObserverMock from './utils/result-stream-observer.mock'
 
 describe('resultTransformers', () => {
-  describe('.eagerResultTransformer()', () => {
+  describe.each([
+    ['.eagerResultTransformer()', resultTransformers.eagerResultTransformer],
+    ['.eager()', resultTransformers.eager]
+  ])('%s', (_, transformerFactory) => {
     describe('with a valid result', () => {
       it('it should return an EagerResult', async () => {
         const resultStreamObserverMock = new ResultStreamObserverMock()
@@ -36,7 +39,7 @@ describe('resultTransformers', () => {
         resultStreamObserverMock.onNext(rawRecord2)
         resultStreamObserverMock.onCompleted(meta)
 
-        const eagerResult: EagerResult = await resultTransformers.eagerResultTransformer()(result)
+        const eagerResult: EagerResult = await transformerFactory()(result)
 
         expect(eagerResult.keys).toEqual(keys)
         expect(eagerResult.records).toEqual([
@@ -66,7 +69,7 @@ describe('resultTransformers', () => {
         resultStreamObserverMock.onNext(rawRecord1)
         resultStreamObserverMock.onNext(rawRecord2)
         resultStreamObserverMock.onCompleted(meta)
-        const eagerResult: EagerResult<Car> = await resultTransformers.eagerResultTransformer<Car>()(result)
+        const eagerResult: EagerResult<Car> = await transformerFactory<Car>()(result)
 
         expect(eagerResult.keys).toEqual(keys)
         expect(eagerResult.records).toEqual([
@@ -92,12 +95,15 @@ describe('resultTransformers', () => {
         const expectedError = newError('expected error')
         const result = new Result(Promise.reject(expectedError), 'query')
 
-        await expect(resultTransformers.eagerResultTransformer()(result)).rejects.toThrow(expectedError)
+        await expect(transformerFactory()(result)).rejects.toThrow(expectedError)
       })
     })
   })
 
-  describe('.mappedResultTransformer', () => {
+  describe.each([
+    ['.mappedResultTransformer', resultTransformers.mappedResultTransformer],
+    ['.mapped', resultTransformers.mapped]
+  ])('%s', (_, transformerFactory) => {
     describe('with a valid result', () => {
       it('should map and collect the result', async () => {
         const {
@@ -116,7 +122,7 @@ describe('resultTransformers', () => {
           ks: keys
         }))
 
-        const transform = resultTransformers.mappedResultTransformer({ map, collect })
+        const transform = transformerFactory({ map, collect })
 
         const { as, db, ks }: { as: number[], db: string | undefined | null, ks: string[] } = await transform(result)
 
@@ -146,7 +152,7 @@ describe('resultTransformers', () => {
 
         const map = jest.fn((record) => record.get('a') as number)
 
-        const transform = resultTransformers.mappedResultTransformer({ map })
+        const transform = transformerFactory({ map })
 
         const { records: as, summary, keys: receivedKeys }: { records: number[], summary: ResultSummary, keys: string[] } = await transform(result)
 
@@ -177,7 +183,7 @@ describe('resultTransformers', () => {
           ks: keys
         }))
 
-        const transform = resultTransformers.mappedResultTransformer({ collect })
+        const transform = transformerFactory({ collect })
 
         const { recordsFetched, db, ks }: { recordsFetched: number, db: string | undefined | null, ks: string[] } = await transform(result)
 
@@ -204,7 +210,7 @@ describe('resultTransformers', () => {
           return record.get('a') as number
         })
 
-        const transform = resultTransformers.mappedResultTransformer({ map })
+        const transform = transformerFactory({ map })
 
         const { records: as }: { records: number[] } = await transform(result)
 
@@ -224,7 +230,7 @@ describe('resultTransformers', () => {
         { Collect: () => {} }
       ])('should throw if miss-configured [config=%o]', (config) => {
         // @ts-expect-error
-        expect(() => resultTransformers.mappedResultTransformer(config))
+        expect(() => transformerFactory(config))
           .toThrow(newError('Requires a map or/and a collect functions.'))
       })
 
@@ -259,11 +265,267 @@ describe('resultTransformers', () => {
       it('should propagate the exception', async () => {
         const expectedError = newError('expected error')
         const result = new Result(Promise.reject(expectedError), 'query')
-        const transformer = resultTransformers.mappedResultTransformer({
+        const transformer = transformerFactory({
           collect: (records) => records
         })
 
         await expect(transformer(result)).rejects.toThrow(expectedError)
+      })
+    })
+  })
+
+  describe('.summary()', () => {
+    describe('with a valid result', () => {
+      it('should return a ResultSummary', async () => {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onNext(rawRecord2)
+        resultStreamObserverMock.onCompleted(meta)
+
+        const summary: ResultSummary = await resultTransformers.summary()(result)
+
+        expect(summary).toEqual(
+          new ResultSummary(query, params, meta)
+        )
+      })
+
+      it('should cancel stream', async () => {
+        const meta = { db: 'adb' }
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const cancelSpy = jest.spyOn(resultStreamObserverMock, 'cancel')
+        cancelSpy.mockImplementation(() => resultStreamObserverMock.onCompleted(meta))
+        const query = 'Query'
+        const params = { a: 1 }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onNext(rawRecord2)
+
+        const summary: ResultSummary = await resultTransformers.summary()(result)
+
+        expect(cancelSpy).toHaveBeenCalledTimes(1)
+        expect(summary).toEqual(
+          new ResultSummary(query, params, meta)
+        )
+      })
+
+      it('should return a ResultSummary<number>', async () => {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['model', 'year']
+        const rawRecord1 = ['Beautiful Sedan', 1987]
+        const rawRecord2 = ['Hot Hatch', 1995]
+
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onNext(rawRecord2)
+        resultStreamObserverMock.onCompleted(meta)
+        const summary = await resultTransformers.summary<number>()(result)
+
+        const typeAssertionNumber: ResultSummary<number> = summary
+        // @ts-expect-error
+        const typeAssertionInteger: ResultSummary<Integer> = summary
+        // @ts-expect-error
+        const typeAssertionBigInt: ResultSummary<bigint> = summary
+
+        expect(typeAssertionNumber).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+
+        expect(typeAssertionInteger).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+
+        expect(typeAssertionBigInt).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+      })
+
+      it('should return a ResultSummary<bigint>', async () => {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['model', 'year']
+        const rawRecord1 = ['Beautiful Sedan', 1987]
+        const rawRecord2 = ['Hot Hatch', 1995]
+
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onNext(rawRecord2)
+        resultStreamObserverMock.onCompleted(meta)
+        const summary = await resultTransformers.summary<bigint>()(result)
+
+        const typeAssertionBigInt: ResultSummary<bigint> = summary
+        // @ts-expect-error
+        const typeAssertionNumber: ResultSummary<number> = summary
+        // @ts-expect-error
+        const typeAssertionInteger: ResultSummary<Integer> = summary
+
+        expect(typeAssertionNumber).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+
+        expect(typeAssertionInteger).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+
+        expect(typeAssertionBigInt).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+      })
+
+      it('should return a ResultSummary<Integer>', async () => {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['model', 'year']
+        const rawRecord1 = ['Beautiful Sedan', 1987]
+        const rawRecord2 = ['Hot Hatch', 1995]
+
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onNext(rawRecord2)
+        resultStreamObserverMock.onCompleted(meta)
+        const summary = await resultTransformers.summary<Integer>()(result)
+
+        const typeAssertionInteger: ResultSummary<Integer> = summary
+        // @ts-expect-error
+        const typeAssertionNumber: ResultSummary<number> = summary
+        // @ts-expect-error
+        const typeAssertionBigInt: ResultSummary<bigint> = summary
+
+        expect(typeAssertionInteger).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+
+        expect(typeAssertionNumber).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+
+        expect(typeAssertionBigInt).toEqual(
+          new ResultSummary<Integer>(query, params, meta)
+        )
+      })
+    })
+
+    describe('when results fail', () => {
+      it('should propagate the exception', async () => {
+        const expectedError = newError('expected error')
+        const result = new Result(Promise.reject(expectedError), 'query')
+
+        await expect(resultTransformers.summary()(result)).rejects.toThrow(expectedError)
+      })
+    })
+  })
+
+  describe('.first', () => {
+    describe('with a valid result', () => {
+      it('should return an single Record', async () => {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onCompleted(meta)
+
+        const record = await resultTransformers.first()(result)
+
+        expect(record).toEqual(new Record(keys, rawRecord1))
+      })
+
+      it('it should return an undefined when empty', async () => {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onCompleted(meta)
+
+        const record = await resultTransformers.first()(result)
+
+        expect(record).toEqual(undefined)
+      })
+
+      it('should return a type-safe single Record', async () => {
+        interface Car {
+          model: string
+          year: number
+        }
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['model', 'year']
+        const rawRecord1 = ['Beautiful Sedan', 1987]
+
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onCompleted(meta)
+        const record = await resultTransformers.first<Car>()(result)
+
+        expect(record).toEqual(new Record(keys, rawRecord1))
+
+        const car = record?.toObject()
+
+        expect(car?.model).toEqual(rawRecord1[0])
+        expect(car?.year).toEqual(rawRecord1[1])
+      })
+
+      it('should return an single Record', async () => {
+        const meta = { db: 'adb' }
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const cancelSpy = jest.spyOn(resultStreamObserverMock, 'cancel')
+        cancelSpy.mockImplementation(() => resultStreamObserverMock.onCompleted(meta))
+
+        const query = 'Query'
+        const params = { a: 1 }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [1, 2]
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onNext(rawRecord2)
+
+        const record = await resultTransformers.first()(result)
+
+        await new Promise(resolve => setTimeout(resolve, 100))
+        expect(record).toEqual(new Record(keys, rawRecord1))
+        expect(cancelSpy).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    describe('when results fail', () => {
+      it('should propagate the exception', async () => {
+        const expectedError = newError('expected error')
+        const result = new Result(Promise.reject(expectedError), 'query')
+
+        await expect(resultTransformers.first()(result)).rejects.toThrow(expectedError)
       })
     })
   })
