@@ -260,10 +260,10 @@ class ResultTransformers {
     return summary
   }
 
-  hydratedResultTransformer <T extends {} = Object>(rules: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
-  hydratedResultTransformer <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
+  hydrated <T extends {} = Object>(rules: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
+  hydrated <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
   /**
-   * Creates a {@link ResultTransformer} which maps the result to a hydrated object
+   * Creates a {@link ResultTransformer} which maps each record of the result to a hydrated object of a provided type and/or according to provided rules.
    *
    * @example
    *
@@ -277,7 +277,7 @@ class ResultTransformers {
    * }
    *
    * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
-   *   resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(Person, personClassRules)
+   *   resultTransformer: neo4j.resultTransformers.hydrated(Person, personClassRules)
    * })
    *
    * // Alternatively, the rules can be registered in the mapping registry.
@@ -287,16 +287,16 @@ class ResultTransformers {
    *
    * // after registering the rule the transformer will follow them when mapping to the provided type
    * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
-   *   resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(Person)
+   *   resultTransformer: neo4j.resultTransformers.hydrated(Person)
    * })
    *
-   * // A hydratedResultTransformer can be used without providing or registering Rules beforehand, but in such case the mapping will be done without any type validation
+   * // A hydrated can be used without providing or registering Rules beforehand, but in such case the mapping will be done without any type validation
    *
    * @returns {ResultTransformer<ResultSummary<T>>} The result transformer
    * @see {@link Driver#executeQuery}
    * @experimental This is a preview feature
    */
-  hydratedResultTransformer <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }> {
+  hydrated <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }> {
     return async result => await result.as(constructorOrRules as unknown as GenericConstructor<T>, rules).then()
   }
 }

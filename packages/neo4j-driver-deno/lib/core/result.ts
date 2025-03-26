@@ -158,7 +158,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
   as <T extends {} = Object>(rules: Rules): MappedResult<T>
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): MappedResult<T>
   /**
-   * Maps the records of this result to a provided type or according to provided Rules.
+   * Maps the records of this result to a provided type and/or according to provided Rules.
    *
    * NOTE: This modifies the Result object itself, and can not be run on a Result that is already being consumed.
    *

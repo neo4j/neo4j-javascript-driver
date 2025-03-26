@@ -39,19 +39,19 @@ let rulesRegistry: Record<string, Rules> = {}
 let nameMapping: (name: string) => string = (name) => name
 
 /**
- * Registers a set of {@link Rules} to be used by {@link hydratedResultTransformer} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
+ * Registers a set of {@link Rules} to be used by {@link hydrated} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
  *
  * @example
  * // The following code:
  * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
- *  resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(Person, personClassRules)
+ *  resultTransformer: neo4j.resultTransformers.hydrated(Person, personClassRules)
  * })
  *
  * can instead be written:
  * neo4j.mapping.register(Person, personClassRules)
  *
  * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
- *  resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(Person)
+ *  resultTransformer: neo4j.resultTransformers.hydrated(Person)
  * })
  *
  *

@@ -136,6 +136,13 @@ class Record<
   as <T extends {} = Object>(rules: Rules): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
+  /**
+   * Maps the record to a provided type and/or according to provided Rules.
+   *
+   * @param {GenericConstructor<T> | Rules} constructorOrRules
+   * @param {Rules} rules
+   * @returns {T}
+   */
   as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
     return as(this, constructorOrRules, rules)
   }
