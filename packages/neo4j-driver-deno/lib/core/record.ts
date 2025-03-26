@@ -138,7 +138,7 @@ class Record<
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
   /**
    * Maps the record to a provided type and/or according to provided Rules.
-   * 
+   *
    * @param {GenericConstructor<T> | Rules} constructorOrRules
    * @param {Rules} rules
    * @returns {T}

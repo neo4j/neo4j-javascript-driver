@@ -65,7 +65,7 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
 /**
  * Clears all registered type mappings from the mapping registry.
  */
-export function clearMappingRegistry (): void {
+function clearMappingRegistry (): void {
   rulesRegistry = {}
 }
 
@@ -95,7 +95,7 @@ export function clearMappingRegistry (): void {
  *
  * @param {function} translationFunction A function translating the names of your JS object property names to record key names
  */
-export function translatePropertyNames (translationFunction: (name: string) => string): void {
+function translatePropertyNames (translationFunction: (name: string) => string): void {
   nameMapping = translationFunction
 }
 
@@ -108,7 +108,7 @@ export function translatePropertyNames (translationFunction: (name: string) => s
  * @param {string} codeConvention The naming convention in use in JavaScript object properties
  * @returns {function} translation function
  */
-export function defaultNameTranslation (databaseConvention: string, codeConvention: string): ((name: string) => string) {
+function defaultNameTranslation (databaseConvention: string, codeConvention: string): ((name: string) => string) {
   const keys = Object.keys(nameConventions)
   if (!keys.includes(databaseConvention)) {
     throw newError(
@@ -127,10 +127,10 @@ export function defaultNameTranslation (databaseConvention: string, codeConventi
 }
 
 export const mapping = {
-  register,
   clearMappingRegistry,
-  translatePropertyNames,
-  defaultNameTranslation
+  defaultNameTranslation,
+  register,
+  translatePropertyNames
 }
 
 interface Gettable { get: <V>(key: string) => V }
