@@ -1692,13 +1692,13 @@ describe('#integration examples', () => {
 
       session.close()
 
-      // alternatively, conversions can be performed with hydratedResultTransformers
+      // alternatively, conversions can be performed with hydrated
       const executeQueryRes = await driver.executeQuery(
         `MATCH (p:Person)-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(c:Person)
         WHERE id(p) <> id(c) AND p.name = "Max"
         RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`,
         {},
-        { resultTransformer: neo4j.resultTransformers.hydratedResultTransformer(ActingJobs) }
+        { resultTransformer: neo4j.resultTransformers.hydrated(ActingJobs) }
       )
 
       expect(executeQueryRes.records[0].Person.Born).toBe(2024)
