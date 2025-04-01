@@ -53,6 +53,22 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
  */
 export const RulesFactories = Object.freeze({
   /**
+   * Create a {@link Rule} that validates the value is a Boolean.
+   *
+   * @param {Rule} rule Configurations for the rule
+   * @returns {Rule} A new rule for the value
+   */
+  asBoolean (rule?: Rule): Rule {
+    return {
+      validate: (value, field) => {
+        if (typeof value !== 'boolean') {
+          throw new TypeError(`${field} should be a boolean but received ${typeof value}`)
+        }
+      },
+      ...rule
+    }
+  },
+  /**
    * Create a {@link Rule} that validates the value is a String.
    *
    * @param {Rule} rule Configurations for the rule
@@ -78,7 +94,7 @@ export const RulesFactories = Object.freeze({
     return {
       validate: (value: any, field: string) => {
         if (typeof value === 'object' && value.low !== undefined && value.high !== undefined && Object.keys(value).length === 2) {
-          throw new TypeError('Number returned as Object. To use asNumber mapping, set disableLosslessIntegers or useBigInt to true in driver config object')
+          throw new TypeError('Number returned as Object. To use asNumber mapping, set disableLosslessIntegers or useBigInt in driver config object')
         }
         if (typeof value !== 'number' && (rule?.acceptBigInt !== true || typeof value !== 'bigint')) {
           throw new TypeError(`${field} should be a number but received ${typeof value}`)

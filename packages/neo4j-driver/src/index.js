@@ -83,6 +83,7 @@ import {
   Vector,
   VectorType,
   vector,
+  Rule,
   Rules,
   RulesFactories,
   mapping
@@ -292,6 +293,7 @@ const types = {
   Integer,
   Vector,
   VectorType,
+  Rule,
   Rules
 }
 
@@ -493,6 +495,8 @@ export {
   vector,
   Vector,
   VectorType,
+  Rule,
+  Rules,
   RulesFactories,
   mapping
 }

@@ -52,22 +52,22 @@ const DEFAULT_ON_COMPLETED = (summary: ResultSummary): void => {}
  */
 const DEFAULT_ON_KEYS = (keys: string[]): void => {}
 
+interface AbstractQueryResult<R> {
+  records: R[]
+  summary: ResultSummary
+}
+
 /**
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
  */
-interface QueryResult<R extends RecordShape = RecordShape> {
-  records: Array<Record<R>>
-  summary: ResultSummary
-}
-
-export interface MappedResult<T> extends Result<RecordShape<PropertyKey, T>> {}
+interface QueryResult<R extends RecordShape = RecordShape> extends AbstractQueryResult<Record<R>> {}
 
 /**
  * Interface to observe updates on the Result which is being produced.
  *
  */
-interface ResultObserver<R extends RecordShape = RecordShape> {
+interface AbstractResultObserver<R> {
   /**
    * Receive the keys present on the record whenever this information is available
    *
@@ -79,7 +79,7 @@ interface ResultObserver<R extends RecordShape = RecordShape> {
    * Receive the each record present on the {@link @Result}
    * @param {Record} record The {@link Record} produced
    */
-  onNext?: (record: Record<R>) => void
+  onNext?: (record: R) => void
 
   /**
    * Called when the result is fully received
@@ -94,29 +94,47 @@ interface ResultObserver<R extends RecordShape = RecordShape> {
   onError?: (error: Error) => void
 }
 
+interface ResultObserver<R extends RecordShape = RecordShape> extends AbstractResultObserver<Record<R>> {}
+
 /**
  * Defines a ResultObserver interface which can be used to enqueue records and dequeue
  * them until the result is fully received.
  * @access private
  */
-interface QueuedResultObserver extends ResultObserver {
-  dequeue: () => Promise<IteratorResult<Record, ResultSummary>>
-  dequeueUntilDone: () => Promise<IteratorResult<Record, ResultSummary>>
-  head: () => Promise<IteratorResult<Record, ResultSummary>>
+interface QueuedResultObserver extends AbstractResultObserver<any> {
+  dequeue: () => Promise<IteratorResult<any, ResultSummary>>
+  dequeueUntilDone: () => Promise<IteratorResult<any, ResultSummary>>
+  head: () => Promise<IteratorResult<any, ResultSummary>>
   size: number
 }
 
+function captureStacktrace (): string | null {
+  const error = new Error('')
+  if (error.stack != null) {
+    return error.stack.replace(/^Error(\n\r)*/, '') // we don't need the 'Error\n' part, if only it exists
+  }
+  return null
+}
+
 /**
- * A stream of {@link Record} representing the result of a query.
- * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
- * summary, or rejected with error that contains {@link string} code and {@link string} message.
- * Alternatively can be consumed lazily using {@link Result#subscribe} function.
- * @access public
+ * @private
+ * @param {Error} error The error
+ * @param {string| null} newStack The newStack
+ * @returns {void}
  */
-class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult<R>> {
+function replaceStacktrace (error: Error, newStack?: string | null): void {
+  if (newStack != null) {
+    // Error.prototype.toString() concatenates error.name and error.message nicely
+    // then we add the rest of the stack trace
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    error.stack = error.toString() + '\n' + newStack
+  }
+}
+
+class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
   private readonly _stack: string | null
   private readonly _streamObserverPromise: Promise<observer.ResultStreamObserver>
-  private _p: Promise<QueryResult> | null
+  private _p: Promise<AbstractQueryResult<R>> | null
   private readonly _query: Query
   private readonly _parameters: any
   private readonly _connectionHolder: connectionHolder.ConnectionHolder
@@ -259,16 +277,16 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise (): Promise<QueryResult<R>> {
+  private _getOrCreatePromise (): Promise<AbstractQueryResult<R>> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
-        const records: Array<Record<R>> = []
+        const records: R[] = []
         const observer = {
-          onNext: (record: Record<R>) => {
+          onNext: (record: R) => {
             if (this._mapper != null) {
-              records.push(this._mapper(record) as unknown as Record)
+              records.push(this._mapper(record) as unknown as R)
             } else {
-              records.push(record as unknown as Record)
+              records.push(record as unknown as R)
             }
           },
           onCompleted: (summary: ResultSummary) => {
@@ -291,9 +309,9 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * *Should not be combined with {@link Result#subscribe} or {@link Result#then} functions.*
    *
    * @public
-   * @returns {PeekableAsyncIterator<Record<R>, ResultSummary>} The async iterator for the Results
+   * @returns {PeekableAsyncIterator<R, ResultSummary>} The async iterator for the Results
    */
-  [Symbol.asyncIterator] (): PeekableAsyncIterator<Record<R>, ResultSummary> {
+  [Symbol.asyncIterator] (): PeekableAsyncIterator<R, ResultSummary> {
     if (!this.isOpen()) {
       const error = newError('Result is already consumed')
       return {
@@ -396,9 +414,9 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @param {function(error: {message:string, code:string})} onRejected - function to be called upon errors.
    * @return {Promise} promise.
    */
-  then<TResult1 = QueryResult<R>, TResult2 = never>(
+  then<TResult1 = AbstractQueryResult<R>, TResult2 = never>(
     onFulfilled?:
-    | ((value: QueryResult<R>) => TResult1 | PromiseLike<TResult1>)
+    | ((value: AbstractQueryResult<R>) => TResult1 | PromiseLike<TResult1>)
     | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
@@ -415,7 +433,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    */
   catch <TResult = never>(
     onRejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
-  ): Promise<QueryResult<R> | TResult> {
+  ): Promise<AbstractQueryResult<R> | TResult> {
     return this._getOrCreatePromise().catch(onRejected)
   }
 
@@ -427,7 +445,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @return {Promise} promise.
    */
   [Symbol.toStringTag]: string = 'Result'
-  finally (onfinally?: (() => void) | null): Promise<QueryResult<R>> {
+  finally (onfinally?: (() => void) | null): Promise<AbstractQueryResult<R>> {
     return this._getOrCreatePromise().finally(onfinally)
   }
 
@@ -442,7 +460,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return {void}
    */
-  subscribe (observer: ResultObserver<R>): void {
+  subscribe (observer: AbstractResultObserver<R>): void {
     this._subscribe(observer)
       .catch(() => {})
   }
@@ -460,11 +478,11 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * of handling the results, and allows you to handle arbitrarily large results.
    *
    * @access private
-   * @param {ResultObserver} observer The observer to send records to.
+   * @param {AbstractResultObserver} observer The observer to send records to.
    * @param {boolean} paused The flag to indicate if the stream should be started paused
    * @returns {Promise<observer.ResultStreamObserver>} The result stream observer.
    */
-  _subscribe (observer: ResultObserver, paused: boolean = false): Promise<observer.ResultStreamObserver> {
+  _subscribe (observer: AbstractResultObserver<R>, paused: boolean = false): Promise<observer.ResultStreamObserver> {
     const _observer = this._decorateObserver(observer)
 
     return this._streamObserverPromise
@@ -490,7 +508,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
    * @param {ResultObserver} observer The ResultObserver to decorate.
    * @returns The decorated result observer
    */
-  _decorateObserver (observer: ResultObserver): ResultObserver {
+  _decorateObserver (observer: AbstractResultObserver<R>): AbstractResultObserver<R> {
     const onCompletedOriginal = observer.onCompleted ?? DEFAULT_ON_COMPLETED
     const onErrorOriginal = observer.onError ?? DEFAULT_ON_ERROR
     const onKeysOriginal = observer.onKeys ?? DEFAULT_ON_KEYS
@@ -685,29 +703,27 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
     return observer
   }
 }
+/**
+ * A stream of {@link Record} representing the result of a query.
+ * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
+ * summary, or rejected with error that contains {@link string} code and {@link string} message.
+ * Alternatively can be consumed lazily using {@link Result#subscribe} function.
+ * @access public
+ */
+class Result<R extends RecordShape = RecordShape> extends AbstractResult<Record<R>> {
 
-function captureStacktrace (): string | null {
-  const error = new Error('')
-  if (error.stack != null) {
-    return error.stack.replace(/^Error(\n\r)*/, '') // we don't need the 'Error\n' part, if only it exists
-  }
-  return null
 }
 
 /**
- * @private
- * @param {Error} error The error
- * @param {string| null} newStack The newStack
- * @returns {void}
+ * A stream of mapped Objects representing the result of a query as mapped with a Record Object Mapping function.
+ * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
+ * summary, or rejected with error that contains {@link string} code and {@link string} message.
+ * Alternatively can be consumed lazily using {@link MappedResult#subscribe} function.
+ * @access public
  */
-function replaceStacktrace (error: Error, newStack?: string | null): void {
-  if (newStack != null) {
-    // Error.prototype.toString() concatenates error.name and error.message nicely
-    // then we add the rest of the stack trace
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-    error.stack = error.toString() + '\n' + newStack
-  }
+class MappedResult<R> extends AbstractResult<R> {
+
 }
 
 export default Result
-export type { QueryResult, ResultObserver }
+export type { QueryResult, ResultObserver, AbstractResultObserver }

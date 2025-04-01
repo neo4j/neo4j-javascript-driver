@@ -16,6 +16,7 @@
  */
 
 import Record from '../record'
+import { AbstractResultObserver } from '../result'
 import ResultSummary from '../result-summary'
 
 interface StreamObserver {
@@ -115,7 +116,7 @@ export interface ResultStreamObserver extends StreamObserver {
    * @param {function(metadata: Object)} observer.onCompleted - Handle stream tail, the summary.
    * @param {function(error: Object)} observer.onError - Handle errors, should always be provided.
    */
-  subscribe: (observer: ResultObserver) => void
+  subscribe: (observer: AbstractResultObserver<any>) => void
 }
 
 export class CompletedObserver implements ResultStreamObserver {

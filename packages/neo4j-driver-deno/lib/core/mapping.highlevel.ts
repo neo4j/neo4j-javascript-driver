@@ -127,10 +127,10 @@ function defaultNameTranslation (databaseConvention: string, codeConvention: str
 }
 
 export const mapping = {
-  register,
   clearMappingRegistry,
-  translatePropertyNames,
-  defaultNameTranslation
+  defaultNameTranslation,
+  register,
+  translatePropertyNames
 }
 
 interface Gettable { get: <V>(key: string) => V }
