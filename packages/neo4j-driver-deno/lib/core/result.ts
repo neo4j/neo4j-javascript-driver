@@ -53,7 +53,7 @@ const DEFAULT_ON_COMPLETED = (summary: ResultSummary): void => {}
 const DEFAULT_ON_KEYS = (keys: string[]): void => {}
 
 interface AbstractQueryResult<R> {
-  records: Array<R>
+  records: R[]
   summary: ResultSummary
 }
 
@@ -61,7 +61,7 @@ interface AbstractQueryResult<R> {
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
  */
-interface QueryResult<R extends RecordShape = RecordShape> extends AbstractQueryResult<Record<R>>{}
+interface QueryResult<R extends RecordShape = RecordShape> extends AbstractQueryResult<Record<R>> {}
 
 /**
  * Interface to observe updates on the Result which is being produced.
@@ -108,8 +108,6 @@ interface QueuedResultObserver extends AbstractResultObserver<any> {
   size: number
 }
 
-
-
 function captureStacktrace (): string | null {
   const error = new Error('')
   if (error.stack != null) {
@@ -133,7 +131,7 @@ function replaceStacktrace (error: Error, newStack?: string | null): void {
   }
 }
 
-class AbstractResult<R> implements Promise<AbstractQueryResult<R>>{
+class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
   private readonly _stack: string | null
   private readonly _streamObserverPromise: Promise<observer.ResultStreamObserver>
   private _p: Promise<AbstractQueryResult<R>> | null
@@ -282,7 +280,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>>{
   private _getOrCreatePromise (): Promise<AbstractQueryResult<R>> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
-        const records: Array<R> = []
+        const records: R[] = []
         const observer = {
           onNext: (record: R) => {
             if (this._mapper != null) {
@@ -418,7 +416,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>>{
    */
   then<TResult1 = AbstractQueryResult<R>, TResult2 = never>(
     onFulfilled?:
-    | ((value: AbstractQueryResult<R>) => TResult1 | PromiseLike<TResult1>) 
+    | ((value: AbstractQueryResult<R>) => TResult1 | PromiseLike<TResult1>)
     | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
@@ -713,7 +711,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>>{
  * @access public
  */
 class Result<R extends RecordShape = RecordShape> extends AbstractResult<Record<R>> {
-  
+
 }
 
 /**
@@ -724,7 +722,7 @@ class Result<R extends RecordShape = RecordShape> extends AbstractResult<Record<
  * @access public
  */
 class MappedResult<R> extends AbstractResult<R> {
-  
+
 }
 
 export default Result
