@@ -296,7 +296,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
             }
           },
           onCompleted: (summary: ResultSummary) => {
-            resolve({ records, summary } as T)
+            resolve({ records, summary } as unknown as T)
           },
           onError: (error: Error) => {
             reject(error)
@@ -422,7 +422,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    */
   then<TResult1 = T, TResult2 = never>(
     onFulfilled?:
-    | ((value:T) => TResult1 | PromiseLike<TResult1>)
+    | ((value: T) => TResult1 | PromiseLike<TResult1>)
     | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {

@@ -117,7 +117,7 @@ import {
   Rules,
   RulesFactories,
   mapping,
-  MappedQueryResult,
+  MappedQueryResult
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -134,7 +134,7 @@ type ConfiguredCustomResolver = internal.resolver.ConfiguredCustomResolver
 const { READ, WRITE } = coreDriver
 
 const {
-  util: { ENCRYPTION_ON, assertString, isEmptyObjectOrNull},
+  util: { ENCRYPTION_ON, assertString, isEmptyObjectOrNull },
   serverAddress: { ServerAddress },
   urlUtil
 } = internal
