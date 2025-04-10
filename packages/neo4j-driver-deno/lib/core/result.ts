@@ -52,7 +52,7 @@ const DEFAULT_ON_COMPLETED = (summary: ResultSummary): void => {}
  */
 const DEFAULT_ON_KEYS = (keys: string[]): void => {}
 
-interface AbstractQueryResult<R> {
+interface GenericQueryResult<R> {
   records: R[]
   summary: ResultSummary
 }
@@ -61,13 +61,19 @@ interface AbstractQueryResult<R> {
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
  */
-interface QueryResult<R extends RecordShape = RecordShape> extends AbstractQueryResult<Record<R>> {}
+interface QueryResult<R extends RecordShape = RecordShape> extends GenericQueryResult<Record<R>> {}
+
+/**
+ * The query result is the combination of the {@link ResultSummary} and
+ * an array of mapped objects produced by the query.
+ */
+interface MappedQueryResult<R> extends GenericQueryResult<R> {}
 
 /**
  * Interface to observe updates on the Result which is being produced.
  *
  */
-interface AbstractResultObserver<R> {
+interface GenericResultObserver<R> {
   /**
    * Receive the keys present on the record whenever this information is available
    *
@@ -94,14 +100,14 @@ interface AbstractResultObserver<R> {
   onError?: (error: Error) => void
 }
 
-interface ResultObserver<R extends RecordShape = RecordShape> extends AbstractResultObserver<Record<R>> {}
+interface ResultObserver<R extends RecordShape = RecordShape> extends GenericResultObserver<Record<R>> {}
 
 /**
  * Defines a ResultObserver interface which can be used to enqueue records and dequeue
  * them until the result is fully received.
  * @access private
  */
-interface QueuedResultObserver extends AbstractResultObserver<any> {
+interface QueuedResultObserver extends GenericResultObserver<any> {
   dequeue: () => Promise<IteratorResult<any, ResultSummary>>
   dequeueUntilDone: () => Promise<IteratorResult<any, ResultSummary>>
   head: () => Promise<IteratorResult<any, ResultSummary>>
@@ -131,10 +137,10 @@ function replaceStacktrace (error: Error, newStack?: string | null): void {
   }
 }
 
-class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
+class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   private readonly _stack: string | null
   private readonly _streamObserverPromise: Promise<observer.ResultStreamObserver>
-  private _p: Promise<AbstractQueryResult<R>> | null
+  private _p: Promise<T> | null
   private readonly _query: Query
   private readonly _parameters: any
   private readonly _connectionHolder: connectionHolder.ConnectionHolder
@@ -277,7 +283,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise (): Promise<AbstractQueryResult<R>> {
+  private _getOrCreatePromise (): Promise<T> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
         const records: R[] = []
@@ -290,7 +296,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
             }
           },
           onCompleted: (summary: ResultSummary) => {
-            resolve({ records, summary })
+            resolve({ records, summary } as T)
           },
           onError: (error: Error) => {
             reject(error)
@@ -414,9 +420,9 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
    * @param {function(error: {message:string, code:string})} onRejected - function to be called upon errors.
    * @return {Promise} promise.
    */
-  then<TResult1 = AbstractQueryResult<R>, TResult2 = never>(
+  then<TResult1 = T, TResult2 = never>(
     onFulfilled?:
-    | ((value: AbstractQueryResult<R>) => TResult1 | PromiseLike<TResult1>)
+    | ((value:T) => TResult1 | PromiseLike<TResult1>)
     | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
@@ -433,7 +439,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
    */
   catch <TResult = never>(
     onRejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
-  ): Promise<AbstractQueryResult<R> | TResult> {
+  ): Promise<T | TResult> {
     return this._getOrCreatePromise().catch(onRejected)
   }
 
@@ -445,7 +451,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
    * @return {Promise} promise.
    */
   [Symbol.toStringTag]: string = 'Result'
-  finally (onfinally?: (() => void) | null): Promise<AbstractQueryResult<R>> {
+  finally (onfinally?: (() => void) | null): Promise<T> {
     return this._getOrCreatePromise().finally(onfinally)
   }
 
@@ -460,7 +466,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return {void}
    */
-  subscribe (observer: AbstractResultObserver<R>): void {
+  subscribe (observer: GenericResultObserver<R>): void {
     this._subscribe(observer)
       .catch(() => {})
   }
@@ -478,11 +484,11 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
    * of handling the results, and allows you to handle arbitrarily large results.
    *
    * @access private
-   * @param {AbstractResultObserver} observer The observer to send records to.
+   * @param {GenericResultObserver} observer The observer to send records to.
    * @param {boolean} paused The flag to indicate if the stream should be started paused
    * @returns {Promise<observer.ResultStreamObserver>} The result stream observer.
    */
-  _subscribe (observer: AbstractResultObserver<R>, paused: boolean = false): Promise<observer.ResultStreamObserver> {
+  _subscribe (observer: GenericResultObserver<R>, paused: boolean = false): Promise<observer.ResultStreamObserver> {
     const _observer = this._decorateObserver(observer)
 
     return this._streamObserverPromise
@@ -508,7 +514,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
    * @param {ResultObserver} observer The ResultObserver to decorate.
    * @returns The decorated result observer
    */
-  _decorateObserver (observer: AbstractResultObserver<R>): AbstractResultObserver<R> {
+  _decorateObserver (observer: GenericResultObserver<R>): GenericResultObserver<R> {
     const onCompletedOriginal = observer.onCompleted ?? DEFAULT_ON_COMPLETED
     const onErrorOriginal = observer.onError ?? DEFAULT_ON_ERROR
     const onKeysOriginal = observer.onKeys ?? DEFAULT_ON_KEYS
@@ -603,7 +609,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
       reject: (arg: Error) => any | undefined
     }
 
-    function createResolvablePromise (): ResolvablePromise<IteratorResult<Record, ResultSummary>> {
+    function createResolvablePromise (): ResolvablePromise<IteratorResult<R, ResultSummary>> {
       const resolvablePromise: any = {}
       resolvablePromise.promise = new Promise((resolve, reject) => {
         resolvablePromise.resolve = resolve
@@ -612,13 +618,13 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
       return resolvablePromise
     }
 
-    type QueuedResultElementOrError = IteratorResult<Record, ResultSummary> | Error
+    type QueuedResultElementOrError = IteratorResult<R, ResultSummary> | Error
 
     function isError (elementOrError: QueuedResultElementOrError): elementOrError is Error {
       return elementOrError instanceof Error
     }
 
-    async function dequeue (): Promise<IteratorResult<Record, ResultSummary>> {
+    async function dequeue (): Promise<IteratorResult<R, ResultSummary>> {
       if (buffer.length > 0) {
         const element = buffer.shift() ?? newError('Unexpected empty buffer', PROTOCOL_ERROR)
         onQueueSizeChanged()
@@ -633,11 +639,11 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
 
     const buffer: QueuedResultElementOrError[] = []
     const promiseHolder: {
-      resolvable: ResolvablePromise<IteratorResult<Record, ResultSummary>> | null
+      resolvable: ResolvablePromise<IteratorResult<R, ResultSummary>> | null
     } = { resolvable: null }
 
     const observer = {
-      onNext: (record: Record) => {
+      onNext: (record: any) => {
         if (this._mapper != null) {
           observer._push({ done: false, value: this._mapper(record) })
         } else {
@@ -710,7 +716,7 @@ class AbstractResult<R> implements Promise<AbstractQueryResult<R>> {
  * Alternatively can be consumed lazily using {@link Result#subscribe} function.
  * @access public
  */
-class Result<R extends RecordShape = RecordShape> extends AbstractResult<Record<R>> {
+class Result<R extends RecordShape = RecordShape> extends GenericResult<Record<R>, QueryResult<R>> {
 
 }
 
@@ -721,9 +727,9 @@ class Result<R extends RecordShape = RecordShape> extends AbstractResult<Record<
  * Alternatively can be consumed lazily using {@link MappedResult#subscribe} function.
  * @access public
  */
-class MappedResult<R> extends AbstractResult<R> {
+class MappedResult<R> extends GenericResult<R, MappedQueryResult<R>> {
 
 }
 
 export default Result
-export type { QueryResult, ResultObserver, AbstractResultObserver }
+export type { MappedQueryResult, QueryResult, ResultObserver, GenericResultObserver }

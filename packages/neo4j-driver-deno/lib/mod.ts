@@ -116,7 +116,8 @@ import {
   Rule,
   Rules,
   RulesFactories,
-  mapping
+  mapping,
+  MappedQueryResult,
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -133,7 +134,7 @@ type ConfiguredCustomResolver = internal.resolver.ConfiguredCustomResolver
 const { READ, WRITE } = coreDriver
 
 const {
-  util: { ENCRYPTION_ON, assertString, isEmptyObjectOrNull },
+  util: { ENCRYPTION_ON, assertString, isEmptyObjectOrNull},
   serverAddress: { ServerAddress },
   urlUtil
 } = internal
@@ -215,8 +216,7 @@ function driver (
       routing = true
       break
     default:
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      throw new Error(`Unknown scheme: ${parsedUrl.scheme ?? 'null'}`)
+      throw new Error(`Unknown scheme: ${(parsedUrl.scheme as string) ?? 'null'}`)
   }
 
   // Encryption enabled on URL, propagate trust to the config.
@@ -268,8 +268,7 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      if (!isEmptyObjectOrNull(parsedUrl.query)) {
+      if (!(isEmptyObjectOrNull(parsedUrl.query) === true)) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )
@@ -565,6 +564,7 @@ export type {
   Vector,
   VectorType,
   Rule,
-  Rules
+  Rules,
+  MappedQueryResult
 }
 export default forExport

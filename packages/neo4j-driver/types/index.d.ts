@@ -98,6 +98,11 @@ import {
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
   clientCertificateProviders,
+  Rule,
+  Rules,
+  RulesFactories,
+  mapping,
+  MappedQueryResult,
   types as coreTypes
 } from 'neo4j-driver-core'
 import {
@@ -403,7 +408,12 @@ export type {
   ClientCertificate,
   ClientCertificateProvider,
   ClientCertificateProviders,
-  RotatingClientCertificateProvider
+  RotatingClientCertificateProvider,
+  Rule,
+  Rules,
+  RulesFactories,
+  mapping,
+  MappedQueryResult
 }
 
 export default forExport

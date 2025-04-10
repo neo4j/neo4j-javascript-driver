@@ -116,7 +116,8 @@ import {
   Rule,
   Rules,
   RulesFactories,
-  mapping
+  mapping,
+  MappedQueryResult
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -214,8 +215,7 @@ function driver (
       routing = true
       break
     default:
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      throw new Error(`Unknown scheme: ${parsedUrl.scheme ?? 'null'}`)
+      throw new Error(`Unknown scheme: ${(parsedUrl.scheme as string) ?? 'null'}`)
   }
 
   // Encryption enabled on URL, propagate trust to the config.
@@ -267,8 +267,7 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      if (!isEmptyObjectOrNull(parsedUrl.query)) {
+      if (!(isEmptyObjectOrNull(parsedUrl.query) === true)) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )
@@ -564,6 +563,7 @@ export type {
   Vector,
   VectorType,
   Rule,
-  Rules
+  Rules,
+  MappedQueryResult
 }
 export default forExport

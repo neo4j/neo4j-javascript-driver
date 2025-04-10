@@ -83,7 +83,7 @@ import NotificationFilter, {
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel
 } from './notification-filter'
-import Result, { QueryResult, ResultObserver } from './result'
+import Result, { MappedQueryResult, QueryResult, ResultObserver } from './result'
 import EagerResult from './result-eager'
 import ConnectionProvider, { Releasable } from './connection-provider'
 import Connection from './connection'
@@ -283,6 +283,7 @@ export type {
   NumberOrInteger,
   NotificationPosition,
   QueryResult,
+  MappedQueryResult,
   ResultObserver,
   TransactionConfig,
   BookmarkManager,
