@@ -824,6 +824,12 @@ class Driver {
   /**
    * Close all open sessions and other associated resources. You should
    * make sure to use this when you are done with this driver instance.
+   * 
+   * This will interrupt any running connections.
+   * Make sure you are done using the driver object and any resources
+   * spawned from it (such as sessions or transactions) while calling
+   * this method. Failing to do so will result in unspecified behavior.
+   * 
    * @public
    * @return {Promise<void>} promise resolved when the driver is closed.
    */
