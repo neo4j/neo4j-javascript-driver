@@ -23,11 +23,11 @@ export interface NameConvention {
 }
 
 export enum StandardCase {
-  SnakeCase = "snake_case",
-  KebabCase = "kebab-case",
-  ScreamingSnakeCase = "SCREAMING_SNAKE_CASE",
-  PascalCase = "PascalCase",
-  CamelCase = "camelCase"
+  SnakeCase = 'snake_case',
+  KebabCase = 'kebab-case',
+  ScreamingSnakeCase = 'SCREAMING_SNAKE_CASE',
+  PascalCase = 'PascalCase',
+  CamelCase = 'camelCase'
 }
 
 export const nameConventions = {

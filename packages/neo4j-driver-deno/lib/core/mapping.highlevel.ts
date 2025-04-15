@@ -134,7 +134,7 @@ export const mapping = {
   getCaseTranslator,
   register,
   StandardCase,
-  translateIdentifiers,
+  translateIdentifiers
 }
 
 interface Gettable { get: <V>(key: string) => V }

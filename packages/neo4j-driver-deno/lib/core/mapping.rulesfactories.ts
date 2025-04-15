@@ -50,7 +50,7 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
  * @property {function(rule: ?Rule)} asPoint Create a {@link Rule} that validates the value is a {@link Point}.
  *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
- * 
+ *
  * @experimental
  */
 export const RulesFactories = Object.freeze({
