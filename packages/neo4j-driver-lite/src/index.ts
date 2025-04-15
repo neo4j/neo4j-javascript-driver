@@ -117,6 +117,7 @@ import {
   Rules,
   RulesFactories,
   mapping,
+  StandardCase,
   MappedQueryResult
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
@@ -453,7 +454,8 @@ const forExport = {
   Vector,
   vector,
   RulesFactories,
-  mapping
+  mapping,
+  StandardCase
 }
 
 export {
@@ -528,7 +530,8 @@ export {
   clientCertificateProviders,
   vector,
   RulesFactories,
-  mapping
+  mapping,
+  StandardCase
 }
 export type {
   QueryResult,

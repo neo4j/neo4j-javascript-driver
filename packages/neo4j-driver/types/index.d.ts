@@ -102,6 +102,7 @@ import {
   Rules,
   RulesFactories,
   mapping,
+  StandardCase,
   MappedQueryResult,
   types as coreTypes
 } from 'neo4j-driver-core'
@@ -413,6 +414,7 @@ export type {
   Rules,
   RulesFactories,
   mapping,
+  StandardCase,
   MappedQueryResult
 }
 

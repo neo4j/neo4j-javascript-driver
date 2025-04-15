@@ -50,11 +50,14 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
  * @property {function(rule: ?Rule)} asPoint Create a {@link Rule} that validates the value is a {@link Point}.
  *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
+ *
+ * @experimental
  */
 export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a Boolean.
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -71,6 +74,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a String.
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -87,6 +91,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Number}.
    *
+   * @experimental
    * @param {Rule & { acceptBigInt?: boolean }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -112,6 +117,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link BigInt}.
    *
+   * @experimental
    * @param {Rule & { acceptNumber?: boolean }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -144,6 +150,7 @@ export const RulesFactories = Object.freeze({
    *  movie: neo4j.RulesFactories.asNode({}),
    * }
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -176,6 +183,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is an {@link UnboundRelationship}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -192,6 +200,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Path}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -208,6 +217,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Point}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -224,6 +234,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Duration}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -241,6 +252,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalTime}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -258,6 +270,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Time}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -275,6 +288,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Date}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -292,6 +306,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalDateTime}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -309,6 +324,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link DateTime}
    *
+   * @experimental
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -326,6 +342,7 @@ export const RulesFactories = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a List. Optionally taking a rule for hydrating the contained values.
    *
+   * @experimental
    * @param {Rule & { apply?: Rule }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */

@@ -117,6 +117,7 @@ import {
   Rules,
   RulesFactories,
   mapping,
+  StandardCase,
   MappedQueryResult
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
@@ -454,7 +455,8 @@ const forExport = {
   Vector,
   vector,
   RulesFactories,
-  mapping
+  mapping,
+  StandardCase
 }
 
 export {
@@ -529,7 +531,8 @@ export {
   clientCertificateProviders,
   vector,
   RulesFactories,
-  mapping
+  mapping,
+  StandardCase
 }
 export type {
   QueryResult,

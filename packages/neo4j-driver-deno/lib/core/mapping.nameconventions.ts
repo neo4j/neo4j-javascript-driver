@@ -22,6 +22,14 @@ export interface NameConvention {
   encode: (tokens: string[]) => string
 }
 
+export enum StandardCase {
+  SnakeCase = "snake_case",
+  KebabCase = "kebab-case",
+  ScreamingSnakeCase = "SCREAMING_SNAKE_CASE",
+  PascalCase = "PascalCase",
+  CamelCase = "camelCase"
+}
+
 export const nameConventions = {
   snake_case: {
     tokenize: (name: string) => name.split('_'),
@@ -55,7 +63,7 @@ export const nameConventions = {
       return name
     }
   },
-  SNAKE_CAPS: {
+  SCREAMING_SNAKE_CASE: {
     tokenize: (name: string) => name.split('_').map((token) => token.toLowerCase()),
     encode: (tokens: string[]) => tokens.join('_').toUpperCase()
   }

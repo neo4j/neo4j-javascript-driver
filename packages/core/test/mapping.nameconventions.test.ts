@@ -17,21 +17,21 @@
 
 import { mapping } from '../src'
 
-describe('#unit defaultNameTranslations', () => {
+describe('#unit getCaseTranslator', () => {
   // Each convention has "tokenize" and "encode" functions, so testing each twice is sufficient.
-  it('camelCase to SNAKE_CAPS', () => {
-    expect(mapping.defaultNameTranslation('camelCase', 'SNAKE_CAPS')('I_AM_COOL')).toBe('iAmCool')
+  it('camelCase to SCREAMING_SNAKE_CASE', () => {
+    expect(mapping.getCaseTranslator(mapping.StandardCase.CamelCase, 'SCREAMING_SNAKE_CASE')('I_AM_COOL')).toBe('iAmCool')
   })
-  it('SNAKE_CAPS to PascalCase', () => {
-    expect(mapping.defaultNameTranslation('SNAKE_CAPS', 'PascalCase')('IAmCool')).toBe('I_AM_COOL')
+  it('SCREAMING_SNAKE_CASE to PascalCase', () => {
+    expect(mapping.getCaseTranslator(mapping.StandardCase.ScreamingSnakeCase, 'PascalCase')('IAmCool')).toBe('I_AM_COOL')
   })
   it('PascalCase to snake_case', () => {
-    expect(mapping.defaultNameTranslation('PascalCase', 'snake_case')('i_am_cool')).toBe('IAmCool')
+    expect(mapping.getCaseTranslator(mapping.StandardCase.PascalCase, 'snake_case')('i_am_cool')).toBe('IAmCool')
   })
   it('snake_case to kebab-case', () => {
-    expect(mapping.defaultNameTranslation('snake_case', 'kebab-case')('i-am-cool')).toBe('i_am_cool')
+    expect(mapping.getCaseTranslator(mapping.StandardCase.SnakeCase, 'kebab-case')('i-am-cool')).toBe('i_am_cool')
   })
   it('kebab-case to camelCase', () => {
-    expect(mapping.defaultNameTranslation('kebab-case', 'camelCase')('iAmCool')).toBe('i-am-cool')
+    expect(mapping.getCaseTranslator(mapping.StandardCase.KebabCase, 'camelCase')('iAmCool')).toBe('i-am-cool')
   })
 })

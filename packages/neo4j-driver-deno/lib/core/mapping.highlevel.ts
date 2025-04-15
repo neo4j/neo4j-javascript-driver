@@ -18,7 +18,7 @@
  */
 
 import { newError } from './error.ts'
-import { nameConventions } from './mapping.nameconventions.ts'
+import { nameConventions, StandardCase } from './mapping.nameconventions.ts'
 
 /**
  * constructor function of any class
@@ -54,7 +54,7 @@ let nameMapping: (name: string) => string = (name) => name
  *  resultTransformer: neo4j.resultTransformers.hydrated(Person)
  * })
  *
- *
+ * @experimental
  * @param {GenericConstructor} constructor The constructor function of the class to set rules for
  * @param {Rules} rules The rules to set for the provided class
  */
@@ -64,6 +64,7 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
 
 /**
  * Clears all registered type mappings from the mapping registry.
+ * @experimental
  */
 function clearMappingRegistry (): void {
   rulesRegistry = {}
@@ -73,14 +74,14 @@ function clearMappingRegistry (): void {
  * Sets a default name translation from record keys to object properties.
  * If providing a function, provide a function that maps FROM your object properties names TO record key names.
  *
- * The function defaultNameTranslation can be used to provide a prewritten translation function between some common naming conventions.
+ * The function getCaseTranslator can be used to provide a prewritten translation function between some common naming conventions.
  *
  * @example
  * //if the keys on records from the database are in ALLCAPS
- * mapping.translatePropertyNames((name) => name.toUpperCase())
+ * mapping.translateIdentifiers((name) => name.toUpperCase())
  *
  * //if you utilize PacalCase in the database and camelCase in JavaScript code.
- * mapping.translatePropertyNames(mapping.defaultNameTranslation("PascalCase", "camelCase"))
+ * mapping.translateIdentifiers(mapping.getCaseTranslator("PascalCase", "camelCase"))
  *
  * //if a type has one odd mapping you can override the translation with the rule
  * const personRules = {
@@ -93,22 +94,24 @@ function clearMappingRegistry (): void {
  * //or by registering them to the mapping registry
  * mapping.register(Person, personRules)
  *
+ * @experimental
  * @param {function} translationFunction A function translating the names of your JS object property names to record key names
  */
-function translatePropertyNames (translationFunction: (name: string) => string): void {
+function translateIdentifiers (translationFunction: (name: string) => string): void {
   nameMapping = translationFunction
 }
 
 /**
- * Creates a translation frunction from record key names to object property names, for use with the {@link translatePropertyNames} function
+ * Creates a translation frunction from record key names to object property names, for use with the {@link translateIdentifiers} function
  *
- * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SNAKE_CAPS"
+ * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SCREAMING_SNAKE_CASE"
  *
+ * @experimental
  * @param {string} databaseConvention The naming convention in use in database result Records
  * @param {string} codeConvention The naming convention in use in JavaScript object properties
  * @returns {function} translation function
  */
-function defaultNameTranslation (databaseConvention: string, codeConvention: string): ((name: string) => string) {
+function getCaseTranslator (databaseConvention: string | StandardCase, codeConvention: string | StandardCase): ((name: string) => string) {
   const keys = Object.keys(nameConventions)
   if (!keys.includes(databaseConvention)) {
     throw newError(
@@ -128,9 +131,10 @@ function defaultNameTranslation (databaseConvention: string, codeConvention: str
 
 export const mapping = {
   clearMappingRegistry,
-  defaultNameTranslation,
+  getCaseTranslator,
   register,
-  translatePropertyNames
+  StandardCase,
+  translateIdentifiers,
 }
 
 interface Gettable { get: <V>(key: string) => V }

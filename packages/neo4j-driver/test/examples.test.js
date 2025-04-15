@@ -1673,7 +1673,7 @@ describe('#integration examples', () => {
       neo4j.mapping.register(ActingJobs, actingJobsRules)
 
       // The code uses PascalCase for property names, while the cypher has camelCase. This issue can be solved with the following line.
-      neo4j.mapping.translatePropertyNames(neo4j.mapping.defaultNameTranslation('camelCase', 'PascalCase'))
+      neo4j.mapping.translateIdentifiers(neo4j.mapping.getCaseTranslator('camelCase', 'PascalCase'))
 
       const session = driver.session()
 

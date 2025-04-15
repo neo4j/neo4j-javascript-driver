@@ -103,6 +103,7 @@ import resultTransformers, { ResultTransformer } from './result-transformers'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate'
 import * as internal from './internal' // todo: removed afterwards
 import Vector, { VectorType, vector } from './vector'
+import { StandardCase } from './mapping.nameconventions'
 import { Rule, Rules, mapping } from './mapping.highlevel'
 import { RulesFactories } from './mapping.rulesfactories'
 
@@ -193,7 +194,8 @@ const forExport = {
   clientCertificateProviders,
   resolveCertificateProvider,
   RulesFactories,
-  mapping
+  mapping,
+  StandardCase
 }
 
 export {
@@ -275,7 +277,8 @@ export {
   Vector,
   vector,
   RulesFactories,
-  mapping
+  mapping,
+  StandardCase
 }
 
 export type {
