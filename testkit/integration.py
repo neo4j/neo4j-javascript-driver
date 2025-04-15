@@ -14,7 +14,7 @@ if __name__ == "__main__":
     if is_lite():
         ignore = "--ignore=neo4j-driver"
     else:
-        ignore = "--ignore=neo4j-driver-lite"
+        ignore = "--ignore=neo4j-driver-@(lite|deno)"
 
     if is_deno():
         pass
