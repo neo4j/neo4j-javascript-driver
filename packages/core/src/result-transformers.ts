@@ -283,7 +283,7 @@ class ResultTransformers {
    * // Alternatively, the rules can be registered in the mapping registry.
    * // This registry exists in global memory and will persist even between driver instances.
    *
-   * neo4j.mapping.register(Person, PersonRules)
+   * neo4j.RecordObjectMapping.register(Person, PersonRules)
    *
    * // after registering the rule the transformer will follow them when mapping to the provided type
    * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {

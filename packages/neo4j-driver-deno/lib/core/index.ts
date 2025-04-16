@@ -104,7 +104,7 @@ import ClientCertificate, { clientCertificateProviders, ClientCertificateProvide
 import * as internal from './internal/index.ts'
 import Vector, { VectorType, vector } from './vector.ts'
 import { StandardCase } from './mapping.nameconventions.ts'
-import { Rule, Rules, mapping } from './mapping.highlevel.ts'
+import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel.ts'
 import { RulesFactories } from './mapping.rulesfactories.ts'
 
 /**
@@ -194,7 +194,7 @@ const forExport = {
   clientCertificateProviders,
   resolveCertificateProvider,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase
 }
 
@@ -277,7 +277,7 @@ export {
   Vector,
   vector,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase
 }
 

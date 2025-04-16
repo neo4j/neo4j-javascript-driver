@@ -101,7 +101,7 @@ import {
   Rule,
   Rules,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase,
   MappedQueryResult,
   types as coreTypes
@@ -413,7 +413,7 @@ export type {
   Rule,
   Rules,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase,
   MappedQueryResult
 }

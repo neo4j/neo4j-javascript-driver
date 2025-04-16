@@ -48,7 +48,7 @@ let nameMapping: (name: string) => string = (name) => name
  * })
  *
  * can instead be written:
- * neo4j.mapping.register(Person, personClassRules)
+ * neo4j.RecordObjectMapping.register(Person, personClassRules)
  *
  * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
  *  resultTransformer: neo4j.resultTransformers.hydrated(Person)
@@ -63,7 +63,7 @@ export function register <T extends {} = Object> (constructor: GenericConstructo
 }
 
 /**
- * Clears all registered type mappings from the mapping registry.
+ * Clears all registered type mappings from the record object mapping registry.
  * @experimental
  */
 function clearMappingRegistry (): void {
@@ -78,10 +78,10 @@ function clearMappingRegistry (): void {
  *
  * @example
  * //if the keys on records from the database are in ALLCAPS
- * mapping.translateIdentifiers((name) => name.toUpperCase())
+ * RecordObjectMapping.translateIdentifiers((name) => name.toUpperCase())
  *
  * //if you utilize PacalCase in the database and camelCase in JavaScript code.
- * mapping.translateIdentifiers(mapping.getCaseTranslator("PascalCase", "camelCase"))
+ * RecordObjectMapping.translateIdentifiers(mapping.getCaseTranslator("PascalCase", "camelCase"))
  *
  * //if a type has one odd mapping you can override the translation with the rule
  * const personRules = {
@@ -92,7 +92,7 @@ function clearMappingRegistry (): void {
  * //These rules can then be used by providing them to a hydratedResultsMapper
  * record.as<Person>(personRules)
  * //or by registering them to the mapping registry
- * mapping.register(Person, personRules)
+ * RecordObjectMapping.register(Person, personRules)
  *
  * @experimental
  * @param {function} translationFunction A function translating the names of your JS object property names to record key names
@@ -129,7 +129,7 @@ function getCaseTranslator (databaseConvention: string | StandardCase, codeConve
   return (name: string) => nameConventions[databaseConvention].encode(nameConventions[codeConvention].tokenize(name))
 }
 
-export const mapping = {
+export const RecordObjectMapping = {
   clearMappingRegistry,
   getCaseTranslator,
   register,

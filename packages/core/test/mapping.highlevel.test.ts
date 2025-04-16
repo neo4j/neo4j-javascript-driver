@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, mapping, Node, Relationship, Rules, RulesFactories, Time } from '../src'
+import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, RulesFactories, Time } from '../src'
 import { as } from '../src/mapping.highlevel'
 
 describe('#unit Record Object Mapping', () => {
@@ -46,10 +46,10 @@ describe('#unit Record Object Mapping', () => {
         }
       }
 
-      mapping.register(Person, personRules)
+      RecordObjectMapping.register(Person, personRules)
       // @ts-expect-error
       expect(as(gettable, Person).name).toBe('hi')
-      mapping.clearMappingRegistry()
+      RecordObjectMapping.clearMappingRegistry()
       // @ts-expect-error
       expect(as(gettable, Person).name).toBe('hello')
     })

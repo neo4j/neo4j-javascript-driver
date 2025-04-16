@@ -116,7 +116,7 @@ import {
   Rule,
   Rules,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase,
   MappedQueryResult
 } from './core/index.ts'
@@ -455,7 +455,7 @@ const forExport = {
   Vector,
   vector,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase
 }
 
@@ -531,7 +531,7 @@ export {
   clientCertificateProviders,
   vector,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase
 }
 export type {

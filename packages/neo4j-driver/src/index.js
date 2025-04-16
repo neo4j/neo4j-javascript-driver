@@ -86,7 +86,7 @@ import {
   Rule,
   Rules,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase
 } from 'neo4j-driver-core'
 import {
@@ -419,7 +419,7 @@ const forExport = {
   clientCertificateProviders,
   vector,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase
 }
 
@@ -500,7 +500,7 @@ export {
   Rule,
   Rules,
   RulesFactories,
-  mapping,
+  RecordObjectMapping,
   StandardCase
 }
 export default forExport

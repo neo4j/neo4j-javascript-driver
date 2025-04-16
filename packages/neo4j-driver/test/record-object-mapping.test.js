@@ -117,10 +117,10 @@ describe('#integration record object mapping', () => {
         char2: 'next dev'
       })
 
-    neo4j.mapping.register(Role, roleRules)
-    neo4j.mapping.register(Person, personRules)
-    neo4j.mapping.register(Movie, movieRules)
-    neo4j.mapping.register(ActingJobs, actingJobsRules)
+    neo4j.RecordObjectMapping.register(Role, roleRules)
+    neo4j.RecordObjectMapping.register(Person, personRules)
+    neo4j.RecordObjectMapping.register(Movie, movieRules)
+    neo4j.RecordObjectMapping.register(ActingJobs, actingJobsRules)
     const session = driverGlobal.session()
 
     const res = await session.executeRead(async (tx) => {
@@ -138,7 +138,7 @@ describe('#integration record object mapping', () => {
 
     session.close()
 
-    neo4j.mapping.clearMappingRegistry()
+    neo4j.RecordObjectMapping.clearMappingRegistry()
   })
 
   it('map transaction result with registered mappings', async () => {

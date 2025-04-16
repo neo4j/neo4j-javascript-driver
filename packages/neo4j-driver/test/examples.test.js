@@ -1667,13 +1667,13 @@ describe('#integration examples', () => {
 
       // Register the rules for the custom types in the mapping registry.
       // This is optional, but not doing it means that rules must be provided for every conversion.
-      neo4j.mapping.register(Role, roleRules)
-      neo4j.mapping.register(Person, personRules)
-      neo4j.mapping.register(Movie, movieRules)
-      neo4j.mapping.register(ActingJobs, actingJobsRules)
+      neo4j.RecordObjectMapping.register(Role, roleRules)
+      neo4j.RecordObjectMapping.register(Person, personRules)
+      neo4j.RecordObjectMapping.register(Movie, movieRules)
+      neo4j.RecordObjectMapping.register(ActingJobs, actingJobsRules)
 
       // The code uses PascalCase for property names, while the cypher has camelCase. This issue can be solved with the following line.
-      neo4j.mapping.translateIdentifiers(neo4j.mapping.getCaseTranslator('camelCase', 'PascalCase'))
+      neo4j.RecordObjectMapping.translateIdentifiers(neo4j.RecordObjectMapping.getCaseTranslator('camelCase', 'PascalCase'))
 
       const session = driver.session()
 
@@ -1706,7 +1706,7 @@ describe('#integration examples', () => {
       expect(executeQueryRes.records[0].Costars[0].Name).toBe('TBD')
 
       // The following line removes all rules from the mapping registry, this is run here just to not interfere with other tests.
-      neo4j.mapping.clearMappingRegistry()
+      neo4j.RecordObjectMapping.clearMappingRegistry()
 
       driver.close()
     })
