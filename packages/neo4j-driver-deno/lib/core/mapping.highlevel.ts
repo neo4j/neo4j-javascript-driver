@@ -38,7 +38,55 @@ let rulesRegistry: Record<string, Rules> = {}
 
 let nameMapping: (name: string) => string = (name) => name
 
-/**
+function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
+  rulesRegistry[constructor.toString()] = rules
+}
+
+function clearMappingRegistry (): void {
+  rulesRegistry = {}
+}
+
+function translateIdentifiers (translationFunction: (name: string) => string): void {
+  nameMapping = translationFunction
+}
+
+function getCaseTranslator (databaseConvention: string | StandardCase, codeConvention: string | StandardCase): ((name: string) => string) {
+  const keys = Object.keys(nameConventions)
+  if (!keys.includes(databaseConvention)) {
+    throw newError(
+      `Naming convention ${databaseConvention} is not recognized, 
+      please provide a recognized name convention or manually provide a translation function.`
+    )
+  }
+  if (!keys.includes(codeConvention)) {
+    throw newError(
+      `Naming convention ${codeConvention} is not recognized, 
+      please provide a recognized name convention or manually provide a translation function.`
+    )
+  }
+  // @ts-expect-error
+  return (name: string) => nameConventions[databaseConvention].encode(nameConventions[codeConvention].tokenize(name))
+}
+
+
+export const RecordObjectMapping = Object.freeze({
+  /**
+ * Clears all registered type mappings from the record object mapping registry.
+ * @experimental
+ */
+  clearMappingRegistry,
+  /**
+ * Creates a translation frunction from record key names to object property names, for use with the {@link translateIdentifiers} function
+ *
+ * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SCREAMING_SNAKE_CASE"
+ *
+ * @experimental
+ * @param {string} databaseConvention The naming convention in use in database result Records
+ * @param {string} codeConvention The naming convention in use in JavaScript object properties
+ * @returns {function} translation function
+ */
+  getCaseTranslator,
+  /**
  * Registers a set of {@link Rules} to be used by {@link hydrated} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
  *
  * @example
@@ -58,19 +106,8 @@ let nameMapping: (name: string) => string = (name) => name
  * @param {GenericConstructor} constructor The constructor function of the class to set rules for
  * @param {Rules} rules The rules to set for the provided class
  */
-export function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
-  rulesRegistry[constructor.toString()] = rules
-}
-
-/**
- * Clears all registered type mappings from the record object mapping registry.
- * @experimental
- */
-function clearMappingRegistry (): void {
-  rulesRegistry = {}
-}
-
-/**
+  register,
+  /**
  * Sets a default name translation from record keys to object properties.
  * If providing a function, provide a function that maps FROM your object properties names TO record key names.
  *
@@ -97,45 +134,8 @@ function clearMappingRegistry (): void {
  * @experimental
  * @param {function} translationFunction A function translating the names of your JS object property names to record key names
  */
-function translateIdentifiers (translationFunction: (name: string) => string): void {
-  nameMapping = translationFunction
-}
-
-/**
- * Creates a translation frunction from record key names to object property names, for use with the {@link translateIdentifiers} function
- *
- * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SCREAMING_SNAKE_CASE"
- *
- * @experimental
- * @param {string} databaseConvention The naming convention in use in database result Records
- * @param {string} codeConvention The naming convention in use in JavaScript object properties
- * @returns {function} translation function
- */
-function getCaseTranslator (databaseConvention: string | StandardCase, codeConvention: string | StandardCase): ((name: string) => string) {
-  const keys = Object.keys(nameConventions)
-  if (!keys.includes(databaseConvention)) {
-    throw newError(
-      `Naming convention ${databaseConvention} is not recognized, 
-      please provide a recognized name convention or manually provide a translation function.`
-    )
-  }
-  if (!keys.includes(codeConvention)) {
-    throw newError(
-      `Naming convention ${codeConvention} is not recognized, 
-      please provide a recognized name convention or manually provide a translation function.`
-    )
-  }
-  // @ts-expect-error
-  return (name: string) => nameConventions[databaseConvention].encode(nameConventions[codeConvention].tokenize(name))
-}
-
-export const RecordObjectMapping = {
-  clearMappingRegistry,
-  getCaseTranslator,
-  register,
-  StandardCase,
   translateIdentifiers
-}
+})
 
 interface Gettable { get: <V>(key: string) => V }
 
