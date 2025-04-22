@@ -68,7 +68,6 @@ function getCaseTranslator (databaseConvention: string | StandardCase, codeConve
   return (name: string) => nameConventions[databaseConvention].encode(nameConventions[codeConvention].tokenize(name))
 }
 
-
 export const RecordObjectMapping = Object.freeze({
   /**
  * Clears all registered type mappings from the record object mapping registry.
