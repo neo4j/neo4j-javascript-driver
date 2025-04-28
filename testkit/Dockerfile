@@ -1,10 +1,10 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
-ARG NODE_VERSION=10
-ARG DENO_VERSION=1.37.2
+ARG NODE_VERSION=18
+ARG DENO_VERSION=2.2.11
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV NODE_OPTIONS --max_old_space_size=4096 --use-openssl-ca
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NODE_OPTIONS="--max_old_space_size=4096 --use-openssl-ca"
 
 # Configuring NodeJS version
 RUN apt-get clean 
@@ -13,7 +13,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y curl
 
-RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:=10}.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:-18}.x | bash -
 
 RUN apt-get update && \
     apt-get upgrade -y && \
