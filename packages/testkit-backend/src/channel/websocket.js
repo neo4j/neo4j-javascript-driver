@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import Channel from './interface'
+import Channel from './interface.js'
 
 /**
  * This communication channel is meant to connect to other instances of the `testkit-backend` for receiving its events.
