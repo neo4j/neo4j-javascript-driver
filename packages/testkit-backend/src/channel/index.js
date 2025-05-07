@@ -1,6 +1,6 @@
-import Channel from './interface'
-import SocketChannel from './socket'
-import WebSocketChannel from './websocket'
+import Channel from './interface.js'
+import SocketChannel from './socket.js'
+import WebSocketChannel from './websocket.js'
 /**
  * Channels are the pieces of code responsible for communicating with testkit.
  *

@@ -1,5 +1,5 @@
-import Channel from './channel' // eslint-disable-line no-unused-vars
-import Controller from './controller' // eslint-disable-line no-unused-vars
+import Channel from './channel/index.js' // eslint-disable-line no-unused-vars
+import Controller from './controller/index.js' // eslint-disable-line no-unused-vars
 
 /**
  * Binds Channel and Controller

@@ -1,4 +1,4 @@
-import { response } from './responses'
+import { response } from './responses.js'
 
 const originalConsole = console
 
