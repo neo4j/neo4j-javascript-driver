@@ -191,7 +191,7 @@ export function SessionRun (_, context, data, wire) {
   try {
     result = session.run(cypher, params, { metadata, timeout })
   } catch (e) {
-    console.log('got some err: ' + JSON.stringify(e))
+    console.log('got some err: ' + stringify(e))
     wire.writeError(e)
     return
   }
@@ -214,7 +214,7 @@ export function ResultNext (_, context, data, wire) {
       wire.writeResponse(responses.Record({ record: value }, { binder: context.binder }))
     }
   }).catch(e => {
-    console.log('got some err: ' + JSON.stringify(e))
+    console.log('got some err: ' + stringify(e))
     wire.writeError(e)
   })
 }
@@ -232,7 +232,7 @@ export function ResultPeek (_, context, data, wire) {
       wire.writeResponse(responses.Record({ record: value }, { binder: context.binder }))
     }
   }).catch(e => {
-    console.log('got some err: ' + JSON.stringify(e))
+    console.log('got some err: ' + stringify(e))
     wire.writeError(e)
   })
 }
@@ -241,8 +241,8 @@ export function ResultConsume (_, context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
 
-  let summaryPromise = 'recordIt' in result
-    ? (async () => {return (await result.recordIt.return()).value})()
+  const summaryPromise = 'recordIt' in result
+    ? (async () => { return (await result.recordIt.return()).value })()
     : result.summary()
   return summaryPromise.then(summary => {
     wire.writeResponse(responses.Summary({ summary }, { binder: context.binder }))
@@ -317,11 +317,11 @@ export function SessionBeginTransaction (_, context, data, wire) {
         const id = context.addTx(tx, sessionId)
         wire.writeResponse(responses.Transaction({ id }))
       }).catch(e => {
-        console.log('got some err: ' + JSON.stringify(e))
+        console.log('got some err: ' + stringify(e))
         wire.writeError(e)
       })
   } catch (e) {
-    console.log('got some err: ' + JSON.stringify(e))
+    console.log('got some err: ' + stringify(e))
     wire.writeError(e)
   }
 }
@@ -332,7 +332,7 @@ export function TransactionCommit (_, context, data, wire) {
   return tx.commit()
     .then(() => wire.writeResponse(responses.Transaction({ id })))
     .catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
+      console.log('got some err: ' + stringify(e))
       wire.writeError(e)
     })
 }
@@ -801,4 +801,13 @@ export function FakeTimeUninstall (_, context, _data, wire) {
   context.clock.restore()
   delete context.clock
   wire.writeResponse(responses.FakeTimeAck())
+}
+
+export function stringify (val) {
+  return stringify(val, (_, value) => {
+    if (typeof value === 'bigint') {
+      return `${value}n`
+    }
+    return value
+  })
 }
