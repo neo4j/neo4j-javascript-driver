@@ -1,5 +1,6 @@
 import * as responses from './responses.js'
 import configurableConsole from './console.configurable.js'
+import stringify from './stringify.js'
 
 export function throwFrontendError () {
   throw new Error('TestKit FrontendError')
@@ -801,13 +802,4 @@ export function FakeTimeUninstall (_, context, _data, wire) {
   context.clock.restore()
   delete context.clock
   wire.writeResponse(responses.FakeTimeAck())
-}
-
-export function stringify (val) {
-  return stringify(val, (_, value) => {
-    if (typeof value === 'bigint') {
-      return `${value}n`
-    }
-    return value
-  })
 }
