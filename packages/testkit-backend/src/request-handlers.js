@@ -3,7 +3,7 @@ import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
 import { nativeToTestkitSummary } from './summary-binder.js'
 import tls from 'tls'
-import { stringify } from './stringify.js'
+import stringify from './stringify.js'
 
 const SUPPORTED_TLS = (() => {
   if (tls.DEFAULT_MAX_VERSION) {
