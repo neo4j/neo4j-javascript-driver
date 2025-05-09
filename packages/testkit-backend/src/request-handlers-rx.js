@@ -1,5 +1,6 @@
 import * as responses from './responses.js'
 import { from } from 'rxjs'
+import stringify from './stringify.js'
 
 // Handlers which didn't change depending
 export {
@@ -108,7 +109,7 @@ export function SessionRun (_, context, data, wire) {
   try {
     rxResult = session.run(cypher, params, { metadata, timeout })
   } catch (e) {
-    console.log('got some err: ' + JSON.stringify(e))
+    console.log('got some err: ' + stringify(e))
     wire.writeError(e)
     return
   }
@@ -150,11 +151,11 @@ export function SessionBeginTransaction (_, context, data, wire) {
         const id = context.addTx(tx, sessionId)
         wire.writeResponse(responses.Transaction({ id }))
       }).catch(e => {
-        console.log('got some err: ' + JSON.stringify(e))
+        console.log('got some err: ' + stringify(e))
         wire.writeError(e)
       })
   } catch (e) {
-    console.log('got some err: ' + JSON.stringify(e))
+    console.log('got some err: ' + stringify(e))
     wire.writeError(e)
   }
 }
@@ -189,7 +190,7 @@ export function TransactionRollback (_, context, data, wire) {
     .toPromise()
     .then(() => wire.writeResponse(responses.Transaction({ id })))
     .catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
+      console.log('got some err: ' + stringify(e))
       wire.writeError(e)
     })
 }
@@ -201,7 +202,7 @@ export function TransactionCommit (_, context, data, wire) {
     .toPromise()
     .then(() => wire.writeResponse(responses.Transaction({ id })))
     .catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
+      console.log('got some err: ' + stringify(e))
       wire.writeError(e)
     })
 }
