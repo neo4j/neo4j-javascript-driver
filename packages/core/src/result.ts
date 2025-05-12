@@ -617,7 +617,8 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
           buffer.unshift(element)
           return element
         } catch (error) {
-          // @ts-expect-error
+          // eslint-disable-next-line
+          // @ts-ignore
           buffer.unshift(error)
           throw error
         } finally {
