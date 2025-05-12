@@ -3,6 +3,7 @@ import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
 import { nativeToTestkitSummary } from './summary-binder.js'
 import tls from 'tls'
+import stringify from './stringify.js'
 
 const SUPPORTED_TLS = (() => {
   if (tls.DEFAULT_MAX_VERSION) {
@@ -180,7 +181,7 @@ export function ResultNext (context, data, wire) {
       }
     })
     .catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
+      console.log('got some err: ' + stringify(e))
       wire.writeError(e)
     })
 }
@@ -272,7 +273,7 @@ export function TransactionCommit (context, data, wire) {
   tx.commit()
     .then(() => wire.writeResponse('Transaction', { id }))
     .catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
+      console.log('got some err: ' + stringify(e))
       wire.writeError(e)
     })
 }
