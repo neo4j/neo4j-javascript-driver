@@ -617,6 +617,7 @@ class Result<R extends RecordShape = RecordShape> implements Promise<QueryResult
           buffer.unshift(element)
           return element
         } catch (error) {
+          // @ts-expect-error
           buffer.unshift(error)
           throw error
         } finally {
