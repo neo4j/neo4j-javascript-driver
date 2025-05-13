@@ -80,6 +80,8 @@ const auth = {
       try {
         stringify(parameters)
       } catch (e) {
+        // eslint-disable-next-line
+        // @ts-ignore
         throw newError('Circular references in custom auth token parameters', undefined, e)
       }
       output.parameters = parameters
