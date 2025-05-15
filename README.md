@@ -38,7 +38,7 @@ The Vector type is not yet supported on the Bolt Protocol, so in this preview th
     const driver = neo4j.driver(uri, sharedNeo4j.authToken)
     const byteWriter = Int8Array.from([0, 1, 2, 3])
     await driver.executeQuery('CREATE (p:Product) SET p.bytes = $bytes', {
-      //bytes: byteWriter #THis was the proper way to send bytes before, but this will send an Int8 vector in the proposed API
+      //bytes: byteWriter #This was the proper way to send bytes before, but this will send an Int8 vector in the proposed API
       bytes: byteWriter.buffer //This is the new way to send bytes
     })
     const res = await driver.executeQuery('MATCH (p:Product) RETURN p.bytes as bytes')
