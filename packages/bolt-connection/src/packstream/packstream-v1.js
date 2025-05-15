@@ -94,7 +94,14 @@ class Packer {
       return () => this.packInteger(int(x))
     } else if (isInt(x)) {
       return () => this.packInteger(x)
-    } else if (x instanceof Int8Array) {
+    } else if (x.BYTES_PER_ELEMENT != null) {
+      return () => {
+        this.packListHeader(x.length)
+        for (let i = 0; i < x.length; i++) {
+          this.packable(x[i] === undefined ? null : x[i], dehydrateStruct)()
+        }
+      }
+    } else if (x instanceof ArrayBuffer) {
       return () => this.packBytes(x)
     } else if (x instanceof Array) {
       return () => {
@@ -233,8 +240,9 @@ class Packer {
     }
   }
 
-  packBytes (array) {
+  packBytes (buffer) {
     if (this._byteArraysSupported) {
+      const array = new Uint8Array(buffer)
       this.packBytesHeader(array.length)
       for (let i = 0; i < array.length; i++) {
         this._ch.writeInt8(array[i])
@@ -486,7 +494,7 @@ class Unpacker {
     for (let i = 0; i < size; i++) {
       value[i] = buffer.readInt8()
     }
-    return value
+    return value.buffer
   }
 
   _unpackMap (marker, markerHigh, markerLow, buffer, hydrateStructure) {
