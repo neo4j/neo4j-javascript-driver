@@ -152,7 +152,7 @@ var session = driver.session({
 
 ```javascript
 var session = driver.session({
-  database: 'foo',
+  database: 'bar',
   defaultAccessMode: neo4j.session.WRITE
 })
 ```
