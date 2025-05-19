@@ -29,7 +29,7 @@ export class Unpacker extends v1.Unpacker {
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
    * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
    */
-  constructor (disableLosslessIntegers = false, useBigInt = false) {
-    super(disableLosslessIntegers, useBigInt)
+  constructor (disableLosslessIntegers = false, useBigInt = false, useVectorTypes = true) {
+    super(disableLosslessIntegers, useBigInt, useVectorTypes)
   }
 }

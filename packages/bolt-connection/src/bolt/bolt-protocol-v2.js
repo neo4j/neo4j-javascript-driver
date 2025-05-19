@@ -29,8 +29,8 @@ export default class BoltProtocol extends BoltProtocolV1 {
     return new v2.Packer(chunker)
   }
 
-  _createUnpacker (disableLosslessIntegers, useBigInt) {
-    return new v2.Unpacker(disableLosslessIntegers, useBigInt)
+  _createUnpacker (disableLosslessIntegers, useBigInt, useVectorTypes) {
+    return new v2.Unpacker(disableLosslessIntegers, useBigInt, useVectorTypes)
   }
 
   get transformer () {

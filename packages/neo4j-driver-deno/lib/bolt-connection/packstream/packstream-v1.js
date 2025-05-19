@@ -94,8 +94,17 @@ class Packer {
       return () => this.packInteger(int(x))
     } else if (isInt(x)) {
       return () => this.packInteger(x)
-    } else if (x instanceof Int8Array) {
+    } else if (x.BYTES_PER_ELEMENT != null && this._useVectorTypes) {
+      return () => {
+        this.packListHeader(x.length)
+        for (let i = 0; i < x.length; i++) {
+          this.packable(x[i] === undefined ? null : x[i], dehydrateStruct)()
+        }
+      }
+    } else if (x instanceof Int8Array && this._useVectorTypes) {
       return () => this.packBytes(x)
+    } else if (x instanceof ArrayBuffer) {
+      return () => this.packBytes(new Int8Array(x))
     } else if (x instanceof Array) {
       return () => {
         this.packListHeader(x.length)
@@ -324,9 +333,10 @@ class Unpacker {
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
    * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
    */
-  constructor (disableLosslessIntegers = false, useBigInt = false) {
+  constructor (disableLosslessIntegers = false, useBigInt = false, useVectorTypes = true) {
     this._disableLosslessIntegers = disableLosslessIntegers
     this._useBigInt = useBigInt
+    this._useVectorTypes = useVectorTypes
   }
 
   unpack (buffer, hydrateStructure = functional.identity) {
@@ -486,7 +496,11 @@ class Unpacker {
     for (let i = 0; i < size; i++) {
       value[i] = buffer.readInt8()
     }
-    return value
+    if (this._useVectorTypes) {
+      return value.buffer
+    } else {
+      return value
+    }
   }
 
   _unpackMap (marker, markerHigh, markerLow, buffer, hydrateStructure) {
