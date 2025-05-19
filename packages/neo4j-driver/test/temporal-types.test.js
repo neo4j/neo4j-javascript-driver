@@ -805,7 +805,18 @@ describe('#integration temporal-types', () => {
         duration: duration(0, 0, 0, -1000000007),
         expectedString: 'PT-1.000000007S'
       },
-
+      {
+        duration: duration(0, 0, 1, -1000000007),
+        expectedString: 'PT-0.000000007S'
+      },
+      {
+        duration: duration(0, 0, -60, 1),
+        expectedString: 'PT-59.999999999S'
+      },
+      {
+        duration: duration(0, 0, -60, -1),
+        expectedString: 'PT-1M-0.000000001S'
+      },
       {
         duration: duration(0, 0, 40, 2123456789),
         expectedString: 'PT42.123456789S'
