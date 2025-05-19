@@ -635,7 +635,7 @@ function formatSecondsAndNanosecondsForDuration (
   seconds: NumberOrInteger | string,
   nanoseconds: NumberOrInteger | string
 ): string {
-  seconds = int(seconds).modulo(60)
+  seconds = int(seconds)
   nanoseconds = int(nanoseconds)
 
   let secondsString
@@ -644,13 +644,14 @@ function formatSecondsAndNanosecondsForDuration (
   const secondsNegative = seconds.isNegative()
   const nanosecondsGreaterThanZero = nanoseconds.greaterThan(0)
   if (secondsNegative && nanosecondsGreaterThanZero) {
-    if (seconds.equals(-1)) {
+    seconds = seconds.add(1).negate().modulo(60).negate()
+    if (seconds.equals(0)) {
       secondsString = '-0'
     } else {
-      secondsString = seconds.add(1).toString()
+      secondsString = seconds.toString()
     }
   } else {
-    secondsString = seconds.toString()
+    secondsString = seconds.modulo(60).toString()
   }
 
   if (nanosecondsGreaterThanZero) {
