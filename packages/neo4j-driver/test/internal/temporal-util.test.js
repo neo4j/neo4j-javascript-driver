@@ -34,6 +34,7 @@ describe('#unit temporal-util', () => {
     expect(util.normalizeSecondsForDuration(12345, 6789)).toEqual(int(12345))
 
     expect(util.normalizeSecondsForDuration(-1, 42)).toEqual(int(-1))
+    expect(util.normalizeSecondsForDuration(1, -42)).toEqual(int(0))
     expect(util.normalizeSecondsForDuration(-42, 4242)).toEqual(int(-42))
     expect(util.normalizeSecondsForDuration(-123, 999)).toEqual(int(-123))
 
@@ -149,10 +150,13 @@ describe('#unit temporal-util', () => {
   })
 
   it('should convert duration to ISO string', () => {
-    expect(util.durationToIsoString(0, 0, 0, 0)).toEqual('P0M0DT0S')
-    expect(util.durationToIsoString(0, 0, 0, 123)).toEqual('P0M0DT0.000000123S')
+    expect(util.durationToIsoString(0, 0, 0, 0)).toEqual('PT0S')
+    expect(util.durationToIsoString(0, 0, 0, 123)).toEqual('PT0.000000123S')
     expect(util.durationToIsoString(11, 99, 100, 99901)).toEqual(
-      'P11M99DT100.000099901S'
+      'P11M99DT1M40.000099901S'
+    )
+    expect(util.durationToIsoString(13, 99, 100, 99901)).toEqual(
+      'P1Y1M99DT1M40.000099901S'
     )
     expect(
       util.durationToIsoString(int(3), int(9191), int(17), int(123456789))

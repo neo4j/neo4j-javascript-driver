@@ -84,15 +84,52 @@ export const DAYS_0000_TO_1970 = 719528
 export const DAYS_PER_400_YEAR_CYCLE = 146097
 export const SECONDS_PER_DAY = 86400
 
+export function normalizeYearsForDuration(
+  months: NumberOrInteger | string,
+): Integer {
+  return int(months).div(12)
+}
+
+export function normalizeMonthsForDuration(
+  months: NumberOrInteger | string,
+): Integer {
+  return int(months).modulo(12)
+}
+
+export function normalizeHoursForDuration (
+  seconds: NumberOrInteger | string,
+  nanoseconds: NumberOrInteger | string
+): Integer {
+  if(int(nanoseconds).greaterThan(0) && int(seconds).lessThan(0)) {
+    seconds = int(seconds).add(1)
+  }
+  return int(seconds).div(SECONDS_PER_HOUR)
+}
+
+export function normalizeMinutesForDuration (
+  seconds: NumberOrInteger | string,
+  nanoseconds: NumberOrInteger | string
+): Integer {
+  if(int(nanoseconds).greaterThan(0) && int(seconds).lessThan(0)) {
+    seconds = int(seconds).add(1)
+  }
+  let minutes = int(seconds).div(SECONDS_PER_MINUTE)
+  let negativeMinutes = minutes.isNegative()
+  if(negativeMinutes) {
+    minutes = minutes.negate()
+  }
+  return floorMod(minutes, MINUTES_PER_HOUR).multiply(negativeMinutes ? -1 : 1)
+}
+
 export function normalizeSecondsForDuration (
-  seconds: number | Integer | bigint,
-  nanoseconds: number | Integer | bigint
+  seconds: NumberOrInteger | string,
+  nanoseconds: NumberOrInteger | string
 ): Integer {
   return int(seconds).add(floorDiv(nanoseconds, NANOS_PER_SECOND))
 }
 
 export function normalizeNanosecondsForDuration (
-  nanoseconds: number | Integer | bigint
+  nanoseconds: NumberOrInteger | string
 ): Integer {
   return floorMod(nanoseconds, NANOS_PER_SECOND)
 }
@@ -212,13 +249,24 @@ export function durationToIsoString (
   seconds: NumberOrInteger | string,
   nanoseconds: NumberOrInteger | string
 ): string {
-  const monthsString = formatNumber(months)
-  const daysString = formatNumber(days)
+  if(int(months).equals(0) && int(days).equals(0) && int(seconds).equals(0) && int(nanoseconds).equals(0)) {
+    return "PT0S"
+  }
+  const yearString = formatNumber(normalizeYearsForDuration(months)) 
+  const monthString = formatNumber(normalizeMonthsForDuration(months))
+  const dayString = formatNumber(days)
+  const hourString = formatNumber(normalizeHoursForDuration(seconds, nanoseconds))
+  const minuteString = formatNumber(normalizeMinutesForDuration(seconds, nanoseconds))
   const secondsAndNanosecondsString = formatSecondsAndNanosecondsForDuration(
     seconds,
     nanoseconds
   )
-  return `P${monthsString}M${daysString}DT${secondsAndNanosecondsString}S`
+  return `P${yearString !== "0" ? yearString + "Y" : ""}`+
+  `${monthString !== "0" ? monthString + "M" : ""}`+
+  `${dayString !== "0" ? dayString + "D" : ""}T`+
+  `${hourString !== "0" ? hourString + "H" : ""}`+
+  `${minuteString !== "0" ? minuteString + "M" : ""}`+
+  `${secondsAndNanosecondsString !== "0" ? secondsAndNanosecondsString + "S" : ""}`
 }
 
 /**
@@ -587,7 +635,7 @@ function formatSecondsAndNanosecondsForDuration (
   seconds: NumberOrInteger | string,
   nanoseconds: NumberOrInteger | string
 ): string {
-  seconds = int(seconds)
+  seconds = int(seconds).modulo(60)
   nanoseconds = int(nanoseconds)
 
   let secondsString
