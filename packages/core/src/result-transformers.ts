@@ -52,7 +52,8 @@ class ResultTransformers {
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
    *
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
-   * @alias {@link ResultTransformers#eager}
+   * @deprecated This is deprecated, use {@link ResultTransformers#eager} instead
+   * @since 6.0.0
    */
   eagerResultTransformer<Entries extends RecordShape = RecordShape>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
@@ -62,8 +63,7 @@ class ResultTransformers {
    * Creates a {@link ResultTransformer} which transforms {@link Result} to {@link EagerResult}
    * by consuming the whole stream.
    *
-   * This is the default implementation used in {@link Driver#executeQuery} and a alias to
-   * {@link resultTransformers.eagerResultTransformer}
+   * This is the default implementation used in {@link Driver#executeQuery}
    *
    * @example
    * // This:
@@ -74,9 +74,6 @@ class ResultTransformers {
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
    *
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
-   * @experimental this is a preview
-   * @since 5.22.0
-   * @alias {@link ResultTransformers#eagerResultTransformer}
    */
   eager<Entries extends RecordShape = RecordShape>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
@@ -87,77 +84,6 @@ class ResultTransformers {
    * along with the {@link ResultSummary} and {@link Result#keys}.
    *
    * NOTE: The config object requires map or/and collect to be valid.
-   *
-   * @example
-   * // Mapping the records
-   * const { keys, records, summary } = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
-   *   resultTransformer: neo4j.resultTransformers.mappedResultTransformer({
-   *     map(record) {
-   *        return record.get('name')
-   *     }
-   *   })
-   * })
-   *
-   * records.forEach(name => console.log(`${name} has 25`))
-   *
-   * @example
-   * // Mapping records and collect result
-   * const names = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
-   *   resultTransformer: neo4j.resultTransformers.mappedResultTransformer({
-   *     map(record) {
-   *        return record.get('name')
-   *     },
-   *     collect(records, summary, keys) {
-   *        return records
-   *     }
-   *   })
-   * })
-   *
-   * names.forEach(name => console.log(`${name} has 25`))
-   *
-   * @example
-   * // The transformer can be defined one and used everywhere
-   * const getRecordsAsObjects = neo4j.resultTransformers.mappedResultTransformer({
-   *   map(record) {
-   *      return record.toObject()
-   *   },
-   *   collect(objects) {
-   *      return objects
-   *   }
-   * })
-   *
-   * // The usage in a driver.executeQuery
-   * const objects = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
-   *   resultTransformer: getRecordsAsObjects
-   * })
-   * objects.forEach(object => console.log(`${object.name} has 25`))
-   *
-   *
-   * // The usage in session.executeRead
-   * const objects = await session.executeRead(tx => getRecordsAsObjects(tx.run('MATCH (p:Person{ age: $age }) RETURN p.name as name')))
-   * objects.forEach(object => console.log(`${object.name} has 25`))
-   *
-   * @param {object} config The result transformer configuration
-   * @param {function(record:Record):R} [config.map=function(record) {  return record }] Method called for mapping each record
-   * @param {function(records:R[], summary:ResultSummary, keys:string[]):T} [config.collect=function(records, summary, keys) { return { records, summary, keys }}] Method called for mapping
-   * the result data to the transformer output.
-   * @returns {ResultTransformer<T>} The result transformer
-   * @see {@link Driver#executeQuery}
-   */
-  mappedResultTransformer <
-    R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
-  >(config: { map?: (rec: Record) => R | undefined, collect?: (records: R[], summary: ResultSummary, keys: string[]) => T }): ResultTransformer<T> {
-    return createMappedResultTransformer(config)
-  }
-
-  /**
-   * Creates a {@link ResultTransformer} which maps the {@link Record} in the result and collects it
-   * along with the {@link ResultSummary} and {@link Result#keys}.
-   *
-   * NOTE: The config object requires map or/and collect to be valid.
-   *
-   * This method is a alias to {@link ResultTransformers#mappedResultTransformer}
-   *
    *
    * @example
    * // Mapping the records
@@ -213,9 +139,76 @@ class ResultTransformers {
    * @param {function(records:R[], summary:ResultSummary, keys:string[]):T} [config.collect=function(records, summary, keys) { return { records, summary, keys }}] Method called for mapping
    * the result data to the transformer output.
    * @returns {ResultTransformer<T>} The result transformer
-   * @experimental This is a preview feature
-   * @alias {@link ResultTransformers#mappedResultTransformer}
-   * @since 5.22.0
+   * @see {@link Driver#executeQuery}
+   * @deprecated This is deprecated, use {@link ResultTransformers#mapped} instead
+   * @since 6.0.0
+   */
+  mappedResultTransformer <
+    R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
+  >(config: { map?: (rec: Record) => R | undefined, collect?: (records: R[], summary: ResultSummary, keys: string[]) => T }): ResultTransformer<T> {
+    return createMappedResultTransformer(config)
+  }
+
+  /**
+   * Creates a {@link ResultTransformer} which maps the {@link Record} in the result and collects it
+   * along with the {@link ResultSummary} and {@link Result#keys}.
+   *
+   * NOTE: The config object requires map or/and collect to be valid.
+   *
+   * @example
+   * // Mapping the records
+   * const { keys, records, summary } = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
+   *   resultTransformer: neo4j.resultTransformers.mapped({
+   *     map(record) {
+   *        return record.get('name')
+   *     }
+   *   })
+   * })
+   *
+   * records.forEach(name => console.log(`${name} has 25`))
+   *
+   * @example
+   * // Mapping records and collect result
+   * const names = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
+   *   resultTransformer: neo4j.resultTransformers.mapped({
+   *     map(record) {
+   *        return record.get('name')
+   *     },
+   *     collect(records, summary, keys) {
+   *        return records
+   *     }
+   *   })
+   * })
+   *
+   * names.forEach(name => console.log(`${name} has 25`))
+   *
+   * @example
+   * // The transformer can be defined one and used everywhere
+   * const getRecordsAsObjects = neo4j.resultTransformers.mapped({
+   *   map(record) {
+   *      return record.toObject()
+   *   },
+   *   collect(objects) {
+   *      return objects
+   *   }
+   * })
+   *
+   * // The usage in a driver.executeQuery
+   * const objects = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
+   *   resultTransformer: getRecordsAsObjects
+   * })
+   * objects.forEach(object => console.log(`${object.name} has 25`))
+   *
+   *
+   * // The usage in session.executeRead
+   * const objects = await session.executeRead(tx => getRecordsAsObjects(tx.run('MATCH (p:Person{ age: $age }) RETURN p.name as name')))
+   * objects.forEach(object => console.log(`${object.name} has 25`))
+   *
+   * @param {object} config The result transformer configuration
+   * @param {function(record:Record):R} [config.map=function(record) {  return record }] Method called for mapping each record
+   * @param {function(records:R[], summary:ResultSummary, keys:string[]):T} [config.collect=function(records, summary, keys) { return { records, summary, keys }}] Method called for mapping
+   * the result data to the transformer output.
+   * @returns {ResultTransformer<T>} The result transformer
    * @see {@link Driver#executeQuery}
    */
   mapped <
@@ -242,8 +235,6 @@ class ResultTransformers {
    * @template Entries The shape of the record.
    * @returns {ResultTransformer<Record<Entries>|undefined>} The result transformer
    * @see {@link Driver#executeQuery}
-   * @experimental This is a preview feature.
-   * @since 5.22.0
    */
   first<Entries extends RecordShape = RecordShape>(): ResultTransformer<Record<Entries> | undefined> {
     return first
@@ -261,7 +252,6 @@ class ResultTransformers {
    *
    * @returns {ResultTransformer<ResultSummary<T>>} The result transformer
    * @see {@link Driver#executeQuery}
-   * @experimental This is a preview feature
    */
   summary <T extends NumberOrInteger = Integer> (): ResultTransformer<ResultSummary<T>> {
     return summary
