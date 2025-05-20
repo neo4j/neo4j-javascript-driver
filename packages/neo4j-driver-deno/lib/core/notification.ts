@@ -227,7 +227,6 @@ class Notification {
  * Representation for GqlStatusObject found when executing a query.
  * <p>
  * This object represents a status of query execution.
- * This status is a superset of {@link Notification}.
  *
  * @public
  */

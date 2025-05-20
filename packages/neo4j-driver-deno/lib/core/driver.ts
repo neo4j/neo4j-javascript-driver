@@ -266,7 +266,7 @@ class SessionConfig {
     this.bookmarkManager = undefined
 
     /**
-     * Configure filter for {@link Notification} objects returned in {@link ResultSummary#notifications}.
+     * Configure filter for {@link gqlStatusObjects} notification returned in {@link ResultSummary#gqlStatusObjects}.
      *
      * This configuration enables filter notifications by:
      *
