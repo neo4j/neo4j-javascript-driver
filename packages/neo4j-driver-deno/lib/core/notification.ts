@@ -50,7 +50,7 @@ type NotificationSeverityLevel = 'WARNING' | 'INFORMATION' | 'UNKNOWN'
  * @typedef {'WARNING' | 'INFORMATION' | 'UNKNOWN'} NotificationSeverityLevel
  */
 /**
- * Constants that represents the Severity level in the {@link Notification} or {@link GqlStatusObject}
+ * Constants that represents the Severity level in the {@link GqlStatusObject}
  */
 const notificationSeverityLevel: { [key in NotificationSeverityLevel]: key } = {
   WARNING: 'WARNING',
@@ -67,7 +67,7 @@ type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' | 'PERFORMAN
  * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'SCHEMA' | 'UNKNOWN' } NotificationCategory
  */
 /**
- * Constants that represents the Category in the {@link Notification} or {@link GqlStatusObject}
+ * Constants that represents the Category in the {@link GqlStatusObject}
  */
 const notificationCategory: { [key in NotificationCategory]: key } = {
   HINT: 'HINT',
