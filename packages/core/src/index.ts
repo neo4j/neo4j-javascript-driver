@@ -64,12 +64,12 @@ import ResultSummary, {
   QueryStatistics,
   Stats
 } from './result-summary'
-import Notification, {
+import GqlStatusObject, {
   NotificationPosition,
   NotificationSeverityLevel,
   NotificationClassification,
   NotificationCategory,
-  GqlStatusObject,
+  Notification,
   notificationCategory,
   notificationClassification,
   notificationSeverityLevel

@@ -61,13 +61,11 @@ Object.freeze(notificationFilterDisabledCategory)
 type NotificationFilterDisabledClassification = ExcludeUnknown<NotificationClassification>
 /**
  * @typedef {NotificationFilterDisabledCategory} NotificationFilterDisabledClassification
- * @experimental
  */
 /**
  * Constants that represents the disabled classifications in the {@link NotificationFilter}
  *
  * @type {notificationFilterDisabledCategory}
- * @experimental
  */
 const notificationFilterDisabledClassification: EnumRecord<NotificationFilterDisabledClassification> = notificationFilterDisabledCategory
 
@@ -115,7 +113,6 @@ class NotificationFilter {
      * and it must not be enabled at same time.
      *
      * @type {?NotificationFilterDisabledClassification[]}
-     * @experimental
      */
     this.disabledClassifications = undefined
 

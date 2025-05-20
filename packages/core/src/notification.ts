@@ -50,7 +50,7 @@ type NotificationSeverityLevel = 'WARNING' | 'INFORMATION' | 'UNKNOWN'
  * @typedef {'WARNING' | 'INFORMATION' | 'UNKNOWN'} NotificationSeverityLevel
  */
 /**
- * Constants that represents the Severity level in the {@link Notification}
+ * Constants that represents the Severity level in the {@link Notification} or {@link GqlStatusObject}
  */
 const notificationSeverityLevel: { [key in NotificationSeverityLevel]: key } = {
   WARNING: 'WARNING',
@@ -67,7 +67,7 @@ type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' | 'PERFORMAN
  * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'SCHEMA' | 'UNKNOWN' } NotificationCategory
  */
 /**
- * Constants that represents the Category in the {@link Notification}
+ * Constants that represents the Category in the {@link Notification} or {@link GqlStatusObject}
  */
 const notificationCategory: { [key in NotificationCategory]: key } = {
   HINT: 'HINT',
@@ -88,18 +88,17 @@ const categories = Object.values(notificationCategory)
 type NotificationClassification = NotificationCategory
 /**
  * @typedef {NotificationCategory} NotificationClassification
- * @experimental
  */
 /**
  * Constants that represents the Classification in the {@link GqlStatusObject}
  * @type {notificationCategory}
- * @experimental
  */
 const notificationClassification = notificationCategory
 
 /**
  * Class for Cypher notifications
  * @access public
+ * @deprecated has been superceded by {@link GqlStatusObject}
  */
 class Notification {
   code: string
@@ -230,7 +229,6 @@ class Notification {
  * This object represents a status of query execution.
  * This status is a superset of {@link Notification}.
  *
- * @experimental
  * @public
  */
 class GqlStatusObject {
@@ -557,7 +555,7 @@ function _asEnumerableClassification (classification: any): NotificationClassifi
     : notificationClassification.UNKNOWN
 }
 
-export default Notification
+export default GqlStatusObject
 
 export {
   notificationSeverityLevel,
