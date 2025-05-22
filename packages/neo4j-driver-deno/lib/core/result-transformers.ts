@@ -52,8 +52,7 @@ class ResultTransformers {
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
    *
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
-   * @deprecated This is deprecated, use {@link ResultTransformers#eager} instead
-   * @since 6.0.0
+   * @deprecated This is deprecated as of 6.0, use drop-in replacement {@link ResultTransformers#eager} instead.
    */
   eagerResultTransformer<Entries extends RecordShape = RecordShape>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
@@ -74,6 +73,7 @@ class ResultTransformers {
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
    *
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
+   * @since 5.22.0
    */
   eager<Entries extends RecordShape = RecordShape>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
@@ -88,7 +88,7 @@ class ResultTransformers {
    * @example
    * // Mapping the records
    * const { keys, records, summary } = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
-   *   resultTransformer: neo4j.resultTransformers.mapped({
+   *   resultTransformer: neo4j.resultTransformers.mappedResultTransformer ({
    *     map(record) {
    *        return record.get('name')
    *     }
@@ -100,7 +100,7 @@ class ResultTransformers {
    * @example
    * // Mapping records and collect result
    * const names = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
-   *   resultTransformer: neo4j.resultTransformers.mapped({
+   *   resultTransformer: neo4j.resultTransformers.mappedResultTransformer ({
    *     map(record) {
    *        return record.get('name')
    *     },
@@ -114,7 +114,7 @@ class ResultTransformers {
    *
    * @example
    * // The transformer can be defined one and used everywhere
-   * const getRecordsAsObjects = neo4j.resultTransformers.mapped({
+   * const getRecordsAsObjects = neo4j.resultTransformers.mappedResultTransformer ({
    *   map(record) {
    *      return record.toObject()
    *   },
@@ -140,8 +140,7 @@ class ResultTransformers {
    * the result data to the transformer output.
    * @returns {ResultTransformer<T>} The result transformer
    * @see {@link Driver#executeQuery}
-   * @deprecated This is deprecated, use {@link ResultTransformers#mapped} instead
-   * @since 6.0.0
+   * @deprecated This is deprecated as of 6.0, use drop-in replacement {@link ResultTransformers#mapped} instead.
    */
   mappedResultTransformer <
     R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
@@ -210,6 +209,7 @@ class ResultTransformers {
    * the result data to the transformer output.
    * @returns {ResultTransformer<T>} The result transformer
    * @see {@link Driver#executeQuery}
+   * @since 5.22.0
    */
   mapped <
     R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
@@ -235,6 +235,7 @@ class ResultTransformers {
    * @template Entries The shape of the record.
    * @returns {ResultTransformer<Record<Entries>|undefined>} The result transformer
    * @see {@link Driver#executeQuery}
+   * @since 5.22.0
    */
   first<Entries extends RecordShape = RecordShape>(): ResultTransformer<Record<Entries> | undefined> {
     return first
@@ -252,6 +253,7 @@ class ResultTransformers {
    *
    * @returns {ResultTransformer<ResultSummary<T>>} The result transformer
    * @see {@link Driver#executeQuery}
+   * @since 5.22.0
    */
   summary <T extends NumberOrInteger = Integer> (): ResultTransformer<ResultSummary<T>> {
     return summary
