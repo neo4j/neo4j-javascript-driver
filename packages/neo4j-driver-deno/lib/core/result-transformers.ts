@@ -88,7 +88,7 @@ class ResultTransformers {
    * @example
    * // Mapping the records
    * const { keys, records, summary } = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
-   *   resultTransformer: neo4j.resultTransformers.mappedResultTransformer ({
+   *   resultTransformer: neo4j.resultTransformers.mappedResultTransformer({
    *     map(record) {
    *        return record.get('name')
    *     }
@@ -100,7 +100,7 @@ class ResultTransformers {
    * @example
    * // Mapping records and collect result
    * const names = await driver.executeQuery('MATCH (p:Person{ age: $age }) RETURN p.name as name', { age: 25 }, {
-   *   resultTransformer: neo4j.resultTransformers.mappedResultTransformer ({
+   *   resultTransformer: neo4j.resultTransformers.mappedResultTransformer({
    *     map(record) {
    *        return record.get('name')
    *     },
@@ -114,7 +114,7 @@ class ResultTransformers {
    *
    * @example
    * // The transformer can be defined one and used everywhere
-   * const getRecordsAsObjects = neo4j.resultTransformers.mappedResultTransformer ({
+   * const getRecordsAsObjects = neo4j.resultTransformers.mappedResultTransformer({
    *   map(record) {
    *      return record.toObject()
    *   },
