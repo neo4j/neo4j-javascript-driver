@@ -561,7 +561,7 @@ class Driver {
    *    'MATCH (p:Person{ name: $name }) RETURN p',
    *    { name: 'Person1'},
    *    {
-   *      resultTransformer: neo4j.resultTransformers.mappedResultTransformer({
+   *      resultTransformer: neo4j.resultTransformers.mapped({
    *        map(record) {
    *          const p = record.get('p')
    *          return [p.elementId, p]
@@ -613,7 +613,7 @@ class Driver {
    */
   async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.executeQueryBookmarkManager)
-    const resultTransformer = (config.resultTransformer ?? resultTransformers.eagerResultTransformer()) as ResultTransformer<T>
+    const resultTransformer = (config.resultTransformer ?? resultTransformers.eager()) as ResultTransformer<T>
     const routingConfig: string = config.routing ?? routing.WRITE
 
     if (routingConfig !== routing.READ && routingConfig !== routing.WRITE) {

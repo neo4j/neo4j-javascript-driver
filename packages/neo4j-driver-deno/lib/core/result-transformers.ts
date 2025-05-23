@@ -52,7 +52,7 @@ class ResultTransformers {
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
    *
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
-   * @alias {@link ResultTransformers#eager}
+   * @deprecated This is deprecated as of 6.0, use drop-in replacement {@link ResultTransformers#eager} instead.
    */
   eagerResultTransformer<Entries extends RecordShape = RecordShape>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
@@ -62,8 +62,7 @@ class ResultTransformers {
    * Creates a {@link ResultTransformer} which transforms {@link Result} to {@link EagerResult}
    * by consuming the whole stream.
    *
-   * This is the default implementation used in {@link Driver#executeQuery} and a alias to
-   * {@link resultTransformers.eagerResultTransformer}
+   * This is the default implementation used in {@link Driver#executeQuery}
    *
    * @example
    * // This:
@@ -74,9 +73,7 @@ class ResultTransformers {
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
    *
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
-   * @experimental this is a preview
    * @since 5.22.0
-   * @alias {@link ResultTransformers#eagerResultTransformer}
    */
   eager<Entries extends RecordShape = RecordShape>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
@@ -143,6 +140,7 @@ class ResultTransformers {
    * the result data to the transformer output.
    * @returns {ResultTransformer<T>} The result transformer
    * @see {@link Driver#executeQuery}
+   * @deprecated This is deprecated as of 6.0, use drop-in replacement {@link ResultTransformers#mapped} instead.
    */
   mappedResultTransformer <
     R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
@@ -155,9 +153,6 @@ class ResultTransformers {
    * along with the {@link ResultSummary} and {@link Result#keys}.
    *
    * NOTE: The config object requires map or/and collect to be valid.
-   *
-   * This method is a alias to {@link ResultTransformers#mappedResultTransformer}
-   *
    *
    * @example
    * // Mapping the records
@@ -213,10 +208,8 @@ class ResultTransformers {
    * @param {function(records:R[], summary:ResultSummary, keys:string[]):T} [config.collect=function(records, summary, keys) { return { records, summary, keys }}] Method called for mapping
    * the result data to the transformer output.
    * @returns {ResultTransformer<T>} The result transformer
-   * @experimental This is a preview feature
-   * @alias {@link ResultTransformers#mappedResultTransformer}
-   * @since 5.22.0
    * @see {@link Driver#executeQuery}
+   * @since 5.22.0
    */
   mapped <
     R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
@@ -242,7 +235,6 @@ class ResultTransformers {
    * @template Entries The shape of the record.
    * @returns {ResultTransformer<Record<Entries>|undefined>} The result transformer
    * @see {@link Driver#executeQuery}
-   * @experimental This is a preview feature.
    * @since 5.22.0
    */
   first<Entries extends RecordShape = RecordShape>(): ResultTransformer<Record<Entries> | undefined> {
@@ -261,7 +253,7 @@ class ResultTransformers {
    *
    * @returns {ResultTransformer<ResultSummary<T>>} The result transformer
    * @see {@link Driver#executeQuery}
-   * @experimental This is a preview feature
+   * @since 5.22.0
    */
   summary <T extends NumberOrInteger = Integer> (): ResultTransformer<ResultSummary<T>> {
     return summary

@@ -394,7 +394,7 @@ describe('Driver', () => {
 
         expect(eagerResult).toEqual(expected)
         expect(spiedExecute).toBeCalledWith({
-          resultTransformer: resultTransformers.eagerResultTransformer(),
+          resultTransformer: resultTransformers.eager(),
           bookmarkManager: driver?.executeQueryBookmarkManager,
           routing: routing.WRITE,
           database: undefined,
@@ -420,7 +420,7 @@ describe('Driver', () => {
         expect(keys).toEqual(expected.keys)
         expect(summary).toEqual(expected.summary)
         expect(spiedExecute).toBeCalledWith({
-          resultTransformer: resultTransformers.eagerResultTransformer(),
+          resultTransformer: resultTransformers.eager(),
           bookmarkManager: driver?.executeQueryBookmarkManager,
           routing: routing.WRITE,
           database: undefined,
@@ -555,7 +555,7 @@ describe('Driver', () => {
       function extendsDefaultWith<T = EagerResult<RecordShape>> (config: QueryConfig<T>) {
         return () => {
           const defaultConfig = {
-            resultTransformer: resultTransformers.eagerResultTransformer(),
+            resultTransformer: resultTransformers.eager(),
             bookmarkManager: driver?.executeQueryBookmarkManager,
             routing: routing.WRITE,
             database: undefined,
