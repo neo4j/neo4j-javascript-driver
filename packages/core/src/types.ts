@@ -298,7 +298,7 @@ export class Config {
     this.resolver = undefined
 
     /**
-     * Configure filter for Notification objects returned in {@link ResultSummary#notifications}.
+     * Configure filter for GqlStatusObject notifications returned in {@link ResultSummary#gqlStatusObjects}.
      *
      * See {@link SessionConfig#notificationFilter} for usage instructions.
      *
