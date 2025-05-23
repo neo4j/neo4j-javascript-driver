@@ -558,9 +558,9 @@ describe('#integration temporal-types', () => {
 
   it('should convert Duration to ISO string', () => {
     expect(duration(13, 62, 3, 999111999).toString()).toEqual(
-      'P13M62DT3.999111999S'
+      'P1Y1M62DT3.999111999S'
     )
-    expect(duration(0, 0, 0, 0).toString()).toEqual('P0M0DT0S')
+    expect(duration(0, 0, 0, 0).toString()).toEqual('PT0S')
     expect(duration(-1, -2, 10, 10).toString()).toEqual('P-1M-2DT10.000000010S')
   }, 90000)
 
@@ -713,114 +713,125 @@ describe('#integration temporal-types', () => {
     }
 
     await testDurationToString([
-      { duration: duration(0, 0, 0, 0), expectedString: 'P0M0DT0S' },
+      { duration: duration(0, 0, 0, 0), expectedString: 'PT0S' },
 
-      { duration: duration(0, 0, 42, 0), expectedString: 'P0M0DT42S' },
-      { duration: duration(0, 0, -42, 0), expectedString: 'P0M0DT-42S' },
-      { duration: duration(0, 0, 1, 0), expectedString: 'P0M0DT1S' },
-      { duration: duration(0, 0, -1, 0), expectedString: 'P0M0DT-1S' },
+      { duration: duration(0, 0, 42, 0), expectedString: 'PT42S' },
+      { duration: duration(0, 0, -42, 0), expectedString: 'PT-42S' },
+      { duration: duration(0, 0, 1, 0), expectedString: 'PT1S' },
+      { duration: duration(0, 0, -1, 0), expectedString: 'PT-1S' },
 
       {
         duration: duration(0, 0, 0, 5),
-        expectedString: 'P0M0DT0.000000005S'
+        expectedString: 'PT0.000000005S'
       },
       {
         duration: duration(0, 0, 0, -5),
-        expectedString: 'P0M0DT-0.000000005S'
+        expectedString: 'PT-0.000000005S'
       },
       {
         duration: duration(0, 0, 0, 999999999),
-        expectedString: 'P0M0DT0.999999999S'
+        expectedString: 'PT0.999999999S'
       },
       {
         duration: duration(0, 0, 0, -999999999),
-        expectedString: 'P0M0DT-0.999999999S'
+        expectedString: 'PT-0.999999999S'
       },
 
       {
         duration: duration(0, 0, 1, 5),
-        expectedString: 'P0M0DT1.000000005S'
+        expectedString: 'PT1.000000005S'
       },
       {
         duration: duration(0, 0, -1, -5),
-        expectedString: 'P0M0DT-1.000000005S'
+        expectedString: 'PT-1.000000005S'
       },
       {
         duration: duration(0, 0, 1, -5),
-        expectedString: 'P0M0DT0.999999995S'
+        expectedString: 'PT0.999999995S'
       },
       {
         duration: duration(0, 0, -1, 5),
-        expectedString: 'P0M0DT-0.999999995S'
+        expectedString: 'PT-0.999999995S'
       },
       {
         duration: duration(0, 0, 1, 999999999),
-        expectedString: 'P0M0DT1.999999999S'
+        expectedString: 'PT1.999999999S'
       },
       {
         duration: duration(0, 0, -1, -999999999),
-        expectedString: 'P0M0DT-1.999999999S'
+        expectedString: 'PT-1.999999999S'
       },
       {
         duration: duration(0, 0, 1, -999999999),
-        expectedString: 'P0M0DT0.000000001S'
+        expectedString: 'PT0.000000001S'
       },
       {
         duration: duration(0, 0, -1, 999999999),
-        expectedString: 'P0M0DT-0.000000001S'
+        expectedString: 'PT-0.000000001S'
       },
 
       {
         duration: duration(0, 0, 28, 9),
-        expectedString: 'P0M0DT28.000000009S'
+        expectedString: 'PT28.000000009S'
       },
       {
         duration: duration(0, 0, -28, 9),
-        expectedString: 'P0M0DT-27.999999991S'
+        expectedString: 'PT-27.999999991S'
       },
       {
         duration: duration(0, 0, 28, -9),
-        expectedString: 'P0M0DT27.999999991S'
+        expectedString: 'PT27.999999991S'
       },
       {
         duration: duration(0, 0, -28, -9),
-        expectedString: 'P0M0DT-28.000000009S'
+        expectedString: 'PT-28.000000009S'
       },
 
       {
         duration: duration(0, 0, -78036, -143000000),
-        expectedString: 'P0M0DT-78036.143000000S'
+        expectedString: 'PT-21H-40M-36.143000000S'
       },
 
-      { duration: duration(0, 0, 0, 1000000000), expectedString: 'P0M0DT1S' },
+      { duration: duration(0, 0, 0, 1000000000), expectedString: 'PT1S' },
       {
         duration: duration(0, 0, 0, -1000000000),
-        expectedString: 'P0M0DT-1S'
+        expectedString: 'PT-1S'
       },
       {
         duration: duration(0, 0, 0, 1000000007),
-        expectedString: 'P0M0DT1.000000007S'
+        expectedString: 'PT1.000000007S'
       },
       {
         duration: duration(0, 0, 0, -1000000007),
-        expectedString: 'P0M0DT-1.000000007S'
+        expectedString: 'PT-1.000000007S'
       },
-
+      {
+        duration: duration(0, 0, 1, -1000000007),
+        expectedString: 'PT-0.000000007S'
+      },
+      {
+        duration: duration(0, 0, -60, 1),
+        expectedString: 'PT-59.999999999S'
+      },
+      {
+        duration: duration(0, 0, -60, -1),
+        expectedString: 'PT-1M-0.000000001S'
+      },
       {
         duration: duration(0, 0, 40, 2123456789),
-        expectedString: 'P0M0DT42.123456789S'
+        expectedString: 'PT42.123456789S'
       },
       {
         duration: duration(0, 0, -40, 2123456789),
-        expectedString: 'P0M0DT-37.876543211S'
+        expectedString: 'PT-37.876543211S'
       },
       {
         duration: duration(0, 0, 40, -2123456789),
-        expectedString: 'P0M0DT37.876543211S'
+        expectedString: 'PT37.876543211S'
       },
       {
         duration: duration(0, 0, -40, -2123456789),
-        expectedString: 'P0M0DT-42.123456789S'
+        expectedString: 'PT-42.123456789S'
       }
     ])
   }, 90000)
