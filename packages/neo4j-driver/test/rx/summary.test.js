@@ -679,7 +679,7 @@ describe('#integration-rx summary', () => {
     )
     expect(summary.notifications[0].title).toContain('label')
     expect(summary.notifications[0].description).toContain('label')
-    expect(summary.notifications[0].severity).toBe('WARNING')
+    expect(summary.notifications[0].rawSeverityLevel).toBe('WARNING')
   }
 
   /**

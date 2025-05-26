@@ -86,7 +86,6 @@ const notification: Notification = notifications[0]
 const code: string = notification.code
 const title: string = notification.title
 const description: string = notification.description
-const severity: string = notification.severity
 const position1: NotificationPosition | {} = notification.position
 const position2: NotificationPosition = notification.position as NotificationPosition
 
