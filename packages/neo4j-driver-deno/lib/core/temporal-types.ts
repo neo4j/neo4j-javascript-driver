@@ -368,7 +368,7 @@ export class Date<T extends NumberOrInteger = Integer> {
   /**
    * Create a {@link Date} object from the given standard JavaScript `Date` using the Year, Month and Date in Local Time.
    * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
-   * 
+   *
    * @param {global.Date} standardDate - The standard JavaScript date to convert.
    * @return {Date} New Date.
    */
@@ -385,7 +385,7 @@ export class Date<T extends NumberOrInteger = Integer> {
   /**
    * Create a {@link Date} object from the given standard JavaScript `Date` using the Year, Month and Date in UTC time.
    * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
-   * 
+   *
    * @param {global.Date} standardDate - The standard JavaScript date to convert.
    * @return {Date} New Date.
    */
@@ -417,7 +417,6 @@ export class Date<T extends NumberOrInteger = Integer> {
   toString (): string {
     return util.dateToIsoString(this.year, this.month, this.day)
   }
-
 }
 
 Object.defineProperty(
