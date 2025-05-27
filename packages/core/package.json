@@ -36,6 +36,7 @@
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "devDependencies": {
     "@types/jest": "^29.5.10",
+    "@types/node": "^22.15.21",
     "esdoc": "^1.1.0",
     "esdoc-importpath-plugin": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",

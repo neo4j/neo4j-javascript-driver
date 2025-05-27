@@ -44,6 +44,8 @@
     "@rollup/plugin-commonjs": "^21.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@types/jasmine": "^4.3.1",
+    "@types/node": "^22.15.21",
+    "@types/vinyl": "^2.0.12",
     "async": "^3.2.5",
     "browserify-sign": "^4.2.2",
     "esdoc": "^1.1.0",
@@ -81,7 +83,7 @@
     "tmp": "0.2.1",
     "typescript": "^5.8.3",
     "vinyl-buffer": "^1.0.1",
-    "webpack": "^5.89.0"
+    "webpack": "^5.99.9"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "6.0.0-dev",
