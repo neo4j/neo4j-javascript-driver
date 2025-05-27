@@ -359,8 +359,20 @@ export class Date<T extends NumberOrInteger = Integer> {
    *
    * @param {global.Date} standardDate - The standard JavaScript date to convert.
    * @return {Date} New Date.
+   * @deprecated use {@link fromStandardDateLocal} which is a drop in replacement, or {@link fromStandardDateUTC} which takes the Year, Month and Date from UTC rather than Local time
    */
   static fromStandardDate (standardDate: StandardDate): Date<number> {
+    return this.fromStandardDateLocal(standardDate)
+  }
+
+  /**
+   * Create a {@link Date} object from the given standard JavaScript `Date` using the Year, Month and Date in Local Time.
+   * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
+   * 
+   * @param {global.Date} standardDate - The standard JavaScript date to convert.
+   * @return {Date} New Date.
+   */
+  static fromStandardDateLocal (standardDate: StandardDate): Date<number> {
     verifyStandardDateAndNanos(standardDate)
 
     return new Date(
@@ -371,12 +383,27 @@ export class Date<T extends NumberOrInteger = Integer> {
   }
 
   /**
+   * Create a {@link Date} object from the given standard JavaScript `Date` using the Year, Month and Date in UTC time.
+   * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
+   * 
+   * @param {global.Date} standardDate - The standard JavaScript date to convert.
+   * @return {Date} New Date.
+   */
+  static fromStandardDateUTC (standardDate: StandardDate): Date<number> {
+    verifyStandardDateAndNanos(standardDate)
+
+    return new Date(
+      standardDate.getUTCFullYear(),
+      standardDate.getUTCMonth() + 1,
+      standardDate.getUTCDate()
+    )
+  }
+
+  /**
    * Convert date to standard JavaScript `Date`.
    *
    * The time component of the returned `Date` is set to midnight
    * and the time zone is set to UTC.
-   *
-   * NOTE: the function {@link toStandardDate} and {@link fromStandardDate} are not inverses of one another. {@link fromStandardDate} takes the Day, Month and Year in local time from the supplies JavaScript Date object, while {@link toStandardDate} creates a new JavaScript Date object at midnight UTC. This incongruity will be rectified in 6.0
    *
    * @returns {StandardDate} Standard JavaScript `Date` at `00:00:00.000` UTC.
    */
@@ -390,6 +417,7 @@ export class Date<T extends NumberOrInteger = Integer> {
   toString (): string {
     return util.dateToIsoString(this.year, this.month, this.day)
   }
+
 }
 
 Object.defineProperty(

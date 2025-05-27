@@ -24,6 +24,48 @@ const MAX_UTC_IN_MS = 8_640_000_000_000_000
 const ONE_DAY_IN_MS = 86_400_000
 
 describe('Date', () => {
+  describe('.fromStandardDateLocal()', () => {
+    it('should create a date from the zoned date on a JS Date.', () => {
+      fc.assert(
+        fc.property(
+          fc.date({
+            max: temporalUtil.newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
+            min: temporalUtil.newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
+          }),
+          standardDate => {
+            const date = Date.fromStandardDateLocal(standardDate)
+            const receivedDate = date.toStandardDate()
+
+            expect(receivedDate.getUTCFullYear()).toEqual(standardDate.getFullYear())
+            expect(receivedDate.getUTCMonth()).toEqual(standardDate.getMonth())
+            expect(receivedDate.getUTCDate()).toEqual(standardDate.getDate())
+            expect(receivedDate.getUTCHours()).toEqual(0)
+            expect(receivedDate.getUTCMinutes()).toEqual(0)
+          })
+      )
+    })
+  })
+  describe('.fromStandardDateUTC()', () => {
+    it('should be the reverse operation of toStandardDateUTC but losing time information', () => {
+      fc.assert(
+        fc.property(
+          fc.date({
+            max: temporalUtil.newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
+            min: temporalUtil.newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
+          }),
+          standardDate => {
+            const date = Date.fromStandardDateUTC(standardDate)
+            const receivedDate = date.toStandardDate()
+
+            expect(receivedDate.getUTCFullYear()).toEqual(standardDate.getUTCFullYear())
+            expect(receivedDate.getUTCMonth()).toEqual(standardDate.getUTCMonth())
+            expect(receivedDate.getUTCDate()).toEqual(standardDate.getUTCDate())
+            expect(receivedDate.getUTCHours()).toEqual(0)
+            expect(receivedDate.getUTCMinutes()).toEqual(0)
+          })
+      )
+    })
+  })
   describe('.toStandardDate()', () => {
     it('should convert to a standard date', () => {
       const localDatetime = new Date(2020, 3, 2)
@@ -33,26 +75,6 @@ describe('Date', () => {
       expect(standardDate.getUTCFullYear()).toEqual(localDatetime.year)
       expect(standardDate.getUTCMonth()).toEqual(localDatetime.month - 1)
       expect(standardDate.getUTCDate()).toEqual(localDatetime.day)
-    })
-
-    it('should be the reverse operation of fromStandardDate but losing time information', () => {
-      fc.assert(
-        fc.property(
-          fc.date({
-            max: temporalUtil.newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
-            min: temporalUtil.newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
-          }),
-          standardDate => {
-            const date = Date.fromStandardDate(standardDate)
-            const receivedDate = date.toStandardDate()
-
-            expect(receivedDate.getUTCFullYear()).toEqual(standardDate.getFullYear()) // Date converts from local time but to UTC
-            expect(receivedDate.getUTCMonth()).toEqual(standardDate.getMonth())
-            expect(receivedDate.getUTCDate()).toEqual(standardDate.getDate())
-            expect(receivedDate.getUTCHours()).toEqual(0)
-            expect(receivedDate.getUTCMinutes()).toEqual(0)
-          })
-      )
     })
   })
 })
