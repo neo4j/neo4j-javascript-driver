@@ -175,7 +175,7 @@ describe('#integration result summary', () => {
       expect(notification.code).toBeDefined()
       expect(notification.title).toBeDefined()
       expect(notification.description).toBeDefined()
-      expect(notification.severity).toBeDefined()
+      expect(notification.rawSeverityLevel).toBeDefined()
       expect(notification.position).toBeDefined()
 
       done()

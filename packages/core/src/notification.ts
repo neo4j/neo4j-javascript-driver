@@ -104,7 +104,6 @@ class Notification {
   code: string
   title: string
   description: string
-  severity: string
   position: NotificationPosition | {}
   severityLevel: NotificationSeverityLevel
   category: NotificationCategory
@@ -135,16 +134,6 @@ class Notification {
      * @public
      */
     this.description = notification.description
-    /**
-     * The raw severity
-     *
-     * Use {@link Notification#rawSeverityLevel} for the raw value or {@link Notification#severityLevel} for an enumerated value.
-     *
-     * @type {string}
-     * @public
-     * @deprecated This property will be removed in 6.0.
-     */
-    this.severity = notification.severity
     /**
      * The position which the notification had occur.
      *
