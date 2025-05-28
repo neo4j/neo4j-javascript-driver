@@ -352,7 +352,7 @@ export class Date<T extends NumberOrInteger = Integer> {
 
   /**
    * Create a {@link Date} object from the given standard JavaScript `Date`.
-   * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
+   * Hour, minute, second and millisecond components of the given date are ignored.
    *
    * NOTE: the function {@link toStandardDate} and {@link fromStandardDate} are not inverses of one another. {@link fromStandardDate} takes the Day, Month and Year in local time from the supplies JavaScript Date object, while {@link toStandardDate} creates a new JavaScript Date object at midnight UTC. This incongruity will be rectified in 6.0
    * If your timezone has a negative offset from UTC, creating a JavaScript Date at midnight UTC and converting it with {@link fromStandardDate} will result in a Date for the day before.
@@ -367,7 +367,7 @@ export class Date<T extends NumberOrInteger = Integer> {
 
   /**
    * Create a {@link Date} object from the given standard JavaScript `Date` using the Year, Month and Date in Local Time.
-   * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
+   * Hour, minute, second and millisecond components of the given date are ignored.
    *
    * NOTE: this function and {@link toStandardDate} are not inverses of one another.
    * This takes the Day, Month and Year in local time from the supplies JavaScript Date object, while {@link toStandardDate} creates a new JavaScript Date object at midnight UTC.
@@ -388,7 +388,7 @@ export class Date<T extends NumberOrInteger = Integer> {
 
   /**
    * Create a {@link Date} object from the given standard JavaScript `Date` using the Year, Month and Date in UTC time.
-   * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
+   * Hour, minute, second and millisecond components of the given date are ignored.
    *
    * @param {global.Date} standardDate - The standard JavaScript date to convert.
    * @return {Date} New Date.
