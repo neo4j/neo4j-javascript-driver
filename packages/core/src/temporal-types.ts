@@ -373,6 +373,10 @@ export class Date<T extends NumberOrInteger = Integer> {
    * This takes the Day, Month and Year in local time from the supplied JavaScript Date object, while {@link toStandardDate} creates a new JavaScript Date object at midnight UTC.
    * For a more global approach, use {@link fromStandardDateUTC}, which reads the date in UTC time.
    *
+   * @example
+   * fromStandardDateLocal(new Date("2010-10-10T00:00:00")) // Will create a date at 2010-10-10 as JS Dates are created at local time by default
+   * fromStandardDateLocal(new Date("2010-10-10T00:00:00Z")) // This may cause issues as this date is created at UTC with the trailing "Z"
+   *
    * @param {global.Date} standardDate - The standard JavaScript date to convert.
    * @return {Date} New Date.
    */
@@ -389,6 +393,10 @@ export class Date<T extends NumberOrInteger = Integer> {
   /**
    * Create a {@link Date} object from the given standard JavaScript `Date` using the Year, Month and Date in UTC time.
    * Hour, minute, second and millisecond components of the given date are ignored.
+   *
+   * @example
+   * fromStandardDateLocal(new Date("2010-10-10T00:00:00")) // This may cause issues as JS Dates are created at local time by default
+   * fromStandardDateLocal(new Date("2010-10-10T00:00:00Z")) // Will create a date at 2010-10-10 as this date is created at UTC with the trailing "Z"
    *
    * @param {global.Date} standardDate - The standard JavaScript date to convert.
    * @return {Date} New Date.
