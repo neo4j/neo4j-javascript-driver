@@ -395,8 +395,8 @@ export class Date<T extends NumberOrInteger = Integer> {
    * Hour, minute, second and millisecond components of the given date are ignored.
    *
    * @example
-   * fromStandardDateLocal(new Date("2010-10-10T00:00:00")) // This may cause issues as JS Dates are created at local time by default
-   * fromStandardDateLocal(new Date("2010-10-10T00:00:00Z")) // Will create a date at 2010-10-10 as this date is created at UTC with the trailing "Z"
+   * fromStandardDateUTC(new Date("2010-10-10T00:00:00")) // This may cause issues as JS Dates are created at local time by default
+   * fromStandardDateUTC(new Date("2010-10-10T00:00:00Z")) // Will create a date at 2010-10-10 as this date is created at UTC with the trailing "Z"
    *
    * @param {global.Date} standardDate - The standard JavaScript date to convert.
    * @return {Date} New Date.
