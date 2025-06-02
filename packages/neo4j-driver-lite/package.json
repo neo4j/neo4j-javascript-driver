@@ -31,9 +31,6 @@
     "type": "git",
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "keywords": [
     "neo4j",
     "driver"
