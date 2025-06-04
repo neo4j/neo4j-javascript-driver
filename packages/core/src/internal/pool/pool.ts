@@ -139,7 +139,6 @@ class Pool<R extends unknown = unknown> {
           const idleCount = this.has(address) ? this._pools[key].length : 0
           request.reject(
             newError(
-              // @ts-expect-error
               `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
             )
           )
