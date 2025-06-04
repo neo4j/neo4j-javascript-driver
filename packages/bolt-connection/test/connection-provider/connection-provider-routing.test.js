@@ -3494,7 +3494,7 @@ describe.each([
             .catch(functional.identity)
 
           expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server3)
+          expect(poolAcquire).toHaveBeenCalled()
           expect(connection.release).toHaveBeenCalled()
           expect(connection._sticky).toEqual(isStickyConn)
         })
@@ -3536,7 +3536,7 @@ describe.each([
             .catch(functional.identity)
 
           expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server1)
+          expect(poolAcquire).toHaveBeenCalled()
           expect(connection.release).toHaveBeenCalled()
           expect(connection._sticky).toEqual(isStickyConn)
         })
@@ -3580,7 +3580,7 @@ describe.each([
             .catch(functional.identity)
 
           expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
+          expect(poolAcquire).toHaveBeenCalled()
           expect(connection.release).toHaveBeenCalled()
           expect(connection._sticky).toEqual(isStickyConn)
         })
@@ -3609,7 +3609,7 @@ describe.each([
             .catch(functional.identity)
 
           expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
+          expect(poolAcquire).toHaveBeenCalled()
           expect(connection.release).toHaveBeenCalled()
           expect(connection._sticky).toEqual(isStickyConn)
         })

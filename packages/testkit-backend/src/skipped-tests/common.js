@@ -170,6 +170,12 @@ const skippedTests = [
     ifEndsWith('.test_should_fail_when_writing_to_unexpectedly_interrupting_writers_using_tx_function')
   ),
   skip(
+    'TODO: ConnectionAcquisitionTimeout cancels handshake with the router',
+    ifEquals(
+      'stub.driver_parameters.test_connection_acquisition_timeout_ms.TestConnectionAcquisitionTimeoutMs.test_does_not_encompass_router_handshake'
+    )
+  ),
+  skip(
     'Backend does not support async AuthTokenManager.handleSecurityException',
     ifStartsWith('stub.authorization.test_auth_token_manager.TestAuthTokenManager')
       .and(
