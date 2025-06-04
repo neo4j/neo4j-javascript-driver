@@ -118,7 +118,7 @@ class Pool<R extends unknown = unknown> {
     const allRequests = this._acquireRequests
     const requests = allRequests[key]
     // @ts-expect-error
-    const elapsedTime = acquisitionContext.startTime !== 0 ? new Date().getTime() - (acquisitionContext.startTime ?? 0) : 0
+    const elapsedTime = (acquisitionContext.startTime != null && acquisitionContext.startTime !== 0) ? new Date().getTime() - (acquisitionContext.startTime ?? 0) : 0
     if (requests == null) {
       allRequests[key] = []
     }
