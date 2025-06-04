@@ -141,11 +141,11 @@ class Pool<R extends unknown = unknown> {
           const idleCount = this.has(address) ? this._pools[key].length : 0
           request.reject(
             newError(
-              `Connection acquisition timed out in ${this._acquisitionTimeout - (elapsedTime ?? 0)} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
+              `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
             )
           )
         }
-      }, this._acquisitionTimeout - (elapsedTime ?? 0))
+      }, this._acquisitionTimeout - elapsedTime)
 
       if (typeof timeoutId === 'object') {
         // eslint-disable-next-line
