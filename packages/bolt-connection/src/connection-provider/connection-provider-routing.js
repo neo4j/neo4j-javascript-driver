@@ -89,6 +89,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(
       this._connectionPool
     )
+    this._startTime = 0
     this._hostNameResolver = hostNameResolver
     this._dnsResolver = new HostNameResolver()
     this._log = log
@@ -162,6 +163,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       if (currentRoutingTable && !currentRoutingTable.isStaleFor(accessMode)) {
         conn = await this.getConnectionFromRoutingTable(currentRoutingTable, auth, accessMode, databaseSpecificErrorHandler)
         if (this.SSREnabled()) {
+          this._startTime = 0
           return conn
         }
         conn.release()
@@ -180,6 +182,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         }
       }
     })
+    this._startTime = 0
     return this.getConnectionFromRoutingTable(routingTable, auth, accessMode, databaseSpecificErrorHandler)
   }
 
@@ -206,7 +209,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
 
     try {
-      const connection = await this._connectionPool.acquire({ auth, elapsedTime: new Date().getTime() - this._startTime }, address)
+      const elapsedTime = this._startTime !== 0 ? new Date().getTime() - (this._startTime ?? 0) : 0
+      const connection = await this._connectionPool.acquire({ auth, elapsedTime }, address)
 
       if (auth) {
         await this._verifyStickyConnection({
@@ -586,7 +590,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   async _createSessionForRediscovery (routerAddress, bookmarks, impersonatedUser, auth) {
     try {
-      const connection = await this._connectionPool.acquire({ auth, elapsedTime: new Date().getTime() - this._startTime }, routerAddress)
+      const elapsedTime = this._startTime !== 0 ? new Date().getTime() - (this._startTime ?? 0) : 0
+      const connection = await this._connectionPool.acquire({ auth, elapsedTime }, routerAddress)
 
       if (auth) {
         await this._verifyStickyConnection({
