@@ -163,7 +163,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       if (currentRoutingTable && !currentRoutingTable.isStaleFor(accessMode)) {
         conn = await this.getConnectionFromRoutingTable(currentRoutingTable, auth, accessMode, databaseSpecificErrorHandler)
         if (this.SSREnabled()) {
-          this._startTime = 0
           return conn
         }
         conn.release()
@@ -182,7 +181,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         }
       }
     })
-    this._startTime = 0
     return this.getConnectionFromRoutingTable(routingTable, auth, accessMode, databaseSpecificErrorHandler)
   }
 
@@ -209,8 +207,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
 
     try {
-      const elapsedTime = this._startTime !== 0 ? new Date().getTime() - (this._startTime ?? 0) : 0
-      const connection = await this._connectionPool.acquire({ auth, elapsedTime }, address)
+      const connection = await this._connectionPool.acquire({ auth, startTime: this._startTime }, address)
 
       if (auth) {
         await this._verifyStickyConnection({
@@ -590,8 +587,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   async _createSessionForRediscovery (routerAddress, bookmarks, impersonatedUser, auth) {
     try {
-      const elapsedTime = this._startTime !== 0 ? new Date().getTime() - (this._startTime ?? 0) : 0
-      const connection = await this._connectionPool.acquire({ auth, elapsedTime }, routerAddress)
+      const connection = await this._connectionPool.acquire({ auth, startTime: this._startTime }, routerAddress)
 
       if (auth) {
         await this._verifyStickyConnection({

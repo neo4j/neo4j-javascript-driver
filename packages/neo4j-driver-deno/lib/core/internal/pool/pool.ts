@@ -117,6 +117,8 @@ class Pool<R extends unknown = unknown> {
     // We're out of resources and will try to acquire later on when an existing resource is released.
     const allRequests = this._acquireRequests
     const requests = allRequests[key]
+    // @ts-expect-error
+    const elapsedTime = acquisitionContext.startTime !== 0 ? new Date().getTime() - (acquisitionContext.startTime ?? 0) : 0
     if (requests == null) {
       allRequests[key] = []
     }
@@ -139,13 +141,11 @@ class Pool<R extends unknown = unknown> {
           const idleCount = this.has(address) ? this._pools[key].length : 0
           request.reject(
             newError(
-              // @ts-expect-error
-              `Connection acquisition timed out in ${this._acquisitionTimeout - (acquisitionContext.elapsedTime ?? 0)} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
+              `Connection acquisition timed out in ${this._acquisitionTimeout - (elapsedTime ?? 0)} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
             )
           )
         }
-      // @ts-expect-error
-      }, this._acquisitionTimeout - (acquisitionContext.elapsedTime ?? 0))
+      }, this._acquisitionTimeout - (elapsedTime ?? 0))
 
       if (typeof timeoutId === 'object') {
         // eslint-disable-next-line
