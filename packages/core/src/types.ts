@@ -168,11 +168,11 @@ export class Config {
      * The maximum amount of time to wait to acquire a connection from the pool (to either create a new
      * connection or borrow an existing one).
      *
-     * **Default**: ```60000``` (1 minute)
+     * **Default**: ```120000``` (2 minutes)
      *
      * @type {number|undefined}
      */
-    this.connectionAcquisitionTimeout = 60000 // 1 minute
+    this.connectionAcquisitionTimeout = 120000 // 2 minutes
 
     /**
      * Specify the maximum time in milliseconds transactions are allowed to retry via
