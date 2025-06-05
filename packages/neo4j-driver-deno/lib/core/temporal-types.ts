@@ -80,7 +80,7 @@ export class Duration<T extends NumberOrInteger = Integer> {
     if (typeof seconds === 'bigint' && isInt(this.seconds)) {
       this.seconds = this.seconds.toBigInt() as T
     }
-     /**
+    /**
      * The number of nanoseconds.
      * @type {NumberOrInteger}
      */
