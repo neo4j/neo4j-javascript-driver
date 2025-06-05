@@ -74,17 +74,21 @@ export class Duration<T extends NumberOrInteger = Integer> {
      * @type {NumberOrInteger}
      */
     this.seconds = util.normalizeSecondsForDuration(seconds, nanoseconds) as T
-    /**
+    if (typeof seconds === 'number' && isInt(this.seconds)) {
+      this.seconds = this.seconds.toNumber() as T
+    }
+    if (typeof seconds === 'bigint' && isInt(this.seconds)) {
+      this.seconds = this.seconds.toBigInt() as T
+    }
+     /**
      * The number of nanoseconds.
      * @type {NumberOrInteger}
      */
     this.nanoseconds = util.normalizeNanosecondsForDuration(nanoseconds) as T
-    if (typeof this.months === 'number' && isInt(this.nanoseconds) && isInt(this.seconds)) {
-      this.seconds = this.seconds.toNumber() as T
+    if (typeof nanoseconds === 'number' && isInt(this.nanoseconds)) {
       this.nanoseconds = this.nanoseconds.toNumber() as T
     }
-    if (typeof this.months === 'bigint' && isInt(this.nanoseconds) && isInt(this.seconds)) {
-      this.seconds = this.seconds.toBigInt() as T
+    if (typeof nanoseconds === 'bigint' && isInt(this.nanoseconds)) {
       this.nanoseconds = this.nanoseconds.toBigInt() as T
     }
     Object.freeze(this)
