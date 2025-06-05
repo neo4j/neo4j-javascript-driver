@@ -1101,13 +1101,6 @@ const inSafeRange = Integer.inSafeRange
 const toNumber = Integer.toNumber
 
 /**
- * Converts a variable to a BigInt
- * @access public
- * @param {Mixed} value - The variable to convert
- * @return {BigInt} - the variable as a BigInt
- */
-const toBigInt = Integer.valueOf
-/**
  * Converts the integer to a string representation
  * @access public
  * @param {Mixed} value - The variable to convert
@@ -1116,6 +1109,6 @@ const toBigInt = Integer.valueOf
  */
 const toString = Integer.toString
 
-export { int, isInt, inSafeRange, toNumber, toBigInt, toString }
+export { int, isInt, inSafeRange, toNumber, toString }
 
 export default Integer
