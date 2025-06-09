@@ -536,7 +536,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   async _updateRoutingTable (newRoutingTable) {
     // close old connections to servers not present in the new routing table
-    await this._connectionPool.keepAll(newRoutingTable.allServers())
+    await this._connectionPool.keepAll([...newRoutingTable.allServers(),  this._seedRouter])
     this._routingTableRegistry.removeExpired()
     this._routingTableRegistry.register(
       newRoutingTable
