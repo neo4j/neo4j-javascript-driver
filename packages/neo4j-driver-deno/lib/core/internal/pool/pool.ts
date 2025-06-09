@@ -28,6 +28,7 @@ type ValidateOnRelease<R extends unknown = unknown> = (resource: R) => (Promise<
 type InstallObserver<R extends unknown = unknown> = (resource: R, observer: unknown) => void
 type RemoveObserver<R extends unknown = unknown> = (resource: R) => void
 interface AcquisitionConfig { requireNew?: boolean }
+interface AcquisitionContext { startTime?: number, forceReAuth: boolean, skipReAuth: boolean, auth: object }
 
 interface ConstructorParam<R extends unknown = unknown> {
   create?: Create<R>
@@ -111,14 +112,13 @@ class Pool<R extends unknown = unknown> {
    * @param {boolean} config.requireNew Indicate it requires a new resource
    * @return {Promise<Object>} resource that is ready to use.
    */
-  async acquire (acquisitionContext: unknown, address: ServerAddress, config?: AcquisitionConfig): Promise<R> {
+  async acquire (acquisitionContext: AcquisitionContext, address: ServerAddress, config?: AcquisitionConfig): Promise<R> {
     const key = address.asKey()
 
     // We're out of resources and will try to acquire later on when an existing resource is released.
     const allRequests = this._acquireRequests
     const requests = allRequests[key]
-    // @ts-expect-error
-    const elapsedTime = (acquisitionContext.startTime != null && acquisitionContext.startTime !== 0) ? new Date().getTime() - (acquisitionContext.startTime ?? 0) : 0
+    const elapsedTime = (acquisitionContext.startTime != null && acquisitionContext.startTime !== 0) ? new Date().getTime() - acquisitionContext.startTime : 0
     if (requests == null) {
       allRequests[key] = []
     }
