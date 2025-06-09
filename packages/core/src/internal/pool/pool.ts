@@ -28,7 +28,7 @@ type ValidateOnRelease<R extends unknown = unknown> = (resource: R) => (Promise<
 type InstallObserver<R extends unknown = unknown> = (resource: R, observer: unknown) => void
 type RemoveObserver<R extends unknown = unknown> = (resource: R) => void
 interface AcquisitionConfig { requireNew?: boolean }
-interface AcquisitionContext { startTime?: number, forceReAuth?: boolean, skipReAuth?: boolean, auth?: object }
+interface AcquisitionContext { startTime?: number, forceReAuth?: boolean, skipReAuth?: boolean, auth?: object, triggerValidation?: boolean }
 
 interface ConstructorParam<R extends unknown = unknown> {
   create?: Create<R>
