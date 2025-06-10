@@ -18,6 +18,7 @@
 import { LocalDateTime, Date, DateTime, Duration, isDuration, LocalTime, isLocalTime, Time, isTime, isDate, isLocalDateTime, isDateTime } from '../src/temporal-types'
 import { temporalUtil } from '../src/internal'
 import fc from 'fast-check'
+import { Integer } from '../src'
 
 const MIN_UTC_IN_MS = -8_640_000_000_000_000
 const MAX_UTC_IN_MS = 8_640_000_000_000_000
@@ -184,23 +185,38 @@ describe('DateTime', () => {
   })
 })
 
-describe('isDuration', () => {
-  it.each([
-    [new Duration(1, 2, 3, 4), true],
-    [null, false],
-    [LocalDateTime.fromStandardDate(new global.Date()), false],
-    [{ months: 1, days: 1, seconds: 2, nanoseconds: 2 }, false]
-  ])('should be a type guard [%o]', (obj: unknown, objIsDuration: boolean) => {
-    expect(isDuration(obj)).toEqual(objIsDuration)
+describe('Duration', () => {
+  describe('isDuration', () => {
+    it.each([
+      [new Duration(1, 2, 3, 4), true],
+      [null, false],
+      [LocalDateTime.fromStandardDate(new global.Date()), false],
+      [{ months: 1, days: 1, seconds: 2, nanoseconds: 2 }, false]
+    ])('should be a type guard [%o]', (obj: unknown, objIsDuration: boolean) => {
+      expect(isDuration(obj)).toEqual(objIsDuration)
 
-    if (isDuration(obj)) {
-      const duration: Duration = obj
-      expect(duration).toEqual(obj)
-    } else {
-      // @ts-expect-error
-      const duration: Duration = obj
-      expect(duration).toEqual(obj)
-    }
+      if (isDuration(obj)) {
+        const duration: Duration = obj
+        expect(duration).toEqual(obj)
+      } else {
+        // @ts-expect-error
+        const duration: Duration = obj
+        expect(duration).toEqual(obj)
+      }
+    })
+  })
+  it.each([
+    [1, 2, 3, 4],
+    [BigInt(1), BigInt(2), BigInt(3), BigInt(4)],
+    [new Integer(1), new Integer(2), new Integer(3), new Integer(4)],
+    [new Integer(1), 2, new Integer(3), BigInt(4)],
+    [1, 2, BigInt(3), 4]
+  ])('should handle differing types for parameters', (months, days, seconds, nanos) => {
+    const duration = new Duration(months, days, seconds, nanos)
+    expect(duration.months).toEqual(months)
+    expect(duration.days).toEqual(days)
+    expect(duration.seconds).toEqual(seconds)
+    expect(duration.nanoseconds).toEqual(nanos)
   })
 })
 
