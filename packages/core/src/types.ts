@@ -77,7 +77,6 @@ export class Config {
   disableLosslessIntegers?: boolean
   notificationFilter?: NotificationFilter
   useBigInt?: boolean
-  useVectorTypes?: boolean
   logging?: LoggingConfig
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
@@ -262,18 +261,6 @@ export class Config {
      * @type {boolean|undefined}
      */
     this.useBigInt = false
-
-    /**
-     * Enables Vector types being sent over bolt, and makes all TypedArrays be interpreted as vectors
-     *
-     * **Warning:** This makes TypedArrays be sent as Vectors rather than Lists, and requires bytes be sent as ArrayBuffers rather than Int8Arrays
-     * If migrating from 5.x drivers and vector types are not needed, this can be disabled to make migration simpler.
-     *
-     * **Default**: ```true```
-     *
-     * @type {boolean|undefined}
-     */
-    this.useVectorTypes = true
 
     /**
      * Specify the logging configuration for the driver. Object should have two properties `level` and `logger`.

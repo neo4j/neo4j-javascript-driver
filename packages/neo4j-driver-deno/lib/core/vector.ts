@@ -18,12 +18,12 @@
 import { newError } from './error.ts'
 
 export enum VectorType {
-    "INT8",
-    "INT16",
-    "INT32",
-    "INT64",
-    "FLOAT32",
-    "FLOAT64",
+  'INT8',
+  'INT16',
+  'INT32',
+  'INT64',
+  'FLOAT32',
+  'FLOAT64',
 
 }
 
@@ -35,37 +35,35 @@ export enum VectorType {
  * @param {Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array} typedArray The TypedArray to convert to a vector
  *
  * @constructor
- * 
+ *
  */
 export default class Vector {
-    typedArray : Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array
-    type: VectorType
-    constructor(typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array ){
-        if(typedArray instanceof Int8Array) {
-            this.type = VectorType.INT8
-        }
-        if(typedArray instanceof Int16Array) {
-            this.type = VectorType.INT16
-        }
-        if(typedArray instanceof Int32Array) {
-            this.type = VectorType.INT32
-        }
-        if(typedArray instanceof BigInt64Array) {
-            this.type = VectorType.INT64
-        }
-        if(typedArray instanceof Float32Array) {
-            this.type = VectorType.FLOAT32
-        }
-        if(typedArray instanceof Float64Array) {
-            this.type = VectorType.FLOAT64
-        }
-        else {
-            throw newError("The neo4j Vector class is a wrapper for TypedArrays")
-        }
-        this.typedArray = typedArray
+  typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array
+  type: VectorType
+  constructor (typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array) {
+    if (typedArray instanceof Int8Array) {
+      this.type = VectorType.INT8
     }
+    if (typedArray instanceof Int16Array) {
+      this.type = VectorType.INT16
+    }
+    if (typedArray instanceof Int32Array) {
+      this.type = VectorType.INT32
+    }
+    if (typedArray instanceof BigInt64Array) {
+      this.type = VectorType.INT64
+    }
+    if (typedArray instanceof Float32Array) {
+      this.type = VectorType.FLOAT32
+    }
+    if (typedArray instanceof Float64Array) {
+      this.type = VectorType.FLOAT64
+    } else {
+      throw newError('The neo4j Vector class is a wrapper for TypedArrays')
+    }
+    this.typedArray = typedArray
+  }
 }
-
 
 /**
  * Cast a TypedArray to a {@link Vector}
@@ -73,6 +71,6 @@ export default class Vector {
  * @param {Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array} typedArray - The value to use.
  * @return {Vector} - The Neo4j Vector ready to be used as a query parameter
  */
-export function vector(typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array ) : Vector {
-    return new Vector(typedArray)
+export function vector (typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array): Vector {
+  return new Vector(typedArray)
 }

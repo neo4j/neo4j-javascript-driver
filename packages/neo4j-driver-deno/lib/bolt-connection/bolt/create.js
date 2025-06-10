@@ -50,7 +50,6 @@ import ResponseHandler from './response-handler.js'
  * @param {ResponseHandler~Observer} config.observer Observer
  * @param {boolean} config.disableLosslessIntegers Disable the lossless integers
  * @param {boolean} packstreamConfig.useBigInt if this connection should convert all received integers to native BigInt numbers.
- * @param {boolean} packstreamConfig.useVectorTypes if this connection should support vector types and treat TypedArras as vectors.
  * @param {boolean} config.serversideRouting It's using server side routing
  */
 export default function create ({
@@ -60,7 +59,6 @@ export default function create ({
   channel,
   disableLosslessIntegers,
   useBigInt,
-  useVectorTypes,
   serversideRouting,
   server, // server info
   log,
@@ -96,7 +94,7 @@ export default function create ({
     version,
     server,
     chunker,
-    { disableLosslessIntegers, useBigInt, useVectorTypes },
+    { disableLosslessIntegers, useBigInt },
     serversideRouting,
     createResponseHandler,
     observer.onProtocolError.bind(observer),

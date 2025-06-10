@@ -69,7 +69,6 @@ export function createChannelConnection (
           dechunker,
           disableLosslessIntegers: config.disableLosslessIntegers,
           useBigInt: config.useBigInt,
-          useVectorTypes: config.useVectorTypes,
           serversideRouting,
           server: conn.server,
           log: conn.logger,

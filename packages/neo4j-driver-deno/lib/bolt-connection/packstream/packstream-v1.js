@@ -324,10 +324,9 @@ class Unpacker {
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
    * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
    */
-  constructor (disableLosslessIntegers = false, useBigInt = false, useVectorTypes = true) {
+  constructor (disableLosslessIntegers = false, useBigInt = false) {
     this._disableLosslessIntegers = disableLosslessIntegers
     this._useBigInt = useBigInt
-    this._useVectorTypes = useVectorTypes
   }
 
   unpack (buffer, hydrateStructure = functional.identity) {
@@ -487,11 +486,7 @@ class Unpacker {
     for (let i = 0; i < size; i++) {
       value[i] = buffer.readInt8()
     }
-    if (this._useVectorTypes) {
-      return value.buffer
-    } else {
-      return value
-    }
+    return value
   }
 
   _unpackMap (marker, markerHigh, markerLow, buffer, hydrateStructure) {
