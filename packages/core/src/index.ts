@@ -101,6 +101,7 @@ import * as json from './json'
 import resultTransformers, { ResultTransformer } from './result-transformers'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate'
 import * as internal from './internal' // todo: removed afterwards
+import Vector, { VectorType, vector } from './vector'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -263,7 +264,10 @@ export {
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
-  resolveCertificateProvider
+  resolveCertificateProvider,
+  Vector,
+  VectorType,
+  vector
 }
 
 export type {

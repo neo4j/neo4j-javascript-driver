@@ -42,45 +42,15 @@ describe('#integration vector type api suggestion', () => {
 
     const bufferWriter = Uint8Array.from([1, 1])
     await driver.executeQuery('CREATE (p:Product) SET p.vector_from_array = $vector_from_array, p.vector_from_buffer = $vector_from_buffer', {
-      vector_from_array: Float32Array.from([1, 2, 3, 4]), // Typed arrays can be created from a regular list of Numbers
-      vector_from_buffer: new Uint8Array(bufferWriter.buffer) // Or from a bytebuffer
+      vector_from_array: neo4j.vector(Float32Array.from([1, 2, 3, 4])), // Typed arrays can be created from a regular list of Numbers
+      vector_from_buffer: neo4j.vector(new Uint8Array(bufferWriter.buffer)) // Or from a bytebuffer
     })
     const res = await driver.executeQuery('MATCH (p:Product) RETURN p.vector_from_array as arrayVector, p.vector_from_buffer as bufferVector')
 
-    let arrayVec = res.records[0].get('arrayVector')
-    let bufferVec = res.records[0].get('bufferVector')
-
-    // THE FOLLOWING 2 LINES ARE HERE TO EMULATE THE FINISHED PROPOSED API, WOULD NOT BE NEEDED IN THE FINISHED PRODUCT
-    arrayVec = Float32Array.from(arrayVec)
-    bufferVec = Uint8Array.from(bufferVec)
-    // END OF MOCK LINES
+    const arrayVec = res.records[0].get('arrayVector').typedArray
+    const bufferVec = res.records[0].get('bufferVector').typedArray
 
     expect(arrayVec[0]).toBe(1)
     expect(bufferVec[1]).toBe(1)
-  })
-
-  it('write and read bytes', async () => {
-    const driver = driverGlobal
-
-    const bufferWriter = Int8Array.from([1, 1])
-    await driver.executeQuery('CREATE (p:Product) SET p.bytes = $bytes', {
-      bytes: bufferWriter.buffer // New way to write and read bytes, as Int8Arrays are now interpreted as Vector<Int8>
-    })
-    const res = await driver.executeQuery('MATCH (p:Product) RETURN p.bytes as bytes')
-    const bytes = res.records[0].get('bytes')
-
-    expect(new Int8Array(bytes)).toEqual(bufferWriter)
-  })
-
-  it('write TypedArray as List', async () => {
-    const driver = driverGlobal
-
-    const float32 = Float32Array.from([1, 1])
-    await driver.executeQuery('CREATE (p:Product) SET p.arr = $arr', {
-      arr: Array.from(float32) // converts the TypedArray to a standard array.
-    })
-    const res = await driver.executeQuery('MATCH (p:Product) RETURN p.arr as arr')
-
-    expect(Float32Array.from(res.records[0].get('arr'))).toEqual(float32)
   })
 })

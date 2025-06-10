@@ -28,6 +28,7 @@ const features = [
   'Feature:Bolt:5.6',
   'Feature:Bolt:5.7',
   'Feature:Bolt:5.8',
+  'Feature:Bolt:6.0',
   'Feature:Bolt:HandshakeManifestV1',
   'Feature:Bolt:Patch:UTC',
   'Feature:API:ConnectionAcquisitionTimeout',

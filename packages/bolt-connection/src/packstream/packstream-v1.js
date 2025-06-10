@@ -94,17 +94,8 @@ class Packer {
       return () => this.packInteger(int(x))
     } else if (isInt(x)) {
       return () => this.packInteger(x)
-    } else if (x.BYTES_PER_ELEMENT != null && this._useVectorTypes) {
-      return () => {
-        this.packListHeader(x.length)
-        for (let i = 0; i < x.length; i++) {
-          this.packable(x[i] === undefined ? null : x[i], dehydrateStruct)()
-        }
-      }
-    } else if (x instanceof Int8Array && this._useVectorTypes) {
+    } else if (x instanceof Int8Array) {
       return () => this.packBytes(x)
-    } else if (x instanceof ArrayBuffer) {
-      return () => this.packBytes(new Int8Array(x))
     } else if (x instanceof Array) {
       return () => {
         this.packListHeader(x.length)

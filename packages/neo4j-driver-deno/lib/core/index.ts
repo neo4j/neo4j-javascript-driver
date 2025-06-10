@@ -101,6 +101,7 @@ import * as json from './json.ts'
 import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate.ts'
 import * as internal from './internal/index.ts'
+import Vector, {VectorType, vector} from './vector.ts'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -263,7 +264,10 @@ export {
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
-  resolveCertificateProvider
+  resolveCertificateProvider,
+  Vector,
+  VectorType,
+  vector
 }
 
 export type {
