@@ -32,72 +32,84 @@ function createVectorTransformer () {
     signature: VECTOR,
     isTypeInstance: object => object instanceof Vector,
     toStructure: vector => {
-      const startTime = new Date().getTime()
-      const dataview = new DataView(vector.typedArray.byteLength)
+      const dataview = new DataView(new ArrayBuffer(vector.typedArray.byteLength))
       let set
       let typeMarker
-      if (vector.type === 'INT8') {
-        typeMarker = Uint8Array.from([INT_8])
-        set = dataview.setUint8
-      } else if (vector.type === 'INT16') {
-        typeMarker = Uint8Array.from([INT_16])
-        set = dataview.setUint16
-      } else if (vector.type === 'INT32') {
-        typeMarker = Uint8Array.from([INT_32])
-        set = dataview.setUint32
-      } else if (vector.type === 'INT64') {
-        typeMarker = Uint8Array.from([INT_64])
-        set = dataview.setUint64
-      } else if (vector.type === 'FLOAT32') {
-        typeMarker = Uint8Array.from([FLOAT_32])
-        set = dataview.setFloat32
-      } else if (vector.type === 'FLOAT64') {
-        typeMarker = Uint8Array.from([FLOAT_64])
-        set = dataview.setFloat64
-      } else {
-        throw newError('Vector is of unsupported type')
+      switch (vector.type) {
+        case 'INT8':
+          typeMarker = Uint8Array.from([INT_8])
+          set = dataview.setUint8.bind(dataview)
+          break
+        case 'INT16':
+          typeMarker = Uint8Array.from([INT_16])
+          set = dataview.setUint16.bind(dataview)
+          break
+        case 'INT32':
+          typeMarker = Uint8Array.from([INT_32])
+          set = dataview.setUint32.bind(dataview)
+          break
+        case 'INT64':
+          typeMarker = Uint8Array.from([INT_64])
+          set = dataview.setBigInt64.bind(dataview)
+          break
+        case 'FLOAT32':
+          typeMarker = Uint8Array.from([FLOAT_32])
+          set = dataview.setFloat32.bind(dataview)
+          break
+        case 'FLOAT64':
+          typeMarker = Uint8Array.from([FLOAT_64])
+          set = dataview.setFloat64.bind(dataview)
+          break
+        default:
+          throw newError(`Vector is of unsupported type ${vector.type}`)
       }
       for (let i = 0; i < vector.typedArray.length; i++) {
         set(i * vector.typedArray.BYTES_PER_ELEMENT, vector.typedArray[i])
       }
-      const struct = new structure.Structure(VECTOR, [typeMarker, Uint8Array.from(dataview.buffer)])
-      console.debug(`Packing vector took ${new Date().getTime() - startTime}ms`)
+      const struct = new structure.Structure(VECTOR, [typeMarker, new Int8Array(dataview.buffer)])
       return struct
     },
     fromStructure: structure => {
       const typeMarker = structure.fields[0][0]
-      const byteArray = structure.fields[1]
-      const dataview = new DataView(byteArray.length)
-      let typedArray
+      const arrayBuffer = structure.fields[1]
+      const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
+      const getview = new DataView(arrayBuffer.buffer)
+      let get
       let set
       let resultArray
-      if (typeMarker === INT_8) {
-        return Int8Array.from(byteArray.buffer)
-      } if (typeMarker === INT_16) {
-        typedArray = Int16Array.from(byteArray.buffer)
-        resultArray = Int16Array.from(dataview.buffer)
-        set = dataview.setInt16
-      } if (typeMarker === INT_32) {
-        typedArray = Int32Array.from(byteArray.buffer)
-        resultArray = Int32Array.from(dataview.buffer)
-        set = dataview.setInt32
-      } if (typeMarker === INT_64) {
-        typedArray = BigInt64Array.from(byteArray.buffer)
-        resultArray = BigInt64Array.from(dataview.buffer)
-        set = dataview.setBigInt64
-      } if (typeMarker === FLOAT_32) {
-        typedArray = Float32Array.from(byteArray.buffer)
-        resultArray = Float32Array.from(dataview.buffer)
-        set = dataview.setFloat32
-      } if (typeMarker === FLOAT_64) {
-        typedArray = Float64Array.from(byteArray.buffer)
-        resultArray = Float64Array.from(dataview.buffer)
-        set = dataview.setFloat64
-      } else {
-        throw newError('Recieved Vector of unknown type')
+      switch (typeMarker) {
+        case INT_8:
+          return new Vector(Int8Array.from(arrayBuffer))
+        case INT_16:
+          resultArray = new Int16Array(setview.buffer)
+          get = getview.getInt16.bind(getview)
+          set = setview.setInt16.bind(setview)
+          break
+        case INT_32:
+          resultArray = new Int32Array(setview.buffer)
+          get = getview.getInt32.bind(getview)
+          set = setview.setInt32.bind(setview)
+          break
+        case INT_64:
+          resultArray = new BigInt64Array(setview.buffer)
+          get = getview.getBigInt64.bind(getview)
+          set = setview.setBigInt64.bind(setview)
+          break
+        case FLOAT_32:
+          resultArray = new Float32Array(setview.buffer)
+          get = getview.getFloat32.bind(getview)
+          set = setview.setFloat32.bind(setview)
+          break
+        case FLOAT_64:
+          resultArray = new Float64Array(setview.buffer)
+          get = getview.getFloat64.bind(getview)
+          set = setview.setFloat64.bind(setview)
+          break
+        default:
+          throw newError(`Recieved Vector of unknown type ${typeMarker}`)
       }
-      for (let i = 0; i < typedArray.length; i++) {
-        set(i * typedArray.BYTES_PER_ELEMENT, typedArray[i])
+      for (let i = 0; i < arrayBuffer.length; i += resultArray.BYTES_PER_ELEMENT) {
+        set(i, get(i), true)
       }
       return new Vector(resultArray)
     }

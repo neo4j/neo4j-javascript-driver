@@ -17,15 +17,21 @@
 
 import { newError } from './error'
 
-export enum VectorType {
-  'INT8',
-  'INT16',
-  'INT32',
-  'INT64',
-  'FLOAT32',
-  'FLOAT64',
+type EnumRecord<T extends string | symbol> = { [key in T]: key }
 
+export type VectorType = 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64'
+/**
+ * @typedef {'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64'} VectorType
+ */
+const vectorTypes: EnumRecord<VectorType> = {
+  INT8: 'INT8',
+  INT16: 'INT16',
+  INT32: 'INT32',
+  INT64: 'INT64',
+  FLOAT32: 'FLOAT32',
+  FLOAT64: 'FLOAT64'
 }
+Object.freeze(vectorTypes)
 
 /**
  * A wrapper class for JavaScript TypedArrays that makes the driver send them as a Vector type to the database.
@@ -42,24 +48,19 @@ export default class Vector {
   type: VectorType
   constructor (typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array) {
     if (typedArray instanceof Int8Array) {
-      this.type = VectorType.INT8
-    }
-    if (typedArray instanceof Int16Array) {
-      this.type = VectorType.INT16
-    }
-    if (typedArray instanceof Int32Array) {
-      this.type = VectorType.INT32
-    }
-    if (typedArray instanceof BigInt64Array) {
-      this.type = VectorType.INT64
-    }
-    if (typedArray instanceof Float32Array) {
-      this.type = VectorType.FLOAT32
-    }
-    if (typedArray instanceof Float64Array) {
-      this.type = VectorType.FLOAT64
+      this.type = vectorTypes.INT8
+    } else if (typedArray instanceof Int16Array) {
+      this.type = vectorTypes.INT16
+    } else if (typedArray instanceof Int32Array) {
+      this.type = vectorTypes.INT32
+    } else if (typedArray instanceof BigInt64Array) {
+      this.type = vectorTypes.INT64
+    } else if (typedArray instanceof Float32Array) {
+      this.type = vectorTypes.FLOAT32
+    } else if (typedArray instanceof Float64Array) {
+      this.type = vectorTypes.FLOAT64
     } else {
-      throw newError('The neo4j Vector class is a wrapper for TypedArrays')
+      throw newError(`The neo4j Vector class is a wrapper for TypedArrays. got ${typeof typedArray}`)
     }
     this.typedArray = typedArray
   }

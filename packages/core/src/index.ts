@@ -266,7 +266,6 @@ export {
   clientCertificateProviders,
   resolveCertificateProvider,
   Vector,
-  VectorType,
   vector
 }
 
@@ -298,7 +297,8 @@ export type {
   ClientCertificate,
   ClientCertificateProvider,
   ClientCertificateProviders,
-  RotatingClientCertificateProvider
+  RotatingClientCertificateProvider,
+  VectorType
 }
 
 export default forExport
