@@ -23,13 +23,13 @@ export type VectorType = 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLO
 /**
  * @typedef {'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64'} VectorType
  */
-const vectorTypes : EnumRecord<VectorType>= {
+const vectorTypes: EnumRecord<VectorType> = {
   INT8: 'INT8',
   INT16: 'INT16',
   INT32: 'INT32',
   INT64: 'INT64',
   FLOAT32: 'FLOAT32',
-  FLOAT64: 'FLOAT64',
+  FLOAT64: 'FLOAT64'
 }
 Object.freeze(vectorTypes)
 
@@ -49,20 +49,15 @@ export default class Vector {
   constructor (typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array) {
     if (typedArray instanceof Int8Array) {
       this.type = vectorTypes.INT8
-    }
-    else if (typedArray instanceof Int16Array) {
+    } else if (typedArray instanceof Int16Array) {
       this.type = vectorTypes.INT16
-    }
-    else if (typedArray instanceof Int32Array) {
+    } else if (typedArray instanceof Int32Array) {
       this.type = vectorTypes.INT32
-    }
-    else if (typedArray instanceof BigInt64Array) {
+    } else if (typedArray instanceof BigInt64Array) {
       this.type = vectorTypes.INT64
-    }
-    else if (typedArray instanceof Float32Array) {
+    } else if (typedArray instanceof Float32Array) {
       this.type = vectorTypes.FLOAT32
-    }
-    else if (typedArray instanceof Float64Array) {
+    } else if (typedArray instanceof Float64Array) {
       this.type = vectorTypes.FLOAT64
     } else {
       throw newError(`The neo4j Vector class is a wrapper for TypedArrays. got ${typeof typedArray}`)
