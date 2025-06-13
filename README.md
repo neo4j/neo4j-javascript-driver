@@ -21,7 +21,7 @@ Vector types are usuable from bolt version 6.0 and forward, which no current ser
     
     let vector = res.records[0].get('embeddings')
 
-    console.log(vector.typedArray[3]) //3
+    console.log(vector.toTypedArray()) //Float32Array[0, 1, 2, 3]
     console.log(vector.type) //FLOAT32
 
     await driver.close()

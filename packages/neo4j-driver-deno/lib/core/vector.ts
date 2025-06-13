@@ -43,10 +43,10 @@ Object.freeze(vectorTypes)
  * @constructor
  *
  */
-export default class Vector {
-  typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array
+export default class Vector<K extends Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array> {
+  typedArray: K
   type: VectorType
-  constructor (typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array) {
+  constructor (typedArray: K) {
     if (typedArray instanceof Int8Array) {
       this.type = vectorTypes.INT8
     } else if (typedArray instanceof Int16Array) {
@@ -64,6 +64,10 @@ export default class Vector {
     }
     this.typedArray = typedArray
   }
+
+  toTypedArray(): K {
+    return this.typedArray
+  }
 }
 
 /**
@@ -72,6 +76,6 @@ export default class Vector {
  * @param {Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array} typedArray - The value to use.
  * @return {Vector} - The Neo4j Vector ready to be used as a query parameter
  */
-export function vector (typedArray: Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array): Vector {
+export function vector<K extends Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array> (typedArray: K): Vector<K> {
   return new Vector(typedArray)
 }

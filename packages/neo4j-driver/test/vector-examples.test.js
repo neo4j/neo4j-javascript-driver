@@ -55,8 +55,8 @@ describe('#integration vector type api suggestion', () => {
       })
       const res = await driver.executeQuery('MATCH (p:Product) RETURN p.vector_from_array as arrayVector, p.vector_from_buffer as bufferVector')
 
-      const arrayVec = res.records[0].get('arrayVector').typedArray
-      const bufferVec = res.records[0].get('bufferVector').typedArray
+      const arrayVec = res.records[0].get('arrayVector').toTypedArray()
+      const bufferVec = res.records[0].get('bufferVector').toTypedArray()
 
       expect(arrayVec[0]).toBe(1)
       expect(bufferVec[1]).toBe(1)
