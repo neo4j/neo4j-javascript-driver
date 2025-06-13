@@ -70,6 +70,7 @@ function createVectorTransformer () {
       return struct
     },
     fromStructure: structure => {
+      const isLittleEndian = checkLittleEndian()
       const typeMarker = structure.fields[0][0]
       const arrayBuffer = structure.fields[1]
       const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
@@ -109,11 +110,18 @@ function createVectorTransformer () {
           throw newError(`Recieved Vector of unknown type ${typeMarker}`)
       }
       for (let i = 0; i < arrayBuffer.length; i += resultArray.BYTES_PER_ELEMENT) {
-        set(i, get(i), true)
+        set(i, get(i), isLittleEndian)
       }
       return new Vector(resultArray)
     }
   })
+}
+
+function checkLittleEndian () {
+  const dataview = new DataView(new ArrayBuffer(2))
+  dataview.setInt16(0, 1000, true)
+  const typeArray = new Int16Array(dataview.buffer)
+  return typeArray[0] === 1000
 }
 
 export default {
