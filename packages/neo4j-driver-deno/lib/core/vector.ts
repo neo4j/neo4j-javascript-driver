@@ -65,7 +65,7 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
     this.typedArray = typedArray
   }
 
-  toTypedArray(): K {
+  toTypedArray (): K {
     return this.typedArray
   }
 }
