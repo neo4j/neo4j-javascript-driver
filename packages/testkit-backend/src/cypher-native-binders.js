@@ -176,6 +176,45 @@ export default function CypherNativeBinders (neo4j) {
       })
     }
 
+    if (x.typedArray != null) {
+      let dtype = ''
+      const dataview = new DataView(new ArrayBuffer(x.typedArray.byteLength))
+      let set
+      switch (x.type) {
+        case 'INT8':
+          dtype = 'i8'
+          set = dataview.setInt8.bind(dataview)
+          break
+        case 'INT16':
+          dtype = 'i16'
+          set = dataview.setInt16.bind(dataview)
+          break
+        case 'INT32':
+          dtype = 'i32'
+          set = dataview.setInt32.bind(dataview)
+          break
+        case 'INT64':
+          dtype = 'i64'
+          set = dataview.setBigInt64.bind(dataview)
+          break
+        case 'FLOAT32':
+          dtype = 'f32'
+          set = dataview.setFloat32.bind(dataview)
+          break
+        case 'FLOAT64':
+          dtype = 'f64'
+          set = dataview.setFloat64.bind(dataview)
+          break
+        default:
+          break
+      }
+      for (let i = 0; i < x.typedArray.length; i++) {
+        set(i * x.typedArray.BYTES_PER_ELEMENT, x.typedArray[i])
+      }
+      const data = toHexString(new Uint8Array(dataview.buffer))
+      return structResponse('CypherVector', { dtype, data })
+    }
+
     // If all failed, interpret as a map
     const map = {}
     for (const [key, value] of Object.entries(x)) {
@@ -284,6 +323,50 @@ export default function CypherNativeBinders (neo4j) {
           }
         }
         throw new Error(`Unknown Point system '${data.system}'`)
+      case 'CypherVector': {
+        const isLittleEndian = checkLittleEndian()
+        const arrayBuffer = toByteArray(data.data)
+        const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
+        const getview = new DataView(arrayBuffer.buffer)
+        let get
+        let set
+        let resultArray
+        switch (data.dtype) {
+          case 'i8':
+            return neo4j.vector(Int8Array.from(arrayBuffer))
+          case 'i16':
+            resultArray = new Int16Array(setview.buffer)
+            get = getview.getInt16.bind(getview)
+            set = setview.setInt16.bind(setview)
+            break
+          case 'i32':
+            resultArray = new Int32Array(setview.buffer)
+            get = getview.getInt32.bind(getview)
+            set = setview.setInt32.bind(setview)
+            break
+          case 'i64':
+            resultArray = new BigInt64Array(setview.buffer)
+            get = getview.getBigInt64.bind(getview)
+            set = setview.setBigInt64.bind(setview)
+            break
+          case 'f32':
+            resultArray = new Float32Array(setview.buffer)
+            get = getview.getFloat32.bind(getview)
+            set = setview.setFloat32.bind(setview)
+            break
+          case 'f64':
+            resultArray = new Float64Array(setview.buffer)
+            get = getview.getFloat64.bind(getview)
+            set = setview.setFloat64.bind(setview)
+            break
+          default:
+            throw new Error('Unknown Inner Vector type ' + data.dtype)
+        }
+        for (let i = 0; i < arrayBuffer.length; i += resultArray.BYTES_PER_ELEMENT) {
+          set(i, get(i), isLittleEndian)
+        }
+        return neo4j.vector(resultArray)
+      }
     }
     console.log(`Type ${name} is not handle by cypherToNative`, c)
     const err = 'Unable to convert ' + c + ' to native type'
@@ -312,6 +395,30 @@ export default function CypherNativeBinders (neo4j) {
           authToken.parameters
         )
     }
+  }
+
+  function toHexString (byteArray) {
+    let string = ''
+    for (let i = 0; i < byteArray.length; i++) {
+      string += (('0' + byteArray[i].toString(16) + ' ').slice(-3))
+    }
+    return string.slice(0, -1)
+  }
+
+  function toByteArray (hexString) {
+    const result = []
+    for (let i = 0; i < hexString.length; i += 3) {
+      result.push(parseInt(hexString.substr(i, i + 2), 16))
+    }
+    console.log('RESULT: ' + result)
+    return Uint8Array.from(result)
+  }
+
+  function checkLittleEndian () {
+    const dataview = new DataView(new ArrayBuffer(2))
+    dataview.setInt16(0, 1000, true)
+    const typeArray = new Int16Array(dataview.buffer)
+    return typeArray[0] === 1000
   }
 
   this.valueResponse = valueResponse

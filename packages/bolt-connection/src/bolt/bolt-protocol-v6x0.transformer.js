@@ -37,27 +37,27 @@ function createVectorTransformer () {
       let typeMarker
       switch (vector.type) {
         case 'INT8':
-          typeMarker = Uint8Array.from([INT_8])
+          typeMarker = Int8Array.from([INT_8])
           set = dataview.setUint8.bind(dataview)
           break
         case 'INT16':
-          typeMarker = Uint8Array.from([INT_16])
+          typeMarker = Int8Array.from([INT_16])
           set = dataview.setUint16.bind(dataview)
           break
         case 'INT32':
-          typeMarker = Uint8Array.from([INT_32])
+          typeMarker = Int8Array.from([INT_32])
           set = dataview.setUint32.bind(dataview)
           break
         case 'INT64':
-          typeMarker = Uint8Array.from([INT_64])
+          typeMarker = Int8Array.from([INT_64])
           set = dataview.setBigInt64.bind(dataview)
           break
         case 'FLOAT32':
-          typeMarker = Uint8Array.from([FLOAT_32])
+          typeMarker = Int8Array.from([FLOAT_32])
           set = dataview.setFloat32.bind(dataview)
           break
         case 'FLOAT64':
-          typeMarker = Uint8Array.from([FLOAT_64])
+          typeMarker = Int8Array.from([FLOAT_64])
           set = dataview.setFloat64.bind(dataview)
           break
         default:
@@ -71,7 +71,7 @@ function createVectorTransformer () {
     },
     fromStructure: structure => {
       const isLittleEndian = checkLittleEndian()
-      const typeMarker = structure.fields[0][0]
+      const typeMarker = Uint8Array.from(structure.fields[0])[0]
       const arrayBuffer = structure.fields[1]
       const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
       const getview = new DataView(arrayBuffer.buffer)
