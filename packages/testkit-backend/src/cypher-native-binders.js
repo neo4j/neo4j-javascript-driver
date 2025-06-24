@@ -177,41 +177,51 @@ export default function CypherNativeBinders (neo4j) {
     }
 
     if (x.typedArray != null) {
+      const isLittleEndian = checkLittleEndian()
       let dtype = ''
-      const dataview = new DataView(new ArrayBuffer(x.typedArray.byteLength))
+      const setview = new DataView(new ArrayBuffer(x.typedArray.byteLength))
+      // we want exact byte accuracy, so we cannot simply get the valye from the typed array
+      const getview = new DataView(x.typedArray.buffer)
+      let get
       let set
       switch (x.type) {
         case 'INT8':
           dtype = 'i8'
-          set = dataview.setInt8.bind(dataview)
+          set = setview.setInt8.bind(setview)
+          get = getview.getInt8.bind(getview)
           break
         case 'INT16':
           dtype = 'i16'
-          set = dataview.setInt16.bind(dataview)
+          set = setview.setInt16.bind(setview)
+          get = getview.getInt16.bind(getview)
           break
         case 'INT32':
           dtype = 'i32'
-          set = dataview.setInt32.bind(dataview)
+          set = setview.setInt32.bind(setview)
+          get = getview.getInt32.bind(getview)
           break
         case 'INT64':
           dtype = 'i64'
-          set = dataview.setBigInt64.bind(dataview)
+          set = setview.setBigInt64.bind(setview)
+          get = getview.getBigInt64.bind(getview)
           break
         case 'FLOAT32':
           dtype = 'f32'
-          set = dataview.setFloat32.bind(dataview)
+          set = setview.setUint32.bind(setview)
+          get = getview.getUint32.bind(getview)
           break
         case 'FLOAT64':
           dtype = 'f64'
-          set = dataview.setFloat64.bind(dataview)
+          set = setview.setFloat64.bind(setview)
+          get = getview.getFloat64.bind(getview)
           break
         default:
-          break
+          throw new Error(`Vector is of unsupported type ${x.type}`)
       }
       for (let i = 0; i < x.typedArray.length; i++) {
-        set(i * x.typedArray.BYTES_PER_ELEMENT, x.typedArray[i])
+        set(i * x.typedArray.BYTES_PER_ELEMENT, get(i * x.typedArray.BYTES_PER_ELEMENT, isLittleEndian))
       }
-      const data = toHexString(new Uint8Array(dataview.buffer))
+      const data = toHexString(new Uint8Array(setview.buffer))
       return structResponse('CypherVector', { dtype, data })
     }
 
@@ -351,8 +361,9 @@ export default function CypherNativeBinders (neo4j) {
             break
           case 'f32':
             resultArray = new Float32Array(setview.buffer)
-            get = getview.getFloat32.bind(getview)
-            set = setview.setFloat32.bind(setview)
+            // Due to JS imprecision when working with float32, we will get incorrect byte values if using the float functions
+            get = getview.getUint32.bind(getview)
+            set = setview.setUint32.bind(setview)
             break
           case 'f64':
             resultArray = new Float64Array(setview.buffer)
@@ -410,7 +421,6 @@ export default function CypherNativeBinders (neo4j) {
     for (let i = 0; i < hexString.length; i += 3) {
       result.push(parseInt(hexString.substr(i, i + 2), 16))
     }
-    console.log('RESULT: ' + result)
     return Uint8Array.from(result)
   }
 

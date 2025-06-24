@@ -32,41 +32,51 @@ function createVectorTransformer () {
     signature: VECTOR,
     isTypeInstance: object => object instanceof Vector,
     toStructure: vector => {
-      const dataview = new DataView(new ArrayBuffer(vector.typedArray.byteLength))
+      const isLittleEndian = checkLittleEndian()
+      const setview = new DataView(new ArrayBuffer(vector.typedArray.byteLength))
+      // we want exact byte accuracy, so we cannot simply get the valye from the typed array
+      const getview = new DataView(vector.typedArray.buffer)
       let set
+      let get
       let typeMarker
       switch (vector.type) {
         case 'INT8':
           typeMarker = Int8Array.from([INT_8])
-          set = dataview.setUint8.bind(dataview)
+          set = setview.setInt8.bind(setview)
+          get = getview.getInt8.bind(getview)
           break
         case 'INT16':
           typeMarker = Int8Array.from([INT_16])
-          set = dataview.setUint16.bind(dataview)
+          set = setview.setInt16.bind(setview)
+          get = getview.getInt16.bind(getview)
           break
         case 'INT32':
           typeMarker = Int8Array.from([INT_32])
-          set = dataview.setUint32.bind(dataview)
+          set = setview.setInt32.bind(setview)
+          get = getview.getInt32.bind(getview)
           break
         case 'INT64':
           typeMarker = Int8Array.from([INT_64])
-          set = dataview.setBigInt64.bind(dataview)
+          set = setview.setBigInt64.bind(setview)
+          get = getview.getBigInt64.bind(getview)
           break
         case 'FLOAT32':
           typeMarker = Int8Array.from([FLOAT_32])
-          set = dataview.setFloat32.bind(dataview)
+          set = setview.setUint32.bind(setview)
+          get = getview.getUint32.bind(getview)
           break
         case 'FLOAT64':
           typeMarker = Int8Array.from([FLOAT_64])
-          set = dataview.setFloat64.bind(dataview)
+          set = setview.setFloat64.bind(setview)
+          get = getview.getFloat64.bind(getview)
           break
         default:
           throw newError(`Vector is of unsupported type ${vector.type}`)
       }
       for (let i = 0; i < vector.typedArray.length; i++) {
-        set(i * vector.typedArray.BYTES_PER_ELEMENT, vector.typedArray[i])
+        set(i * vector.typedArray.BYTES_PER_ELEMENT, get(i * vector.typedArray.BYTES_PER_ELEMENT, isLittleEndian))
       }
-      const struct = new structure.Structure(VECTOR, [typeMarker, new Int8Array(dataview.buffer)])
+      const struct = new structure.Structure(VECTOR, [typeMarker, new Int8Array(setview.buffer)])
       return struct
     },
     fromStructure: structure => {
@@ -98,8 +108,9 @@ function createVectorTransformer () {
           break
         case FLOAT_32:
           resultArray = new Float32Array(setview.buffer)
-          get = getview.getFloat32.bind(getview)
-          set = setview.setFloat32.bind(setview)
+          // Due to JS imprecision when working with float32, we will get incorrect byte values if using the float functions
+          get = getview.getUint32.bind(getview)
+          set = setview.setUint32.bind(setview)
           break
         case FLOAT_64:
           resultArray = new Float64Array(setview.buffer)
