@@ -1,6 +1,6 @@
 {
   "testkit": {
     "uri": "https://github.com/neo4j-drivers/testkit.git",
-    "ref": "connection-acquisition-6x-change"
+    "ref": "6.x"
   }
 }
