@@ -179,50 +179,77 @@ export default function CypherNativeBinders (neo4j) {
     if (x.typedArray != null) {
       const isLittleEndian = checkLittleEndian()
       let dtype = ''
-      const setview = new DataView(new ArrayBuffer(x.typedArray.byteLength))
-      // we want exact byte accuracy, so we cannot simply get the valye from the typed array
-      const getview = new DataView(x.typedArray.buffer)
-      let get
-      let set
-      switch (x.type) {
-        case 'INT8':
-          dtype = 'i8'
-          set = setview.setInt8.bind(setview)
-          get = getview.getInt8.bind(getview)
-          break
-        case 'INT16':
-          dtype = 'i16'
-          set = setview.setInt16.bind(setview)
-          get = getview.getInt16.bind(getview)
-          break
-        case 'INT32':
-          dtype = 'i32'
-          set = setview.setInt32.bind(setview)
-          get = getview.getInt32.bind(getview)
-          break
-        case 'INT64':
-          dtype = 'i64'
-          set = setview.setBigInt64.bind(setview)
-          get = getview.getBigInt64.bind(getview)
-          break
-        case 'FLOAT32':
-          dtype = 'f32'
-          set = setview.setUint32.bind(setview)
-          get = getview.getUint32.bind(getview)
-          break
-        case 'FLOAT64':
-          dtype = 'f64'
-          set = setview.setBigInt64.bind(setview)
-          get = getview.getBigInt64.bind(getview)
-          break
-        default:
-          throw new Error(`Vector is of unsupported type ${x.type}`)
+      if (isLittleEndian) {
+        const setview = new DataView(new ArrayBuffer(x.typedArray.byteLength))
+        // we want exact byte accuracy, so we cannot simply get the valye from the typed array
+        const getview = new DataView(x.typedArray.buffer)
+        let get
+        let set
+        switch (x.type) {
+          case 'INT8':
+            dtype = 'i8'
+            set = setview.setInt8.bind(setview)
+            get = getview.getInt8.bind(getview)
+            break
+          case 'INT16':
+            dtype = 'i16'
+            set = setview.setInt16.bind(setview)
+            get = getview.getInt16.bind(getview)
+            break
+          case 'INT32':
+            dtype = 'i32'
+            set = setview.setInt32.bind(setview)
+            get = getview.getInt32.bind(getview)
+            break
+          case 'INT64':
+            dtype = 'i64'
+            set = setview.setBigInt64.bind(setview)
+            get = getview.getBigInt64.bind(getview)
+            break
+          case 'FLOAT32':
+            dtype = 'f32'
+            set = setview.setUint32.bind(setview)
+            get = getview.getUint32.bind(getview)
+            break
+          case 'FLOAT64':
+            dtype = 'f64'
+            set = setview.setBigInt64.bind(setview)
+            get = getview.getBigInt64.bind(getview)
+            break
+          default:
+            throw new Error(`Vector is of unsupported type ${x.type}`)
+        }
+        for (let i = 0; i < x.typedArray.length; i++) {
+          set(i * x.typedArray.BYTES_PER_ELEMENT, get(i * x.typedArray.BYTES_PER_ELEMENT, isLittleEndian))
+        }
+        const data = toHexString(new Uint8Array(setview.buffer))
+        return structResponse('CypherVector', { dtype, data })
+      } else {
+        switch (x.type) {
+          case 'INT8':
+            dtype = 'i8'
+            break
+          case 'INT16':
+            dtype = 'i16'
+            break
+          case 'INT32':
+            dtype = 'i32'
+            break
+          case 'INT64':
+            dtype = 'i64'
+            break
+          case 'FLOAT32':
+            dtype = 'f32'
+            break
+          case 'FLOAT64':
+            dtype = 'f64'
+            break
+          default:
+            throw new Error(`Vector is of unsupported type ${x.type}`)
+        }
+        const data = toHexString(new Uint8Array(x.typedArray.buffer))
+        return structResponse('CypherVector', { dtype, data })
       }
-      for (let i = 0; i < x.typedArray.length; i++) {
-        set(i * x.typedArray.BYTES_PER_ELEMENT, get(i * x.typedArray.BYTES_PER_ELEMENT, isLittleEndian))
-      }
-      const data = toHexString(new Uint8Array(setview.buffer))
-      return structResponse('CypherVector', { dtype, data })
     }
 
     // If all failed, interpret as a map
