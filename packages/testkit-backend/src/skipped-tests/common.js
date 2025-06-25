@@ -198,10 +198,6 @@ const skippedTests = [
   skip(
     'Needs trying all DNS resolved addresses for hosts in the routing table',
     ifEndsWith('.test_ipv6_read').and(startsWith('stub.routing.test_routing_'))
-  ),
-  skip(
-    'Driver has separate timeouts for every connection it attempts to open. This will change in 6.0',
-    ifEquals('stub.homedb.test_homedb.TestHomeDbMixedCluster.test_connection_acquisition_timeout_during_fallback')
   )
 ]
 

@@ -89,6 +89,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(
       this._connectionPool
     )
+    this._startTime = 0
     this._hostNameResolver = hostNameResolver
     this._dnsResolver = new HostNameResolver()
     this._log = log
@@ -152,6 +153,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       (error, address, conn) => this._handleSecurityError(error, address, conn, context.database)
     )
 
+    this._startTime = new Date().getTime()
     let conn
     if (this.SSREnabled() && homeDb !== undefined && database === '') {
       const currentRoutingTable = this._routingTableRegistry.get(
@@ -205,7 +207,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
 
     try {
-      const connection = await this._connectionPool.acquire({ auth }, address)
+      const connection = await this._connectionPool.acquire({ auth, startTime: this._startTime }, address)
 
       if (auth) {
         await this._verifyStickyConnection({
@@ -585,7 +587,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   async _createSessionForRediscovery (routerAddress, bookmarks, impersonatedUser, auth) {
     try {
-      const connection = await this._connectionPool.acquire({ auth }, routerAddress)
+      const connection = await this._connectionPool.acquire({ auth, startTime: this._startTime }, routerAddress)
 
       if (auth) {
         await this._verifyStickyConnection({
