@@ -336,47 +336,66 @@ export default function CypherNativeBinders (neo4j) {
       case 'CypherVector': {
         const isLittleEndian = checkLittleEndian()
         const arrayBuffer = toByteArray(data.data)
-        const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
         const getview = new DataView(arrayBuffer.buffer)
-        let get
-        let set
-        let resultArray
-        switch (data.dtype) {
-          case 'i8':
-            return neo4j.vector(Int8Array.from(arrayBuffer))
-          case 'i16':
-            resultArray = new Int16Array(setview.buffer)
-            get = getview.getInt16.bind(getview)
-            set = setview.setInt16.bind(setview)
-            break
-          case 'i32':
-            resultArray = new Int32Array(setview.buffer)
-            get = getview.getInt32.bind(getview)
-            set = setview.setInt32.bind(setview)
-            break
-          case 'i64':
-            resultArray = new BigInt64Array(setview.buffer)
-            get = getview.getBigInt64.bind(getview)
-            set = setview.setBigInt64.bind(setview)
-            break
-          case 'f32':
-            resultArray = new Float32Array(setview.buffer)
-            // Due to JS imprecision when working with float32, we will get incorrect byte values if using the float functions
-            get = getview.getUint32.bind(getview)
-            set = setview.setUint32.bind(setview)
-            break
-          case 'f64':
-            resultArray = new Float64Array(setview.buffer)
-            get = getview.getBigInt64.bind(getview)
-            set = setview.setBigInt64.bind(setview)
-            break
-          default:
-            throw new Error('Unknown Inner Vector type ' + data.dtype)
+        if (isLittleEndian) {
+          const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
+          let get
+          let set
+          let resultArray
+          switch (data.dtype) {
+            case 'i8':
+              return neo4j.vector(Int8Array.from(arrayBuffer))
+            case 'i16':
+              resultArray = new Int16Array(setview.buffer)
+              get = getview.getInt16.bind(getview)
+              set = setview.setInt16.bind(setview)
+              break
+            case 'i32':
+              resultArray = new Int32Array(setview.buffer)
+              get = getview.getInt32.bind(getview)
+              set = setview.setInt32.bind(setview)
+              break
+            case 'i64':
+              resultArray = new BigInt64Array(setview.buffer)
+              get = getview.getBigInt64.bind(getview)
+              set = setview.setBigInt64.bind(setview)
+              break
+            case 'f32':
+              resultArray = new Float32Array(setview.buffer)
+              // Due to JS imprecision when working with float32, we will get incorrect byte values if using the float functions
+              get = getview.getUint32.bind(getview)
+              set = setview.setUint32.bind(setview)
+              break
+            case 'f64':
+              resultArray = new Float64Array(setview.buffer)
+              get = getview.getBigInt64.bind(getview)
+              set = setview.setBigInt64.bind(setview)
+              break
+            default:
+              throw new Error('Unknown Inner Vector type ' + data.dtype)
+          }
+          for (let i = 0; i < arrayBuffer.length; i += resultArray.BYTES_PER_ELEMENT) {
+            set(i, get(i), isLittleEndian)
+          }
+          return neo4j.vector(resultArray)
+        } else {
+          switch (data.dtype) {
+            case 'i8':
+              return neo4j.vector(Int8Array.from(arrayBuffer))
+            case 'i16':
+              return neo4j.vector(new Int16Array(getview.buffer))
+            case 'i32':
+              return neo4j.vector(new Int32Array(getview.buffer))
+            case 'i64':
+              return neo4j.vector(new BigInt64Array(getview.buffer))
+            case 'f32':
+              return neo4j.vector(new Float32Array(getview.buffer))
+            case 'f64':
+              return neo4j.vector(new Float64Array(getview.buffer))
+            default:
+              throw new Error('Unknown Inner Vector type ' + data.dtype)
+          }
         }
-        for (let i = 0; i < arrayBuffer.length; i += resultArray.BYTES_PER_ELEMENT) {
-          set(i, get(i), isLittleEndian)
-        }
-        return neo4j.vector(resultArray)
       }
     }
     console.log(`Type ${name} is not handle by cypherToNative`, c)

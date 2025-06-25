@@ -18,7 +18,7 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 
-describe('#integration vector type api suggestion', () => {
+describe('#integration vector type', () => {
   let driverGlobal
   let protocolVersion
   const uri = `bolt://${sharedNeo4j.hostnameWithBoltPort}`
