@@ -83,47 +83,72 @@ function createVectorTransformer () {
       const isLittleEndian = checkLittleEndian()
       const typeMarker = Uint8Array.from(structure.fields[0])[0]
       const arrayBuffer = structure.fields[1]
-      const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
       const getview = new DataView(arrayBuffer.buffer)
-      let get
-      let set
-      let resultArray
-      switch (typeMarker) {
-        case INT_8:
-          return new Vector(Int8Array.from(arrayBuffer))
-        case INT_16:
-          resultArray = new Int16Array(setview.buffer)
-          get = getview.getInt16.bind(getview)
-          set = setview.setInt16.bind(setview)
-          break
-        case INT_32:
-          resultArray = new Int32Array(setview.buffer)
-          get = getview.getInt32.bind(getview)
-          set = setview.setInt32.bind(setview)
-          break
-        case INT_64:
-          resultArray = new BigInt64Array(setview.buffer)
-          get = getview.getBigInt64.bind(getview)
-          set = setview.setBigInt64.bind(setview)
-          break
-        case FLOAT_32:
-          resultArray = new Float32Array(setview.buffer)
-          // Due to JS imprecision when working with float32, we will get incorrect byte values if using the float functions
-          get = getview.getUint32.bind(getview)
-          set = setview.setUint32.bind(setview)
-          break
-        case FLOAT_64:
-          resultArray = new Float64Array(setview.buffer)
-          get = getview.getBigInt64.bind(getview)
-          set = setview.setBigInt64.bind(setview)
-          break
-        default:
-          throw newError(`Recieved Vector of unknown type ${typeMarker}`)
+      if (isLittleEndian) {
+        const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
+        let get
+        let set
+        let resultArray
+        switch (typeMarker) {
+          case INT_8:
+            return new Vector(Int8Array.from(arrayBuffer))
+          case INT_16:
+            resultArray = new Int16Array(setview.buffer)
+            get = getview.getInt16.bind(getview)
+            set = setview.setInt16.bind(setview)
+            break
+          case INT_32:
+            resultArray = new Int32Array(setview.buffer)
+            get = getview.getInt32.bind(getview)
+            set = setview.setInt32.bind(setview)
+            break
+          case INT_64:
+            resultArray = new BigInt64Array(setview.buffer)
+            get = getview.getBigInt64.bind(getview)
+            set = setview.setBigInt64.bind(setview)
+            break
+          case FLOAT_32:
+            if (!isLittleEndian) {
+              return new Float64Array(getview.buffer)
+            }
+            resultArray = new Float32Array(setview.buffer)
+            // Due to JS imprecision when working with float32, we will get incorrect byte values if using the float functions
+            get = getview.getUint32.bind(getview)
+            set = setview.setUint32.bind(setview)
+            break
+          case FLOAT_64:
+            if (!isLittleEndian) {
+              return new Float64Array(getview.buffer)
+            }
+            resultArray = new Float64Array(setview.buffer)
+            get = getview.getBigInt64.bind(getview)
+            set = setview.setBigInt64.bind(setview)
+            break
+          default:
+            throw newError(`Recieved Vector of unknown type ${typeMarker}`)
+        }
+        for (let i = 0; i < arrayBuffer.length; i += resultArray.BYTES_PER_ELEMENT) {
+          set(i, get(i), isLittleEndian)
+        }
+        return new Vector(resultArray)
+      } else {
+        switch (typeMarker) {
+          case INT_8:
+            return new Vector(Int8Array.from(arrayBuffer))
+          case INT_16:
+            return new Vector(new Int16Array(getview.buffer))
+          case INT_32:
+            return new Vector(new Int32Array(getview.buffer))
+          case INT_64:
+            return new Vector(new BigInt64Array(getview.buffer))
+          case FLOAT_32:
+            return new Vector(new Float32Array(getview.buffer))
+          case FLOAT_64:
+            return new Vector(new Float64Array(getview.buffer))
+          default:
+            throw newError(`Recieved Vector of unknown type ${typeMarker}`)
+        }
       }
-      for (let i = 0; i < arrayBuffer.length; i += resultArray.BYTES_PER_ELEMENT) {
-        set(i, get(i), isLittleEndian)
-      }
-      return new Vector(resultArray)
     }
   })
 }
