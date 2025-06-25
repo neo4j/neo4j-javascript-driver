@@ -212,8 +212,8 @@ export default function CypherNativeBinders (neo4j) {
           break
         case 'FLOAT64':
           dtype = 'f64'
-          set = setview.setFloat64.bind(setview)
-          get = getview.getFloat64.bind(getview)
+          set = setview.setBigInt64.bind(setview)
+          get = getview.getBigInt64.bind(getview)
           break
         default:
           throw new Error(`Vector is of unsupported type ${x.type}`)
@@ -367,8 +367,8 @@ export default function CypherNativeBinders (neo4j) {
             break
           case 'f64':
             resultArray = new Float64Array(setview.buffer)
-            get = getview.getFloat64.bind(getview)
-            set = setview.setFloat64.bind(setview)
+            get = getview.getBigInt64.bind(getview)
+            set = setview.setBigInt64.bind(setview)
             break
           default:
             throw new Error('Unknown Inner Vector type ' + data.dtype)

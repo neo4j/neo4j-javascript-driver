@@ -67,8 +67,8 @@ function createVectorTransformer () {
           break
         case 'FLOAT64':
           typeMarker = Int8Array.from([FLOAT_64])
-          set = setview.setFloat64.bind(setview)
-          get = getview.getFloat64.bind(getview)
+          set = setview.setBigInt64.bind(setview)
+          get = getview.getBigInt64.bind(getview)
           break
         default:
           throw newError(`Vector is of unsupported type ${vector.type}`)
@@ -114,8 +114,8 @@ function createVectorTransformer () {
           break
         case FLOAT_64:
           resultArray = new Float64Array(setview.buffer)
-          get = getview.getFloat64.bind(getview)
-          set = setview.setFloat64.bind(setview)
+          get = getview.getBigInt64.bind(getview)
+          set = setview.setBigInt64.bind(setview)
           break
         default:
           throw newError(`Recieved Vector of unknown type ${typeMarker}`)
