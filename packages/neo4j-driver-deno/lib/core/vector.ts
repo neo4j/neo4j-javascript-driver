@@ -65,6 +65,10 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
     this.typedArray = typedArray
   }
 
+  /**
+   * Converts the Vector back to a typedArray
+   * @returns {Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array} - a TypedArray of the Vectors type.
+   */
   toTypedArray (): K {
     return this.typedArray
   }
