@@ -80,6 +80,7 @@ import {
   clientCertificateProviders,
   resolveCertificateProvider,
   Vector,
+  VectorType,
   vector
 } from 'neo4j-driver-core'
 import {
@@ -285,7 +286,8 @@ const types = {
   LocalTime,
   Time,
   Integer,
-  Vector
+  Vector,
+  VectorType
 }
 
 /**
@@ -480,6 +482,7 @@ export {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   vector,
-  Vector
+  Vector,
+  VectorType
 }
 export default forExport

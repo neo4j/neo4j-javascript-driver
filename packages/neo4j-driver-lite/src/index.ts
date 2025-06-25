@@ -108,7 +108,10 @@ import {
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
   clientCertificateProviders,
-  resolveCertificateProvider
+  resolveCertificateProvider,
+  vector,
+  VectorType,
+  Vector
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -206,6 +209,7 @@ function driver (
       routing = true
       break
     default:
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw new Error(`Unknown scheme: ${parsedUrl.scheme ?? 'null'}`)
   }
 
@@ -258,6 +262,7 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!isEmptyObjectOrNull(parsedUrl.query)) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
@@ -439,7 +444,9 @@ const forExport = {
   notificationFilterDisabledCategory,
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
-  clientCertificateProviders
+  clientCertificateProviders,
+  Vector,
+  vector
 }
 
 export {
@@ -510,7 +517,8 @@ export {
   notificationFilterDisabledCategory,
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
-  clientCertificateProviders
+  clientCertificateProviders,
+  vector
 }
 export type {
   QueryResult,
@@ -541,6 +549,8 @@ export type {
   ClientCertificate,
   ClientCertificateProvider,
   ClientCertificateProviders,
-  RotatingClientCertificateProvider
+  RotatingClientCertificateProvider,
+  Vector,
+  VectorType
 }
 export default forExport
