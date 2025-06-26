@@ -27,157 +27,97 @@ const INT_16 = 0xc9
 const INT_32 = 0xca
 const INT_64 = 0xcb
 
+const typeToTypeMarker = {
+  INT8: INT_8,
+  INT16: INT_16,
+  INT32: INT_32,
+  INT64: INT_64,
+  FLOAT32: FLOAT_32,
+  FLOAT64: FLOAT_64
+}
+
 function createVectorTransformer () {
   return new TypeTransformer({
     signature: VECTOR,
     isTypeInstance: object => object instanceof Vector,
     toStructure: vector => {
-      const isLittleEndian = checkLittleEndian()
-      let typeMarker
-      if (isLittleEndian) {
-        const setview = new DataView(new ArrayBuffer(vector.typedArray.byteLength))
-        // we want exact byte accuracy, so we cannot simply get the valye from the typed array
-        const getview = new DataView(vector.typedArray.buffer)
-        let set
-        let get
-        switch (vector.type) {
-          case 'INT8':
-            typeMarker = Int8Array.from([INT_8])
-            set = setview.setInt8.bind(setview)
-            get = getview.getInt8.bind(getview)
-            break
-          case 'INT16':
-            typeMarker = Int8Array.from([INT_16])
-            set = setview.setInt16.bind(setview)
-            get = getview.getInt16.bind(getview)
-            break
-          case 'INT32':
-            typeMarker = Int8Array.from([INT_32])
-            set = setview.setInt32.bind(setview)
-            get = getview.getInt32.bind(getview)
-            break
-          case 'INT64':
-            typeMarker = Int8Array.from([INT_64])
-            set = setview.setBigInt64.bind(setview)
-            get = getview.getBigInt64.bind(getview)
-            break
-          case 'FLOAT32':
-            typeMarker = Int8Array.from([FLOAT_32])
-            set = setview.setUint32.bind(setview)
-            get = getview.getUint32.bind(getview)
-            break
-          case 'FLOAT64':
-            typeMarker = Int8Array.from([FLOAT_64])
-            set = setview.setBigInt64.bind(setview)
-            get = getview.getBigInt64.bind(getview)
-            break
-          default:
-            throw newError(`Vector is of unsupported type ${vector.type}`)
-        }
-        for (let i = 0; i < vector.typedArray.length; i++) {
-          set(i * vector.typedArray.BYTES_PER_ELEMENT, get(i * vector.typedArray.BYTES_PER_ELEMENT, isLittleEndian))
-        }
-        const struct = new structure.Structure(VECTOR, [typeMarker, new Int8Array(setview.buffer)])
-        return struct
-      } else {
-        switch (vector.type) {
-          case 'INT8':
-            typeMarker = Int8Array.from([INT_8])
-            break
-          case 'INT16':
-            typeMarker = Int8Array.from([INT_16])
-            break
-          case 'INT32':
-            typeMarker = Int8Array.from([INT_32])
-            break
-          case 'INT64':
-            typeMarker = Int8Array.from([INT_64])
-            break
-          case 'FLOAT32':
-            typeMarker = Int8Array.from([FLOAT_32])
-            break
-          case 'FLOAT64':
-            typeMarker = Int8Array.from([FLOAT_64])
-            break
-          default:
-            throw newError(`Vector is of unsupported type ${vector.type}`)
-        }
-        const struct = new structure.Structure(VECTOR, [typeMarker, new Int8Array(vector.typedArray.buffer)])
-        return struct
-      }
+      const typeMarker = typeToTypeMarker[vector.type]
+      const buffer = fixBufferEndianness(typeMarker, vector.typedArray.buffer)
+      const struct = new structure.Structure(VECTOR, [Int8Array.from([typeMarker]), new Int8Array(buffer)])
+      return struct
     },
     fromStructure: structure => {
-      const isLittleEndian = checkLittleEndian()
       const typeMarker = Uint8Array.from(structure.fields[0])[0]
-      const arrayBuffer = structure.fields[1]
-      const getview = new DataView(arrayBuffer.buffer)
-      if (isLittleEndian) {
-        const setview = new DataView(new ArrayBuffer(arrayBuffer.byteLength))
-        let get
-        let set
-        let resultArray
-        switch (typeMarker) {
-          case INT_8:
-            return new Vector(Int8Array.from(arrayBuffer))
-          case INT_16:
-            resultArray = new Int16Array(setview.buffer)
-            get = getview.getInt16.bind(getview)
-            set = setview.setInt16.bind(setview)
-            break
-          case INT_32:
-            resultArray = new Int32Array(setview.buffer)
-            get = getview.getInt32.bind(getview)
-            set = setview.setInt32.bind(setview)
-            break
-          case INT_64:
-            resultArray = new BigInt64Array(setview.buffer)
-            get = getview.getBigInt64.bind(getview)
-            set = setview.setBigInt64.bind(setview)
-            break
-          case FLOAT_32:
-            if (!isLittleEndian) {
-              return new Float64Array(getview.buffer)
-            }
-            resultArray = new Float32Array(setview.buffer)
-            // Due to JS imprecision when working with float32, we will get incorrect byte values if using the float functions
-            get = getview.getUint32.bind(getview)
-            set = setview.setUint32.bind(setview)
-            break
-          case FLOAT_64:
-            if (!isLittleEndian) {
-              return new Float64Array(getview.buffer)
-            }
-            resultArray = new Float64Array(setview.buffer)
-            get = getview.getBigInt64.bind(getview)
-            set = setview.setBigInt64.bind(setview)
-            break
-          default:
-            throw newError(`Recieved Vector of unknown type ${typeMarker}`)
-        }
-        for (let i = 0; i < arrayBuffer.length; i += resultArray.BYTES_PER_ELEMENT) {
-          set(i, get(i), isLittleEndian)
-        }
-        return new Vector(resultArray)
-      } else {
-        switch (typeMarker) {
-          case INT_8:
-            return new Vector(Int8Array.from(arrayBuffer))
-          case INT_16:
-            return new Vector(new Int16Array(getview.buffer))
-          case INT_32:
-            return new Vector(new Int32Array(getview.buffer))
-          case INT_64:
-            return new Vector(new BigInt64Array(getview.buffer))
-          case FLOAT_32:
-            return new Vector(new Float32Array(getview.buffer))
-          case FLOAT_64:
-            return new Vector(new Float64Array(getview.buffer))
-          default:
-            throw newError(`Recieved Vector of unknown type ${typeMarker}`)
-        }
+      const byteArray = structure.fields[1]
+      const buffer = fixBufferEndianness(typeMarker, byteArray.buffer)
+      switch (typeMarker) {
+        case INT_8:
+          return new Vector(new Int8Array(buffer))
+        case INT_16:
+          return new Vector(new Int16Array(buffer))
+        case INT_32:
+          return new Vector(new Int32Array(buffer))
+        case INT_64:
+          return new Vector(new BigInt64Array(buffer))
+        case FLOAT_32:
+          return new Vector(new Float32Array(buffer))
+        case FLOAT_64:
+          return new Vector(new Float64Array(buffer))
       }
     }
   })
+}
+
+function fixBufferEndianness (typeMarker, buffer) {
+  const isLittleEndian = checkLittleEndian()
+  if (isLittleEndian) {
+    const setview = new DataView(new ArrayBuffer(buffer.byteLength))
+    // we want exact byte accuracy, so we cannot simply get the value from the typed array
+    const getview = new DataView(buffer)
+    let set
+    let get
+    let elementSize
+    switch (typeMarker) {
+      case INT_8:
+        elementSize = 1
+        set = setview.setInt8.bind(setview)
+        get = getview.getInt8.bind(getview)
+        break
+      case INT_16:
+        elementSize = 2
+        set = setview.setInt16.bind(setview)
+        get = getview.getInt16.bind(getview)
+        break
+      case INT_32:
+        elementSize = 4
+        set = setview.setInt32.bind(setview)
+        get = getview.getInt32.bind(getview)
+        break
+      case INT_64:
+        elementSize = 8
+        set = setview.setBigInt64.bind(setview)
+        get = getview.getBigInt64.bind(getview)
+        break
+      case FLOAT_32:
+        elementSize = 4
+        set = setview.setUint32.bind(setview)
+        get = getview.getUint32.bind(getview)
+        break
+      case FLOAT_64:
+        elementSize = 8
+        set = setview.setBigInt64.bind(setview)
+        get = getview.getBigInt64.bind(getview)
+        break
+      default:
+        throw newError(`Vector is of unsupported type ${typeMarker}`)
+    }
+    for (let i = 0; i < buffer.byteLength; i += elementSize) {
+      set(i, get(i, isLittleEndian))
+    }
+    return setview.buffer
+  } else {
+    return buffer
+  }
 }
 
 function checkLittleEndian () {
