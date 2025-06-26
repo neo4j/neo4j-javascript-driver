@@ -23,7 +23,8 @@ import {
   UnboundRelationship,
   Path,
   toNumber,
-  PathSegment
+  PathSegment,
+  Vector
 } from 'neo4j-driver-core'
 
 import { structure } from '../packstream'
@@ -42,6 +43,8 @@ const UNBOUND_RELATIONSHIP_STRUCT_SIZE = 3
 
 const PATH = 0x50
 const PATH_STRUCT_SIZE = 3
+
+const VECTOR = 0x56
 
 /**
  * Creates the Node Transformer
@@ -177,9 +180,27 @@ function createPathTransformer () {
   })
 }
 
+/**
+ * Creates a typeTransformer that throws errors if vectors are transmitted.
+ * @returns {TypeTransformer}
+ */
+function createVectorTransformer () {
+  return new TypeTransformer({
+    signature: VECTOR,
+    isTypeInstance: object => object instanceof Vector,
+    toStructure: _ => {
+      throw newError('Sending vector types require server and driver to be communicating with Bolt protocol 6.0 or later. Please update your database version.')
+    },
+    fromStructure: _ => {
+      throw newError('Server tried to send Vector object, but server and driver are communicating on a version of the Bolt protocol that does not support vectors.')
+    }
+  })
+}
+
 export default {
   createNodeTransformer,
   createRelationshipTransformer,
   createUnboundRelationshipTransformer,
-  createPathTransformer
+  createPathTransformer,
+  createVectorTransformer
 }

@@ -30,7 +30,9 @@ import {
   Relationship,
   Time,
   UnboundRelationship,
-  Node
+  Node,
+  newError,
+  Vector
 } from 'neo4j-driver-core'
 import utils from '../test-utils'
 import { LoginObserver } from '../../src/bolt/stream-observers'
@@ -444,6 +446,19 @@ describe('#unit BoltProtocolV1', () => {
       expect(unpacked).toBeInstanceOf(Object)
       expect(unpacked).toMatchSnapshot()
     })
+
+    it('Should error out when trying to pack a Vector', () => {
+      const object = new Vector(Int16Array.from([1, 2, 3]))
+      const buffer = alloc(256)
+      const protocol = new BoltProtocolV1(
+        new utils.MessageRecordingConnection(),
+        buffer,
+        false
+      )
+      const packable = protocol.packable(object)
+      expect(packable).toThrow(newError('Sending vector types require server and driver to be communicating with Bolt protocol 6.0 or later. Please update your database version.'))
+      buffer.reset()
+    })
   })
 
   describe('.unpack()', () => {
@@ -620,6 +635,24 @@ describe('#unit BoltProtocolV1', () => {
 
       const unpacked = protocol.unpack(buffer)
       expect(unpacked).toEqual(struct)
+    })
+
+    it('should error out of unpacking Vectors', () => {
+      const struct = new structure.Structure(0x56, [Int8Array.from([0xc8]), Int8Array.from([1, 2, 3])])
+      const buffer = alloc(256)
+      const protocol = new BoltProtocolV1(
+        new utils.MessageRecordingConnection(),
+        buffer,
+        false
+      )
+      const packable = protocol.packable(struct)
+
+      expect(packable).not.toThrow()
+
+      buffer.reset()
+
+      const unpacked = protocol.unpack(buffer)
+      expect(() => unpacked instanceof structure.Structure).toThrowErrorMatchingSnapshot()
     })
   })
 

@@ -1,13 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`#unit BoltProtocolV1 .packable() should resultant function not pack graph types (Node) 1`] = `"It is not allowed to pass nodes in query parameters, given: (c:a {a:"b"})"`;
-
-exports[`#unit BoltProtocolV1 .packable() should resultant function not pack graph types (Path) 1`] = `"It is not allowed to pass paths in query parameters, given: [object Object]"`;
-
-exports[`#unit BoltProtocolV1 .packable() should resultant function not pack graph types (Relationship) 1`] = `"It is not allowed to pass relationships in query parameters, given: (e)-[:a {b:"c"}]->(f)"`;
-
-exports[`#unit BoltProtocolV1 .packable() should resultant function not pack graph types (UnboundRelationship) 1`] = `"It is not allowed to pass unbound relationships in query parameters, given: -[:a {b:"c"}]->"`;
-
 exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (Date) 1`] = `
 {
   "day": 1,
@@ -85,6 +77,16 @@ exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterward
   "timeZoneOffsetSeconds": 1,
 }
 `;
+
+exports[`#unit BoltProtocolV1 .packable() should resultant function not pack graph types (Node) 1`] = `"It is not allowed to pass nodes in query parameters, given: (c:a {a:"b"})"`;
+
+exports[`#unit BoltProtocolV1 .packable() should resultant function not pack graph types (Path) 1`] = `"It is not allowed to pass paths in query parameters, given: [object Object]"`;
+
+exports[`#unit BoltProtocolV1 .packable() should resultant function not pack graph types (Relationship) 1`] = `"It is not allowed to pass relationships in query parameters, given: (e)-[:a {b:"c"}]->(f)"`;
+
+exports[`#unit BoltProtocolV1 .packable() should resultant function not pack graph types (UnboundRelationship) 1`] = `"It is not allowed to pass unbound relationships in query parameters, given: -[:a {b:"c"}]->"`;
+
+exports[`#unit BoltProtocolV1 .unpack() should error out of unpacking Vectors 1`] = `"Server tried to send Vector object, but server and driver are communicating on a version of the Bolt protocol that does not support vectors."`;
 
 exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(Node with less fields) 1`] = `"Wrong struct size for Node, expected 3 but was 2"`;
 
