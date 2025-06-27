@@ -398,8 +398,8 @@ export default function CypherNativeBinders (neo4j) {
           break
         case 'f32':
           elementSize = 4
-          set = setview.setUint32.bind(setview)
-          get = getview.getUint32.bind(getview)
+          set = setview.setInt32.bind(setview)
+          get = getview.getInt32.bind(getview)
           break
         case 'f64':
           elementSize = 8
