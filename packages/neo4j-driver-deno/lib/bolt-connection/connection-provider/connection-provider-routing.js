@@ -161,7 +161,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         () => new RoutingTable({ database: homeDb })
       )
       if (currentRoutingTable && !currentRoutingTable.isStaleFor(accessMode)) {
-        conn = await this.getConnectionFromRoutingTable(currentRoutingTable, auth, accessMode, databaseSpecificErrorHandler)
+        conn = await this._getConnectionFromRoutingTable(currentRoutingTable, auth, accessMode, databaseSpecificErrorHandler)
         if (this.SSREnabled()) {
           return conn
         }
@@ -181,10 +181,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         }
       }
     })
-    return this.getConnectionFromRoutingTable(routingTable, auth, accessMode, databaseSpecificErrorHandler)
+    return this._getConnectionFromRoutingTable(routingTable, auth, accessMode, databaseSpecificErrorHandler)
   }
 
-  async getConnectionFromRoutingTable (routingTable, auth, accessMode, databaseSpecificErrorHandler) {
+  async _getConnectionFromRoutingTable (routingTable, auth, accessMode, databaseSpecificErrorHandler) {
     let name
     let address
     // select a target server based on specified access mode
@@ -290,6 +290,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   }
 
   async verifyAuthentication ({ database, accessMode, auth }) {
+    this._startTime = new Date().getTime()
     return this._verifyAuthentication({
       auth,
       getAddress: async () => {
@@ -320,6 +321,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   async verifyConnectivityAndGetServerInfo ({ database, accessMode }) {
     const context = { database: database || DEFAULT_DB_NAME }
+    this._startTime = new Date().getTime()
 
     const routingTable = await this._freshRoutingTable({
       accessMode,
