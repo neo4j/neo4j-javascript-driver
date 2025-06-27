@@ -122,7 +122,7 @@ class Pool<R extends unknown = unknown> {
     if (elapsedTime >= this._acquisitionTimeout) {
       throw this.getAcquisitionTimeoutError(address)
     }
-    
+
     if (requests == null) {
       allRequests[key] = []
     }
@@ -159,13 +159,13 @@ class Pool<R extends unknown = unknown> {
     })
   }
 
-  getAcquisitionTimeoutError(address: ServerAddress): Neo4jError  {
+  getAcquisitionTimeoutError (address: ServerAddress): Neo4jError {
     const key = address.asKey()
     const activeCount = this.activeResourceCount(address)
     const idleCount = this.has(address) ? this._pools[key].length : 0
     return newError(
         `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
-      )
+    )
   }
 
   /**
