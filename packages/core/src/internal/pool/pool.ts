@@ -16,7 +16,7 @@
  */
 
 import PoolConfig from './pool-config'
-import { newError } from '../../error'
+import { Neo4jError, newError } from '../../error'
 import { Logger } from '../logger'
 import { ServerAddress } from '../server-address'
 
@@ -119,6 +119,10 @@ class Pool<R extends unknown = unknown> {
     const allRequests = this._acquireRequests
     const requests = allRequests[key]
     const elapsedTime = (acquisitionContext.startTime != null && acquisitionContext.startTime !== 0) ? new Date().getTime() - acquisitionContext.startTime : 0
+    if (elapsedTime >= this._acquisitionTimeout) {
+      throw this.getAcquisitionTimeoutError(address)
+    }
+
     if (requests == null) {
       allRequests[key] = []
     }
@@ -137,12 +141,8 @@ class Pool<R extends unknown = unknown> {
           // request already resolved/rejected by the release operation; nothing to do
         } else {
           // request is still pending and needs to be failed
-          const activeCount = this.activeResourceCount(address)
-          const idleCount = this.has(address) ? this._pools[key].length : 0
           request.reject(
-            newError(
-              `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
-            )
+            this.getAcquisitionTimeoutError(address)
           )
         }
       }, this._acquisitionTimeout - elapsedTime)
@@ -157,6 +157,15 @@ class Pool<R extends unknown = unknown> {
       allRequests[key].push(request)
       this._processPendingAcquireRequests(address)
     })
+  }
+
+  getAcquisitionTimeoutError (address: ServerAddress): Neo4jError {
+    const key = address.asKey()
+    const activeCount = this.activeResourceCount(address)
+    const idleCount = this.has(address) ? this._pools[key].length : 0
+    return newError(
+        `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
+    )
   }
 
   /**
