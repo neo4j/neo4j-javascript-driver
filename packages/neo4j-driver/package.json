@@ -1,6 +1,6 @@
 {
   "name": "neo4j-driver",
-  "version": "5.0.0-dev",
+  "version": "6.0.0-dev",
   "description": "The official Neo4j driver for Javascript",
   "author": "Neo4j",
   "license": "Apache-2.0",
@@ -80,8 +80,8 @@
     "webpack": "^5.89.0"
   },
   "dependencies": {
-    "neo4j-driver-bolt-connection": "5.0.0-dev",
-    "neo4j-driver-core": "5.0.0-dev",
+    "neo4j-driver-bolt-connection": "6.0.0-dev",
+    "neo4j-driver-core": "6.0.0-dev",
     "rxjs": "^7.8.1"
   }
 }
