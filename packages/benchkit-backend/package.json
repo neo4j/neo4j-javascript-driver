@@ -1,6 +1,6 @@
 {
   "name": "benchkit-backend",
-  "version": "5.0.0-dev",
+  "version": "6.0.0-dev",
   "description": "The Neo4j Driver Benchkit Backend",
   "main": "src/index.js",
   "private": true,
@@ -29,6 +29,6 @@
   "dependencies": {
     "express": "^4.18.2",
     "http-status-codes": "^2.3.0",
-    "neo4j-driver": "5.0.0-dev"
+    "neo4j-driver": "6.0.0-dev"
   }
 }

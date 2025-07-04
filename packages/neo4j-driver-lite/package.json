@@ -1,6 +1,6 @@
 {
   "name": "neo4j-driver-lite",
-  "version": "5.0.0-dev",
+  "version": "6.0.0-dev",
   "description": "The official Neo4j lite driver for Javascript",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
@@ -61,7 +61,7 @@
     "ws": "^8.14.2"
   },
   "dependencies": {
-    "neo4j-driver-bolt-connection": "5.0.0-dev",
-    "neo4j-driver-core": "5.0.0-dev"
+    "neo4j-driver-bolt-connection": "6.0.0-dev",
+    "neo4j-driver-core": "6.0.0-dev"
   }
 }

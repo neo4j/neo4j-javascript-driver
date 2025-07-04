@@ -1,6 +1,6 @@
 {
   "name": "neo4j-driver-deno",
-  "version": "5.0.0-dev",
+  "version": "6.0.0-dev",
   "description": "Package just used for running scripts",
   "private": true,
   "main": "index.js",

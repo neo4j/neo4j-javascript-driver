@@ -1,6 +1,6 @@
 {
   "name": "testkit-backend",
-  "version": "5.0.0-dev",
+  "version": "6.0.0-dev",
   "description": "Backend for the testkit test framework",
   "main": "src/main.js",
   "private": true,
@@ -32,8 +32,8 @@
   },
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "dependencies": {
-    "neo4j-driver": "5.0.0-dev",
-    "neo4j-driver-lite": "5.0.0-dev",
+    "neo4j-driver": "6.0.0-dev",
+    "neo4j-driver-lite": "6.0.0-dev",
     "ws": "^8.11.0"
   },
   "devDependencies": {
