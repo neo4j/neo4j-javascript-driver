@@ -77,7 +77,7 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
    * Gets the type of the Vector
    * @returns {VectorType} - The type of the vector, corresponding to the type of the wrapped TypedArray.
    */
-  getType(): VectorType {
+  getType (): VectorType {
     return this._type
   }
 }

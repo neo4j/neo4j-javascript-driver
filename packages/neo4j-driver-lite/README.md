@@ -412,7 +412,7 @@ driver.executeQuery('CREATE (n {embeddings: $myVectorParam})', { myVectorParam: 
 To access the data in a retrieved Vector you can do the following:
 
 ```javascript
-var retrievedTypedArray = neo4jVector.toTypedArray() //This will return a TypedArray of the same type as the Vector
+var retrievedTypedArray = neo4jVector.asTypedArray() //This will return a TypedArray of the same type as the Vector
 
 var retrievedArray = Array.from(retrievedTypedArray) //This will convert the TypedArray to a regular array of Numbers. (Not safe for Int64 arrays)
 ```

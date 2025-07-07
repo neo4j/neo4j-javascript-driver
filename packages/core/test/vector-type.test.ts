@@ -28,8 +28,8 @@ describe('Vector', () => {
       ['Float64Array', Float64Array.from([0]), 'FLOAT64']
     ])('should create vector from (%s)', (_, typedArray, expectedType) => {
       const vec = vector(typedArray)
-      expect(vec.type).toEqual(expectedType)
-      expect(vec.toTypedArray()).toEqual(typedArray)
+      expect(vec.getType()).toEqual(expectedType)
+      expect(vec.asTypedArray()).toEqual(typedArray)
     })
   })
 })
