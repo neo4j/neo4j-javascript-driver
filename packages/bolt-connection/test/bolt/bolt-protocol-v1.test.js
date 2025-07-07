@@ -447,7 +447,7 @@ describe('#unit BoltProtocolV1', () => {
       expect(unpacked).toMatchSnapshot()
     })
 
-    it('Should error out when trying to pack a Vector', () => {
+    it('should error out when trying to pack a Vector', () => {
       const object = new Vector(Int16Array.from([1, 2, 3]))
       const buffer = alloc(256)
       const protocol = new BoltProtocolV1(
