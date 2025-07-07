@@ -506,7 +506,7 @@ var driver = neo4j.driver(
 
 #### Writing and reading Vectors
 
-Neo4j supports storing vector embddings in a dedicated vector type. Sending large lists with the driver will result in significant overhead as each value will be transmitted with type information, so the 6.0.0 release of the driver introduced the neo4j Vector type.
+Neo4j supports storing vector embeddings in a dedicated vector type. Sending large lists with the driver will result in significant overhead as each value will be transmitted with type information, so the 6.0.0 release of the driver introduced the Neo4j Vector type.
 
 The Vector type supports signed integers of 8, 16, 32 and 64 bits, and floats of 32 and 64 bits. The Vector type is a wrapper for JavaScript TypedArrays of those types.
 
