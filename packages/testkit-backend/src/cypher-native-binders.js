@@ -176,9 +176,9 @@ export default function CypherNativeBinders (neo4j) {
       })
     }
 
-    if (x.typedArray != null) {
+    if (x.asTypedArray != null) {
       const dtype = typeToDType[x.type]
-      const buffer = fixBufferEndianness(dtype, x.typedArray.buffer)
+      const buffer = fixBufferEndianness(dtype, x.asTypedArray.buffer)
       const data = toHexString(new Uint8Array(buffer))
       return structResponse('CypherVector', { dtype, data })
     }

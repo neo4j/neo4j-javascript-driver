@@ -37,40 +37,48 @@ Object.freeze(vectorTypes)
  * A wrapper class for JavaScript TypedArrays that makes the driver send them as a Vector type to the database.
  * @access public
  * @exports Vector
- * @class A Integer class for representing a 64 bit two's-complement integer value.
+ * @class A Vector class that wraps a JavaScript TypedArray to enable writing/reading the Neo4j Vector type.
  * @param {Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array} typedArray The TypedArray to convert to a vector
  *
  * @constructor
  *
  */
 export default class Vector<K extends Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array> {
-  typedArray: K
-  type: VectorType
+  _typedArray: K
+  _type: VectorType
   constructor (typedArray: K) {
     if (typedArray instanceof Int8Array) {
-      this.type = vectorTypes.INT8
+      this._type = vectorTypes.INT8
     } else if (typedArray instanceof Int16Array) {
-      this.type = vectorTypes.INT16
+      this._type = vectorTypes.INT16
     } else if (typedArray instanceof Int32Array) {
-      this.type = vectorTypes.INT32
+      this._type = vectorTypes.INT32
     } else if (typedArray instanceof BigInt64Array) {
-      this.type = vectorTypes.INT64
+      this._type = vectorTypes.INT64
     } else if (typedArray instanceof Float32Array) {
-      this.type = vectorTypes.FLOAT32
+      this._type = vectorTypes.FLOAT32
     } else if (typedArray instanceof Float64Array) {
-      this.type = vectorTypes.FLOAT64
+      this._type = vectorTypes.FLOAT64
     } else {
       throw newError(`The neo4j Vector class is a wrapper for TypedArrays. got ${typeof typedArray}`)
     }
-    this.typedArray = typedArray
+    this._typedArray = typedArray
   }
 
   /**
    * Converts the Vector back to a typedArray
    * @returns {Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array} - a TypedArray of the Vectors type.
    */
-  toTypedArray (): K {
-    return this.typedArray
+  asTypedArray (): K {
+    return this._typedArray
+  }
+
+  /**
+   * Gets the type of the Vector
+   * @returns {VectorType} - The type of the vector, corresponding to the type of the wrapped TypedArray.
+   */
+  getType(): VectorType {
+    return this._type
   }
 }
 

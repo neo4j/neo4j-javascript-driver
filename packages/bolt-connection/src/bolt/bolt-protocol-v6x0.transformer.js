@@ -41,8 +41,8 @@ function createVectorTransformer () {
     signature: VECTOR,
     isTypeInstance: object => object instanceof Vector,
     toStructure: vector => {
-      const typeMarker = typeToTypeMarker[vector.type]
-      const buffer = fixBufferEndianness(typeMarker, vector.typedArray.buffer)
+      const typeMarker = typeToTypeMarker[vector.getType()]
+      const buffer = fixBufferEndianness(typeMarker, vector.asTypedArray().buffer)
       const struct = new structure.Structure(VECTOR, [Int8Array.from([typeMarker]), new Int8Array(buffer)])
       return struct
     },

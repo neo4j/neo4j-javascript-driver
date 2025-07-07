@@ -390,3 +390,29 @@ var driver = neo4j.driver(
   { disableLosslessIntegers: true }
 )
 ```
+
+#### Writing and reading Vectors
+
+Neo4j supports storing vector embeddings in a dedicated vector type. Sending large lists with the driver will result in significant overhead as each value will be transmitted with type information, so the 6.0.0 release of the driver introduced the Neo4j Vector type.
+
+The Vector type supports signed integers of 8, 16, 32 and 64 bits, and floats of 32 and 64 bits. The Vector type is a wrapper for JavaScript TypedArrays of those types.
+
+To create a neo4j Vector in your code, do the following:
+
+```javascript
+var neo4j = require('neo4j-driver')
+
+var typedArray = Float32Array.from([1, 2, 3]) //this is how to convert a regular array of numbers into a TypedArray, useful if you handle vectors as regular arrays in your code
+
+var neo4jVector = neo4j.vector(typedArray) //this creates a neo4j Vector of type Float32, containing the values [1, 2, 3]
+
+driver.executeQuery('CREATE (n {embeddings: $myVectorParam})', { myVectorParam: neo4jVector })
+```
+
+To access the data in a retrieved Vector you can do the following:
+
+```javascript
+var retrievedTypedArray = neo4jVector.toTypedArray() //This will return a TypedArray of the same type as the Vector
+
+var retrievedArray = Array.from(retrievedTypedArray) //This will convert the TypedArray to a regular array of Numbers. (Not safe for Int64 arrays)
+```
