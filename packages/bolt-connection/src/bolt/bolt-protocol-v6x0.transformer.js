@@ -42,6 +42,9 @@ function createVectorTransformer () {
     isTypeInstance: object => object instanceof Vector,
     toStructure: vector => {
       const typeMarker = typeToTypeMarker[vector.getType()]
+      if (typeMarker === undefined) {
+        throw newError(`Vector object has unknown type: ${vector.getType()}`)
+      }
       const buffer = fixBufferEndianness(typeMarker, vector.asTypedArray().buffer)
       const struct = new structure.Structure(VECTOR, [Int8Array.from([typeMarker]), new Int8Array(buffer)])
       return struct
@@ -63,6 +66,8 @@ function createVectorTransformer () {
           return new Vector(new Float32Array(buffer))
         case FLOAT_64:
           return new Vector(new Float64Array(buffer))
+        default:
+          throw newError(`Received Vector structure with unsupported type marker: ${typeMarker}`)
       }
     }
   })
