@@ -273,7 +273,7 @@ class ResultTransformers {
    * }
    *
    * const personRules: Rules = {
-   *    name: neo4j.RulesFactories.asString()
+   *    name: neo4j.rule.asString()
    * }
    *
    * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {

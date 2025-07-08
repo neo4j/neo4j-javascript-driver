@@ -100,7 +100,7 @@ import {
   clientCertificateProviders,
   Rule,
   Rules,
-  RulesFactories,
+  rule,
   RecordObjectMapping,
   StandardCase,
   MappedQueryResult,
@@ -412,7 +412,7 @@ export type {
   RotatingClientCertificateProvider,
   Rule,
   Rules,
-  RulesFactories,
+  rule,
   RecordObjectMapping,
   StandardCase,
   MappedQueryResult

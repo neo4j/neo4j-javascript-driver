@@ -105,7 +105,8 @@ import * as internal from './internal' // todo: removed afterwards
 import Vector, { VectorType, vector } from './vector'
 import { StandardCase } from './mapping.nameconventions'
 import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel'
-import { RulesFactories } from './mapping.rulesfactories'
+import { rule } from './mapping.rulesfactories'
+import mappingDecorators from './mapping.decorators'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -193,7 +194,8 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
-  RulesFactories,
+  rule,
+  mappingDecorators,
   RecordObjectMapping,
   StandardCase
 }
@@ -277,6 +279,8 @@ export {
   Vector,
   vector,
   RulesFactories,
+  rule,
+  mappingDecorators,
   RecordObjectMapping,
   StandardCase
 }

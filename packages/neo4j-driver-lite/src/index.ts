@@ -115,7 +115,7 @@ import {
   Vector,
   Rule,
   Rules,
-  RulesFactories,
+  rule,
   RecordObjectMapping,
   StandardCase,
   MappedQueryResult
@@ -454,6 +454,7 @@ const forExport = {
   Vector,
   vector,
   RulesFactories,
+  rule,
   RecordObjectMapping,
   StandardCase
 }
@@ -530,6 +531,7 @@ export {
   clientCertificateProviders,
   vector,
   RulesFactories,
+  rule,
   RecordObjectMapping,
   StandardCase
 }

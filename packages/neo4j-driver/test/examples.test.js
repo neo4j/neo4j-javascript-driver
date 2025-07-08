@@ -1632,34 +1632,34 @@ describe('#integration examples', () => {
 
       // Create rules for the hydration of the created types
       const personRules = {
-        Name: neo4j.RulesFactories.asString(),
-        Born: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true })
+        Name: neo4j.rule.asString(),
+        Born: neo4j.rule.asNumber({ acceptBigInt: true, optional: true })
       }
 
       const movieRules = {
-        Title: neo4j.RulesFactories.asString(),
-        Released: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true, from: 'release' }),
-        Tagline: neo4j.RulesFactories.asString({ optional: true })
+        Title: neo4j.rule.asString(),
+        Released: neo4j.rule.asNumber({ acceptBigInt: true, optional: true, from: 'release' }),
+        Tagline: neo4j.rule.asString({ optional: true })
       }
 
       const roleRules = {
-        Name: neo4j.RulesFactories.asString({ from: 'characterName' })
+        Name: neo4j.rule.asString({ from: 'characterName' })
       }
 
       const actingJobsRules = {
         // The following rule unpacks the person node from the result into a Person object.
         // The rules for the types don't need to be provided as we will be registering the rules for Person, Role and Movie in the mapping registry
-        Person: neo4j.RulesFactories.asNode({
+        Person: neo4j.rule.asNode({
           convert: (node) => node.as(Person)
         }),
-        Role: neo4j.RulesFactories.asRelationship({
+        Role: neo4j.rule.asRelationship({
           convert: (rel) => rel.as(Role)
         }),
-        Movie: neo4j.RulesFactories.asNode({
+        Movie: neo4j.rule.asNode({
           convert: (node) => node.as(Movie)
         }),
-        Costars: neo4j.RulesFactories.asList({
-          apply: neo4j.RulesFactories.asNode({
+        Costars: neo4j.rule.asList({
+          apply: neo4j.rule.asNode({
             convert: (node) => node.as(Person)
           })
         })

@@ -195,8 +195,8 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    * }
    *
    * const personRules: Rules = {
-   *  name: RulesFactories.asString(),
-   *  born: RulesFactories.asNumber({ acceptBigInt: true, optional: true })
+   *  name: rule.asString(),
+   *  born: rule.asNumber({ acceptBigInt: true, optional: true })
    * }
    *
    * await session.executeRead(async (tx: Transaction) => {

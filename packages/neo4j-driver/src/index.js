@@ -85,7 +85,8 @@ import {
   vector,
   Rule,
   Rules,
-  RulesFactories,
+  rule,
+  mappingDecorators,
   RecordObjectMapping,
   StandardCase
 } from 'neo4j-driver-core'
@@ -419,6 +420,8 @@ const forExport = {
   clientCertificateProviders,
   vector,
   RulesFactories,
+  rule,
+  mappingDecorators,
   RecordObjectMapping,
   StandardCase
 }
@@ -499,7 +502,8 @@ export {
   VectorType,
   Rule,
   Rules,
-  RulesFactories,
+  rule,
+  mappingDecorators,
   RecordObjectMapping,
   StandardCase
 }

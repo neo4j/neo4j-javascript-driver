@@ -42,49 +42,49 @@ describe('#integration record object mapping', () => {
 
   // Create rules for the hydration of the created types
   const personRules = {
-    name: neo4j.RulesFactories.asString(),
-    born: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true })
+    name: neo4j.rule.asString(),
+    born: neo4j.rule.asNumber({ acceptBigInt: true, optional: true })
   }
 
   const movieRules = {
-    title: neo4j.RulesFactories.asString(),
-    released: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true, from: 'release' }),
-    tagline: neo4j.RulesFactories.asString({ optional: true })
+    title: neo4j.rule.asString(),
+    released: neo4j.rule.asNumber({ acceptBigInt: true, optional: true, from: 'release' }),
+    tagline: neo4j.rule.asString({ optional: true })
   }
 
   const roleRules = {
-    name: neo4j.RulesFactories.asString({ from: 'characterName' })
+    name: neo4j.rule.asString({ from: 'characterName' })
   }
 
   const actingJobsRules = {
-    person: neo4j.RulesFactories.asNode({
+    person: neo4j.rule.asNode({
       convert: (node) => node.as(Person)
     }),
-    role: neo4j.RulesFactories.asRelationship({
+    role: neo4j.rule.asRelationship({
       convert: (rel) => rel.as(Role)
     }),
-    movie: neo4j.RulesFactories.asNode({
+    movie: neo4j.rule.asNode({
       convert: (node) => node.as(Movie)
     }),
-    costars: neo4j.RulesFactories.asList({
-      apply: neo4j.RulesFactories.asNode({
+    costars: neo4j.rule.asList({
+      apply: neo4j.rule.asNode({
         convert: (node) => node.as(Person)
       })
     })
   }
 
   const actingJobsNestedRules = {
-    person: neo4j.RulesFactories.asNode({
+    person: neo4j.rule.asNode({
       convert: (node) => node.as(Person, personRules)
     }),
-    role: neo4j.RulesFactories.asRelationship({
+    role: neo4j.rule.asRelationship({
       convert: (rel) => rel.as(Role, roleRules)
     }),
-    movie: neo4j.RulesFactories.asNode({
+    movie: neo4j.rule.asNode({
       convert: (node) => node.as(Movie, movieRules)
     }),
-    costars: neo4j.RulesFactories.asList({
-      apply: neo4j.RulesFactories.asNode({
+    costars: neo4j.rule.asList({
+      apply: neo4j.rule.asNode({
         convert: (node) => node.as(Person, personRules)
       })
     })
@@ -187,7 +187,7 @@ describe('#integration record object mapping', () => {
           obj: new Duration(1, 1, 1, 1)
         }
       )
-      return txres.as({ obj: neo4j.RulesFactories.asDuration() })
+      return txres.as({ obj: neo4j.rule.asDuration() })
     })
     expect(res.records[0].obj.months).toBe(1)
 
@@ -204,7 +204,7 @@ describe('#integration record object mapping', () => {
           obj: new LocalTime(1, 1, 1, 1)
         }
       )
-      return txres.as({ obj: neo4j.RulesFactories.asLocalTime() })
+      return txres.as({ obj: neo4j.rule.asLocalTime() })
     })
     expect(res.records[0].obj.hour).toBe(1)
 
@@ -221,7 +221,7 @@ describe('#integration record object mapping', () => {
           obj: new Time(1, 1, 1, 1, 42)
         }
       )
-      return txres.as({ obj: neo4j.RulesFactories.asTime() })
+      return txres.as({ obj: neo4j.rule.asTime() })
     })
     expect(res.records[0].obj.hour).toBe(1)
     expect(res.records[0].obj.timeZoneOffsetSeconds).toBe(42)
@@ -239,7 +239,7 @@ describe('#integration record object mapping', () => {
           obj: new Date(1, 1, 1, 1)
         }
       )
-      return txres.as({ obj: neo4j.RulesFactories.asDate() })
+      return txres.as({ obj: neo4j.rule.asDate() })
     })
     expect(res.records[0].obj.month).toBe(1)
 
@@ -256,7 +256,7 @@ describe('#integration record object mapping', () => {
           obj: new DateTime(1, 1, 1, 1, 1, 1, 1, 42)
         }
       )
-      return txres.as({ obj: neo4j.RulesFactories.asDateTime() })
+      return txres.as({ obj: neo4j.rule.asDateTime() })
     })
     expect(res.records[0].obj.month).toBe(1)
     expect(res.records[0].obj.hour).toBe(1)
@@ -275,7 +275,7 @@ describe('#integration record object mapping', () => {
           obj: new LocalDateTime(1, 1, 1, 1, 1, 1, 1)
         }
       )
-      return txres.as({ obj: neo4j.RulesFactories.asLocalDateTime() })
+      return txres.as({ obj: neo4j.rule.asLocalDateTime() })
     })
     expect(res.records[0].obj.month).toBe(1)
     expect(res.records[0].obj.hour).toBe(1)
@@ -293,7 +293,7 @@ describe('#integration record object mapping', () => {
           obj: new Point(4326, 32.812493, 42.983216)
         }
       )
-      return txres.as({ obj: neo4j.RulesFactories.asPoint() })
+      return txres.as({ obj: neo4j.rule.asPoint() })
     })
     expect(res.records[0].obj.x).toBe(32.812493)
     expect(res.records[0].obj.srid).toBe(4326)

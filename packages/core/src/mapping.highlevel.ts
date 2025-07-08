@@ -34,12 +34,12 @@ export interface Rule {
 
 export type Rules = Record<string, Rule>
 
-let rulesRegistry: Record<string, Rules> = {}
+export let rulesRegistry: Record<string, Rules> = {}
 
 let nameMapping: (name: string) => string = (name) => name
 
 function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
-  rulesRegistry[constructor.toString()] = rules
+  rulesRegistry[constructor.name] = rules
 }
 
 function clearMappingRegistry (): void {
@@ -121,9 +121,9 @@ export const RecordObjectMapping = Object.freeze({
  *
  * //if a type has one odd mapping you can override the translation with the rule
  * const personRules = {
- *  firstName: neo4j.RulesFactories.asString(),
- *  bornAt: neo4j.RulesFactories.asNumber({ acceptBigInt: true, optional: true })
- *  weird_name-property: neo4j.RulesFactories.asString({from: 'homeTown'})
+ *  firstName: neo4j.rule.asString(),
+ *  bornAt: neo4j.rule.asNumber({ acceptBigInt: true, optional: true })
+ *  weird_name-property: neo4j.rule.asString({from: 'homeTown'})
  * }
  * //These rules can then be used by providing them to a hydratedResultsMapper
  * record.as<Person>(personRules)
@@ -184,6 +184,5 @@ function getRules<T extends {} = Object> (constructorOrRules: Rules | GenericCon
   if (rulesDefined != null) {
     return rulesDefined
   }
-
-  return typeof constructorOrRules !== 'object' ? rulesRegistry[constructorOrRules.toString()] : undefined
+  return typeof constructorOrRules !== 'object' ? rulesRegistry[constructorOrRules.name] : undefined
 }

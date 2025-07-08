@@ -35,17 +35,17 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
  *
  * @property {function(rule: ?Rule)} asPath Create a {@link Rule} that validates the value is a {@link Path}.
  *
- * @property {function(rule: ?Rule & { toString?: boolean })} asDuration Create a {@link Rule} that validates the value is a {@link Duration}.
+ * @property {function(rule: ?Rule & { stringify?: boolean })} asDuration Create a {@link Rule} that validates the value is a {@link Duration}.
  *
- * @property {function(rule: ?Rule & { toString?: boolean })} asLocalTime Create a {@link Rule} that validates the value is a {@link LocalTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean })} asLocalTime Create a {@link Rule} that validates the value is a {@link LocalTime}.
  *
- * @property {function(rule: ?Rule & { toString?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
  *
- * @property {function(rule: ?Rule & { toString?: boolean })} asTime Create a {@link Rule} that validates the value is a {@link Time}.
+ * @property {function(rule: ?Rule & { stringify?: boolean })} asTime Create a {@link Rule} that validates the value is a {@link Time}.
  *
- * @property {function(rule: ?Rule & { toString?: boolean })} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean })} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
  *
- * @property {function(rule: ?Rule & { toString?: boolean })} asDate Create a {@link Rule} that validates the value is a {@link Date}.
+ * @property {function(rule: ?Rule & { stringify?: boolean })} asDate Create a {@link Rule} that validates the value is a {@link Date}.
  *
  * @property {function(rule: ?Rule)} asPoint Create a {@link Rule} that validates the value is a {@link Point}.
  *
@@ -53,7 +53,7 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
  *
  * @experimental
  */
-export const RulesFactories = Object.freeze({
+export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a Boolean.
    *
@@ -143,11 +143,11 @@ export const RulesFactories = Object.freeze({
    * @example
    * const actingJobsRules: Rules = {
    *  // Converts the person node to a Person object in accordance with provided rules
-   *  person: neo4j.RulesFactories.asNode({
+   *  person: neo4j.rule.asNode({
    *    convert: (node: Node) => node.as(Person, personRules)
    *  }),
    *  // Returns the movie node as a Node
-   *  movie: neo4j.RulesFactories.asNode({}),
+   *  movie: neo4j.rule.asNode({}),
    * }
    *
    * @experimental
@@ -238,14 +238,14 @@ export const RulesFactories = Object.freeze({
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
-  asDuration (rule?: Rule & { toString?: boolean }): Rule {
+  asDuration (rule?: Rule & { stringify?: boolean }): Rule {
     return {
       validate: (value: any, field: string) => {
         if (!isDuration(value)) {
           throw new TypeError(`${field} should be a Duration but received ${typeof value}`)
         }
       },
-      convert: (value: Duration) => rule?.toString === true ? value.toString() : value,
+      convert: (value: Duration) => rule?.stringify === true ? value.toString() : value,
       ...rule
     }
   },
@@ -256,14 +256,14 @@ export const RulesFactories = Object.freeze({
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
-  asLocalTime (rule?: Rule & { toString?: boolean }): Rule {
+  asLocalTime (rule?: Rule & { stringify?: boolean }): Rule {
     return {
       validate: (value: any, field: string) => {
         if (!isLocalTime(value)) {
           throw new TypeError(`${field} should be a LocalTime but received ${typeof value}`)
         }
       },
-      convert: (value: LocalTime) => rule?.toString === true ? value.toString() : value,
+      convert: (value: LocalTime) => rule?.stringify === true ? value.toString() : value,
       ...rule
     }
   },
@@ -274,14 +274,14 @@ export const RulesFactories = Object.freeze({
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
-  asTime (rule?: Rule & { toString?: boolean }): Rule {
+  asTime (rule?: Rule & { stringify?: boolean }): Rule {
     return {
       validate: (value: any, field: string) => {
         if (!isTime(value)) {
           throw new TypeError(`${field} should be a Time but received ${typeof value}`)
         }
       },
-      convert: (value: Time) => rule?.toString === true ? value.toString() : value,
+      convert: (value: Time) => rule?.stringify === true ? value.toString() : value,
       ...rule
     }
   },
@@ -292,7 +292,7 @@ export const RulesFactories = Object.freeze({
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
-  asDate (rule?: Rule & { toString?: boolean, toStandardDate?: boolean }): Rule {
+  asDate (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
     return {
       validate: (value: any, field: string) => {
         if (!isDate(value)) {
@@ -310,7 +310,7 @@ export const RulesFactories = Object.freeze({
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
-  asLocalDateTime (rule?: Rule & { toString?: boolean, toStandardDate?: boolean }): Rule {
+  asLocalDateTime (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
     return {
       validate: (value: any, field: string) => {
         if (!isLocalDateTime(value)) {
@@ -328,7 +328,7 @@ export const RulesFactories = Object.freeze({
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
-  asDateTime (rule?: Rule & { toString?: boolean, toStandardDate?: boolean }): Rule {
+  asDateTime (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
     return {
       validate: (value: any, field: string) => {
         if (!isDateTime(value)) {
@@ -366,9 +366,9 @@ export const RulesFactories = Object.freeze({
 
 interface ConvertableToStdDateOrStr { toStandardDate: () => StandardDate, toString: () => string }
 
-function convertStdDate<V extends ConvertableToStdDateOrStr> (value: V, rule?: { toString?: boolean, toStandardDate?: boolean }): string | V | StandardDate {
+function convertStdDate<V extends ConvertableToStdDateOrStr> (value: V, rule?: { stringify?: boolean, toStandardDate?: boolean }): string | V | StandardDate {
   if (rule != null) {
-    if (rule.toString === true) {
+    if (rule.stringify === true) {
       return value.toString()
     } else if (rule.toStandardDate === true) {
       return value.toStandardDate()

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, RulesFactories, Time } from '../src'
+import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time } from '../src'
 import { as } from '../src/mapping.highlevel'
 
 describe('#unit Record Object Mapping', () => {
@@ -31,7 +31,7 @@ describe('#unit Record Object Mapping', () => {
       }
 
       const personRules: Rules = {
-        name: RulesFactories.asString({ from: 'firstname' })
+        name: rule.asString({ from: 'firstname' })
       }
 
       const gettable = {
@@ -55,7 +55,7 @@ describe('#unit Record Object Mapping', () => {
     })
     it('should perform typechecks according to rules', () => {
       const personRules: Rules = {
-        name: RulesFactories.asNumber({ from: 'firstname' })
+        name: rule.asNumber({ from: 'firstname' })
       }
 
       const gettable = {
@@ -83,19 +83,19 @@ describe('#unit Record Object Mapping', () => {
       }
 
       const personRules: Rules = {
-        name: RulesFactories.asString({ from: 'firstname' })
+        name: rule.asString({ from: 'firstname' })
       }
       const rules: Rules = {
-        number: RulesFactories.asNumber(),
-        string: RulesFactories.asString(),
-        bigint: RulesFactories.asBigInt(),
-        date: RulesFactories.asDate(),
-        dateTime: RulesFactories.asDateTime(),
-        duration: RulesFactories.asDuration(),
-        time: RulesFactories.asTime(),
-        list: RulesFactories.asList({ apply: RulesFactories.asString() }),
-        node: RulesFactories.asNode({ convert: (node) => node.as(Person, personRules) }),
-        rel: RulesFactories.asRelationship({ convert: (rel) => rel.as(Person, personRules) })
+        number: rule.asNumber(),
+        string: rule.asString(),
+        bigint: rule.asBigInt(),
+        date: rule.asDate(),
+        dateTime: rule.asDateTime(),
+        duration: rule.asDuration(),
+        time: rule.asTime(),
+        list: rule.asList({ apply: rule.asString() }),
+        node: rule.asNode({ convert: (node) => node.as(Person, personRules) }),
+        rel: rule.asRelationship({ convert: (rel) => rel.as(Person, personRules) })
       }
 
       const gettable = {

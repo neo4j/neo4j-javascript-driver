@@ -105,7 +105,8 @@ import * as internal from './internal/index.ts'
 import Vector, { VectorType, vector } from './vector.ts'
 import { StandardCase } from './mapping.nameconventions.ts'
 import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel.ts'
-import { RulesFactories } from './mapping.rulesfactories.ts'
+import { rule } from './mapping.rulesfactories.ts'
+import mappingDecorators from './mapping.decorators.ts'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -193,7 +194,8 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
-  RulesFactories,
+  rule,
+  mappingDecorators,
   RecordObjectMapping,
   StandardCase
 }
@@ -277,6 +279,8 @@ export {
   Vector,
   vector,
   RulesFactories,
+  rule,
+  mappingDecorators,
   RecordObjectMapping,
   StandardCase
 }
