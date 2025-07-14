@@ -22,6 +22,7 @@ describe('#integration vector type', () => {
   let driverGlobal
   let protocolVersion
   const uri = `bolt://${sharedNeo4j.hostnameWithBoltPort}`
+  let edition
 
   beforeAll(async () => {
     driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken)
@@ -30,6 +31,7 @@ describe('#integration vector type', () => {
       sharedNeo4j.authToken
     )
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(tmpDriver)
+    edition = await sharedNeo4j.getEdition(driverGlobal)
     await tmpDriver.close()
   })
 
@@ -45,7 +47,7 @@ describe('#integration vector type', () => {
   })
 
   it('write and read vectors', async () => {
-    if (protocolVersion >= 6.0) {
+    if (protocolVersion >= 6.0 && edition === 'enterprise') {
       const driver = driverGlobal
 
       const bufferWriter = Uint8Array.from([1, 1])
