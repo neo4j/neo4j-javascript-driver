@@ -53,6 +53,7 @@ gulp.task('nodejs', function () {
     .pipe(ts({
       target: 'ES5',
       lib: ['ES6'],
+      module: 'es6',
       noImplicitAny: true,
       noImplicitReturns: true,
       strictNullChecks: true,
