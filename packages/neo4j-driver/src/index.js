@@ -78,7 +78,10 @@ import {
   notificationFilterMinimumSeverityLevel,
   staticAuthTokenManager,
   clientCertificateProviders,
-  resolveCertificateProvider
+  resolveCertificateProvider,
+  Vector,
+  VectorType,
+  vector
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -282,7 +285,9 @@ const types = {
   LocalDateTime,
   LocalTime,
   Time,
-  Integer
+  Integer,
+  Vector,
+  VectorType
 }
 
 /**
@@ -402,7 +407,8 @@ const forExport = {
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
-  clientCertificateProviders
+  clientCertificateProviders,
+  vector
 }
 
 export {
@@ -474,6 +480,9 @@ export {
   notificationFilterDisabledCategory,
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
-  clientCertificateProviders
+  clientCertificateProviders,
+  vector,
+  Vector,
+  VectorType
 }
 export default forExport

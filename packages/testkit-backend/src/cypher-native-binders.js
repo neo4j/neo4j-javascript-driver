@@ -176,6 +176,13 @@ export default function CypherNativeBinders (neo4j) {
       })
     }
 
+    if (x.asTypedArray != null) {
+      const dtype = typeToDType[x.getType()]
+      const buffer = fixBufferEndianness(dtype, x.asTypedArray().buffer)
+      const data = toHexString(new Uint8Array(buffer))
+      return structResponse('CypherVector', { dtype, data })
+    }
+
     // If all failed, interpret as a map
     const map = {}
     for (const [key, value] of Object.entries(x)) {
@@ -284,6 +291,26 @@ export default function CypherNativeBinders (neo4j) {
           }
         }
         throw new Error(`Unknown Point system '${data.system}'`)
+      case 'CypherVector': {
+        const arrayBuffer = toByteArray(data.data)
+        const buffer = fixBufferEndianness(data.dtype, arrayBuffer.buffer)
+        switch (data.dtype) {
+          case 'i8':
+            return neo4j.vector(new Int8Array(buffer))
+          case 'i16':
+            return neo4j.vector(new Int16Array(buffer))
+          case 'i32':
+            return neo4j.vector(new Int32Array(buffer))
+          case 'i64':
+            return neo4j.vector(new BigInt64Array(buffer))
+          case 'f32':
+            return neo4j.vector(new Float32Array(buffer))
+          case 'f64':
+            return neo4j.vector(new Float64Array(buffer))
+          default:
+            throw new Error('Unknown Inner Vector type ' + data.dtype)
+        }
+      }
     }
     console.log(`Type ${name} is not handle by cypherToNative`, c)
     const err = 'Unable to convert ' + c + ' to native type'
@@ -312,6 +339,90 @@ export default function CypherNativeBinders (neo4j) {
           authToken.parameters
         )
     }
+  }
+
+  function toHexString (byteArray) {
+    let string = ''
+    for (let i = 0; i < byteArray.length; i++) {
+      string += (('0' + byteArray[i].toString(16) + ' ').slice(-3))
+    }
+    return string.slice(0, -1)
+  }
+
+  function toByteArray (hexString) {
+    const result = []
+    for (let i = 0; i < hexString.length; i += 3) {
+      result.push(parseInt(hexString.substr(i, i + 2), 16))
+    }
+    return Uint8Array.from(result)
+  }
+
+  const typeToDType = {
+    INT8: 'i8',
+    INT16: 'i16',
+    INT32: 'i32',
+    INT64: 'i64',
+    FLOAT32: 'f32',
+    FLOAT64: 'f64'
+  }
+
+  function fixBufferEndianness (typeMarker, buffer) {
+    const isLittleEndian = checkLittleEndian()
+    if (isLittleEndian) {
+      const setview = new DataView(new ArrayBuffer(buffer.byteLength))
+      // we want exact byte accuracy, so we cannot simply get the value from the typed array
+      const getview = new DataView(buffer)
+      let set
+      let get
+      let elementSize
+      switch (typeMarker) {
+        case 'i8':
+          elementSize = 1
+          set = setview.setInt8.bind(setview)
+          get = getview.getInt8.bind(getview)
+          break
+        case 'i16':
+          elementSize = 2
+          set = setview.setInt16.bind(setview)
+          get = getview.getInt16.bind(getview)
+          break
+        case 'i32':
+          elementSize = 4
+          set = setview.setInt32.bind(setview)
+          get = getview.getInt32.bind(getview)
+          break
+        case 'i64':
+          elementSize = 8
+          set = setview.setBigInt64.bind(setview)
+          get = getview.getBigInt64.bind(getview)
+          break
+        case 'f32':
+          elementSize = 4
+          set = setview.setInt32.bind(setview)
+          get = getview.getInt32.bind(getview)
+          break
+        case 'f64':
+          elementSize = 8
+          set = setview.setBigInt64.bind(setview)
+          get = getview.getBigInt64.bind(getview)
+          break
+        default:
+          throw new Error(`Vector is of unsupported type ${typeMarker}`)
+      }
+      for (let i = 0; i < buffer.byteLength; i += elementSize) {
+        set(i, get(i, isLittleEndian))
+      }
+      return setview.buffer
+    } else {
+      return buffer
+    }
+  }
+
+  function checkLittleEndian () {
+    const dataview = new DataView(new ArrayBuffer(2))
+    dataview.setInt16(0, 1000, true)
+    const typeArray = new Int16Array(dataview.buffer)
+    return typeArray[0] === 1000
   }
 
   this.valueResponse = valueResponse
