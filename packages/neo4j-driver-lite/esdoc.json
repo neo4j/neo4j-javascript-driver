@@ -8,11 +8,10 @@
     {
       "name": "esdoc-importpath-plugin",
       "option": {
-        "stripPackageName": true,
         "replaces": [
           {
-            "from": ".*",
-            "to": "neo4j-driver-lite"
+            "from": "^lib6/",
+            "to": "lib/"
           }
         ]
       }
@@ -37,7 +36,7 @@
           "enable": false
         },
         "brand": {
-          "title": "Neo4j Bolt Lite Driver 5.x for JavaScript",
+          "title": "Neo4j Bolt Lite Driver 6.x for JavaScript",
           "repository": "https://github.com/neo4j/neo4j-javascript-driver"
         }
       }
