@@ -23,11 +23,12 @@ module.exports = function (config) {
       compilerOptions: {
         target: 'ES5',
         lib: ['ES6'],
+        module: 'node16',
         noImplicitAny: true,
         noImplicitReturns: true,
         strictNullChecks: true,
         esModuleInterop: true,
-        moduleResolution: 'node',
+        moduleResolution: 'node16',
         downlevelIteration: true,
         allowJs: true,
         isolatedModules: true,
