@@ -23,7 +23,6 @@ module.exports = function (config) {
       compilerOptions: {
         target: 'ES5',
         lib: ['ES6'],
-        module: 'ES6',
         noImplicitAny: true,
         noImplicitReturns: true,
         strictNullChecks: true,

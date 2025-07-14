@@ -83,7 +83,7 @@
     "tmp": "0.2.1",
     "typescript": "^5.2.2",
     "vinyl-buffer": "^1.0.1",
-    "webpack": "^5.99.9"
+    "webpack": "^5.89.0"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "6.0.0-dev",
