@@ -4,6 +4,7 @@
   "description": "The official Neo4j lite driver for Javascript",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build::browser": "rollup --config rollup.config.js && npm run minify",
