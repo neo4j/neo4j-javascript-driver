@@ -59,6 +59,13 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
       this._type = vectorTypes.FLOAT32
     } else if (typedArray instanceof Float64Array) {
       this._type = vectorTypes.FLOAT64
+    } else if (
+      typedArray instanceof Uint8Array || 
+      typedArray instanceof Uint16Array || 
+      typedArray instanceof Uint32Array ||
+      typedArray instanceof BigUint64Array
+    ) {
+      throw newError(`The neo4j Vector class does not support Unsigned Integer Arrays, please use a signed IntArray`)
     } else {
       throw newError(`The neo4j Vector class is a wrapper for TypedArrays. got ${typeof typedArray}`)
     }
