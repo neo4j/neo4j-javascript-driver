@@ -140,6 +140,13 @@ class GQLError extends Error {
      * @public
      */
     this.rawClassification = diagnosticRecord?._classification ?? undefined
+    /**
+     * Represents the name for the type of error, inherited from base JavaScript {@link Error}.
+     * Will be 'GQLError' for {@link GQLError}s and 'Neo4jError' for {@link Neo4jError}s.
+     *
+     * @type {string}
+     * @public
+     */
     this.name = 'GQLError'
   }
 
@@ -163,6 +170,11 @@ class Neo4jError extends GQLError {
    * Optional error code. Will be populated when error originates in the database.
    */
   code: string
+
+  /**
+   * Whether the request that caused this error can be safely retried without duplicate commits on the server.
+   * This does not apply when running auto-commit transactions using {@link Session#run}
+   */
   retriable: boolean
 
   /**
@@ -187,7 +199,21 @@ class Neo4jError extends GQLError {
      */
     this.code = code
 
+    /**
+     * The name of the type of error.
+     *
+     * @type {string}
+     * @public
+     */
     this.name = 'Neo4jError'
+
+    /**
+     * If the error is considered retriable.
+     * This does not apply when running auto-commit transactions using {@link Session#run}
+     *
+     * @type {boolean}
+     * @public
+     */
     this.retriable = _isRetriableCode(code)
   }
 
