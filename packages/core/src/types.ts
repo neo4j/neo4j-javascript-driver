@@ -176,7 +176,7 @@ export class Config {
 
     /**
      * Specify the maximum time in milliseconds transactions are allowed to retry via
-     * {@link Session#executeRead} and {@link Session#executeWrite} functions.
+     * {@link Session#executeRead}, {@link Session#executeWrite}, and {@link Driver#executeQuery} functions.
      *
      * These functions will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient
      * errors with exponential backoff using an initial delay of 1 second.
