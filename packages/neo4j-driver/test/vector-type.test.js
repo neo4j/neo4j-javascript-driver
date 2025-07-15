@@ -22,6 +22,7 @@ describe('#integration vector type', () => {
   let driverGlobal
   let protocolVersion
   const uri = `bolt://${sharedNeo4j.hostnameWithBoltPort}`
+  let edition
 
   beforeAll(async () => {
     driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken)
@@ -30,6 +31,7 @@ describe('#integration vector type', () => {
       sharedNeo4j.authToken
     )
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(tmpDriver)
+    edition = await sharedNeo4j.getEdition(driverGlobal)
     await tmpDriver.close()
   })
 
@@ -45,13 +47,13 @@ describe('#integration vector type', () => {
   })
 
   it('write and read vectors', async () => {
-    if (protocolVersion >= 6.0) {
+    if (protocolVersion >= 6.0 && edition === 'enterprise') {
       const driver = driverGlobal
 
       const bufferWriter = Uint8Array.from([1, 1])
       await driver.executeQuery('CREATE (p:Product) SET p.vector_from_array = $vector_from_array, p.vector_from_buffer = $vector_from_buffer', {
         vector_from_array: neo4j.vector(Float32Array.from([1, 2, 3, 4])), // Typed arrays can be created from a regular list of Numbers
-        vector_from_buffer: neo4j.vector(new Uint8Array(bufferWriter.buffer)) // Or from a bytebuffer
+        vector_from_buffer: neo4j.vector(new Int8Array(bufferWriter.buffer)) // Or from a bytebuffer
       })
       const res = await driver.executeQuery('MATCH (p:Product) RETURN p.vector_from_array as arrayVector, p.vector_from_buffer as bufferVector')
 
