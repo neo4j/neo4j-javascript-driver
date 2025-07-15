@@ -8,6 +8,9 @@
     "type": "git",
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "lint": "eslint --fix --ext .js ./",
     "test": "gulp test",

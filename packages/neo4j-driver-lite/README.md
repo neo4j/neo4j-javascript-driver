@@ -25,6 +25,8 @@ Resources to get you started:
 
 ### In Node.js application
 
+The node version of the driver requires node 18 or later.
+
 Stable channel:
 
 ```shell
