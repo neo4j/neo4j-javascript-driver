@@ -4,6 +4,7 @@
   "description": "Internals of neo4j-driver",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build::es6": "tsc -p tsconfig.build.json --target ES6 --outdir lib6",

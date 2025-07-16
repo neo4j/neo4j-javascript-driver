@@ -11,6 +11,7 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "sideEffects": false,
   "scripts": {
     "lint": "eslint --fix --ext .js ./",
     "test": "gulp test",
