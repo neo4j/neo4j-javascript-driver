@@ -174,7 +174,7 @@ class Neo4jError extends GQLError {
   /**
    * Whether the request that caused this error can be safely retried without duplicate commits on the server.
    * This does not apply when running auto-commit transactions using {@link Session#run}
-   * 
+   *
    * @deprecated members using the spelling 'retriable' will be removed in 7.0. Use {@link retryable} instead.
    */
   retriable: boolean
@@ -292,7 +292,7 @@ function newGQLError (message: string, cause?: Error, gqlStatus?: string, gqlSta
 /**
  * Verifies if the given error is retriable.
  *
- * @deprecated members using the spelling 'retriable' will be removed in 7.0. Use {@link isRetryableError} instead. 
+ * @deprecated members using the spelling 'retriable' will be removed in 7.0. Use {@link isRetryableError} instead.
  * @public
  * @param {object|undefined|null} error the error object
  * @returns {boolean} true if the error is retriable
