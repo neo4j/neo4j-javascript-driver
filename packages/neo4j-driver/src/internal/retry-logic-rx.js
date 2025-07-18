@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { newError, error, internal, isRetriableError } from 'neo4j-driver-core'
+import { newError, error, internal, isRetryableError } from 'neo4j-driver-core'
 // eslint-disable-next-line no-unused-vars
 import { Observable, throwError, of } from 'rxjs'
 import { retryWhen, mergeMap, delay } from 'rxjs/operators'
@@ -79,7 +79,7 @@ export default class RxRetryLogic {
 
         return failedWork.pipe(
           mergeMap(err => {
-            if (!isRetriableError(err)) {
+            if (!isRetryableError(err)) {
               return throwError(() => err)
             }
 

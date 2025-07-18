@@ -20,6 +20,7 @@ import {
   AuthTokenManagers,
   Neo4jError,
   isRetriableError,
+  isRetryableError,
   error,
   Integer,
   inSafeRange,
@@ -242,6 +243,7 @@ declare const forExport: {
   SessionMode: SessionMode
   Neo4jError: typeof Neo4jError
   isRetriableError: typeof isRetriableError
+  isRetryableError: typeof isRetryableError
   Node: typeof Node
   Relationship: typeof Relationship
   UnboundRelationship: typeof UnboundRelationship
@@ -322,6 +324,7 @@ export {
   SessionMode,
   Neo4jError,
   isRetriableError,
+  isRetryableError,
   Node,
   Relationship,
   UnboundRelationship,

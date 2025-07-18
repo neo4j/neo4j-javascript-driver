@@ -1704,7 +1704,7 @@ describe.each([
     expect(error).toBe(expectedError)
   })
 
-  it.each(usersDataSet)('should change error to retriable when error when TokenExpired happens and staticAuthTokenManager is not being used [user=%s]', async (user) => {
+  it.each(usersDataSet)('should change error to retryable when error when TokenExpired happens and staticAuthTokenManager is not being used [user=%s]', async (user) => {
     const pool = newPool()
     const connectionProvider = newRoutingConnectionProvider(
       [
@@ -1740,11 +1740,11 @@ describe.each([
     const error1 = server3Connection.handleAndTransformError(error, server3)
     const error2 = server2Connection.handleAndTransformError(error, server2)
 
-    expect(error1.retriable).toBe(true)
-    expect(error2.retriable).toBe(true)
+    expect(error1.retryable).toBe(true)
+    expect(error2.retryable).toBe(true)
   })
 
-  it.each(usersDataSet)('should not change error to retriable when error when TokenExpired happens and staticAuthTokenManager is being used [user=%s]', async (user) => {
+  it.each(usersDataSet)('should not change error to retryable when error when TokenExpired happens and staticAuthTokenManager is being used [user=%s]', async (user) => {
     const pool = newPool()
     const connectionProvider = newRoutingConnectionProvider(
       [
@@ -1781,11 +1781,11 @@ describe.each([
     const error1 = server3Connection.handleAndTransformError(error, server3)
     const error2 = server2Connection.handleAndTransformError(error, server2)
 
-    expect(error1.retriable).toBe(false)
-    expect(error2.retriable).toBe(false)
+    expect(error1.retryable).toBe(false)
+    expect(error2.retryable).toBe(false)
   })
 
-  it.each(usersDataSet)('should not change error to retriable when error when TokenExpired happens and authTokenManagers.basic is being used [user=%s]', async (user) => {
+  it.each(usersDataSet)('should not change error to retryable when error when TokenExpired happens and authTokenManagers.basic is being used [user=%s]', async (user) => {
     const pool = newPool()
     const connectionProvider = newRoutingConnectionProvider(
       [
@@ -1822,8 +1822,8 @@ describe.each([
     const error1 = server3Connection.handleAndTransformError(error, server3)
     const error2 = server2Connection.handleAndTransformError(error, server2)
 
-    expect(error1.retriable).toBe(false)
-    expect(error2.retriable).toBe(false)
+    expect(error1.retryable).toBe(false)
+    expect(error2.retryable).toBe(false)
   })
 
   it.each(usersDataSet)('should use resolved seed router after accepting table with no writers [user=%s]', (user, done) => {

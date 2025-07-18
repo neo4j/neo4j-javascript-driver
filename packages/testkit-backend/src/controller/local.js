@@ -97,7 +97,7 @@ function writeDriverError (id, e, binder) {
     cause,
     classification: e.classification,
     rawClassification: e.rawClassification,
-    retryable: e.retriable
+    retryable: e.retryable
   })
 }
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { newError, isRetriableError } from '../error'
+import { newError, isRetryableError } from '../error'
 import Transaction, { NonAutoCommitApiTelemetryConfig, NonAutoCommitTelemetryApis } from '../transaction'
 import TransactionPromise from '../transaction-promise'
 import { TELEMETRY_APIS } from './constants'
@@ -151,7 +151,7 @@ export class TransactionExecutor {
   ): Promise<T> {
     const elapsedTimeMs = Date.now() - retryStartTime
 
-    if (elapsedTimeMs > this._maxRetryTimeMs || !isRetriableError(error)) {
+    if (elapsedTimeMs > this._maxRetryTimeMs || !isRetryableError(error)) {
       return Promise.reject(error)
     }
 

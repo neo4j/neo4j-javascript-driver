@@ -205,7 +205,7 @@ it('should call authenticationAuthProvider.handleError when TokenExpired happens
   expect(handleError).toBeCalledWith({ connection: conn, code: 'Neo.ClientError.Security.TokenExpired' })
 })
 
-it('should change error to retriable when error when TokenExpired happens and staticAuthTokenManager is not being used', async () => {
+it('should change error to retriyable when error when TokenExpired happens and staticAuthTokenManager is not being used', async () => {
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
   const connectionProvider = newDirectConnectionProvider(address, pool, authTokenManagers.bearer({ tokenProvider: () => null }))
@@ -222,10 +222,10 @@ it('should change error to retriable when error when TokenExpired happens and st
 
   const error = conn.handleAndTransformError(expectedError, address)
 
-  expect(error.retriable).toBe(true)
+  expect(error.retryable).toBe(true)
 })
 
-it('should not change error to retriable when error when TokenExpired happens and staticAuthTokenManager is being used', async () => {
+it('should not change error to retryable when error when TokenExpired happens and staticAuthTokenManager is being used', async () => {
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
   const connectionProvider = newDirectConnectionProvider(address, pool, staticAuthTokenManager({ authToken: null }))
@@ -242,10 +242,10 @@ it('should not change error to retriable when error when TokenExpired happens an
 
   const error = conn.handleAndTransformError(expectedError, address)
 
-  expect(error.retriable).toBe(false)
+  expect(error.retryable).toBe(false)
 })
 
-it('should not change error to retriable when error when TokenExpired happens and authTokenManagers.basic is being used', async () => {
+it('should not change error to retryable when error when TokenExpired happens and authTokenManagers.basic is being used', async () => {
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
   const connectionProvider = newDirectConnectionProvider(address, pool, authTokenManagers.basic({ tokenProvider: () => null }))
@@ -262,7 +262,7 @@ it('should not change error to retriable when error when TokenExpired happens an
 
   const error = conn.handleAndTransformError(expectedError, address)
 
-  expect(error.retriable).toBe(false)
+  expect(error.retryable).toBe(false)
 })
 
 describe('constructor', () => {
