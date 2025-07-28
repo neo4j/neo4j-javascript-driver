@@ -22,7 +22,7 @@ import { validateQueryAndParameters } from './internal/util.ts'
 import { FETCH_ALL, ACCESS_MODE_READ, ACCESS_MODE_WRITE, TELEMETRY_APIS } from './internal/constants.ts'
 import { newError } from './error.ts'
 import Result from './result.ts'
-import Transaction, { NonAutoCommitApiTelemetryConfig, NonAutoCommitTelemetryApis } from './transaction.ts'
+import { NonAutoCommitApiTelemetryConfig, NonAutoCommitTelemetryApis } from './transaction.ts'
 import { ConnectionHolder } from './internal/connection-holder.ts'
 import { TransactionExecutor } from './internal/transaction-executor.ts'
 import { Bookmarks } from './internal/bookmarks.ts'
@@ -40,7 +40,6 @@ import { Logger } from './internal/logger.ts'
 import { cacheKey } from './internal/auth-util.ts'
 
 type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
-type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
 interface TransactionConfig {
