@@ -17,8 +17,8 @@ See also: https://neo4j.com/developer/kb/neo4j-supported-versions/
 Resources to get you started:
 
 - [API Documentation](https://neo4j.com/docs/api/javascript-driver/current/)
-- [Neo4j Manual](https://neo4j.com/docs/)
-- [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
+- [Neo4j Driver Manual](https://neo4j.com/docs/javascript-manual/current/)
+- [Neo4j Cypher Cheatsheet](http://neo4j.com/docs/cypher-cheat-sheet/)
 - [TLS](#tls)
 
 ## What's New in 5.x
