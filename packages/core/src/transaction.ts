@@ -59,7 +59,7 @@ class Transaction {
   private readonly _fetchSize: number
   private readonly _results: Result[]
   private readonly _impersonatedUser?: string
-  private readonly _lowRecordWatermak: number
+  private readonly _lowRecordWatermark: number
   private readonly _highRecordWatermark: number
   private _bookmarks: Bookmarks
   private readonly _activePromise: Promise<void>
@@ -119,7 +119,7 @@ class Transaction {
     this._onComplete = this._onCompleteCallback.bind(this)
     this._results = []
     this._impersonatedUser = impersonatedUser
-    this._lowRecordWatermak = lowRecordWatermark
+    this._lowRecordWatermark = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
     this._bookmarks = Bookmarks.empty()
     this._notificationFilter = notificationFilter
@@ -210,7 +210,7 @@ class Transaction {
       reactive: this._reactive,
       fetchSize: this._fetchSize,
       highRecordWatermark: this._highRecordWatermark,
-      lowRecordWatermark: this._lowRecordWatermak,
+      lowRecordWatermark: this._lowRecordWatermark,
       preparationJob: this._activePromise
     })
     this._results.push(result)

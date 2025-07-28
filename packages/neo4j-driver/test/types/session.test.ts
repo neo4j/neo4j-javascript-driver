@@ -27,7 +27,8 @@ import {
   Session,
   TransactionConfig,
   Node,
-  Relationship
+  Relationship,
+  ManagedTransaction
 } from 'neo4j-driver-core'
 
 const dummy: any = null
@@ -59,22 +60,22 @@ const txConfig7: TransactionConfig = {
 const tx1: Transaction = session.beginTransaction()
 const bookmarks: string[] = session.lastBookmarks()
 
-const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
+const promise1: Promise<number> = session.executeRead((tx: ManagedTransaction) => {
   return 10
 })
 
-const promise2: Promise<string> = session.readTransaction(async (tx: Transaction) => {
+const promise2: Promise<string> = session.executeRead(async (tx: ManagedTransaction) => {
   return await Promise.resolve('42')
 })
 
-const promise3: Promise<number> = session.writeTransaction(
-  (tx: Transaction) => {
+const promise3: Promise<number> = session.executeWrite(
+  (tx: ManagedTransaction) => {
     return 10
   }
 )
 
-const promise4: Promise<string> = session.writeTransaction(
-  async (tx: Transaction) => {
+const promise4: Promise<string> = session.executeWrite(
+  async (tx: ManagedTransaction) => {
     return await Promise.resolve('42')
   }
 )
@@ -166,12 +167,12 @@ result6.subscribe({
 })
 
 const tx2: Transaction = session.beginTransaction(txConfig2)
-const promise5: Promise<string> = session.readTransaction(
-  (tx: Transaction) => '',
+const promise5: Promise<string> = session.executeRead(
+  (tx: ManagedTransaction) => '',
   txConfig3
 )
-const promise6: Promise<number> = session.writeTransaction(
-  (tx: Transaction) => 42,
+const promise6: Promise<number> = session.executeWrite(
+  (tx: ManagedTransaction) => 42,
   txConfig4
 )
 

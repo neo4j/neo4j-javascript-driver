@@ -118,7 +118,7 @@ describe('#integration rx-session', () => {
     })
 
     const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
+      .executeWrite(txc => txcWork.work(txc))
       .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
@@ -145,7 +145,7 @@ describe('#integration rx-session', () => {
     })
 
     const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
+      .executeWrite(txc => txcWork.work(txc))
       .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
@@ -172,7 +172,7 @@ describe('#integration rx-session', () => {
     })
 
     const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
+      .executeWrite(txc => txcWork.work(txc))
       .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
@@ -194,7 +194,7 @@ describe('#integration rx-session', () => {
     })
 
     const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
+      .executeWrite(txc => txcWork.work(txc))
       .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
@@ -226,7 +226,7 @@ describe('#integration rx-session', () => {
     })
 
     const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
+      .executeWrite(txc => txcWork.work(txc))
       .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
@@ -572,9 +572,7 @@ describe('#unit rx-session', () => {
 
   ;[
     'executeRead',
-    'executeWrite',
-    'readTransaction',
-    'writeTransaction'
+    'executeWrite'
   ].forEach(txFun => {
     describe(`.${txFun}()`, () => {
       it(`should send telemetry configuration with API equals to ${TELEMETRY_APIS.MANAGED_TRANSACTION}`, async () => {

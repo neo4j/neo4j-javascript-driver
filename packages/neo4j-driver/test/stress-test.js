@@ -328,9 +328,9 @@ function queryInTxFunctionCommand (
 
     let resultPromise
     if (accessMode === READ) {
-      resultPromise = session.readTransaction(tx => tx.run(query, params))
+      resultPromise = session.executeRead(tx => tx.run(query, params))
     } else {
-      resultPromise = session.writeTransaction(tx => tx.run(query, params))
+      resultPromise = session.executeWrite(tx => tx.run(query, params))
     }
 
     resultPromise
@@ -471,7 +471,7 @@ function verifyNodeCount (context) {
 
   const session = context.driver.session()
   return session
-    .writeTransaction(tx => tx.run('MATCH (n) RETURN count(n)'))
+    .executeWrite(tx => tx.run('MATCH (n) RETURN count(n)'))
     .then(result => {
       const record = result.records[0]
       const count = record.get(0).toNumber()

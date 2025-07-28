@@ -264,7 +264,7 @@ readTxResultPromise
 ```javascript
 // It is possible to execute write transactions that will benefit from automatic retries
 // on both single instance ('bolt' URI scheme) and Causal Cluster ('neo4j' URI scheme)
-var writeTxResultPromise = session.writeTransaction(async txc => {
+var writeTxResultPromise = session.executeWrite(async txc => {
   // used transaction will be committed automatically, no need for explicit commit/rollback
 
   var result = await txc.run(

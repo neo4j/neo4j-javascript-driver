@@ -83,25 +83,25 @@ const tx1: Observable<RxTransaction> = rxSession.beginTransaction()
 const bookmarks: string[] = rxSession.lastBookmarks()
 const bookmark: string[] = rxSession.lastBookmark()
 
-const observable1: Observable<number> = rxSession.readTransaction(
+const observable1: Observable<number> = rxSession.executeRead(
   (tx: RxTransaction) => {
     return of(10)
   }
 )
 
-const observable2: Observable<string> = rxSession.readTransaction(
+const observable2: Observable<string> = rxSession.executeRead(
   (tx: RxTransaction) => {
     return of('42')
   }
 )
 
-const observable3: Observable<number> = rxSession.writeTransaction(
+const observable3: Observable<number> = rxSession.executeWrite(
   (tx: RxTransaction) => {
     return of(10)
   }
 )
 
-const observable4: Observable<string> = rxSession.writeTransaction(
+const observable4: Observable<string> = rxSession.executeWrite(
   (tx: RxTransaction) => {
     return of('42')
   }
@@ -150,11 +150,11 @@ result3
   .subscribe(summaryObserver)
 
 const tx2: Observable<RxTransaction> = rxSession.beginTransaction(txConfig2)
-const observable5: Observable<string> = rxSession.readTransaction(
+const observable5: Observable<string> = rxSession.executeRead(
   (tx: RxTransaction) => of(''),
   txConfig3
 )
-const observable6: Observable<number> = rxSession.writeTransaction(
+const observable6: Observable<number> = rxSession.executeWrite(
   (tx: RxTransaction) => of(42),
   txConfig4
 )
