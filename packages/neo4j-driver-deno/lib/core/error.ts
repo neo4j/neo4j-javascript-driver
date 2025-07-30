@@ -215,6 +215,7 @@ class Neo4jError extends GQLError {
      */
     this.name = 'Neo4jError'
 
+    let isRetryableCode = _isRetryableCode(code)
     /**
      * If the error is considered retriable.
      * This does not apply when running auto-commit transactions using {@link Session#run}
@@ -223,7 +224,7 @@ class Neo4jError extends GQLError {
      * @type {boolean}
      * @public
      */
-    this.retriable = _isRetryableCode(code)
+    this.retriable = isRetryableCode
 
     /**
      * If the error is considered retryable.
@@ -232,7 +233,7 @@ class Neo4jError extends GQLError {
      * @type {boolean}
      * @public
      */
-    this.retryable = _isRetryableCode(code)
+    this.retryable = isRetryableCode
   }
 
   /**

@@ -222,6 +222,7 @@ it('should change error to retryable when error when TokenExpired happens and st
 
   const error = conn.handleAndTransformError(expectedError, address)
 
+  expect(error.retriable).toBe(true)
   expect(error.retryable).toBe(true)
 })
 
@@ -242,6 +243,7 @@ it('should not change error to retryable when error when TokenExpired happens an
 
   const error = conn.handleAndTransformError(expectedError, address)
 
+  expect(error.retriable).toBe(false)
   expect(error.retryable).toBe(false)
 })
 
@@ -262,6 +264,7 @@ it('should not change error to retryable when error when TokenExpired happens an
 
   const error = conn.handleAndTransformError(expectedError, address)
 
+  expect(error.retriable).toBe(false)
   expect(error.retryable).toBe(false)
 })
 

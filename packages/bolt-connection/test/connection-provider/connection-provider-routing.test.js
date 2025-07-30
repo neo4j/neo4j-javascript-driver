@@ -1740,7 +1740,9 @@ describe.each([
     const error1 = server3Connection.handleAndTransformError(error, server3)
     const error2 = server2Connection.handleAndTransformError(error, server2)
 
+    expect(error1.retriable).toBe(true)
     expect(error1.retryable).toBe(true)
+    expect(error2.retriable).toBe(true)
     expect(error2.retryable).toBe(true)
   })
 
@@ -1781,7 +1783,9 @@ describe.each([
     const error1 = server3Connection.handleAndTransformError(error, server3)
     const error2 = server2Connection.handleAndTransformError(error, server2)
 
+    expect(error1.retriable).toBe(false)
     expect(error1.retryable).toBe(false)
+    expect(error2.retriable).toBe(false)
     expect(error2.retryable).toBe(false)
   })
 
@@ -1822,7 +1826,9 @@ describe.each([
     const error1 = server3Connection.handleAndTransformError(error, server3)
     const error2 = server2Connection.handleAndTransformError(error, server2)
 
+    expect(error1.retriable).toBe(false)
     expect(error1.retryable).toBe(false)
+    expect(error2.retriable).toBe(false)
     expect(error2.retryable).toBe(false)
   })
 

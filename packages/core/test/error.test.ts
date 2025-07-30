@@ -181,12 +181,14 @@ describe('Neo4jError', () => {
   test.each(getRetryableCodes())('should define retryable as true for error with code %s', code => {
     const error = new Neo4jError('message', code, 'gqlStatus', 'gqlStatusDescription')
 
+    expect(error.retriable).toBe(true)
     expect(error.retryable).toBe(true)
   })
 
   test.each(getNonRetryableCodes())('should define retryable as false for error with code %s', code => {
     const error = new Neo4jError('message', code, 'gqlStatus', 'gqlStatusDescription')
 
+    expect(error.retriable).toBe(false)
     expect(error.retryable).toBe(false)
   })
 
