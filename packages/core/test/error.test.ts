@@ -16,6 +16,7 @@
  */
 import {
   Neo4jError,
+  GQLError,
   isRetriableError,
   newError,
   newGQLError,
@@ -199,7 +200,40 @@ describe('Neo4jError', () => {
       expect(Neo4jError.isRetriable(error)).toBe(false)
     })
   })
+
+  describe('.containsGqlCause()', () => {
+    it.each([
+      [createNestedErrors(0), 'cause0', false],
+      [createNestedErrors(0), 'root', true],
+      [createNestedErrors(10), 'cause8', true],
+      [createNestedErrors(10), 'cause11', false]
+    ])('should correctly identify if GQLStatus is present in cause chain', (error, status, expectedResult) => {
+      expect(error.containsGqlCause(status)).toBe(expectedResult)
+    })
+  })
+
+  describe('.findByGqlStatus()', () => {
+    it.each([
+      [createNestedErrors(0), 'cause0', undefined],
+      [createNestedErrors(0), 'root', 'root'],
+      [createNestedErrors(10), 'cause8', '8cause'],
+      [createNestedErrors(10), 'cause11', undefined]
+    ])('should correctly find error in cause chain', (error, status, expectedMessage) => {
+      expect(error.findByGqlStatus(status)?.message).toBe(expectedMessage)
+    })
+  })
 })
+
+function createNestedErrors (causes: number): Neo4jError {
+  const error = new Neo4jError('root', '', 'root', '')
+  let current: Neo4jError | GQLError = error
+  for (let i = 0; i < causes; i++) {
+    const cause = new GQLError(i.toString() + 'cause', 'cause' + i.toString(), '')
+    current.cause = cause
+    current = cause
+  }
+  return error
+}
 
 function getRetriableErrorsFixture (): Array<[Neo4jError]> {
   return getRetriableCodes().map(code => [newError('message', code)])
