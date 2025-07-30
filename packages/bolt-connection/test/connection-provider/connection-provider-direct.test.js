@@ -205,7 +205,7 @@ it('should call authenticationAuthProvider.handleError when TokenExpired happens
   expect(handleError).toBeCalledWith({ connection: conn, code: 'Neo.ClientError.Security.TokenExpired' })
 })
 
-it('should change error to retriyable when error when TokenExpired happens and staticAuthTokenManager is not being used', async () => {
+it('should change error to retryable when error when TokenExpired happens and staticAuthTokenManager is not being used', async () => {
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
   const connectionProvider = newDirectConnectionProvider(address, pool, authTokenManagers.bearer({ tokenProvider: () => null }))
