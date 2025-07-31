@@ -182,7 +182,7 @@ describe('#unit BoltProtocolV5x6', () => {
     expect(protocol.flushes).toEqual([false, true])
   })
 
-  it('should begin a transaction', () => {
+  it('should begin a transaction with set database name', () => {
     const database = 'testdb'
     const bookmarks = new Bookmarks([
       'neo4j:bookmark:v1:tx1',

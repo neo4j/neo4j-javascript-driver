@@ -249,7 +249,8 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     const handled = this._authenticationProvider.handleError({ connection, code: error.code })
 
     if (handled) {
-      error.retriable = true
+      error.retriable = true // remove in 7.0
+      error.retryable = true
     }
 
     if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {

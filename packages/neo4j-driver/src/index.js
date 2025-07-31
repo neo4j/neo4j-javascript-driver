@@ -20,6 +20,7 @@ import VERSION from './version'
 import {
   authTokenManagers,
   Neo4jError,
+  isRetriableError,
   isRetryableError,
   error,
   Integer,
@@ -360,6 +361,7 @@ const forExport = {
   isUnboundRelationship,
   integer,
   Neo4jError,
+  isRetriableError,
   isRetryableError,
   auth,
   logging,
@@ -431,6 +433,7 @@ export {
   isUnboundRelationship,
   integer,
   Neo4jError,
+  isRetriableError,
   isRetryableError,
   auth,
   logging,
