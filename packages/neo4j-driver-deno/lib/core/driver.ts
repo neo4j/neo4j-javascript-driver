@@ -536,7 +536,7 @@ class Driver {
   }
 
   /**
-   * Executes a query in a retriable context and returns a {@link EagerResult}.
+   * Executes a query in a retryable context and returns a {@link EagerResult}.
    *
    * This method is a shortcut for a {@link Session#executeRead} and {@link Session#executeWrite}.
    *

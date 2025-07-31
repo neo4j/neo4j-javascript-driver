@@ -174,8 +174,16 @@ class Neo4jError extends GQLError {
   /**
    * Whether the request that caused this error can be safely retried without duplicate commits on the server.
    * This does not apply when running auto-commit transactions using {@link Session#run}
+   *
+   * @deprecated members using the spelling 'retriable' will be removed in 7.0. Use {@link retryable} instead.
    */
   retriable: boolean
+
+  /**
+   * Whether the request that caused this error can be safely retried without duplicate commits on the server.
+   * This does not apply when running auto-commit transactions using {@link Session#run}
+   */
+  retryable: boolean
 
   /**
    * @constructor
@@ -207,27 +215,49 @@ class Neo4jError extends GQLError {
      */
     this.name = 'Neo4jError'
 
+    const isRetryableCode = _isRetryableCode(code)
     /**
      * If the error is considered retriable.
+     * This does not apply when running auto-commit transactions using {@link Session#run}
+     *
+     * @deprecated members using the spelling 'retriable' will be removed in 7.0. Use {@link retryable} instead.
+     * @type {boolean}
+     * @public
+     */
+    this.retriable = isRetryableCode
+
+    /**
+     * If the error is considered retryable.
      * This does not apply when running auto-commit transactions using {@link Session#run}
      *
      * @type {boolean}
      * @public
      */
-    this.retriable = _isRetriableCode(code)
+    this.retryable = isRetryableCode
   }
 
   /**
    * Verifies if the given error is retriable.
    *
+   * @deprecated members using the spelling 'retriable' will be removed in 7.0. Use {@link isRetryable} instead.
    * @param {object|undefined|null} error the error object
    * @returns {boolean} true if the error is retriable
    */
   static isRetriable (error?: any | null): boolean {
+    return this.isRetryable(error)
+  }
+
+  /**
+   * Verifies if the given error is retryable.
+   *
+   * @param {object|undefined|null} error the error object
+   * @returns {boolean} true if the error is retryable
+   */
+  static isRetryable (error?: any | null): boolean {
     return error !== null &&
       error !== undefined &&
       error instanceof Neo4jError &&
-      error.retriable
+      error.retryable
   }
 }
 
@@ -263,6 +293,7 @@ function newGQLError (message: string, cause?: Error, gqlStatus?: string, gqlSta
 /**
  * Verifies if the given error is retriable.
  *
+ * @deprecated members using the spelling 'retriable' will be removed in 7.0. Use {@link isRetryableError} instead.
  * @public
  * @param {object|undefined|null} error the error object
  * @returns {boolean} true if the error is retriable
@@ -270,11 +301,20 @@ function newGQLError (message: string, cause?: Error, gqlStatus?: string, gqlSta
 const isRetriableError = Neo4jError.isRetriable
 
 /**
+ * Verifies if the given error is retryable.
+ *
+ * @public
+ * @param {object|undefined|null} error the error object
+ * @returns {boolean} true if the error is retryable
+ */
+const isRetryableError = Neo4jError.isRetryable
+
+/**
  * @private
  * @param {string} code the error code
  * @returns {boolean} true if the error is a retriable error
  */
-function _isRetriableCode (code?: Neo4jErrorCode): boolean {
+function _isRetryableCode (code?: Neo4jErrorCode): boolean {
   return code === SERVICE_UNAVAILABLE ||
     code === SESSION_EXPIRED ||
     _isAuthorizationExpired(code) ||
@@ -313,6 +353,7 @@ export {
   newError,
   newGQLError,
   isRetriableError,
+  isRetryableError,
   Neo4jError,
   GQLError,
   SERVICE_UNAVAILABLE,
