@@ -276,7 +276,7 @@ neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'password'), {
 // It is possible to execute read transactions that will benefit from automatic
 // retries on both single instance ('bolt' URI scheme) and Causal Cluster
 // ('neo4j' URI scheme) and will get automatic load balancing in cluster deployments
-var readTxResultPromise = session.readTransaction(txc => {
+var readTxResultPromise = session.executeRead(txc => {
   // used transaction will be committed automatically, no need for explicit commit/rollback
 
   var result = txc.run('MATCH (person:Person) RETURN person.name AS name')
@@ -300,7 +300,7 @@ readTxResultPromise
 
 ```javascript
 rxSession
-  .readTransaction(txc =>
+  .executeRead(txc =>
     txc
       .run('MATCH (person:Person) RETURN person.name AS name')
       .records()
@@ -318,7 +318,7 @@ rxSession
 ```javascript
 // It is possible to execute write transactions that will benefit from automatic retries
 // on both single instance ('bolt' URI scheme) and Causal Cluster ('neo4j' URI scheme)
-var writeTxResultPromise = session.writeTransaction(async txc => {
+var writeTxResultPromise = session.executeWrite(async txc => {
   // used transaction will be committed automatically, no need for explicit commit/rollback
 
   var result = await txc.run(
@@ -344,7 +344,7 @@ writeTxResultPromise
 
 ```javascript
 rxSession
-  .writeTransaction(txc =>
+  .executeWrite(txc =>
     txc
       .run("MERGE (alice:Person {name: 'James'}) RETURN alice.name AS name")
       .records()

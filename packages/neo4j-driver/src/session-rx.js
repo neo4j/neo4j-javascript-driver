@@ -85,32 +85,6 @@ export default class RxSession {
    * Executes the provided unit of work in a {@link READ} reactive transaction which is created with the provided
    * transaction configuration.
    * @public
-   * @deprecated This method will be removed in version 6.0. Please, use {@link RxSession#executeRead} instead.
-   * @param {function(txc: RxTransaction): Observable} work - A unit of work to be executed.
-   * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
-   * @returns {Observable} - A reactive stream returned by the unit of work.
-   */
-  readTransaction (work, transactionConfig) {
-    return this._runTransaction(ACCESS_MODE_READ, work, transactionConfig)
-  }
-
-  /**
-   * Executes the provided unit of work in a {@link WRITE} reactive transaction which is created with the provided
-   * transaction configuration.
-   * @public
-   * @deprecated This method will be removed in version 6.0. Please, use {@link RxSession#executeWrite} instead.
-   * @param {function(txc: RxTransaction): Observable} work - A unit of work to be executed.
-   * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
-   * @returns {Observable} - A reactive stream returned by the unit of work.
-   */
-  writeTransaction (work, transactionConfig) {
-    return this._runTransaction(ACCESS_MODE_WRITE, work, transactionConfig)
-  }
-
-  /**
-   * Executes the provided unit of work in a {@link READ} reactive transaction which is created with the provided
-   * transaction configuration.
-   * @public
    * @param {function(txc: RxManagedTransaction): Observable} work - A unit of work to be executed.
    * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
    * @returns {Observable} - A reactive stream returned by the unit of work.

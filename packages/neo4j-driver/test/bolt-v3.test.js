@@ -321,7 +321,7 @@ describe('#integration Bolt V3 API', () => {
   it('should fail to run read transaction function with invalid timeout', () => {
     INVALID_TIMEOUT_VALUES.forEach(invalidValue =>
       expect(() =>
-        session.readTransaction(tx => tx.run('RETURN 1'), {
+        session.executeRead(tx => tx.run('RETURN 1'), {
           timeout: invalidValue
         })
       ).toThrow()
@@ -331,7 +331,7 @@ describe('#integration Bolt V3 API', () => {
   it('should fail to run read transaction function with invalid metadata', () => {
     INVALID_METADATA_VALUES.forEach(invalidValue =>
       expect(() =>
-        session.readTransaction(tx => tx.run('RETURN 1'), {
+        session.executeRead(tx => tx.run('RETURN 1'), {
           metadata: invalidValue
         })
       ).toThrow()
@@ -341,7 +341,7 @@ describe('#integration Bolt V3 API', () => {
   it('should fail to run write transaction function with invalid timeout', () => {
     INVALID_TIMEOUT_VALUES.forEach(invalidValue =>
       expect(() =>
-        session.writeTransaction(tx => tx.run('RETURN 1'), {
+        session.executeWrite(tx => tx.run('RETURN 1'), {
           timeout: invalidValue
         })
       ).toThrow()
@@ -351,7 +351,7 @@ describe('#integration Bolt V3 API', () => {
   it('should fail to run write transaction function with invalid metadata', () => {
     INVALID_METADATA_VALUES.forEach(invalidValue =>
       expect(() =>
-        session.writeTransaction(tx => tx.run('RETURN 1'), {
+        session.executeWrite(tx => tx.run('RETURN 1'), {
           metadata: invalidValue
         })
       ).toThrow()
@@ -427,7 +427,7 @@ describe('#integration Bolt V3 API', () => {
 
     const initialBookmarks = session.lastBookmarks()
 
-    await session.writeTransaction(tx => tx.run('CREATE ()'))
+    await session.executeWrite(tx => tx.run('CREATE ()'))
     const bookmarks1 = session.lastBookmarks()
     expect(bookmarks1).not.toBeNull()
     expect(bookmarks1).toBeDefined()
@@ -440,7 +440,7 @@ describe('#integration Bolt V3 API', () => {
     expect(bookmarks2).not.toEqual(initialBookmarks)
     expect(bookmarks2).not.toEqual(bookmarks1)
 
-    await session.writeTransaction(tx => tx.run('CREATE ()'))
+    await session.executeWrite(tx => tx.run('CREATE ()'))
     const bookmarks3 = session.lastBookmarks()
     expect(bookmarks3).not.toBeNull()
     expect(bookmarks3).toBeDefined()
@@ -461,8 +461,8 @@ describe('#integration Bolt V3 API', () => {
 
     const txFunctionWithMetadata = work =>
       read
-        ? session.readTransaction(work, { metadata })
-        : session.writeTransaction(work, { metadata })
+        ? session.executeRead(work, { metadata })
+        : session.executeWrite(work, { metadata })
 
     const result = await txFunctionWithMetadata(tx =>
       tx.run('CALL dbms.listTransactions()')
@@ -499,8 +499,8 @@ describe('#integration Bolt V3 API', () => {
 
     const txFunctionWithMetadata = work =>
       read
-        ? session.readTransaction(work, txConfig)
-        : session.writeTransaction(work, txConfig)
+        ? session.executeRead(work, txConfig)
+        : session.executeWrite(work, txConfig)
 
     await expectAsync(
       txFunctionWithMetadata(tx => tx.run('RETURN 42'))

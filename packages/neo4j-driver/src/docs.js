@@ -21,8 +21,8 @@
  * Configuration is supported for:
  * <ul>
  *   <li>queries executed in auto-commit transactions using {@link Session#run} and {@link RxSession#run}</li>
- *   <li>transactions started by transaction functions using {@link Session#readTransaction}, {@link RxSession#readTransaction},
- * {@link Session#writeTransaction} and {@link RxSession#writeTransaction}</li>
+ *   <li>transactions started by transaction functions using {@link Session#executeRead}, {@link RxSession#executeRead},
+ * {@link Session#executeWrite} and {@link RxSession#executeWrite}</li>
  *   <li>explicit transactions using {@link Session#beginTransaction} and {@link RxSession#beginTransaction}</li>
  * </ul>
  * @typedef {Object} TransactionConfig

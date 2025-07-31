@@ -331,8 +331,6 @@ export class Config {
      * * {@link Session#beginTransaction}
      * * {@link Session#executeRead}
      * * {@link Session#executeWrite}
-     * * {@link Session#writeTransaction}
-     * * {@link Session#readTransaction}
      * * The reactive counterparts of methods above.
      *
      * Metrics are only collected when enabled both in server and driver instances.

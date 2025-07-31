@@ -22,7 +22,7 @@ import { validateQueryAndParameters } from './internal/util'
 import { FETCH_ALL, ACCESS_MODE_READ, ACCESS_MODE_WRITE, TELEMETRY_APIS } from './internal/constants'
 import { newError } from './error'
 import Result from './result'
-import Transaction, { NonAutoCommitApiTelemetryConfig, NonAutoCommitTelemetryApis } from './transaction'
+import { NonAutoCommitApiTelemetryConfig, NonAutoCommitTelemetryApis } from './transaction'
 import { ConnectionHolder } from './internal/connection-holder'
 import { TransactionExecutor } from './internal/transaction-executor'
 import { Bookmarks } from './internal/bookmarks'
@@ -40,7 +40,6 @@ import { Logger } from './internal/logger'
 import { cacheKey } from './internal/auth-util'
 
 type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
-type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
 interface TransactionConfig {
@@ -390,67 +389,6 @@ class Session {
       return this._lastBookmarks
     }
     return new Bookmarks([...bookmarks, ...this._configuredBookmarks])
-  }
-
-  /**
-   * Execute given unit of work in a {@link READ} transaction.
-   *
-   * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
-   * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
-   * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
-   * `maxTransactionRetryTime` property in milliseconds.
-   *
-   * @deprecated This method will be removed in version 6.0. Please, use {@link Session#executeRead} instead.
-   *
-   * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
-   * a given {@link Transaction}.
-   * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
-   * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
-   * function or commit fails.
-   * @see {@link Session#executeRead}
-   */
-  readTransaction<T>(
-    transactionWork: TransactionWork<T>,
-    transactionConfig?: TransactionConfig
-  ): Promise<T> {
-    const config = new TxConfig(transactionConfig, this._log)
-    return this._runTransaction(ACCESS_MODE_READ, config, transactionWork)
-  }
-
-  /**
-   * Execute given unit of work in a {@link WRITE} transaction.
-   *
-   * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
-   * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
-   * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
-   * `maxTransactionRetryTime` property in milliseconds.
-   *
-   * @deprecated This method will be removed in version 6.0. Please, use {@link Session#executeWrite} instead.
-   *
-   * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
-   * a given {@link Transaction}.
-   * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
-   * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
-   * function or commit fails.
-   * @see {@link Session#executeWrite}
-   */
-  writeTransaction<T>(
-    transactionWork: TransactionWork<T>,
-    transactionConfig?: TransactionConfig
-  ): Promise<T> {
-    const config = new TxConfig(transactionConfig, this._log)
-    return this._runTransaction(ACCESS_MODE_WRITE, config, transactionWork)
-  }
-
-  _runTransaction<T>(
-    accessMode: SessionMode,
-    transactionConfig: TxConfig,
-    transactionWork: TransactionWork<T>
-  ): Promise<T> {
-    return this._transactionExecutor.execute(
-      (apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig) => this._beginTransaction(accessMode, transactionConfig, apiTelemetryConfig),
-      transactionWork
-    )
   }
 
   /**

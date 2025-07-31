@@ -74,7 +74,7 @@ describe('#integration Bolt V4.0 API', () => {
           })
       }, 20000)
 
-      it('should fail readTransaction if not supported', done => {
+      it('should fail executeRead if not supported', done => {
         if (databaseSupportsBoltV4()) {
           done()
           return
@@ -83,7 +83,7 @@ describe('#integration Bolt V4.0 API', () => {
         const session = driver.session({ database: 'adb' })
 
         session
-          .readTransaction(tx => tx.run('RETURN 1'))
+          .executeRead(tx => tx.run('RETURN 1'))
           .then(() => done.fail('Failure expected'))
           .catch(error => {
             expectBoltV4NotSupportedError(error)
@@ -91,7 +91,7 @@ describe('#integration Bolt V4.0 API', () => {
           })
       }, 20000)
 
-      it('should fail writeTransaction if not supported', done => {
+      it('should fail executeWrite if not supported', done => {
         if (databaseSupportsBoltV4()) {
           done()
           return
@@ -100,7 +100,7 @@ describe('#integration Bolt V4.0 API', () => {
         const session = driver.session({ database: 'adb' })
 
         session
-          .writeTransaction(tx => tx.run('RETURN 1'))
+          .executeWrite(tx => tx.run('RETURN 1'))
           .then(() => done.fail('Failure expected'))
           .catch(error => {
             expectBoltV4NotSupportedError(error)
@@ -114,7 +114,7 @@ describe('#integration Bolt V4.0 API', () => {
         }
 
         const session = driver.session()
-        const result = await session.readTransaction(tx => tx.run('RETURN 1'))
+        const result = await session.executeRead(tx => tx.run('RETURN 1'))
 
         expect(result.summary.database).toBeTruthy()
         expect(result.summary.database.name).toBeNull()

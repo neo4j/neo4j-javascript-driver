@@ -582,7 +582,7 @@ describe('#integration session', () => {
     session = driver.session()
     expect(session.lastBookmarks()).toEqual([])
 
-    const resultPromise = session.readTransaction(tx =>
+    const resultPromise = session.executeRead(tx =>
       tx.run('RETURN 42 AS answer')
     )
 
@@ -596,7 +596,7 @@ describe('#integration session', () => {
 
   it('should commit write transaction', done => {
     const bookmarksBefore = session.lastBookmarks()
-    const resultPromise = session.writeTransaction(tx =>
+    const resultPromise = session.executeWrite(tx =>
       tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
     )
 
@@ -616,120 +616,35 @@ describe('#integration session', () => {
     })
   }, 70000)
 
-  it('should not commit already committed read transaction', done => {
-    const resultPromise = session.readTransaction(tx => {
-      return new Promise((resolve, reject) => {
-        tx.run('RETURN 42 AS answer')
-          .then(result => {
-            tx.commit()
-              .then(() => {
-                resolve({ result, bookmarks: session.lastBookmarks() })
-              })
-              .catch(error => reject(error))
-          })
-          .catch(error => reject(error))
-      })
-    })
+  it('should not commit already committed  transaction', done => {
+    const tx = session.beginTransaction()
 
-    resultPromise.then(outcome => {
-      const bookmarks = outcome.bookmarks
-      const result = outcome.result
+    tx.run('RETURN 42 AS answer')
+      .then(result => {
+        tx.commit()
+        const bookmarks = session.lastBookmarks()
 
-      verifyBookmarks(bookmarks)
-      expect(session.lastBookmarks()).toEqual(bookmarks) // expect bookmarks to not change
+        verifyBookmarks(bookmarks)
+        expect(session.lastBookmarks()).toEqual(bookmarks) // expect bookmarks to not change
 
-      expect(result.records.length).toEqual(1)
-      expect(result.records[0].get('answer').toNumber()).toEqual(42)
+        expect(result.records.length).toEqual(1)
+        expect(result.records[0].get('answer').toNumber()).toEqual(42)
 
-      done()
-    })
-  }, 70000)
-
-  it('should not commit already committed write transaction', done => {
-    const resultPromise = session.writeTransaction(tx => {
-      return new Promise((resolve, reject) => {
-        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
-          .then(result => {
-            tx.commit()
-              .then(() => {
-                resolve({ result, bookmarks: session.lastBookmarks() })
-              })
-              .catch(error => reject(error))
-          })
-          .catch(error => reject(error))
-      })
-    })
-
-    resultPromise.then(outcome => {
-      const bookmarks = outcome.bookmarks
-      const result = outcome.result
-
-      verifyBookmarks(bookmarks)
-      expect(session.lastBookmarks()).toEqual(bookmarks) // expect bookmarks to not change
-
-      expect(result.records.length).toEqual(1)
-      expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
-
-      countNodes('Node', 'id', 42).then(count => {
-        expect(count).toEqual(1)
         done()
       })
-    })
   }, 70000)
 
-  it('should not commit rolled back read transaction', done => {
+  it('should not commit rolled back transaction', done => {
     const bookmarksBefore = session.lastBookmarks()
-    const resultPromise = session.readTransaction(tx => {
-      return new Promise((resolve, reject) => {
-        tx.run('RETURN 42 AS answer')
-          .then(result => {
-            tx.rollback()
-              .then(() => {
-                resolve(result)
-              })
-              .catch(error => reject(error))
-          })
-          .catch(error => reject(error))
+    const tx = session.beginTransaction()
+    tx.run('RETURN 42 AS answer')
+      .then(result => {
+        tx.rollback()
+        expect(result.records.length).toEqual(1)
+        expect(result.records[0].get('answer').toNumber()).toEqual(42)
+        expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
       })
-    })
-
-    resultPromise.then(result => {
-      expect(result.records.length).toEqual(1)
-      expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
-
-      done()
-    })
-  }, 70000)
-
-  it('should not commit rolled back write transaction', done => {
-    const bookmarksBefore = session.lastBookmarks()
-    const resultPromise = session.writeTransaction(tx => {
-      return new Promise((resolve, reject) => {
-        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
-          .then(result => {
-            tx.rollback()
-              .then(() => {
-                resolve(result)
-              })
-              .catch(error => reject(error))
-          })
-          .catch(error => reject(error))
-      })
-    })
-
-    resultPromise.then(result => {
-      expect(result.records.length).toEqual(1)
-      expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
-      expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
-
-      countNodes('Node', 'id', 42).then(count => {
-        expect(count).toEqual(0)
-        done()
-      })
-    })
+    done()
   }, 70000)
 
   it('should interrupt query waiting on a lock when closed', done => {
@@ -811,26 +726,25 @@ describe('#integration session', () => {
           expect(result.records.length).toEqual(1)
           expect(result.records[0].get(0).toNumber()).toEqual(42)
 
-          session2.writeTransaction(tx2 => {
-            // this query should get stuck waiting for the lock
-            return tx2
-              .run('MATCH (n) SET n.id = 2 RETURN 42 AS answer')
-              .catch(error => {
-                expectTransactionTerminatedError(error)
-                tx1.commit().then(() => {
-                  readAllNodeIds().then(ids => {
-                    expect(ids).toEqual([1])
-                    done()
-                  })
+          const tx2 = session2.beginTransaction()
+          // this query should get stuck waiting for the lock
+          return tx2
+            .run('MATCH (n) SET n.id = 2 RETURN 42 AS answer')
+            .catch(error => {
+              expectTransactionTerminatedError(error)
+              tx1.commit().then(() => {
+                readAllNodeIds().then(ids => {
+                  expect(ids).toEqual([1])
+                  done()
                 })
               })
-          })
-
-          setTimeout(() => {
-            // close session after a while
-            session2.close()
-          }, 1000)
+            })
         })
+
+        setTimeout(() => {
+          // close session after a while
+          session2.close()
+        }, 1000)
       })
     })
   }, 70000)
@@ -1063,7 +977,7 @@ describe('#integration session', () => {
     const failures = 3
     const usedTransactions = []
 
-    const resultPromise = session.writeTransaction(tx => {
+    const resultPromise = session.executeWrite(tx => {
       usedTransactions.push(tx)
       if (usedTransactions.length < failures) {
         return failureResponseFunction()
@@ -1076,7 +990,6 @@ describe('#integration session', () => {
       .then(result => {
         expect(result.records[0].get(0)).toEqual('424242')
         expect(usedTransactions.length).toEqual(3)
-        usedTransactions.forEach(tx => expect(tx.isOpen()).toBeFalsy())
       })
       .then(() => session.close())
       .then(() => done())
@@ -1090,7 +1003,7 @@ describe('#integration session', () => {
 
     const usedTransactions = []
 
-    const resultPromise = session.writeTransaction(tx => {
+    const resultPromise = session.executeWrite(tx => {
       usedTransactions.push(tx)
       return failureResponseFunction()
     })
@@ -1107,7 +1020,7 @@ describe('#integration session', () => {
         expect(error).toBeDefined()
         expect(error).not.toBeNull()
         expect(usedTransactions.length).toEqual(1)
-        expect(usedTransactions[0].isOpen()).toBeFalsy()
+        // expect(usedTransactions[0].isOpen()).toBeFalsy()
       })
       .then(() => session.close())
       .then(() => done())

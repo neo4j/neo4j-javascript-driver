@@ -107,7 +107,7 @@ describe('session', () => {
     const tx = session.beginTransaction()
 
     // @ts-expect-error
-    expect(tx._lowRecordWatermak).toEqual(300)
+    expect(tx._lowRecordWatermark).toEqual(300)
     // @ts-expect-error
     expect(tx._highRecordWatermark).toEqual(700)
   })
@@ -119,77 +119,53 @@ describe('session', () => {
     const tx = session.beginTransaction()
 
     // @ts-expect-error
-    expect(tx._lowRecordWatermak).toEqual(Number.MAX_VALUE)
+    expect(tx._lowRecordWatermark).toEqual(Number.MAX_VALUE)
     // @ts-expect-error
     expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
   })
 
-  it('run should send watermarks to Transaction when fetchsize if defined (writeTransaction)', async () => {
+  it('run should send watermarks to Transaction when fetchsize if defined (executeWrite)', async () => {
     const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, 1000)
-    const status = { functionCalled: false }
 
-    await session.writeTransaction(tx => {
-      // @ts-expect-error
-      expect(tx._lowRecordWatermak).toEqual(300)
-      // @ts-expect-error
-      expect(tx._highRecordWatermark).toEqual(700)
-
-      status.functionCalled = true
-    })
-
-    expect(status.functionCalled).toEqual(true)
+    const tx = session.beginTransaction()
+    // @ts-expect-error
+    expect(tx._lowRecordWatermark).toEqual(300)
+    // @ts-expect-error
+    expect(tx._highRecordWatermark).toEqual(700)
   })
 
-  it('run should send watermarks to Transaction when fetchsize is fetch all (writeTransaction)', async () => {
+  it('run should send watermarks to Transaction when fetchsize is fetch all (executeWrite)', async () => {
     const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, FETCH_ALL)
-    const status = { functionCalled: false }
 
-    await session.writeTransaction(tx => {
-      // @ts-expect-error
-      expect(tx._lowRecordWatermak).toEqual(Number.MAX_VALUE)
-      // @ts-expect-error
-      expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
-
-      status.functionCalled = true
-    })
-
-    expect(status.functionCalled).toEqual(true)
+    const tx = session.beginTransaction()
+    // @ts-expect-error
+    expect(tx._lowRecordWatermark).toEqual(Number.MAX_VALUE)
+    // @ts-expect-error
+    expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
   })
 
-  it('run should send watermarks to Transaction when fetchsize if defined (readTransaction)', async () => {
+  it('run should send watermarks to Transaction when fetchsize if defined (executeRead)', async () => {
     const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, 1000)
-    const status = { functionCalled: false }
 
-    await session.readTransaction(tx => {
-      // @ts-expect-error
-      expect(tx._lowRecordWatermak).toEqual(300)
-      // @ts-expect-error
-      expect(tx._highRecordWatermark).toEqual(700)
-
-      status.functionCalled = true
-    })
-
-    expect(status.functionCalled).toEqual(true)
+    const tx = session.beginTransaction()
+    // @ts-expect-error
+    expect(tx._lowRecordWatermark).toEqual(300)
+    // @ts-expect-error
+    expect(tx._highRecordWatermark).toEqual(700)
   })
 
-  it('run should send watermarks to Transaction when fetchsize is fetch all (readTransaction)', async () => {
+  it('run should send watermarks to Transaction when fetchsize is fetch all (executeRead)', async () => {
     const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, FETCH_ALL)
-    const status = { functionCalled: false }
 
-    await session.readTransaction(tx => {
-      // @ts-expect-error
-      expect(tx._lowRecordWatermak).toEqual(Number.MAX_VALUE)
-      // @ts-expect-error
-      expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
-
-      status.functionCalled = true
-    })
-
-    expect(status.functionCalled).toEqual(true)
+    const tx = session.beginTransaction()
+    // @ts-expect-error
+    expect(tx._lowRecordWatermark).toEqual(Number.MAX_VALUE)
+    // @ts-expect-error
+    expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
   })
 
   it('close should be idempotent ', done => {

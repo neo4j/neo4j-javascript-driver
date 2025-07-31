@@ -306,9 +306,9 @@ describe('#integration stress tests', () => {
 
       let resultPromise
       if (accessMode === READ) {
-        resultPromise = session.readTransaction(tx => tx.run(query, params))
+        resultPromise = session.executeRead(tx => tx.run(query, params))
       } else {
-        resultPromise = session.writeTransaction(tx => tx.run(query, params))
+        resultPromise = session.executeWrite(tx => tx.run(query, params))
       }
 
       resultPromise
@@ -453,7 +453,7 @@ describe('#integration stress tests', () => {
 
     const session = context.driver.session()
     return session
-      .writeTransaction(tx => tx.run('MATCH (n) RETURN count(n)'))
+      .executeWrite(tx => tx.run('MATCH (n) RETURN count(n)'))
       .then(result => {
         const record = result.records[0]
         const count = record.get(0).toNumber()
@@ -532,7 +532,7 @@ describe('#integration stress tests', () => {
   function fetchClusterAddresses (context) {
     const session = context.driver.session()
     return session
-      .readTransaction(tx => tx.run('CALL dbms.cluster.overview()'))
+      .executeRead(tx => tx.run('CALL dbms.cluster.overview()'))
       .then(result => {
         const records = result.records
         const supportsMultiDb = protocolVersion >= 4.0
