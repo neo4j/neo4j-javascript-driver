@@ -414,19 +414,6 @@ describe('#integration rx-session', () => {
 })
 
 describe('#unit rx-session', () => {
-  describe('lastBookmark', () => {
-    ;[
-      bookmarks.Bookmarks.empty(),
-      new bookmarks.Bookmarks('bookmark1'),
-      new bookmarks.Bookmarks(['bookmark1', 'bookmark2'])
-    ].forEach(bookmarks => {
-      it(`should return ${bookmarks}`, () => {
-        const session = newSession(bookmarks)
-        expect(session.lastBookmark()).toBe(bookmarks.values())
-      })
-    })
-  })
-
   describe('lastBookmarks', () => {
     ;[
       bookmarks.Bookmarks.empty(),
