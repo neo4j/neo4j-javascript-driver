@@ -336,20 +336,25 @@ describe('Driver', () => {
   })
 
   it.each([
-    [undefined, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
-    [undefined, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
-    [{}, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
-    [{}, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
-    [{ database: undefined }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
-    [{ database: undefined }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
-    [{ database: 'db' }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
-    [{ database: 'db' }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))]
-  ])('.verifyConnectivity(%o) => %s', (input: { database?: string } | undefined, _, expectedPromise) => {
+    [undefined, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo()), true],
+    [undefined, 'Promise.reject(Error)', Promise.reject(newError('something went wrong')), false],
+    [{}, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo()), true],
+    [{}, 'Promise.reject(Error)', Promise.reject(newError('something went wrong')), false],
+    [{ database: undefined }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo()), true],
+    [{ database: undefined }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong')), false],
+    [{ database: 'db' }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo()), true],
+    [{ database: 'db' }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong')), false]
+  ])('.verifyConnectivity(%o) => %s', (input: { database?: string } | undefined, _, expectedPromise, shouldBeVoid) => {
     connectionProvider.verifyConnectivityAndGetServerInfo = jest.fn(() => expectedPromise)
 
-    const promise: Promise<ServerInfo> | undefined = driver?.verifyConnectivity(input)
+    const promise: Promise<void> | undefined = driver?.verifyConnectivity(input)
 
-    expect(promise).toBe(expectedPromise)
+    if (shouldBeVoid) {
+      const expectedVoid = Promise.resolve()
+      expect(promise).toEqual(expectedVoid)
+    } else {
+      expect(promise).toEqual(expectedPromise)
+    }
     expect(connectionProvider.verifyConnectivityAndGetServerInfo)
       .toBeCalledWith({ database: input?.database ?? '', accessMode: READ })
 

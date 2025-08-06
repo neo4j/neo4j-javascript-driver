@@ -411,7 +411,7 @@ describe('#integration driver', () => {
     )
 
     // Expect
-    driver.verifyConnectivity().then(server => {
+    driver.getServerInfo().then(server => {
       expect(server.address).toBeDefined()
       done()
     })
@@ -425,7 +425,7 @@ describe('#integration driver', () => {
     )
 
     // Expect
-    driver.verifyConnectivity().then(server => {
+    driver.getServerInfo().then(server => {
       expect(server.address).toBeDefined()
       done()
     })
@@ -444,7 +444,7 @@ describe('#integration driver', () => {
     )
 
     // Expect
-    driver.verifyConnectivity().then(server => {
+    driver.getServerInfo().then(server => {
       expect(server.address).toBeDefined()
       done()
     })
@@ -464,7 +464,7 @@ describe('#integration driver', () => {
     )
 
     // Expect
-    driver.verifyConnectivity().then(server => {
+    driver.getServerInfo().then(server => {
       expect(server.address).toBeDefined()
       done()
     })

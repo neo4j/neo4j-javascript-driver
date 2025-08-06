@@ -99,7 +99,7 @@ session1
 
 const close: Promise<void> = driver.close().catch(error => console.error(error))
 
-driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
+driver.getServerInfo().then((serverInfo: ServerInfo) => {
   console.log(serverInfo.address)
 }).catch(error => console.error(error))
 
