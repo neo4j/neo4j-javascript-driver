@@ -81,7 +81,6 @@ const txConfig7: TransactionConfig = {
 
 const tx1: Observable<RxTransaction> = rxSession.beginTransaction()
 const bookmarks: string[] = rxSession.lastBookmarks()
-const bookmark: string[] = rxSession.lastBookmark()
 
 const observable1: Observable<number> = rxSession.executeRead(
   (tx: RxTransaction) => {

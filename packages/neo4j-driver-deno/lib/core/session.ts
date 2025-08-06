@@ -365,18 +365,6 @@ class Session {
   /**
    * Return the bookmarks received following the last completed {@link Transaction}.
    *
-   * @deprecated This method will be removed in version 6.0. Please, use {@link Session#lastBookmarks} instead.
-   *
-   * @return {string[]} A reference to a previous transaction.
-   * @see {@link Session#lastBookmarks}
-   */
-  lastBookmark (): string[] {
-    return this.lastBookmarks()
-  }
-
-  /**
-   * Return the bookmarks received following the last completed {@link Transaction}.
-   *
    * @return {string[]} A reference to a previous transaction.
    */
   lastBookmarks (): string[] {

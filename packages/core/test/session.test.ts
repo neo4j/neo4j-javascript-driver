@@ -268,19 +268,7 @@ describe('session', () => {
       })
   })
 
-  describe('.lastBookmark()', () => {
-    it.each([
-      [bookmarks.Bookmarks.empty()],
-      [new bookmarks.Bookmarks('bookmark1')],
-      [new bookmarks.Bookmarks(['bookmark1', 'bookmark2'])]
-    ])('should return the bookmark informed in the object creation', (bookmarks) => {
-      const session = newSessionWithConnection(newFakeConnection(), false, 1000, bookmarks)
-
-      expect(session.lastBookmark()).toEqual(bookmarks.values())
-    })
-  })
-
-  describe('.lastBookmark()', () => {
+  describe('.lastBookmarks()', () => {
     it.each([
       [bookmarks.Bookmarks.empty()],
       [new bookmarks.Bookmarks('bookmark1')],
