@@ -57,6 +57,14 @@ export default class SocketChannel extends Channel {
       this.emit('contextClose', { contextId })
     })
 
+    connection.on('close', () => {
+      if (this._clients.has(contextId)) {
+        this._clients.get(contextId).protocol.stop()
+      }
+      this._clients.delete(contextId)
+      this.emit('contextClose', { contextId })
+    })
+
     protocol.start()
   }
 
