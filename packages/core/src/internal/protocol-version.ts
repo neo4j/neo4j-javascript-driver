@@ -1,18 +1,20 @@
 export class ProtocolVersion {
-  constructor (major, minor) {
+  private readonly major: number
+  private readonly minor: number
+  constructor (major: number, minor: number) {
     this.major = major
     this.minor = minor
   }
 
-  getMajor () {
+  getMajor (): number {
     return this.major
   }
 
-  getMinor () {
+  getMinor (): number {
     return this.major
   }
 
-  isLessThan (other) {
+  isLessThan (other: ProtocolVersion): boolean {
     if (this.major < other.major) {
       return true
     } else if (this.major === other.major && this.minor < other.minor) {
@@ -21,7 +23,7 @@ export class ProtocolVersion {
     return false
   }
 
-  isGreaterThan (other) {
+  isGreaterThan (other: ProtocolVersion): boolean {
     if (this.major > other.major) {
       return true
     } else if (this.major === other.major && this.minor > other.minor) {
@@ -30,19 +32,19 @@ export class ProtocolVersion {
     return false
   }
 
-  isGreaterOrEqualTo (other) {
+  isGreaterOrEqualTo (other: ProtocolVersion): boolean {
     return !this.isLessThan(other)
   }
 
-  isLessOrEqualTo (other) {
+  isLessOrEqualTo (other: ProtocolVersion): boolean {
     return !this.isGreaterThan(other)
   }
 
-  equalTo (other) {
+  equalTo (other: ProtocolVersion): boolean {
     return this.major === other.major && this.minor === other.minor
   }
 
-  toString () {
+  toString (): string {
     return this.major.toString() + '.' + this.minor.toString()
   }
 }

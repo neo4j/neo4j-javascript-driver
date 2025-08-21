@@ -19,6 +19,7 @@ import Integer from './integer'
 import { NumberOrInteger } from './graph-types'
 import { util } from './internal'
 import GqlStatusObject, { Notification, buildGqlStatusObjectFromMetadata, buildNotificationsFromMetadata } from './notification'
+import { ProtocolVersion } from './internal/protocol-version'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.
@@ -42,13 +43,13 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
    * @param {string} query - The query this summary is for
    * @param {Object} parameters - Parameters for the query
    * @param {Object} metadata - Query metadata
-   * @param {string|undefined} protocolVersion - Bolt Protocol Version
+   * @param {ProtocolVersion|undefined} protocolVersion - Bolt Protocol Version
    */
   constructor (
     query: string,
     parameters: { [key: string]: any },
     metadata: any,
-    protocolVersion?: string
+    protocolVersion?: ProtocolVersion
   ) {
     /**
      * The query and parameters this summary is for.
@@ -434,7 +435,7 @@ class QueryStatistics {
  */
 class ServerInfo {
   address?: string
-  protocolVersion?: string
+  protocolVersion?: ProtocolVersion
   agent?: string
 
   /**
@@ -442,9 +443,9 @@ class ServerInfo {
    * @constructor
    * @param {Object} serverMeta - Object with serverMeta data
    * @param {Object} connectionInfo - Bolt connection info
-   * @param {string} protocolVersion - Bolt Protocol Version
+   * @param {ProtocolVersion} protocolVersion - Bolt Protocol Version
    */
-  constructor (serverMeta?: any, protocolVersion?: string) {
+  constructor (serverMeta?: any, protocolVersion?: ProtocolVersion) {
     if (serverMeta != null) {
       /**
        * The server adress
@@ -463,7 +464,7 @@ class ServerInfo {
 
     /**
      * The protocol version used by the connection
-     * @type {string}
+     * @type {ProtocolVersion}
      * @public
      */
     this.protocolVersion = protocolVersion

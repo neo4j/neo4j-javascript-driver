@@ -18,6 +18,7 @@
 import { Connection, ResultObserver, ResultSummary } from '../../src'
 import { BeginTransactionConfig, CommitTransactionConfig, RollbackConnectionConfig, RunQueryConfig } from '../../src/connection'
 import { ResultStreamObserver } from '../../src/internal/observers'
+import { ProtocolVersion } from '../../src/internal/protocol-version'
 
 /**
  * This class is like a mock of {@link Connection} that tracks invocations count.
@@ -38,7 +39,7 @@ export default class FakeConnection extends Connection {
   public seenParameters: any[]
   public seenProtocolOptions: any[]
   private readonly _server: any
-  public protocolVersion: string
+  public protocolVersion: ProtocolVersion
   public protocolErrorsHandled: number
   public seenProtocolErrors: string[]
   public seenRequestRoutingInformation: any[]
@@ -61,7 +62,7 @@ export default class FakeConnection extends Connection {
     this.seenParameters = []
     this.seenProtocolOptions = []
     this._server = {}
-    this.protocolVersion = '1.0'
+    this.protocolVersion = new ProtocolVersion(1, 0)
     this.protocolErrorsHandled = 0
     this.seenProtocolErrors = []
     this.seenRequestRoutingInformation = []
@@ -119,7 +120,7 @@ export default class FakeConnection extends Connection {
     return mockResultStreamObserver('ROLLBACK', {})
   }
 
-  getProtocolVersion (): string {
+  getProtocolVersion (): ProtocolVersion {
     return this.protocolVersion
   }
 
@@ -152,7 +153,7 @@ export default class FakeConnection extends Connection {
     this.seenProtocolErrors.push(message)
   }
 
-  withProtocolVersion (version: number): FakeConnection {
+  withProtocolVersion (version: ProtocolVersion): FakeConnection {
     this.protocolVersion = version
     return this
   }

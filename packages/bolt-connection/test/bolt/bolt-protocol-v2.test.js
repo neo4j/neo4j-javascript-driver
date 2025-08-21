@@ -31,7 +31,8 @@ import {
   Relationship,
   Time,
   UnboundRelationship,
-  Node
+  Node,
+  ProtocolVersion
 } from 'neo4j-driver-core'
 
 import { alloc } from '../../src/channel'
@@ -69,7 +70,7 @@ describe('#unit BoltProtocolV2', () => {
   it('should return correct bolt version number', () => {
     const protocol = new BoltProtocolV2(null, null, false)
 
-    expect(protocol.version).toBe('2.0')
+    expect(protocol.version).toEqual(new ProtocolVersion(2, 0))
   })
 
   describe('unpacker configuration', () => {

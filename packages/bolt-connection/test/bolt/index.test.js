@@ -17,7 +17,7 @@
 import Bolt from '../../src/bolt'
 import DummyChannel from '../dummy-channel'
 import { alloc } from '../../src/channel'
-import { newError, internal } from 'neo4j-driver-core'
+import { newError, internal, ProtocolVersion } from 'neo4j-driver-core'
 import { Chunker, Dechunker } from '../../src/channel/chunking'
 
 import BoltProtocolV1 from '../../src/bolt/bolt-protocol-v1'
@@ -383,24 +383,24 @@ describe('#unit Bolt', () => {
       }
 
       const availableProtocols = [
-        v('1.0', BoltProtocolV1),
-        v('2.0', BoltProtocolV2),
-        v('3.0', BoltProtocolV3),
-        v('4.0', BoltProtocolV4x0),
-        v('4.1', BoltProtocolV4x1),
-        v('4.2', BoltProtocolV4x2),
-        v('4.3', BoltProtocolV4x3),
-        v('4.4', BoltProtocolV4x4),
-        v('5.0', BoltProtocolV5x0),
-        v('5.1', BoltProtocolV5x1),
-        v('5.2', BoltProtocolV5x2),
-        v('5.3', BoltProtocolV5x3),
-        v('5.4', BoltProtocolV5x4),
-        v('5.5', BoltProtocolV5x5),
-        v('5.6', BoltProtocolV5x6),
-        v('5.7', BoltProtocolV5x7),
-        v('5.8', BoltProtocolV5x8),
-        v('6.0', BoltProtocolV6x0)
+        v(new ProtocolVersion(1, 0), BoltProtocolV1),
+        v(new ProtocolVersion(2, 0), BoltProtocolV2),
+        v(new ProtocolVersion(3, 0), BoltProtocolV3),
+        v(new ProtocolVersion(4, 0), BoltProtocolV4x0),
+        v(new ProtocolVersion(4, 1), BoltProtocolV4x1),
+        v(new ProtocolVersion(4, 2), BoltProtocolV4x2),
+        v(new ProtocolVersion(4, 3), BoltProtocolV4x3),
+        v(new ProtocolVersion(4, 4), BoltProtocolV4x4),
+        v(new ProtocolVersion(5, 0), BoltProtocolV5x0),
+        v(new ProtocolVersion(5, 1), BoltProtocolV5x1),
+        v(new ProtocolVersion(5, 2), BoltProtocolV5x2),
+        v(new ProtocolVersion(5, 3), BoltProtocolV5x3),
+        v(new ProtocolVersion(5, 4), BoltProtocolV5x4),
+        v(new ProtocolVersion(5, 5), BoltProtocolV5x5),
+        v(new ProtocolVersion(5, 6), BoltProtocolV5x6),
+        v(new ProtocolVersion(5, 7), BoltProtocolV5x7),
+        v(new ProtocolVersion(5, 8), BoltProtocolV5x8),
+        v(new ProtocolVersion(6, 0), BoltProtocolV6x0)
       ]
 
       availableProtocols.forEach(lambda)

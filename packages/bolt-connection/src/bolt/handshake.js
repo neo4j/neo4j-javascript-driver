@@ -16,8 +16,7 @@
  */
 
 import { alloc } from '../channel'
-import { newError } from 'neo4j-driver-core'
-import { ProtocolVersion } from './protocol-version'
+import { newError, ProtocolVersion } from 'neo4j-driver-core'
 
 const BOLT_MAGIC_PREAMBLE = 0x6060b017
 const AVAILABLE_BOLT_PROTOCOLS = ['6.0', '5.8', '5.7', '5.6', '5.4', '5.3', '5.2', '5.1', '5.0', '4.4', '4.3', '4.2', '3.0'] // bolt protocols the client will accept, ordered by preference

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { newError } from 'neo4j-driver-core'
+import { newError, ProtocolVersion } from 'neo4j-driver-core'
 import BoltProtocolV1 from './bolt-protocol-v1'
 import BoltProtocolV2 from './bolt-protocol-v2'
 import BoltProtocolV3 from './bolt-protocol-v3'
@@ -37,7 +37,6 @@ import BoltProtocolV6x0 from './bolt-protocol-v6x0'
 // eslint-disable-next-line no-unused-vars
 import { Chunker, Dechunker } from '../channel'
 import ResponseHandler from './response-handler'
-import { ProtocolVersion } from './protocol-version'
 
 /**
  * Creates a protocol with a given version
