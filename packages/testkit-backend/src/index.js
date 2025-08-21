@@ -9,6 +9,7 @@ import * as REQUEST_HANDLERS from './request-handlers.js'
 import * as RX_REQUEST_HANDLERS from './request-handlers-rx.js'
 import remoteConsole from './console.remote.js'
 import configurableConsole from './console.configurable.js'
+import util from 'util'
 
 const SUPPORTED_TLS = (() => {
   if (tls.DEFAULT_MAX_VERSION) {
@@ -40,7 +41,17 @@ function main () {
   const shouldRunTest = getShouldRunTest([...driverDescriptorList, sessionTypeDescriptor])
   const getFeatures = createGetFeatures([sessionTypeDescriptor], SUPPORTED_TLS)
 
-  configurableConsole.install(process.env.TEST_LOG_LEVEL || 'info')
+  const logWrapper = (...args) => {
+    let output = args.map(arg => {
+      if (typeof arg === 'string') return arg
+      return util.inspect(arg, { colors: process.stdout.isTTY })
+    }).join(' ') + '\n'
+    if (output.length > 1000 * 2 + 3) {
+      output = output.substring(0, 1000) + '...' + output.substring(output.length - 1000)
+    }
+    process.stdout.write(output)
+  }
+  configurableConsole.install(process.env.TEST_LOG_LEVEL || 'info', logWrapper)
 
   const newChannel = () => {
     if (channelType.toUpperCase() === 'WEBSOCKET') {
