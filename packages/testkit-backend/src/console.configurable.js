@@ -20,13 +20,17 @@ const config = {
 }
 
 export default {
-  install (level = 'info') {
+  install (level = 'info', logWrapper) {
     this.setLevel(level)
     // eslint-disable-next-line no-global-assign
     console = new Proxy({}, {
       get: (_, method) => (...args) => {
         if (config.canRun(method)) {
-          originalConsole[method].apply(originalConsole, args)
+          if (logWrapper != null) {
+            logWrapper(...args)
+          } else {
+            originalConsole[method].apply(originalConsole, args)
+          }
         }
       }
     })
