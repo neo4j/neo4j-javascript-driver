@@ -55,7 +55,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should commit an empty transaction', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -72,7 +72,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should rollback an empty transaction', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -89,7 +89,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should run query and commit', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -118,7 +118,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should run query and rollback', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -147,7 +147,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should run query and close', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -200,7 +200,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after a failed query', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -224,7 +224,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should succeed to rollback after a failed query', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -240,7 +240,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after successful and failed query', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -266,7 +266,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should succeed to rollback after successful and failed query', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -284,7 +284,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to run another query after a failed one', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -309,7 +309,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not allow commit after commit', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -334,7 +334,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not allow rollback after rollback', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -359,7 +359,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to rollback after commit', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -384,7 +384,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after rollback', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -417,7 +417,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should update bookmarks', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -441,7 +441,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should propagate failures from queries', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -473,7 +473,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not run until subscribed', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -517,7 +517,7 @@ describe('#integration-rx transaction', () => {
   it('should not propagate run failure from summary', async () => {
     pending('behaviour difference across drivers')
 
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -539,7 +539,7 @@ describe('#integration-rx transaction', () => {
   })
 
   async function verifyNoFailureIfNotExecuted (commit) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -551,7 +551,7 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyFailToRunQueryAfterTxcIsComplete (commit) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -576,7 +576,7 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanRunMultipleQueries (commit) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -600,7 +600,7 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanRunMultipleQueriesWithoutWaiting (commit) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -626,7 +626,7 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanRunMultipleQueriesWithoutStreaming (commit) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 

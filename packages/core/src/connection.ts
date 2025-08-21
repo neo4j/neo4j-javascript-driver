@@ -131,7 +131,7 @@ class Connection {
    *
    * @returns {number}
    */
-  getProtocolVersion (): number {
+  getProtocolVersion (): string {
     throw new Error('Not implemented')
   }
 

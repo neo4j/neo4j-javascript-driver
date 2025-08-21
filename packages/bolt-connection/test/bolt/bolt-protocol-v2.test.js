@@ -69,7 +69,7 @@ describe('#unit BoltProtocolV2', () => {
   it('should return correct bolt version number', () => {
     const protocol = new BoltProtocolV2(null, null, false)
 
-    expect(protocol.version).toBe(2)
+    expect(protocol.version).toBe('2.0')
   })
 
   describe('unpacker configuration', () => {

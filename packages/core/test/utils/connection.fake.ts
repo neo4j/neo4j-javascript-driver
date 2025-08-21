@@ -38,7 +38,7 @@ export default class FakeConnection extends Connection {
   public seenParameters: any[]
   public seenProtocolOptions: any[]
   private readonly _server: any
-  public protocolVersion: number
+  public protocolVersion: string
   public protocolErrorsHandled: number
   public seenProtocolErrors: string[]
   public seenRequestRoutingInformation: any[]
@@ -61,7 +61,7 @@ export default class FakeConnection extends Connection {
     this.seenParameters = []
     this.seenProtocolOptions = []
     this._server = {}
-    this.protocolVersion = 1
+    this.protocolVersion = '1.0'
     this.protocolErrorsHandled = 0
     this.seenProtocolErrors = []
     this.seenRequestRoutingInformation = []
@@ -119,7 +119,7 @@ export default class FakeConnection extends Connection {
     return mockResultStreamObserver('ROLLBACK', {})
   }
 
-  getProtocolVersion (): number {
+  getProtocolVersion (): string {
     return this.protocolVersion
   }
 

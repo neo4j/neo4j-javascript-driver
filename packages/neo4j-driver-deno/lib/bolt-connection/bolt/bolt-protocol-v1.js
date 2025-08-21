@@ -100,7 +100,7 @@ export default class BoltProtocol {
   }
 
   /**
-   * Returns the numerical version identifier for this protocol
+   * Returns the stringified version identifier for this protocol
    */
   get version () {
     return BOLT_PROTOCOL_V1

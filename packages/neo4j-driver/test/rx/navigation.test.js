@@ -380,7 +380,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnKeys (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -401,7 +401,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummary (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -415,7 +415,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnKeysAndRecords (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -432,7 +432,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnRecordsAndSummary (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -449,7 +449,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnKeysRecordsAndSummary (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -470,7 +470,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -495,7 +495,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -515,7 +515,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -532,7 +532,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnKeysMultipleTimes (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -551,7 +551,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryMultipleTimes (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -570,7 +570,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnRecordsOnlyOnce (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -596,7 +596,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -619,7 +619,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -636,7 +636,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -651,7 +651,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnKeysWhenRunFails (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -674,7 +674,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -693,7 +693,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnRecordsWhenRunFails (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -716,7 +716,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -742,7 +742,7 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnSummaryWhenRunFails (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -765,7 +765,7 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -800,7 +800,7 @@ describe('#integration-rx navigation', () => {
     selectObservable,
     closeFunc
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 

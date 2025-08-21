@@ -56,7 +56,7 @@ describe('#integration-rx transaction', () => {
 
   it('should handle nested queries within one transaction', async () => {
     const size = 1024
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -93,7 +93,7 @@ describe('#integration-rx transaction', () => {
 
   it('should give proper error when nesting queries within one session', async () => {
     const size = 1024
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 

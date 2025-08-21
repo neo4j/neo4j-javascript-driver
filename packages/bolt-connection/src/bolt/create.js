@@ -37,6 +37,7 @@ import BoltProtocolV6x0 from './bolt-protocol-v6x0'
 // eslint-disable-next-line no-unused-vars
 import { Chunker, Dechunker } from '../channel'
 import ResponseHandler from './response-handler'
+import { ProtocolVersion } from './protocol-version'
 
 /**
  * Creates a protocol with a given version
@@ -112,8 +113,11 @@ function createProtocol (
   onProtocolError,
   log
 ) {
-  switch (version) {
-    case 1:
+  if (!(version instanceof ProtocolVersion) || version === undefined || version === null) {
+    throw newError('Unknown Bolt protocol version: ' + version)
+  }
+  switch (version.toString()) {
+    case '1.0':
       return new BoltProtocolV1(
         server,
         chunker,
@@ -122,7 +126,7 @@ function createProtocol (
         log,
         onProtocolError
       )
-    case 2:
+    case '2.0':
       return new BoltProtocolV2(
         server,
         chunker,
@@ -131,7 +135,7 @@ function createProtocol (
         log,
         onProtocolError
       )
-    case 3:
+    case '3.0':
       return new BoltProtocolV3(
         server,
         chunker,
@@ -140,7 +144,7 @@ function createProtocol (
         log,
         onProtocolError
       )
-    case 4.0:
+    case '4.0':
       return new BoltProtocolV4x0(
         server,
         chunker,
@@ -149,7 +153,7 @@ function createProtocol (
         log,
         onProtocolError
       )
-    case 4.1:
+    case '4.1':
       return new BoltProtocolV4x1(
         server,
         chunker,
@@ -159,7 +163,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 4.2:
+    case '4.2':
       return new BoltProtocolV4x2(
         server,
         chunker,
@@ -169,7 +173,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 4.3:
+    case '4.3':
       return new BoltProtocolV4x3(
         server,
         chunker,
@@ -179,7 +183,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 4.4:
+    case '4.4':
       return new BoltProtocolV4x4(
         server,
         chunker,
@@ -189,7 +193,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 5.0:
+    case '5.0':
       return new BoltProtocolV5x0(
         server,
         chunker,
@@ -199,7 +203,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 5.1:
+    case '5.1':
       return new BoltProtocolV5x1(
         server,
         chunker,
@@ -209,7 +213,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 5.2:
+    case '5.2':
       return new BoltProtocolV5x2(
         server,
         chunker,
@@ -219,7 +223,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 5.3:
+    case '5.3':
       return new BoltProtocolV5x3(server,
         chunker,
         packingConfig,
@@ -227,7 +231,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.4:
+    case '5.4':
       return new BoltProtocolV5x4(server,
         chunker,
         packingConfig,
@@ -235,7 +239,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.5:
+    case '5.5':
       return new BoltProtocolV5x5(server,
         chunker,
         packingConfig,
@@ -243,7 +247,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.6:
+    case '5.6':
       return new BoltProtocolV5x6(server,
         chunker,
         packingConfig,
@@ -251,7 +255,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.7:
+    case '5.7':
       return new BoltProtocolV5x7(server,
         chunker,
         packingConfig,
@@ -259,7 +263,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.8:
+    case '5.8':
       return new BoltProtocolV5x8(server,
         chunker,
         packingConfig,
@@ -267,7 +271,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 6.0:
+    case '6.0':
       return new BoltProtocolV6x0(server,
         chunker,
         packingConfig,

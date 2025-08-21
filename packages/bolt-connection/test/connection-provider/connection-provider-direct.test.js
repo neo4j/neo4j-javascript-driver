@@ -719,7 +719,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
     })
 
     function setup ({ releaseMock } = {}) {
-      const protocolVersion = 4.4
+      const protocolVersion = '4.4'
       const resetAndFlush = jest.fn(() => Promise.resolve())
       const server = { address: 'localhost:123', version: 'neo4j/1234' }
       const seenConnections = []

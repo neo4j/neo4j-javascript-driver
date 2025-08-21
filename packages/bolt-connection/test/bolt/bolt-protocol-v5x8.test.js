@@ -254,7 +254,7 @@ describe('#unit BoltProtocolV5x8', () => {
   it('should return correct bolt version number', () => {
     const protocol = new BoltProtocolV5x8(null, null, false)
 
-    expect(protocol.version).toBe(5.8)
+    expect(protocol.version).toBe('5.8')
   })
 
   it('should update metadata', () => {

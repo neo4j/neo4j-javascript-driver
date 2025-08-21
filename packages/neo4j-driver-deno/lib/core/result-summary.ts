@@ -42,13 +42,13 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
    * @param {string} query - The query this summary is for
    * @param {Object} parameters - Parameters for the query
    * @param {Object} metadata - Query metadata
-   * @param {number|undefined} protocolVersion - Bolt Protocol Version
+   * @param {string|undefined} protocolVersion - Bolt Protocol Version
    */
   constructor (
     query: string,
     parameters: { [key: string]: any },
     metadata: any,
-    protocolVersion?: number
+    protocolVersion?: string
   ) {
     /**
      * The query and parameters this summary is for.
@@ -434,7 +434,7 @@ class QueryStatistics {
  */
 class ServerInfo {
   address?: string
-  protocolVersion?: number
+  protocolVersion?: string
   agent?: string
 
   /**
@@ -442,9 +442,9 @@ class ServerInfo {
    * @constructor
    * @param {Object} serverMeta - Object with serverMeta data
    * @param {Object} connectionInfo - Bolt connection info
-   * @param {number} protocolVersion - Bolt Protocol Version
+   * @param {string} protocolVersion - Bolt Protocol Version
    */
-  constructor (serverMeta?: any, protocolVersion?: number) {
+  constructor (serverMeta?: any, protocolVersion?: string) {
     if (serverMeta != null) {
       /**
        * The server adress
@@ -463,7 +463,7 @@ class ServerInfo {
 
     /**
      * The protocol version used by the connection
-     * @type {number}
+     * @type {string}
      * @public
      */
     this.protocolVersion = protocolVersion

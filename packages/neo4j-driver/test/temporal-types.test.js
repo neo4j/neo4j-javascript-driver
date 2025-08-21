@@ -1466,7 +1466,7 @@ describe('#integration temporal-types', () => {
   }
 
   function neo4jDoesNotSupportTemporalTypes () {
-    if (protocolVersion < 2) {
+    if (protocolVersion.isLessThan({ major: 2, minor: 0 })) {
       return true
     }
     return false

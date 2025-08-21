@@ -56,7 +56,7 @@ describe('#integration rx-session', () => {
   })
 
   it('should be able to run a simple query', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -80,7 +80,7 @@ describe('#integration rx-session', () => {
   }, 60000)
 
   it('should be able to reuse session after failure', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -109,7 +109,7 @@ describe('#integration rx-session', () => {
   }, 60000)
 
   it('should run transactions without retries', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -131,7 +131,7 @@ describe('#integration rx-session', () => {
   }, 60000)
 
   it('should run transaction with retries on reactive failures', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -158,7 +158,7 @@ describe('#integration rx-session', () => {
   }, 60000)
 
   it('should run transaction with retries on synchronous failures', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -185,7 +185,7 @@ describe('#integration rx-session', () => {
   }, 60000)
 
   it('should fail on transactions that cannot be retried', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -208,7 +208,7 @@ describe('#integration rx-session', () => {
   }, 60000)
 
   it('should fail even after a transient error', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -239,7 +239,7 @@ describe('#integration rx-session', () => {
 
   describe('.executeWrite()', () => {
     it('should run transactions without retries', async () => {
-      if (protocolVersion < 4.0) {
+      if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
         return
       }
 
@@ -261,7 +261,7 @@ describe('#integration rx-session', () => {
     }, 60000)
 
     it('should run transaction with retries on reactive failures', async () => {
-      if (protocolVersion < 4.0) {
+      if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
         return
       }
 
@@ -288,7 +288,7 @@ describe('#integration rx-session', () => {
     }, 60000)
 
     it('should run transaction with retries on synchronous failures', async () => {
-      if (protocolVersion < 4.0) {
+      if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
         return
       }
 
@@ -315,7 +315,7 @@ describe('#integration rx-session', () => {
     }, 60000)
 
     it('should fail on transactions that cannot be retried', async () => {
-      if (protocolVersion < 4.0) {
+      if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
         return
       }
 
@@ -338,7 +338,7 @@ describe('#integration rx-session', () => {
     }, 60000)
 
     it('should fail even after a transient error', async () => {
-      if (protocolVersion < 4.0) {
+      if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
         return
       }
 

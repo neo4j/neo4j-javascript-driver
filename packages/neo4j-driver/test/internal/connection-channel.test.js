@@ -428,7 +428,7 @@ describe('#integration ChannelConnection', () => {
     expect(messages[0].signature).toEqual(0x01) // first message is either INIT or HELLO
 
     const protocolVersion = connection.protocol().version
-    if (protocolVersion >= 3) {
+    if (protocolVersion.isLessThan({ major: 3, minor: 0 })) {
       expect(messages[messages.length - 1].signature).toEqual(0x02) // last message is GOODBYE in V3
     }
   })
