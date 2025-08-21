@@ -48,6 +48,7 @@ import { newError } from './error.ts'
 import NotificationFilter from './notification-filter.ts'
 import HomeDatabaseCache from './internal/homedb-cache.ts'
 import { cacheKey } from './internal/auth-util.ts'
+import { ProtocolVersion } from './internal/protocol-version.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -739,7 +740,7 @@ class Driver {
    * @returns {Promise<number>} the protocol version negotiated via handshake.
    * @throws {Error} When protocol negotiation fails
    */
-  getNegotiatedProtocolVersion (): Promise<number> {
+  getNegotiatedProtocolVersion (): Promise<ProtocolVersion> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.getNegotiatedProtocolVersion()
   }

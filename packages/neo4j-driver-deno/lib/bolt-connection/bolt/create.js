@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { newError } from '../../core/index.ts'
+import { newError, ProtocolVersion } from '../../core/index.ts'
 import BoltProtocolV1 from './bolt-protocol-v1.js'
 import BoltProtocolV2 from './bolt-protocol-v2.js'
 import BoltProtocolV3 from './bolt-protocol-v3.js'
@@ -37,7 +37,6 @@ import BoltProtocolV6x0 from './bolt-protocol-v6x0.js'
 // eslint-disable-next-line no-unused-vars
 import { Chunker, Dechunker } from '../channel/index.js'
 import ResponseHandler from './response-handler.js'
-import { ProtocolVersion } from './protocol-version.js'
 
 /**
  * Creates a protocol with a given version
