@@ -898,7 +898,7 @@ describe('#integration examples', () => {
   }, 60000)
 
   it('use another database example', async () => {
-    if (protocolVersion.isLessThan({ major: 4, minor: 0 } || edition !== 'enterprise')) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 }) || edition !== 'enterprise') {
       return
     }
 
