@@ -27,6 +27,7 @@ module.exports = function (config) {
         noImplicitReturns: true,
         strictNullChecks: true,
         esModuleInterop: true,
+        module: 'node',
         moduleResolution: 'node',
         downlevelIteration: true,
         allowJs: true,
