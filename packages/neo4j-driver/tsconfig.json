@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "module": "es6",
-    "target": "es5",
+    "target": "es6",
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "strictNullChecks": true,
-    "esModuleInterop": true,
     "moduleResolution": "node",
     "types": []
   },
