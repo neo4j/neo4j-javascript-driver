@@ -6,6 +6,7 @@
     "noImplicitReturns": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
+    "module": "node",
     "moduleResolution": "node",
     "downlevelIteration": true,
     "outDir": "lib",
