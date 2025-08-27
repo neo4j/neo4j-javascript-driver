@@ -60,7 +60,7 @@
     "testcontainers": "^8.16.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2",
+    "typescript": "^5.9.2",
     "uglify-js": "^3.17.4",
     "ws": "^8.14.2"
   },
