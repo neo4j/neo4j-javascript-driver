@@ -36,6 +36,7 @@ const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const stream = require('stream')
 const ts = require('gulp-typescript')
 const JasmineReporter = require('jasmine-spec-reporter').SpecReporter
+const karma = require('karma')
 const log = require('fancy-log')
 const JasmineExec = require('jasmine')
 
@@ -141,7 +142,14 @@ gulp.task('test-nodejs-integration', async () => {
   return runJasmineTests('#integration*')
 })
 
+gulp.task('run-browser-test-chrome', async function (cb) {
+  await sharedNeo4j.start()
+  runKarma('chrome', cb)
+})
+
 gulp.task('run-browser-test-firefox', async function (cb) {
+  await sharedNeo4j.start()
+  runKarma('firefox', cb)
 })
 
 gulp.task('run-browser-test', gulp.series('run-browser-test-firefox'))
@@ -268,6 +276,17 @@ function newJasmineConsoleReporter () {
       displayErrorMessages: true
     }
   })
+}
+
+function runKarma (browser, cb) {
+  new karma.Server(
+    {
+      configFile: path.join(__dirname, `/test/browser/karma-${browser}.conf.js`)
+    },
+    function (exitCode) {
+      exitCode ? process.exit(exitCode) : cb()
+    }
+  ).start()
 }
 
 function runJasmineTests (filterString) {
