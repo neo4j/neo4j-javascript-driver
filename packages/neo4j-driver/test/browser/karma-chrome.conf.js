@@ -20,7 +20,7 @@ module.exports = function (config) {
     basePath: '../../',
     karmaTypescriptConfig: {
       compilerOptions: {
-        target: 'ES5',
+        target: 'ES6',
         lib: ['ES6'],
         noImplicitAny: true,
         noImplicitReturns: true,
