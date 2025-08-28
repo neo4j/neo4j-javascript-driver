@@ -12,6 +12,12 @@
     "node": ">=18.0.0"
   },
   "sideEffects": false,
+  "ts-standard": {
+    "ignore": [
+      "test/*.ts",
+      "*.ts"
+    ]
+  },
   "scripts": {
     "lint": "eslint --fix --ext .js ./",
     "test": "gulp test",
