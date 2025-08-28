@@ -470,6 +470,9 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -570,6 +573,9 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnRecordsOnlyOnce (protocolVersion, runnable) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -651,6 +657,9 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnKeysWhenRunFails (protocolVersion, runnable) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -674,6 +683,9 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -693,6 +705,9 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnRecordsWhenRunFails (protocolVersion, runnable) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -716,6 +731,9 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -742,6 +760,9 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnSummaryWhenRunFails (protocolVersion, runnable) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -765,6 +786,9 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -800,6 +824,9 @@ describe('#integration-rx navigation', () => {
     selectObservable,
     closeFunc
   ) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }

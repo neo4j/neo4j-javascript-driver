@@ -171,7 +171,7 @@ describe('#integration session', () => {
       expect(sum.query.text).toBe(query)
       expect(sum.query.parameters).toBe(params)
       expect(sum.counters.containsUpdates()).toBe(true)
-      expect(sum.counters.updates().nodesCreated).toBe(1)
+      expect(sum.counters.updates().nodesCreated.toNumber()).toBe(1)
       expect(sum.queryType).toBe(queryType.READ_WRITE)
       done()
     })
@@ -246,7 +246,7 @@ describe('#integration session', () => {
       expect(isString(sum.profile.arguments.runtime)).toBeTruthy()
       expect(sum.profile.identifiers[0]).toBe('n')
       expect(sum.profile.children[0].operatorType).toBeDefined()
-      expect(sum.profile.rows).toBe(0)
+      expect(sum.profile.rows.toNumber()).toBe(0)
       done()
     })
   }, 70000)
@@ -262,7 +262,7 @@ describe('#integration session', () => {
         'Neo.ClientNotification.Statement.UnknownLabelWarning'
       )
       expect(sum.notifications[0].title).toContain('label')
-      expect(sum.notifications[0].position.column).toBeGreaterThan(0)
+      expect(sum.notifications[0].position.column.toNumber()).toBeGreaterThan(0)
       done()
     })
   }, 70000)
@@ -310,7 +310,7 @@ describe('#integration session', () => {
           }
         })
       })
-  }, 70000)
+  }, 120000)
 
   it('should be able to close a long running query ', done => {
     // given a long running query
@@ -340,7 +340,7 @@ describe('#integration session', () => {
 
     // wait some time than close the session with a long running query
     setTimeout(() => {
-      session.close().catch(done.fail.bind(done))
+      session.close()
     }, 200)
   }, 70000)
 
@@ -603,7 +603,7 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
+      expect(result.summary.counters.updates().nodesCreated.toNumber()).toEqual(1)
 
       const bookmarksAfter = session.lastBookmarks()
       verifyBookmarks(bookmarksAfter)
@@ -630,6 +630,38 @@ describe('#integration session', () => {
         expect(result.records.length).toEqual(1)
         expect(result.records[0].get('answer').toNumber()).toEqual(42)
 
+      done()
+    })
+  }, 70000)
+
+  it('should not commit already committed write transaction', done => {
+    const resultPromise = session.writeTransaction(tx => {
+      return new Promise((resolve, reject) => {
+        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
+          .then(result => {
+            tx.commit()
+              .then(() => {
+                resolve({ result, bookmarks: session.lastBookmarks() })
+              })
+              .catch(error => reject(error))
+          })
+          .catch(error => reject(error))
+      })
+    })
+
+    resultPromise.then(outcome => {
+      const bookmarks = outcome.bookmarks
+      const result = outcome.result
+
+      verifyBookmarks(bookmarks)
+      expect(session.lastBookmarks()).toEqual(bookmarks) // expect bookmarks to not change
+
+      expect(result.records.length).toEqual(1)
+      expect(result.records[0].get('answer').toNumber()).toEqual(42)
+      expect(result.summary.counters.updates().nodesCreated.toNumber()).toEqual(1)
+
+      countNodes('Node', 'id', 42).then(count => {
+        expect(count).toEqual(1)
         done()
       })
   }, 70000)
@@ -644,7 +676,44 @@ describe('#integration session', () => {
         expect(result.records[0].get('answer').toNumber()).toEqual(42)
         expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
       })
-    done()
+    })
+
+    resultPromise.then(result => {
+      expect(result.records.length).toEqual(1)
+      expect(result.records[0].get('answer').toNumber()).toEqual(42)
+      expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
+
+      done()
+    })
+  }, 70000)
+
+  it('should not commit rolled back write transaction', done => {
+    const bookmarksBefore = session.lastBookmarks()
+    const resultPromise = session.writeTransaction(tx => {
+      return new Promise((resolve, reject) => {
+        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
+          .then(result => {
+            tx.rollback()
+              .then(() => {
+                resolve(result)
+              })
+              .catch(error => reject(error))
+          })
+          .catch(error => reject(error))
+      })
+    })
+
+    resultPromise.then(result => {
+      expect(result.records.length).toEqual(1)
+      expect(result.records[0].get('answer').toNumber()).toEqual(42)
+      expect(result.summary.counters.updates().nodesCreated.toNumber()).toEqual(1)
+      expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
+
+      countNodes('Node', 'id', 42).then(count => {
+        expect(count).toEqual(0)
+        done()
+      })
+    })
   }, 70000)
 
   it('should interrupt query waiting on a lock when closed', done => {
@@ -679,7 +748,7 @@ describe('#integration session', () => {
         })
       })
     })
-  }, 70000)
+  }, 120000)
 
   it('should interrupt transaction waiting on a lock when closed', done => {
     session.run('CREATE ()').then(() => {

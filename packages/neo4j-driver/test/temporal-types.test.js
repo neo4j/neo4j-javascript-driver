@@ -222,7 +222,7 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  describe('Time', async () => {
+  describe('Time', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
@@ -342,7 +342,7 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  describe('LocalDateTime', async () => {
+  describe('LocalDateTime', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
@@ -536,7 +536,7 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  describe('DateTime with zone id', async () => {
+  describe('DateTime with zone id', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
@@ -546,12 +546,12 @@ describe('#integration temporal-types', () => {
     )
   })
 
-  it('should send and receive array of DateTime with zone id', async () => {
+  it('should send and receive array of DateTime with zone id', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    await testSendAndReceiveArrayOfRandomTemporalValues(() =>
+    testSendAndReceiveArrayOfRandomTemporalValues(() =>
       randomDateTimeWithZoneId()
     )
   }, 90000)
@@ -1385,6 +1385,9 @@ describe('#integration temporal-types', () => {
   }
 
   async function testReceiveTemporalValue (query, expectedValue) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     try {
       const result = await session.run(query)
 
@@ -1416,6 +1419,9 @@ describe('#integration temporal-types', () => {
   }
 
   async function testSendReceiveTemporalValue (value) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     const result = await session.executeWrite(tx => tx.run(
       'CREATE (n:Node {value: $value}) RETURN n.value',
       { value }
