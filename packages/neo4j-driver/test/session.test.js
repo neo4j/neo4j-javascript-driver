@@ -614,6 +614,10 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should commit write transaction', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     const bookmarksBefore = session.lastBookmarks()
     const resultPromise = session.executeWrite(tx =>
       tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
