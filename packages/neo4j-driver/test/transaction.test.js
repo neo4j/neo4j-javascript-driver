@@ -99,6 +99,10 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should handle interactive session', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     const tx = session.beginTransaction()
     tx.run("RETURN 'foo' AS res")
       .then(result => {

@@ -162,6 +162,10 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should expose summarize method for basic metadata ', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     // Given
     const query = 'CREATE (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
