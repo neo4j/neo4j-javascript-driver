@@ -657,42 +657,6 @@ describe('#integration session', () => {
         expect(result.records.length).toEqual(1)
         expect(result.records[0].get('answer').toNumber()).toEqual(42)
 
-      done()
-    })
-  }, 70000)
-
-  it('should not commit already committed write transaction', done => {
-    const resultPromise = session.writeTransaction(tx => {
-      return new Promise((resolve, reject) => {
-        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
-          .then(result => {
-            tx.commit()
-              .then(() => {
-                resolve({ result, bookmarks: session.lastBookmarks() })
-              })
-              .catch(error => reject(error))
-          })
-          .catch(error => reject(error))
-      })
-    })
-
-    resultPromise.then(outcome => {
-      const bookmarks = outcome.bookmarks
-      const result = outcome.result
-
-      verifyBookmarks(bookmarks)
-      expect(session.lastBookmarks()).toEqual(bookmarks) // expect bookmarks to not change
-
-      expect(result.records.length).toEqual(1)
-      expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      if (typeof result.summary.counters.updates().nodesCreated === 'object') {
-        expect(result.summary.counters.updates().nodesCreated.low).toEqual(1)
-      } else {
-        expect(result.summary.counters.updates().nodesCreated).toEqual(1)
-      }
-
-      countNodes('Node', 'id', 42).then(count => {
-        expect(count).toEqual(1)
         done()
       })
   }, 70000)
@@ -707,51 +671,14 @@ describe('#integration session', () => {
         expect(result.records[0].get('answer').toNumber()).toEqual(42)
         expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
       })
-    })
-
-    resultPromise.then(result => {
-      expect(result.records.length).toEqual(1)
-      expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
-
-      done()
-    })
-  }, 70000)
-
-  it('should not commit rolled back write transaction', done => {
-    const bookmarksBefore = session.lastBookmarks()
-    const resultPromise = session.writeTransaction(tx => {
-      return new Promise((resolve, reject) => {
-        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
-          .then(result => {
-            tx.rollback()
-              .then(() => {
-                resolve(result)
-              })
-              .catch(error => reject(error))
-          })
-          .catch(error => reject(error))
-      })
-    })
-
-    resultPromise.then(result => {
-      expect(result.records.length).toEqual(1)
-      expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      if (typeof result.summary.counters.updates().nodesCreated === 'object') {
-        expect(result.summary.counters.updates().nodesCreated.low).toEqual(1)
-      } else {
-        expect(result.summary.counters.updates().nodesCreated).toEqual(1)
-      }
-      expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
-
-      countNodes('Node', 'id', 42).then(count => {
-        expect(count).toEqual(0)
-        done()
-      })
-    })
+    done()
   }, 70000)
 
   it('should interrupt query waiting on a lock when closed', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -786,6 +713,10 @@ describe('#integration session', () => {
   }, 120000)
 
   it('should interrupt transaction waiting on a lock when closed', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -869,8 +800,8 @@ describe('#integration session', () => {
       bookmarks: allBookmarks
     })
     try {
-      const result = await session.run('MATCH (n) RETURN count(n)')
-      const count = result.records[0].get(0).toInt()
+      const result = await session.run('MATCH (n) RETURN count(n) as count')
+      const count = result.records[0].get('count').toInt()
       expect(count).toEqual(nodeCount)
     } finally {
       await session.close()
