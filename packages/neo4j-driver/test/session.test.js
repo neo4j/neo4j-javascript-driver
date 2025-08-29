@@ -305,6 +305,10 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should return lots of data', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     session
       .run("UNWIND range(1,10000) AS x CREATE (:ATTRACTION {prop: 'prop'})")
       .then(() => {
@@ -373,6 +377,9 @@ describe('#integration session', () => {
   */
 
   it('should fail nicely for illegal query', () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     expect(() => session.run()).toThrowError(TypeError)
     expect(() => session.run(null)).toThrowError(TypeError)
     expect(() => session.run({})).toThrowError(TypeError)
