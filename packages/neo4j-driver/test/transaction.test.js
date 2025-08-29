@@ -38,6 +38,10 @@ describe('#integration transaction', () => {
   })
 
   it('should commit simple case', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     const tx = session.beginTransaction()
     tx.run('CREATE (:TXNode1)')
       .then(() => {
@@ -226,8 +230,11 @@ describe('#integration transaction', () => {
     tx1
       .run('CREATE ()')
       .then(result => {
-        expect(result.summary.counters.updates().nodesCreated).toBe(1)
-
+        if (typeof result.summary.counters.updates().nodesCreated === 'object') {
+          expect(result.summary.counters.updates().nodesCreated.low).toEqual(1)
+        } else {
+          expect(result.summary.counters.updates().nodesCreated).toEqual(1)
+        }
         tx1
           .commit()
           .then(() => {

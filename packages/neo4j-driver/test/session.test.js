@@ -246,7 +246,11 @@ describe('#integration session', () => {
       expect(isString(sum.profile.arguments.runtime)).toBeTruthy()
       expect(sum.profile.identifiers[0]).toBe('n')
       expect(sum.profile.children[0].operatorType).toBeDefined()
-      expect(sum.profile.rows).toBe(0)
+      if (typeof sum.profile.rows === 'object') {
+        expect(sum.profile.rows.low).toBe(0)
+      } else {
+        expect(sum.profile.rows).toBe(0)
+      }
       done()
     })
   }, 70000)
@@ -262,7 +266,11 @@ describe('#integration session', () => {
         'Neo.ClientNotification.Statement.UnknownLabelWarning'
       )
       expect(sum.notifications[0].title).toContain('label')
-      expect(sum.notifications[0].position.column).toBeGreaterThan(0)
+      if (typeof sum.notifications[0].position.column === 'object') {
+        expect(sum.notifications[0].position.column.low).toBeGreaterThan(0)
+      } else {
+        expect(sum.notifications[0].position.column).toBeGreaterThan(0)
+      }
       done()
     })
   }, 70000)
@@ -603,7 +611,11 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
+      if (typeof result.summary.counters.updates().nodesCreated === 'object') {
+        expect(result.summary.counters.updates().nodesCreated.low).toEqual(1)
+      } else {
+        expect(result.summary.counters.updates().nodesCreated).toEqual(1)
+      }
 
       const bookmarksAfter = session.lastBookmarks()
       verifyBookmarks(bookmarksAfter)
@@ -658,7 +670,11 @@ describe('#integration session', () => {
 
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
+      if (typeof result.summary.counters.updates().nodesCreated === 'object') {
+        expect(result.summary.counters.updates().nodesCreated.low).toEqual(1)
+      } else {
+        expect(result.summary.counters.updates().nodesCreated).toEqual(1)
+      }
 
       countNodes('Node', 'id', 42).then(count => {
         expect(count).toEqual(1)
@@ -706,7 +722,11 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
+      if (typeof result.summary.counters.updates().nodesCreated === 'object') {
+        expect(result.summary.counters.updates().nodesCreated.low).toEqual(1)
+      } else {
+        expect(result.summary.counters.updates().nodesCreated).toEqual(1)
+      }
       expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
 
       countNodes('Node', 'id', 42).then(count => {
