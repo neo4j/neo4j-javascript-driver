@@ -546,12 +546,12 @@ describe('#integration temporal-types', () => {
     )
   })
 
-  it('should send and receive array of DateTime with zone id', () => {
+  it('should send and receive array of DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(() =>
+    await testSendAndReceiveArrayOfRandomTemporalValues(() =>
       randomDateTimeWithZoneId()
     )
   }, 90000)

@@ -226,7 +226,7 @@ describe('#integration transaction', () => {
     tx1
       .run('CREATE ()')
       .then(result => {
-        expect(result.summary.counters.updates().nodesCreated.toNumber()).toBe(1)
+        expect(result.summary.counters.updates().nodesCreated).toBe(1)
 
         tx1
           .commit()
