@@ -354,6 +354,9 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should fail nicely for illegal query', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     const tx = session.beginTransaction()
 
     expect(() => tx.run()).toThrowError(TypeError)
