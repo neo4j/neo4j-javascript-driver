@@ -225,11 +225,9 @@ gulp.task('run-ts-declaration-tests', function (done) {
 
 gulp.task('all', gulp.series('nodejs', 'browser'))
 
-gulp.task('test-browser', gulp.series('start-neo4j', 'browser'))
-
 gulp.task(
   'test',
-  gulp.series('run-ts-declaration-tests', 'start-neo4j', 'test-nodejs', 'test-browser', 'stop-neo4j')
+  gulp.series('run-ts-declaration-tests', 'start-neo4j', 'test-nodejs', 'stop-neo4j')
 )
 
 gulp.task('default', gulp.series('test'))
