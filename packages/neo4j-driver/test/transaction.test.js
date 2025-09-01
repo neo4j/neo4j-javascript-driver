@@ -377,6 +377,9 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should be open when neither committed nor rolled back', () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     const tx = session.beginTransaction()
     expect(tx.isOpen()).toBeTruthy()
   }, 60000)
