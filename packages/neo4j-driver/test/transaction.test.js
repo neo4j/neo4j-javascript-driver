@@ -277,6 +277,10 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should rollback when some run fails', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     const tx1 = session.beginTransaction()
     tx1.run('CREATE (:Person)').then(() => {
       tx1.run('RETURN foo').catch(error => {
