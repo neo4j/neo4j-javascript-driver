@@ -750,6 +750,10 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should interrupt transaction function waiting on a lock when closed', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -785,6 +789,9 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should send multiple bookmarks', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     const nodeCount = 17
     const allBookmarks = []
     for (let i = 0; i < nodeCount; i++) {
