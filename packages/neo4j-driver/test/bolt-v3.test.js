@@ -478,6 +478,10 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
+    if (typeof jasmine === 'undefined') {
+      return
+    }
+
     await expectAsync(
       session.run('RETURN $x', { x: 42 }, txConfig)
     ).toBeRejectedWith(
@@ -494,6 +498,10 @@ describe('#integration Bolt V3 API', () => {
     txConfig
   ) {
     if (databaseSupportsBoltV3()) {
+      return
+    }
+
+    if (typeof jasmine === 'undefined') {
       return
     }
 
@@ -520,6 +528,10 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
+    if (typeof jasmine === 'undefined') {
+      return
+    }
+
     const tx = session.beginTransaction(txConfig)
 
     await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
@@ -536,6 +548,10 @@ describe('#integration Bolt V3 API', () => {
     txConfig
   ) {
     if (databaseSupportsBoltV3()) {
+      return
+    }
+
+    if (typeof jasmine === 'undefined') {
       return
     }
 
