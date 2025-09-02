@@ -44,6 +44,7 @@ const features = [
   'Feature:API:Summary:GqlStatusObjects',
   'Feature:API:Liveness.Check',
   'Feature:API:Type.Vector',
+  'Feature:API:Type.UnknownType',
   'Optimization:AuthPipelining',
   'Optimization:EagerTransactionBegin',
   'Optimization:ExecuteQueryPipelining',

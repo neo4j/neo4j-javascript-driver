@@ -18,7 +18,7 @@
 import v5x8 from './bolt-protocol-v5x8.transformer'
 import { TypeTransformer } from './transformer'
 import { structure } from '../packstream'
-import { Vector, newError } from 'neo4j-driver-core'
+import { Vector, UnknownType, newError } from 'neo4j-driver-core'
 const VECTOR = 0x56
 const FLOAT_32 = 0xc6
 const FLOAT_64 = 0xc1
@@ -26,6 +26,7 @@ const INT_8 = 0xc8
 const INT_16 = 0xc9
 const INT_32 = 0xca
 const INT_64 = 0xcb
+const UNKNOWN = 0x3F
 
 const typeToTypeMarker = {
   INT8: INT_8,
@@ -132,7 +133,22 @@ function checkLittleEndian () {
   return typeArray[0] === 1000
 }
 
+function createUnknownTypeTransformer () {
+  return new TypeTransformer({
+    signature: UNKNOWN,
+    isTypeInstance: object => object instanceof UnknownType,
+    toStructure: _ => {
+      throw newError('Unknown Type object can not be transmitted')
+    },
+    fromStructure: structure => {
+      console.log(JSON.stringify(structure.fields))
+      return new UnknownType(structure.fields[0], structure.fields[1], structure.fields[2].message)
+    }
+  })
+}
+
 export default {
   ...v5x8,
-  createVectorTransformer
+  createVectorTransformer,
+  createUnknownTypeTransformer
 }
