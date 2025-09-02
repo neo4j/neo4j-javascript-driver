@@ -114,7 +114,7 @@ export class TypeTransformer {
    * @param {isTypeInstanceFunction} [param.isTypeInstance] The function which checks if object is
    *                instance of the type described by the TypeTransformer
    * @param {toStructureFunction} [param.toStructure] The function which gets the object and converts to structure
-   * @param {fromStructureFunction} pparam.fromStructure] The function which get the structure and covnverts to object
+   * @param {fromStructureFunction} [param.fromStructure] The function which get the structure and covnverts to object
    * @returns {TypeTransformer} A new type transform extends with new methods
    */
   extendsWith ({ signature, fromStructure, toStructure, isTypeInstance }) {
