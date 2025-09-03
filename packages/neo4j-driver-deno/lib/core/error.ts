@@ -151,6 +151,34 @@ class GQLError extends Error {
   }
 
   /**
+   * Returns whether a given GqlStatus code can be found in the cause chain of the error (including the error itself).
+   *
+   * @param {string} gqlStatus the GqlStatus code to find
+   * @returns {boolean}
+   */
+  containsGqlCause (gqlStatus: string): boolean {
+    return this.findByGqlStatus(gqlStatus) !== undefined
+  }
+
+  /**
+   * Returns the first error in the cause chain (including the error itself) with a given GqlStatus code.
+   * Returns undefined if the GqlStatus code is not present anywhere in the chain.
+   *
+   * @param {string} gqlStatus the GqlStatus code to find
+   * @returns {GQLError | Neo4jError | undefined}
+   */
+  findByGqlStatus (gqlStatus: string): GQLError | Neo4jError | undefined {
+    if (this.gqlStatus === gqlStatus) {
+      return this
+    }
+    if (this.cause !== undefined && (this.cause instanceof GQLError || this.cause instanceof Neo4jError)) {
+      return this.cause.findByGqlStatus(gqlStatus)
+    }
+
+    return undefined
+  }
+
+  /**
    * The json string representation of the diagnostic record.
    * The goal of this method is provide a serialized object for human inspection.
    *
