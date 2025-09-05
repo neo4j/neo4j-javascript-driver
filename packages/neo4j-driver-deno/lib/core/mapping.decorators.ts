@@ -1,6 +1,13 @@
 import { Rule, rulesRegistry } from './mapping.highlevel.ts'
 import { rule } from './mapping.rulesfactories.ts'
 
+
+function mappedClass () {
+  return (_: any, context: any) => {
+    rulesRegistry[context.name] = context.metadata
+  }
+}
+
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a boolean.
  *
@@ -9,14 +16,7 @@ import { rule } from './mapping.rulesfactories.ts'
  */
 function booleanProperty (config?: Rule) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asBoolean(config)
-    })
+    context.metadata[context.name] = rule.asBoolean(config)
   }
 }
 
@@ -28,14 +28,7 @@ function booleanProperty (config?: Rule) {
  */
 function stringProperty (config?: Rule) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asString(config)
-    })
+    context.metadata[context.name] = rule.asString(config)
   }
 }
 
@@ -47,14 +40,7 @@ function stringProperty (config?: Rule) {
  */
 function numberProperty (config?: Rule & { acceptBigInt?: boolean }) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asNumber(config)
-    })
+    context.metadata[context.name] = rule.asNumber(config)
   }
 }
 
@@ -66,14 +52,7 @@ function numberProperty (config?: Rule & { acceptBigInt?: boolean }) {
  */
 function bigIntProperty (config?: Rule & { acceptNumber?: boolean }) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asBigInt(config)
-    })
+    context.metadata[context.name] = rule.asBigInt(config)
   }
 }
 
@@ -85,14 +64,7 @@ function bigIntProperty (config?: Rule & { acceptNumber?: boolean }) {
  */
 function nodeProperty (config?: Rule) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asNode(config)
-    })
+    context.metadata[context.name] = rule.asNode(config)
   }
 }
 
@@ -104,14 +76,7 @@ function nodeProperty (config?: Rule) {
  */
 function relationshipProperty (config?: Rule) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asRelationship(config)
-    })
+    context.metadata[context.name] = rule.asRelationship(config)
   }
 }
 
@@ -123,14 +88,7 @@ function relationshipProperty (config?: Rule) {
  */
 function pathProperty (config?: Rule) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asPath(config)
-    })
+    context.metadata[context.name] = rule.asPath(config)
   }
 }
 
@@ -142,14 +100,7 @@ function pathProperty (config?: Rule) {
  */
 function pointProperty (config?: Rule) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asPoint(config)
-    })
+    context.metadata[context.name] = rule.asPoint(config)
   }
 }
 
@@ -161,14 +112,7 @@ function pointProperty (config?: Rule) {
  */
 function durationProperty (config?: Rule & { stringify?: boolean }) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asDuration(config)
-    })
+    context.metadata[context.name] = rule.asDuration(config)
   }
 }
 
@@ -180,14 +124,7 @@ function durationProperty (config?: Rule & { stringify?: boolean }) {
  */
 function listProperty (config?: Rule & { apply?: Rule }) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = rule.asList({ apply: { ...rules[context.name] }, ...config })
-    })
+      context.metadata[context.name] = rule.asList({ apply: { ...context.metadata[context.name] }, ...config })
   }
 }
 
@@ -200,14 +137,7 @@ function listProperty (config?: Rule & { apply?: Rule }) {
  */
 function optionalProperty () {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = { optional: true, ...rules[context.name] }
-    })
+      context.metadata[context.name] = { optional: true, ...context.metadata[context.name] }
   }
 }
 
@@ -220,14 +150,7 @@ function optionalProperty () {
  */
 function mapPropertyFromName (name: string) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = { from: name, ...rules[context.name] }
-    })
+      context.metadata[context.name] = { from: name, ...context.metadata[context.name] }
   }
 }
 
@@ -240,14 +163,7 @@ function mapPropertyFromName (name: string) {
  */
 function convertPropertyToType (type: any) {
   return (_: any, context: any) => {
-    context.addInitializer(function () {
-      const constructorName = this.constructor.name
-      if (rulesRegistry[constructorName] === undefined) {
-        rulesRegistry[constructorName] = {}
-      }
-      const rules = rulesRegistry[constructorName]
-      rules[context.name] = { convert: (node) => node.as(type), ...rules[context.name] }
-    })
+      context.metadata[context.name] = { convert: (node: any) => node.as(type), ...context.metadata[context.name] }
   }
 }
 
@@ -264,7 +180,8 @@ const forExport = {
   listProperty,
   optionalProperty,
   mapPropertyFromName,
-  convertPropertyToType
+  convertPropertyToType,
+  mappedClass
 }
 
 export default forExport
