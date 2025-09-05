@@ -71,7 +71,7 @@ function getCaseTranslator (databaseConvention: string | StandardCase, codeConve
 export const RecordObjectMapping = Object.freeze({
   /**
  * Clears all registered type mappings from the record object mapping registry.
- * @experimental
+ * @experimental Part of the Record Object Mapping preview feature
  */
   clearMappingRegistry,
   /**
@@ -79,7 +79,7 @@ export const RecordObjectMapping = Object.freeze({
  *
  * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SCREAMING_SNAKE_CASE"
  *
- * @experimental
+ * @experimental Part of the Record Object Mapping preview feature
  * @param {string} databaseConvention The naming convention in use in database result Records
  * @param {string} codeConvention The naming convention in use in JavaScript object properties
  * @returns {function} translation function
@@ -101,7 +101,7 @@ export const RecordObjectMapping = Object.freeze({
  *  resultTransformer: neo4j.resultTransformers.hydrated(Person)
  * })
  *
- * @experimental
+ * @experimental Part of the Record Object Mapping preview feature
  * @param {GenericConstructor} constructor The constructor function of the class to set rules for
  * @param {Rules} rules The rules to set for the provided class
  */
@@ -130,7 +130,7 @@ export const RecordObjectMapping = Object.freeze({
  * //or by registering them to the mapping registry
  * RecordObjectMapping.register(Person, personRules)
  *
- * @experimental
+ * @experimental Part of the Record Object Mapping preview feature
  * @param {function} translationFunction A function translating the names of your JS object property names to record key names
  */
   translateIdentifiers

@@ -1,7 +1,12 @@
 import { Rule, rulesRegistry } from './mapping.highlevel.ts'
 import { rule } from './mapping.rulesfactories.ts'
 
-(Symbol as any).metadata ??= Symbol.for("Symbol.metadata");
+/**
+ * Class Decorator Factory that enables the Neo4j Driver to map result records to this class
+ *
+ * @returns {Function} Class Decorator
+ * @experimental Part of the Record Object Mapping preview feature
+ */
 function mappedClass () {
   return (_: any, context: any) => {
     rulesRegistry[context.name] = context.metadata
@@ -13,6 +18,7 @@ function mappedClass () {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function booleanProperty (config?: Rule) {
   return (_: any, context: any) => {
@@ -25,6 +31,7 @@ function booleanProperty (config?: Rule) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function stringProperty (config?: Rule) {
   return (_: any, context: any) => {
@@ -37,6 +44,7 @@ function stringProperty (config?: Rule) {
  *
  * @param {Rule & { acceptBigInt?: boolean }} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function numberProperty (config?: Rule & { acceptBigInt?: boolean }) {
   return (_: any, context: any) => {
@@ -49,6 +57,7 @@ function numberProperty (config?: Rule & { acceptBigInt?: boolean }) {
  *
  * @param {Rule & { acceptNumber?: boolean }} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function bigIntProperty (config?: Rule & { acceptNumber?: boolean }) {
   return (_: any, context: any) => {
@@ -61,6 +70,7 @@ function bigIntProperty (config?: Rule & { acceptNumber?: boolean }) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function nodeProperty (config?: Rule) {
   return (_: any, context: any) => {
@@ -73,6 +83,7 @@ function nodeProperty (config?: Rule) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function relationshipProperty (config?: Rule) {
   return (_: any, context: any) => {
@@ -85,6 +96,7 @@ function relationshipProperty (config?: Rule) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function pathProperty (config?: Rule) {
   return (_: any, context: any) => {
@@ -97,6 +109,7 @@ function pathProperty (config?: Rule) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function pointProperty (config?: Rule) {
   return (_: any, context: any) => {
@@ -109,6 +122,7 @@ function pointProperty (config?: Rule) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function durationProperty (config?: Rule & { stringify?: boolean }) {
   return (_: any, context: any) => {
@@ -121,6 +135,7 @@ function durationProperty (config?: Rule & { stringify?: boolean }) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function listProperty (config?: Rule & { apply?: Rule }) {
   return (_: any, context: any) => {
@@ -134,6 +149,7 @@ function listProperty (config?: Rule & { apply?: Rule }) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function optionalProperty () {
   return (_: any, context: any) => {
@@ -147,6 +163,7 @@ function optionalProperty () {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function mapPropertyFromName (name: string) {
   return (_: any, context: any) => {
@@ -160,6 +177,7 @@ function mapPropertyFromName (name: string) {
  *
  * @param {Rule} config
  * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
  */
 function convertPropertyToType (type: any) {
   return (_: any, context: any) => {
@@ -181,7 +199,7 @@ const forExport = {
   optionalProperty,
   mapPropertyFromName,
   convertPropertyToType,
-  mappedClass
+  mappedClass,
 }
 
 export default forExport

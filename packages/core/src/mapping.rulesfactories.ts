@@ -51,13 +51,13 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
  *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
  *
- * @experimental
+ * @experimental Part of the Record Object Mapping preview feature
  */
 export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a Boolean.
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -74,7 +74,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a String.
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -91,7 +91,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Number}.
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule & { acceptBigInt?: boolean }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -117,7 +117,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link BigInt}.
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule & { acceptNumber?: boolean }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -150,7 +150,7 @@ export const rule = Object.freeze({
    *  movie: neo4j.rule.asNode({}),
    * }
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -167,6 +167,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Relationship}.
    *
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule.
    * @returns {Rule} A new rule for the value
    */
@@ -183,7 +184,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is an {@link UnboundRelationship}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -200,7 +201,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Path}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -217,7 +218,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Point}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -234,7 +235,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Duration}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -252,7 +253,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalTime}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -270,7 +271,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Time}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -288,7 +289,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Date}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -306,7 +307,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalDateTime}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -324,7 +325,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link DateTime}
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -342,7 +343,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a List. Optionally taking a rule for hydrating the contained values.
    *
-   * @experimental
+   * @experimental Part of the Record Object Mapping preview feature
    * @param {Rule & { apply?: Rule }} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
