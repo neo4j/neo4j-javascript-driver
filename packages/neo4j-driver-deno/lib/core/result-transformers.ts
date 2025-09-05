@@ -24,7 +24,6 @@ import { NumberOrInteger } from './graph-types.ts'
 import Integer from './integer.ts'
 import { GenericConstructor, Rules } from './mapping.highlevel.ts'
 
-
 type ResultTransformer<T> = (result: Result) => Promise<T>
 /**
  * Protocol for transforming {@link Result}.

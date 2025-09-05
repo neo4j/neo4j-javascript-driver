@@ -278,7 +278,6 @@ export {
   resolveCertificateProvider,
   Vector,
   vector,
-  RulesFactories,
   rule,
   mappingDecorators,
   RecordObjectMapping,

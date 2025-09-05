@@ -419,7 +419,6 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   vector,
-  RulesFactories,
   rule,
   mappingDecorators,
   RecordObjectMapping,

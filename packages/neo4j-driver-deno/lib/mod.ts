@@ -454,7 +454,6 @@ const forExport = {
   clientCertificateProviders,
   Vector,
   vector,
-  RulesFactories,
   rule,
   RecordObjectMapping,
   StandardCase
@@ -531,7 +530,6 @@ export {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   vector,
-  RulesFactories,
   rule,
   RecordObjectMapping,
   StandardCase
