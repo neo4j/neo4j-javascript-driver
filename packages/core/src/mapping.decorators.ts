@@ -1,6 +1,7 @@
 import { Rule, rulesRegistry } from './mapping.highlevel'
 import { rule } from './mapping.rulesfactories'
 
+(Symbol as any).metadata ??= Symbol.for('Symbol.metadata')
 function mappedClass () {
   return (_: any, context: any) => {
     rulesRegistry[context.name] = context.metadata
