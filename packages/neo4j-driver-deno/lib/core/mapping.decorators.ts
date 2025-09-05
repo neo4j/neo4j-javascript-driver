@@ -1,7 +1,6 @@
 import { Rule, rulesRegistry } from './mapping.highlevel.ts'
 import { rule } from './mapping.rulesfactories.ts'
 
-
 function mappedClass () {
   return (_: any, context: any) => {
     rulesRegistry[context.name] = context.metadata
@@ -124,7 +123,7 @@ function durationProperty (config?: Rule & { stringify?: boolean }) {
  */
 function listProperty (config?: Rule & { apply?: Rule }) {
   return (_: any, context: any) => {
-      context.metadata[context.name] = rule.asList({ apply: { ...context.metadata[context.name] }, ...config })
+    context.metadata[context.name] = rule.asList({ apply: { ...context.metadata[context.name] }, ...config })
   }
 }
 
@@ -137,7 +136,7 @@ function listProperty (config?: Rule & { apply?: Rule }) {
  */
 function optionalProperty () {
   return (_: any, context: any) => {
-      context.metadata[context.name] = { optional: true, ...context.metadata[context.name] }
+    context.metadata[context.name] = { optional: true, ...context.metadata[context.name] }
   }
 }
 
@@ -150,7 +149,7 @@ function optionalProperty () {
  */
 function mapPropertyFromName (name: string) {
   return (_: any, context: any) => {
-      context.metadata[context.name] = { from: name, ...context.metadata[context.name] }
+    context.metadata[context.name] = { from: name, ...context.metadata[context.name] }
   }
 }
 
@@ -163,7 +162,7 @@ function mapPropertyFromName (name: string) {
  */
 function convertPropertyToType (type: any) {
   return (_: any, context: any) => {
-      context.metadata[context.name] = { convert: (node: any) => node.as(type), ...context.metadata[context.name] }
+    context.metadata[context.name] = { convert: (node: any) => node.as(type), ...context.metadata[context.name] }
   }
 }
 
