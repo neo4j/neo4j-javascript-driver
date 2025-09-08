@@ -199,7 +199,7 @@ const forExport = {
   optionalProperty,
   mapPropertyFromName,
   convertPropertyToType,
-  mappedClass,
+  mappedClass
 }
 
 export default forExport
