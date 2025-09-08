@@ -142,7 +142,7 @@ function createUnknownTypeTransformer () {
     },
     fromStructure: structure => {
       console.log(JSON.stringify(structure.fields))
-      return new UnknownType(structure.fields[0], structure.fields[1], structure.fields[2].message)
+      return new UnknownType(structure.fields[0], structure.fields[1], structure.fields[2], structure.fields[3].message)
     }
   })
 }

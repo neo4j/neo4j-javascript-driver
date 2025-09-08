@@ -17,11 +17,13 @@
 
 export default class UnknownType {
   name: string
-  minBolt: string
+  minimumBoltMajor: Number
+  minimumBoltMinor: Number
   message: string | undefined
-  constructor (name: string, minBolt: string, message: string | undefined) {
+  constructor (name: string, minimumBoltMajor: Number, minimumBoltMinor: Number, message: string | undefined) {
     this.name = name
-    this.minBolt = minBolt
+    this.minimumBoltMajor = minimumBoltMajor
+    this.minimumBoltMinor = minimumBoltMinor
     this.message = message
   }
 }
