@@ -100,6 +100,7 @@ describe('#integration record object mapping', () => {
   })
 
   it('map transaction result with registered mappings', async () => {
+    const bookmarkManager = neo4j.bookmarkManager()
     await driverGlobal.executeQuery(
       `MERGE (p1:Person {name: $name1, born: $born1})
        MERGE (p2:Person {name: $name2, born: $born2})
@@ -115,13 +116,13 @@ describe('#integration record object mapping', () => {
         tagline: 'The best driver for the best database!',
         char1: 'current dev',
         char2: 'next dev'
-      })
+      }, { bookmarkManager })
 
     neo4j.RecordObjectMapping.register(Role, roleRules)
     neo4j.RecordObjectMapping.register(Person, personRules)
     neo4j.RecordObjectMapping.register(Movie, movieRules)
     neo4j.RecordObjectMapping.register(ActingJobs, actingJobsRules)
-    const session = driverGlobal.session()
+    const session = driverGlobal.session({ bookmarkManager })
 
     const res = await session.executeRead(async (tx) => {
       const txres = tx.run(
@@ -142,6 +143,7 @@ describe('#integration record object mapping', () => {
   })
 
   it('map transaction result with mapping rules object', async () => {
+    const bookmarkManager = neo4j.bookmarkManager()
     await driverGlobal.executeQuery(
       `MERGE (p1:Person {name: $name1, born: $born1})
        MERGE (p2:Person {name: $name2, born: $born2})
@@ -157,9 +159,9 @@ describe('#integration record object mapping', () => {
         tagline: 'The best driver for the best database!',
         char1: 'current dev',
         char2: 'next dev'
-      })
+      }, { bookmarkManager })
 
-    const session = driverGlobal.session()
+    const session = driverGlobal.session({ bookmarkManager })
 
     const res = await session.executeRead(async (tx) => {
       const txres = tx.run(
