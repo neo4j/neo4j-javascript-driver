@@ -18,7 +18,7 @@
  */
 
 import { newError } from './error'
-import { nameConventions, StandardCase } from './mapping.nameconventions'
+import { nameConventions } from './mapping.nameconventions'
 
 /**
  * constructor function of any class
@@ -50,7 +50,7 @@ function translateIdentifiers (translationFunction: (name: string) => string): v
   nameMapping = translationFunction
 }
 
-function getCaseTranslator (databaseConvention: string | StandardCase, codeConvention: string | StandardCase): ((name: string) => string) {
+function getCaseTranslator (databaseConvention: string, codeConvention: string): ((name: string) => string) {
   const keys = Object.keys(nameConventions)
   if (!keys.includes(databaseConvention)) {
     throw newError(

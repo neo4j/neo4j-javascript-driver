@@ -129,7 +129,7 @@ describe('#integration record object mapping', () => {
           WHERE id(p) <> id(c) AND p.name = "Max"
           RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`
       )
-      return txres.as(ActingJobs)
+      return await txres.as(ActingJobs)
     })
 
     expect(res.records[0].person.born).toBe(2024)
@@ -141,7 +141,7 @@ describe('#integration record object mapping', () => {
     neo4j.RecordObjectMapping.clearMappingRegistry()
   })
 
-  it('map transaction result with registered mappings', async () => {
+  it('map transaction result with mapping rules object', async () => {
     await driverGlobal.executeQuery(
       `MERGE (p1:Person {name: $name1, born: $born1})
        MERGE (p2:Person {name: $name2, born: $born2})
@@ -167,7 +167,7 @@ describe('#integration record object mapping', () => {
           WHERE id(p) <> id(c) AND p.name = "Max"
           RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`
       )
-      return txres.as(ActingJobs, actingJobsNestedRules)
+      return await txres.as(ActingJobs, actingJobsNestedRules)
     })
 
     expect(res.records[0].person.born).toBe(2024)
@@ -187,7 +187,7 @@ describe('#integration record object mapping', () => {
           obj: new Duration(1, 1, 1, 1)
         }
       )
-      return txres.as({ obj: neo4j.rule.asDuration() })
+      return await txres.as({ obj: neo4j.rule.asDuration() })
     })
     expect(res.records[0].obj.months).toBe(1)
 
@@ -204,7 +204,7 @@ describe('#integration record object mapping', () => {
           obj: new LocalTime(1, 1, 1, 1)
         }
       )
-      return txres.as({ obj: neo4j.rule.asLocalTime() })
+      return await txres.as({ obj: neo4j.rule.asLocalTime() })
     })
     expect(res.records[0].obj.hour).toBe(1)
 
@@ -221,7 +221,7 @@ describe('#integration record object mapping', () => {
           obj: new Time(1, 1, 1, 1, 42)
         }
       )
-      return txres.as({ obj: neo4j.rule.asTime() })
+      return await txres.as({ obj: neo4j.rule.asTime() })
     })
     expect(res.records[0].obj.hour).toBe(1)
     expect(res.records[0].obj.timeZoneOffsetSeconds).toBe(42)
@@ -239,7 +239,7 @@ describe('#integration record object mapping', () => {
           obj: new Date(1, 1, 1, 1)
         }
       )
-      return txres.as({ obj: neo4j.rule.asDate() })
+      return await txres.as({ obj: neo4j.rule.asDate() })
     })
     expect(res.records[0].obj.month).toBe(1)
 
@@ -256,7 +256,7 @@ describe('#integration record object mapping', () => {
           obj: new DateTime(1, 1, 1, 1, 1, 1, 1, 42)
         }
       )
-      return txres.as({ obj: neo4j.rule.asDateTime() })
+      return await txres.as({ obj: neo4j.rule.asDateTime() })
     })
     expect(res.records[0].obj.month).toBe(1)
     expect(res.records[0].obj.hour).toBe(1)
@@ -275,7 +275,7 @@ describe('#integration record object mapping', () => {
           obj: new LocalDateTime(1, 1, 1, 1, 1, 1, 1)
         }
       )
-      return txres.as({ obj: neo4j.rule.asLocalDateTime() })
+      return await txres.as({ obj: neo4j.rule.asLocalDateTime() })
     })
     expect(res.records[0].obj.month).toBe(1)
     expect(res.records[0].obj.hour).toBe(1)
@@ -293,7 +293,7 @@ describe('#integration record object mapping', () => {
           obj: new Point(4326, 32.812493, 42.983216)
         }
       )
-      return txres.as({ obj: neo4j.rule.asPoint() })
+      return await txres.as({ obj: neo4j.rule.asPoint() })
     })
     expect(res.records[0].obj.x).toBe(32.812493)
     expect(res.records[0].obj.srid).toBe(4326)
