@@ -20,7 +20,7 @@ export default class UnknownType {
   minimumBoltMajor: Number
   minimumBoltMinor: Number
   message: string | undefined
-  constructor (name: string, minimumBoltMajor: Number, minimumBoltMinor: Number,  message: string | undefined) {
+  constructor (name: string, minimumBoltMajor: Number, minimumBoltMinor: Number, message: string | undefined) {
     this.name = name
     this.minimumBoltMajor = minimumBoltMajor
     this.minimumBoltMinor = minimumBoltMinor
