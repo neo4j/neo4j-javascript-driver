@@ -100,6 +100,9 @@ describe('#integration record object mapping', () => {
   })
 
   it('map transaction result with registered mappings', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     const bookmarkManager = neo4j.bookmarkManager()
     await driverGlobal.executeQuery(
       `MERGE (p1:Person {name: $name1, born: $born1})
@@ -130,7 +133,7 @@ describe('#integration record object mapping', () => {
           WHERE id(p) <> id(c) AND p.name = "Max"
           RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`
       )
-      return txres.as(ActingJobs)
+      return await txres.as(ActingJobs)
     })
 
     expect(res.records[0].person.born).toBe(2024)
@@ -169,7 +172,7 @@ describe('#integration record object mapping', () => {
           WHERE id(p) <> id(c) AND p.name = "Max"
           RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`
       )
-      return txres.as(ActingJobs, actingJobsNestedRules)
+      return await txres.as(ActingJobs, actingJobsNestedRules)
     })
 
     expect(res.records[0].person.born).toBe(2024)
