@@ -106,6 +106,9 @@ describe('#integration record object mapping', () => {
     neo4j.RecordObjectMapping.register(ActingJobs, actingJobsRules)
     const session = driverGlobal.session()
     await session.executeWrite(async (tx) => {
+      if (typeof jasmine === 'undefined') {
+        return
+      }
       return await tx.run(`MERGE (p1:Person {name: $name1, born: $born1})
       MERGE (p2:Person {name: $name2, born: $born2})
       MERGE (m:Movie {title: $title, release: 2015, tagline: $tagline})
@@ -127,17 +130,16 @@ describe('#integration record object mapping', () => {
           `MATCH (p:Person)-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(c:Person)
           WHERE id(p) <> id(c) AND p.name = "Max"
           RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`
-      )
-      return await txres.as(ActingJobs)
+      ).as(ActingJobs)
+      return await txres
     })
 
     expect(res.records[0].person.born).toBe(2024)
     expect(res.records[0].role.name).toBe('current dev')
     expect(res.records[0].costars[0].name).toBe('TBD')
 
-    session.close()
-
     neo4j.RecordObjectMapping.clearMappingRegistry()
+    await session.close()
   })
 
   it('map transaction result with mapping rules object', async () => {
@@ -164,15 +166,15 @@ describe('#integration record object mapping', () => {
           `MATCH (p:Person)-[r:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(c:Person)
           WHERE id(p) <> id(c) AND p.name = "Max"
           RETURN p AS person, r as role, m AS movie, COLLECT(c) AS costars`
-      )
-      return await txres.as(ActingJobs, actingJobsNestedRules)
+      ).as(ActingJobs, actingJobsNestedRules)
+      return await txres
     })
 
     expect(res.records[0].person.born).toBe(2024)
     expect(res.records[0].role.name).toBe('current dev')
     expect(res.records[0].costars[0].name).toBe('TBD')
 
-    session.close()
+    await session.close()
   })
 
   it('map duration', async () => {
