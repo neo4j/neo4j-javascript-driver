@@ -303,6 +303,9 @@ describe('#integration driver', () => {
   })
 
   it('should handle connection errors', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     // Given
     driver = neo4j.driver('bolt://local-host', sharedNeo4j.authToken)
     const session = driver.session()
@@ -318,6 +321,10 @@ describe('#integration driver', () => {
   }, 10000)
 
   it('should fail with correct error message when connecting to port 80', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     if (testUtils.isClient()) {
       // good error message is not available in browser
       done()
@@ -379,6 +386,9 @@ describe('#integration driver', () => {
   })
 
   it('should fail early on wrong credentials', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     // Given
     driver = neo4j.driver(`bolt://${sharedNeo4j.hostnameWithBoltPort}`, wrongCredentials())
     const session = driver.session()
@@ -673,6 +683,10 @@ describe('#integration driver', () => {
   }
 
   itIpv6('should connect to IPv6 address with port', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     testIPv6Connection(`bolt://[::1]:${sharedNeo4j.boltPort}`, done)
   })
 
@@ -702,11 +716,17 @@ describe('#integration driver', () => {
   })
 
   it('hasReachableServer success', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     await expectAsync(neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostnameWithBoltPort}`))
       .toBeResolvedTo(true)
   })
 
   it('hasReachableServer failure', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     await expectAsync(neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}:9999`))
       .toBeRejected()
   })

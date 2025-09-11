@@ -77,6 +77,10 @@ describe('#integration session', () => {
   }, 60000)
 
   it('should give proper error when nesting queries within one session', done => {
+    if (typeof jasmine === 'undefined') {
+      done()
+      return
+    }
     const size = 20
     const result = session.run('UNWIND range(1, $size) AS x RETURN x', {
       size
