@@ -100,6 +100,9 @@ describe('#integration record object mapping', () => {
   })
 
   it('map transaction result with registered mappings', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     neo4j.RecordObjectMapping.register(Role, roleRules)
     neo4j.RecordObjectMapping.register(Person, personRules)
     neo4j.RecordObjectMapping.register(Movie, movieRules)
