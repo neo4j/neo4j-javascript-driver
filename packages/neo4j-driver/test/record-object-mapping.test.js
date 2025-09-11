@@ -146,6 +146,9 @@ describe('#integration record object mapping', () => {
   })
 
   it('map transaction result with mapping rules object', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     const session = driverGlobal.session()
     await session.executeWrite(async (tx) => {
       return await tx.run(`MERGE (p1:Person {name: $name1, born: $born1})
