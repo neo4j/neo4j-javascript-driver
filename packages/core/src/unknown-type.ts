@@ -15,15 +15,53 @@
  * limitations under the License.
  */
 
+/**
+ * A representation of a value that could not be transmitted over the wire due to an outdated protocol version.
+ * @access public
+ * @exports UnknownType
+ */
 export default class UnknownType {
   name: string
-  minimumBoltMajor: Number
-  minimumBoltMinor: Number
+  _minimumProtocolMajor: number
+  _minimumProtocolMinor: number
   message: string | undefined
-  constructor (name: string, minimumBoltMajor: Number, minimumBoltMinor: Number, message: string | undefined) {
+  constructor (name: string, minimumProtocolMajor: number, minimumProtocolMinor: number, message: string | undefined) {
+    /**
+     * The name of the type that could not be transmitted.
+     *
+     * @type {string}
+     */
     this.name = name
-    this.minimumBoltMajor = minimumBoltMajor
-    this.minimumBoltMinor = minimumBoltMinor
+    /**
+     * The major version of the protocol needed to transmit the value.
+     *
+     * @type {number}
+     * @access private
+     */
+    this._minimumProtocolMajor = minimumProtocolMajor
+    /**
+     * The minor version of the protocol needed to transmit the value.
+     *
+     * @type {number}
+     * @access private
+     */
+    this._minimumProtocolMinor = minimumProtocolMinor
+    /**
+     * An optional message, including additional information regarding the untransmittable value.
+     *
+     * @type {string | undefined}
+     */
     this.message = message
+  }
+
+  /**
+   * @returns {string} The minimum version of the protocol needed to transmit this value.
+   */
+  minimumProtocolVersion (): string {
+    return `${this._minimumProtocolMajor}.${this._minimumProtocolMinor}`
+  }
+
+  toString (): string {
+    return `UnknownType<${this.name}>`
   }
 }

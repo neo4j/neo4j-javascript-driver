@@ -183,10 +183,10 @@ export default function CypherNativeBinders (neo4j) {
       return structResponse('CypherVector', { dtype, data })
     }
 
-    if (x.minimumBoltMajor != null) {
+    if (x._minimumProtocolMajor != null) {
       const name = x.name
-      const minimumProtocolMajor = x.minimumBoltMajor
-      const minimumProtocolMinor = x.minimumBoltMinor
+      const minimumProtocolMajor = x._minimumProtocolMajor
+      const minimumProtocolMinor = x._minimumProtocolMinor
       const message = x.message
       return structResponse('CypherUnknownType', { name, minimumProtocolMajor, minimumProtocolMinor, message })
     }
