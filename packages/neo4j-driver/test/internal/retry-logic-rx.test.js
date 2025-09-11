@@ -34,9 +34,7 @@ describe('#unit-rx retrylogic', () => {
 
   beforeEach(() => {
     scheduler = new TestScheduler(assertDeepEqualSkipFrame)
-    if (typeof jasmine !== 'undefined') {
-      loggerFunc = jasmine.createSpy()
-    }
+    loggerFunc = jasmine.createSpy()
     logger = new Logger('debug', loggerFunc)
 
     clock = jasmine.clock()

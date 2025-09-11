@@ -563,9 +563,6 @@ describe('#unit rx-session', () => {
   ].forEach(txFun => {
     describe(`.${txFun}()`, () => {
       it(`should send telemetry configuration with API equals to ${TELEMETRY_APIS.MANAGED_TRANSACTION}`, async () => {
-        if (typeof jasmine === 'undefined') {
-          return
-        }
         const capture = []
         const _session = {
           _beginTransaction: async (...args) => {
@@ -593,9 +590,6 @@ describe('#unit rx-session', () => {
       })
 
       it('should send telemetry on retry original when telemetry doesn\'t succeeded', async () => {
-        if (typeof jasmine === 'undefined') {
-          return
-        }
         const capture = []
         const errors = [newError('message', SERVICE_UNAVAILABLE)]
         const _session = {
@@ -631,9 +625,6 @@ describe('#unit rx-session', () => {
       })
 
       it('should not send telemetry on retry original when telemetry succeeded', async () => {
-        if (typeof jasmine === 'undefined') {
-          return
-        }
         const capture = []
         const errors = [newError('message', SERVICE_UNAVAILABLE)]
         const _session = {

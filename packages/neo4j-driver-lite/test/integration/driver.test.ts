@@ -52,5 +52,5 @@ describe('neo4j-driver-lite', () => {
 
   test('hasReachableServer failure', async () => {
     await expect(neo4j.hasReachableServer(`${Config.scheme}://${Config.hostname}:12`)).rejects.toBeInstanceOf(Error)
-  }, 60000)
+  })
 })

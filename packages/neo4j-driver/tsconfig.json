@@ -6,8 +6,7 @@
     "noImplicitReturns": true,
     "strictNullChecks": true,
     "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowJs": true
+    "types": []
   },
-  "include": ["types/**/*.ts", "test/types/**/*.ts", "*.ts"]
+  "include": ["types/**/*.ts", "test/types/**/*.ts"]
 }

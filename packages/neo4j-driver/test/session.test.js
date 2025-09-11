@@ -162,10 +162,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should expose summarize method for basic metadata ', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     // Given
     const query = 'CREATE (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
@@ -250,11 +246,7 @@ describe('#integration session', () => {
       expect(isString(sum.profile.arguments.runtime)).toBeTruthy()
       expect(sum.profile.identifiers[0]).toBe('n')
       expect(sum.profile.children[0].operatorType).toBeDefined()
-      if (typeof sum.profile.rows === 'object') {
-        expect(sum.profile.rows.low).toBe(0)
-      } else {
-        expect(sum.profile.rows).toBe(0)
-      }
+      expect(sum.profile.rows).toBe(0)
       done()
     })
   }, 70000)
@@ -270,11 +262,7 @@ describe('#integration session', () => {
         'Neo.ClientNotification.Statement.UnknownLabelWarning'
       )
       expect(sum.notifications[0].title).toContain('label')
-      if (typeof sum.notifications[0].position.column === 'object') {
-        expect(sum.notifications[0].position.column.low).toBeGreaterThan(0)
-      } else {
-        expect(sum.notifications[0].position.column).toBeGreaterThan(0)
-      }
+      expect(sum.notifications[0].position.column).toBeGreaterThan(0)
       done()
     })
   }, 70000)
@@ -305,10 +293,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should return lots of data', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     session
       .run("UNWIND range(1,10000) AS x CREATE (:ATTRACTION {prop: 'prop'})")
       .then(() => {
@@ -326,7 +310,7 @@ describe('#integration session', () => {
           }
         })
       })
-  }, 120000)
+  }, 70000)
 
   it('should be able to close a long running query ', done => {
     // given a long running query
@@ -356,7 +340,7 @@ describe('#integration session', () => {
 
     // wait some time than close the session with a long running query
     setTimeout(() => {
-      session.close()
+      session.close().catch(done.fail.bind(done))
     }, 200)
   }, 70000)
 
@@ -377,9 +361,6 @@ describe('#integration session', () => {
   */
 
   it('should fail nicely for illegal query', () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     expect(() => session.run()).toThrowError(TypeError)
     expect(() => session.run(null)).toThrowError(TypeError)
     expect(() => session.run({})).toThrowError(TypeError)
@@ -614,10 +595,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should commit write transaction', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const bookmarksBefore = session.lastBookmarks()
     const resultPromise = session.executeWrite(tx =>
       tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
@@ -626,11 +603,7 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      if (typeof result.summary.counters.updates().nodesCreated === 'object') {
-        expect(result.summary.counters.updates().nodesCreated.low).toEqual(1)
-      } else {
-        expect(result.summary.counters.updates().nodesCreated).toEqual(1)
-      }
+      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
 
       const bookmarksAfter = session.lastBookmarks()
       verifyBookmarks(bookmarksAfter)
@@ -675,10 +648,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should interrupt query waiting on a lock when closed', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -710,13 +679,9 @@ describe('#integration session', () => {
         })
       })
     })
-  }, 120000)
+  }, 70000)
 
   it('should interrupt transaction waiting on a lock when closed', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -750,10 +715,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should interrupt transaction function waiting on a lock when closed', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -789,9 +750,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should send multiple bookmarks', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const nodeCount = 17
     const allBookmarks = []
     for (let i = 0; i < nodeCount; i++) {
@@ -807,8 +765,8 @@ describe('#integration session', () => {
       bookmarks: allBookmarks
     })
     try {
-      const result = await session.run('MATCH (n) RETURN count(n) as count')
-      const count = result.records[0].get('count').toInt()
+      const result = await session.run('MATCH (n) RETURN count(n)')
+      const count = result.records[0].get(0).toInt()
       expect(count).toEqual(nodeCount)
     } finally {
       await session.close()

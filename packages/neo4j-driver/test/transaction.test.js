@@ -38,10 +38,6 @@ describe('#integration transaction', () => {
   })
 
   it('should commit simple case', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const tx = session.beginTransaction()
     tx.run('CREATE (:TXNode1)')
       .then(() => {
@@ -95,14 +91,12 @@ describe('#integration transaction', () => {
             expect(result.summary.server.protocolVersion).not.toBeLessThan(0)
             done()
           })
+          .catch(done.fail.bind(done))
       })
+      .catch(done.fail.bind(done))
   }, 60000)
 
   it('should handle interactive session', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const tx = session.beginTransaction()
     tx.run("RETURN 'foo' AS res")
       .then(result => {
@@ -146,9 +140,6 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should handle failures on commit', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     // When
     const tx = session.beginTransaction()
     await tx.run('CREATE (:TXNode1)')
@@ -175,9 +166,6 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should fail when committing on a failed query', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const tx = session.beginTransaction()
     await tx.run('CREATE (:TXNode1)')
     await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
@@ -234,11 +222,8 @@ describe('#integration transaction', () => {
     tx1
       .run('CREATE ()')
       .then(result => {
-        if (typeof result.summary.counters.updates().nodesCreated === 'object') {
-          expect(result.summary.counters.updates().nodesCreated.low).toEqual(1)
-        } else {
-          expect(result.summary.counters.updates().nodesCreated).toEqual(1)
-        }
+        expect(result.summary.counters.updates().nodesCreated).toBe(1)
+
         tx1
           .commit()
           .then(() => {
@@ -277,10 +262,6 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should rollback when some run fails', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const tx1 = session.beginTransaction()
     tx1.run('CREATE (:Person)').then(() => {
       tx1.run('RETURN foo').catch(error => {
@@ -296,9 +277,6 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should fail to commit transaction that had run failures', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const tx1 = session.beginTransaction()
 
     await expectAsync(tx1.run('CREATE (:Person)')).toBeResolved()
@@ -354,9 +332,6 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should fail nicely for illegal query', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const tx = session.beginTransaction()
 
     expect(() => tx.run()).toThrowError(TypeError)
@@ -384,9 +359,6 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should be open when neither committed nor rolled back', () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const tx = session.beginTransaction()
     expect(tx.isOpen()).toBeTruthy()
   }, 60000)
@@ -505,6 +477,7 @@ describe('#integration transaction', () => {
           .rollback()
           .then(() => session.close())
           .then(() => done.fail('Query did not fail'))
+          .catch(done.fail.bind(done))
       )
       .catch(error =>
         tx
@@ -523,6 +496,7 @@ describe('#integration transaction', () => {
 
             done()
           })
+          .catch(done.fail.bind(done))
       )
   }
 

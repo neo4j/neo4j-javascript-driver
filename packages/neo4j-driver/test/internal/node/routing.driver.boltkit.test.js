@@ -498,9 +498,6 @@ describe('#stub-routing routing driver with stub server', () => {
       60000
     )
     it('on error', async () => {
-      if (typeof jasmine === 'undefined') {
-        return
-      }
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       await expectAsync(driver.supportsTransactionConfig()).toBeRejectedWith(
@@ -544,9 +541,6 @@ describe('#stub-routing routing driver with stub server', () => {
   }
 
   async function testForProtocolError (scriptFile) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (!boltStub.supported) {
       return
     }

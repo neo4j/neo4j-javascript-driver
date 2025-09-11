@@ -121,9 +121,6 @@ describe('#stub-direct direct driver with stub server', () => {
 
   describe('should report whether transaction config is supported', () => {
     async function verifySupportsTransactionConfig (version, expected) {
-      if (typeof jasmine === 'undefined') {
-        return
-      }
       if (!boltStub.supported) {
         return
       }
@@ -147,9 +144,6 @@ describe('#stub-direct direct driver with stub server', () => {
     it('v4', () => verifySupportsTransactionConfig('v4', true), 60000)
     it('v4.2', () => verifySupportsTransactionConfig('v4.2', true), 60000)
     it('on error', async () => {
-      if (typeof jasmine === 'undefined') {
-        return
-      }
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
 
       await expectAsync(driver.supportsTransactionConfig()).toBeRejectedWith(
@@ -164,9 +158,6 @@ describe('#stub-direct direct driver with stub server', () => {
 
   describe('should report whether user impersonation is supported', () => {
     async function verifySupportsUserImpersonation (version, expected) {
-      if (typeof jasmine === 'undefined') {
-        return
-      }
       if (!boltStub.supported) {
         return
       }
@@ -190,9 +181,6 @@ describe('#stub-direct direct driver with stub server', () => {
     it('v4', () => verifySupportsUserImpersonation('v4', false), 60000)
     it('v4.2', () => verifySupportsUserImpersonation('v4.2', false), 60000)
     it('on error', async () => {
-      if (typeof jasmine === 'undefined') {
-        return
-      }
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
 
       await expectAsync(driver.supportsUserImpersonation()).toBeRejectedWith(

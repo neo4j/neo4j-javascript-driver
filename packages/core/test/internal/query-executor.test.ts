@@ -219,7 +219,9 @@ describe('QueryExecutor', () => {
         const { queryExecutor, sessionsCreated } = createExecutor()
         const controller = new AbortController()
         const signal = controller.signal
+        // @ts-expect-error
         const addListenerSpy = jest.spyOn(signal, 'addEventListener')
+        // @ts-expect-error
         const removerListenerSpy = jest.spyOn(signal, 'removeEventListener')
 
         const promise = queryExecutor.execute({ ...baseConfig, signal }, 'query')
@@ -241,6 +243,7 @@ describe('QueryExecutor', () => {
         const { queryExecutor, sessionsCreated } = createExecutor()
         const controller = new AbortController()
         const signal = controller.signal
+        // @ts-expect-error
         const removerListenerSpy = jest.spyOn(signal, 'removeEventListener')
 
         const promise = queryExecutor.execute({ ...baseConfig, signal }, 'query')
@@ -422,7 +425,9 @@ describe('QueryExecutor', () => {
         const { queryExecutor, sessionsCreated } = createExecutor()
         const controller = new AbortController()
         const signal = controller.signal
+        // @ts-expect-error
         const addListenerSpy = jest.spyOn(signal, 'addEventListener')
+        // @ts-expect-error
         const removerListenerSpy = jest.spyOn(signal, 'removeEventListener')
 
         const promise = queryExecutor.execute({ ...baseConfig, signal }, 'query')
@@ -444,6 +449,7 @@ describe('QueryExecutor', () => {
         const { queryExecutor, sessionsCreated } = createExecutor()
         const controller = new AbortController()
         const signal = controller.signal
+        // @ts-expect-error
         const removerListenerSpy = jest.spyOn(signal, 'removeEventListener')
 
         const promise = queryExecutor.execute({ ...baseConfig, signal }, 'query')
@@ -556,6 +562,7 @@ describe('QueryExecutor', () => {
 })
 
 function whenAbortSignalIsEventTarget (fn: () => unknown): void {
+  // @ts-expect-error AbortSignal doesn't implements EventTarget on this TS Config.
   if (typeof AbortSignal.prototype.addEventListener === 'function') {
     describe('when abort signal is event target', fn)
   }
