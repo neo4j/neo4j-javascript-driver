@@ -133,13 +133,26 @@ function durationProperty (config?: Rule & { stringify?: boolean }) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a List
  *
- * @param {Rule} config
+ * @param {Rule & { apply?: Rule }} config
  * @returns {Function} Property Decorator
  * @experimental Part of the Record Object Mapping preview feature
  */
 function listProperty (config?: Rule & { apply?: Rule }) {
   return (_: any, context: any) => {
     context.metadata[context.name] = rule.asList({ apply: { ...context.metadata[context.name] }, ...config })
+  }
+}
+
+/**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to a Vector
+ *
+ * @param {Rule & { asTypedList?: boolean }} config
+ * @returns {Function} Property Decorator
+ * @experimental Part of the Record Object Mapping preview feature
+ */
+function vectorProperty (config?: Rule & { asTypedList?: boolean }) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asVector(config)
   }
 }
 
@@ -196,6 +209,7 @@ const forExport = {
   pointProperty,
   durationProperty,
   listProperty,
+  vectorProperty,
   optionalProperty,
   mapPropertyFromName,
   convertPropertyToType,

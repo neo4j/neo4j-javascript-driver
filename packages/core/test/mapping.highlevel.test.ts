@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time } from '../src'
+import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector } from '../src'
 import { as } from '../src/mapping.highlevel'
 
 describe('#unit Record Object Mapping', () => {
@@ -95,7 +95,24 @@ describe('#unit Record Object Mapping', () => {
         time: rule.asTime(),
         list: rule.asList({ apply: rule.asString() }),
         node: rule.asNode({ convert: (node) => node.as(Person, personRules) }),
-        rel: rule.asRelationship({ convert: (rel) => rel.as(Person, personRules) })
+        rel: rule.asRelationship({ convert: (rel) => rel.as(Person, personRules) }),
+        vec: rule.asVector(),
+        convertedVec: rule.asVector({ asTypedList: true, from: 'vec' })
+      }
+
+      class mapped {
+        string: string
+        number: number
+        bigint: BigInt
+        date: Date
+        dateTime: DateTime
+        duration: Duration
+        time: Time
+        list: string[]
+        node: Person
+        rel: Person
+        vec: Vector<Int32Array>
+        convertedVec: Int32Array
       }
 
       const gettable = {
@@ -121,43 +138,40 @@ describe('#unit Record Object Mapping', () => {
               return new Node(1, [], { firstname: 'hi' })
             case 'rel':
               return new Relationship(2, 1, 1, 'test', { firstname: 'bye' })
+            case 'vec':
+              return new Vector(Int32Array.from([0, 1, 2]))
             default:
               return undefined
           }
         }
       }
-      // @ts-expect-error
-      const result = as(gettable, rules)
 
       // @ts-expect-error
+      const result = as<mapped>(gettable, rules)
+
       expect(result.string).toBe('hi')
 
-      // @ts-expect-error
       expect(result.number).toBe(1)
 
-      // @ts-expect-error
       expect(result.bigint).toBe(BigInt(1))
 
-      // @ts-expect-error
       expect(result.list[0]).toBe('hello')
 
-      // @ts-expect-error
       expect(result.date.toString()).toBe('0001-01-01')
 
-      // @ts-expect-error
       expect(result.dateTime.toString()).toBe('0001-01-01T01:01:01.000000001+00:00:01')
 
-      // @ts-expect-error
       expect(result.duration.toString()).toBe('P1M1DT1.000000001S')
 
-      // @ts-expect-error
       expect(result.time.toString()).toBe('01:01:01.000000001+00:00:01')
 
-      // @ts-expect-error
       expect(result.node.name).toBe('hi')
 
-      // @ts-expect-error
       expect(result.rel.name).toBe('bye')
+
+      expect(result.vec._typedArray[0]).toBe(0)
+
+      expect(result.convertedVec[2]).toBe(2)
     })
   })
 })

@@ -21,6 +21,7 @@ import { Rule, valueAs } from './mapping.highlevel'
 import { StandardDate, isNode, isPath, isRelationship, isUnboundRelationship } from './graph-types'
 import { isPoint } from './spatial-types'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types'
+import Vector from './vector'
 
 /**
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.
@@ -50,6 +51,8 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
  * @property {function(rule: ?Rule)} asPoint Create a {@link Rule} that validates the value is a {@link Point}.
  *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
+ *
+ * @property {function(rule: ?Rule & { asTypedList: boolean })} asVector Create a {@link Rule} that validates the value is a List.
  *
  * @experimental Part of the Record Object Mapping preview feature
  */
@@ -359,6 +362,29 @@ export const rule = Object.freeze({
           return list.map((value, index) => valueAs(value, `${field}[${index}]`, rule.apply))
         }
         return list
+      },
+      ...rule
+    }
+  },
+  /**
+   * Create a {@link Rule} that validates the value is a Vector.
+   *
+   * @experimental Part of the Record Object Mapping preview feature
+   * @param {Rule & { asTypedList?: boolean }} rule Configurations for the rule
+   * @returns {Rule} A new rule for the value
+   */
+  asVector (rule?: Rule & { asTypedList?: boolean }): Rule {
+    return {
+      validate: (value: any, field: string) => {
+        if (!(value instanceof Vector)) {
+          throw new TypeError(`${field} should be a vector but received ${typeof value}`)
+        }
+      },
+      convert: (value: Vector<any>) => {
+        if (rule?.asTypedList === true) {
+          return value._typedArray
+        }
+        return value
       },
       ...rule
     }
