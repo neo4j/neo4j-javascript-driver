@@ -191,7 +191,7 @@ const forExport = {
   clientCertificateProviders,
   resolveCertificateProvider,
   isVector,
-  vector,
+  vector
 }
 
 export {
@@ -272,7 +272,7 @@ export {
   resolveCertificateProvider,
   isVector,
   Vector,
-  vector,
+  vector
 }
 
 export type {

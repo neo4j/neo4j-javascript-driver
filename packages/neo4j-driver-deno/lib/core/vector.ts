@@ -89,13 +89,13 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
   getType (): VectorType {
     return this._type
   }
-  
+
   toString (): string {
-    return `vector([${this._typedArray.join(", ")}], ${this._typedArray.length}, ${getTypeString(this._type)})`
+    return `vector([${this._typedArray.join(', ')}], ${this._typedArray.length}, ${getTypeString(this._type)})`
   }
 }
 
-function getTypeString(type: VectorType): string {
+function getTypeString (type: VectorType): string {
   switch (type) {
     case 'INT8':
       return 'INTEGER8 NOT NULL'
