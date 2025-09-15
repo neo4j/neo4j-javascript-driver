@@ -103,7 +103,7 @@ import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate.ts'
 import * as internal from './internal/index.ts'
 import Vector, { VectorType, vector } from './vector.ts'
-import UnknownType from './unknown-type.ts'
+import UnknownType, {isUnknownType} from './unknown-type.ts'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -191,7 +191,8 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
-  UnknownType
+  UnknownType,
+  isUnknownType
 }
 
 export {
@@ -272,6 +273,7 @@ export {
   resolveCertificateProvider,
   Vector,
   UnknownType,
+  isUnknownType,
   vector
 }
 

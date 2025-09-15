@@ -44,6 +44,7 @@ import {
   isPathSegment,
   isRelationship,
   isUnboundRelationship,
+  isUnknownType,
   LocalDateTime,
   LocalTime,
   Time,
@@ -289,6 +290,7 @@ declare const forExport: {
   isPathSegment: typeof isPathSegment
   isRelationship: typeof isRelationship
   isUnboundRelationship: typeof isUnboundRelationship
+  isUnknownType: typeof isUnknownType
   bookmarkManager: typeof bookmarkManager
   resultTransformers: typeof resultTransformers
   notificationCategory: typeof notificationCategory
@@ -370,6 +372,7 @@ export {
   isPathSegment,
   isRelationship,
   isUnboundRelationship,
+  isUnknownType,
   bookmarkManager,
   resultTransformers,
   notificationCategory,

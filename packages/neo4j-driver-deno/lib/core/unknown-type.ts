@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+const UNKNOWN_TYPE_IDENTIFIER_PROPERTY = '__isType__'
+
 /**
  * A representation of a value that could not be transmitted over the wire due to an outdated protocol version.
  * @access public
@@ -64,4 +66,21 @@ export default class UnknownType {
   toString (): string {
     return `UnknownType<${this.name}>`
   }
+}
+
+Object.defineProperty(UnknownType.prototype, UNKNOWN_TYPE_IDENTIFIER_PROPERTY, {
+  value: true,
+  enumerable: false,
+  configurable: false,
+  writable: false
+})
+
+/**
+ * Test if given object is an instance of {@link Point} class.
+ * @param {Object} obj the object to test.
+ * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
+ */
+export function isUnknownType(obj: unknown): obj is UnknownType {
+  const anyObj: any | null | undefined = obj
+  return obj != null && anyObj[UNKNOWN_TYPE_IDENTIFIER_PROPERTY] === true
 }
