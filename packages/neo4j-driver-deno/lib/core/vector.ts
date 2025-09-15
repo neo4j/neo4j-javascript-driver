@@ -17,6 +17,8 @@
 
 import { newError } from './error.ts'
 
+const VECTOR_IDENTIFIER_PROPERTY = '__isVector__'
+
 type EnumRecord<T extends string | symbol> = { [key in T]: key }
 
 export type VectorType = 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64'
@@ -87,7 +89,37 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
   getType (): VectorType {
     return this._type
   }
+  
+  toString (): string {
+    return `vector([${this._typedArray.join(", ")}], ${this._typedArray.length}, ${getTypeString(this._type)})`
+  }
 }
+
+function getTypeString(type: VectorType): string {
+  switch (type) {
+    case 'INT8':
+      return 'INTEGER8 NOT NULL'
+    case 'INT16':
+      return 'INTEGER16 NOT NULL'
+    case 'INT32':
+      return 'INTEGER32 NOT NULL'
+    case 'INT64':
+      return 'INTEGER NOT NULL'
+    case 'FLOAT32':
+      return 'FLOAT32 NOT NULL'
+    case 'FLOAT64':
+      return 'FLOAT NOT NULL'
+    default:
+      throw newError(`Cannot stringify vector with unsupported type. Got type: ${type as string}`)
+  }
+}
+
+Object.defineProperty(Vector.prototype, VECTOR_IDENTIFIER_PROPERTY, {
+  value: true,
+  enumerable: false,
+  configurable: false,
+  writable: false
+})
 
 /**
  * Cast a TypedArray to a {@link Vector}
@@ -97,4 +129,14 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
  */
 export function vector<K extends Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array> (typedArray: K): Vector<K> {
   return new Vector(typedArray)
+}
+
+/**
+ * Test if given object is an instance of {@link Point} class.
+ * @param {Object} obj the object to test.
+ * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
+ */
+export function isVector<K extends Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array> (obj: unknown): obj is Vector<K> {
+  const anyObj: any | null | undefined = obj
+  return obj != null && anyObj[VECTOR_IDENTIFIER_PROPERTY] === true
 }
