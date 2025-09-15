@@ -360,6 +360,7 @@ const forExport = {
   isPathSegment,
   isRelationship,
   isUnboundRelationship,
+  isUnknownType,
   integer,
   Neo4jError,
   isRetriableError,
