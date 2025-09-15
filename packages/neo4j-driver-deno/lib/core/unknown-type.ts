@@ -80,7 +80,7 @@ Object.defineProperty(UnknownType.prototype, UNKNOWN_TYPE_IDENTIFIER_PROPERTY, {
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
  */
-export function isUnknownType(obj: unknown): obj is UnknownType {
+export function isUnknownType (obj: unknown): obj is UnknownType {
   const anyObj: any | null | undefined = obj
   return obj != null && anyObj[UNKNOWN_TYPE_IDENTIFIER_PROPERTY] === true
 }
