@@ -95,6 +95,6 @@
   "dependencies": {
     "neo4j-driver-bolt-connection": "6.0.0-dev",
     "neo4j-driver-core": "6.0.0-dev",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.2"
   }
 }
