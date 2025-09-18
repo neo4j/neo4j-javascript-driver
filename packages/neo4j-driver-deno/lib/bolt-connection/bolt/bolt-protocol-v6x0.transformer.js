@@ -18,7 +18,7 @@
 import v5x8 from './bolt-protocol-v5x8.transformer.js'
 import { TypeTransformer } from './transformer.js'
 import { structure } from '../packstream/index.js'
-import { Vector, UnknownType, isUnknownType, newError } from '../../core/index.ts'
+import { Vector, UnsupportedType, isUnsupportedType, newError } from '../../core/index.ts'
 const VECTOR = 0x56
 const FLOAT_32 = 0xc6
 const FLOAT_64 = 0xc1
@@ -26,7 +26,7 @@ const INT_8 = 0xc8
 const INT_16 = 0xc9
 const INT_32 = 0xca
 const INT_64 = 0xcb
-const UNKNOWN = 0x3F
+const UNSUPPORTED = 0x3F
 
 const typeToTypeMarker = {
   INT8: INT_8,
@@ -133,15 +133,15 @@ function checkLittleEndian () {
   return typeArray[0] === 1000
 }
 
-function createUnknownTypeTransformer () {
+function createUnsupportedTypeTransformer () {
   return new TypeTransformer({
-    signature: UNKNOWN,
-    isTypeInstance: object => isUnknownType(object),
+    signature: UNSUPPORTED,
+    isTypeInstance: object => isUnsupportedType(object),
     toStructure: _ => {
-      throw newError('Unknown Type object can not be transmitted')
+      throw newError('Unsupported Type object can not be transmitted')
     },
     fromStructure: structure => {
-      return new UnknownType(structure.fields[0], structure.fields[1], structure.fields[2], structure.fields[3].message)
+      return new UnsupportedType(structure.fields[0], structure.fields[1], structure.fields[2], structure.fields[3].message)
     }
   })
 }
@@ -149,5 +149,5 @@ function createUnknownTypeTransformer () {
 export default {
   ...v5x8,
   createVectorTransformer,
-  createUnknownTypeTransformer
+  createUnsupportedTypeTransformer
 }
