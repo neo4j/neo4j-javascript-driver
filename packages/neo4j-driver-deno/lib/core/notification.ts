@@ -67,7 +67,8 @@ type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' | 'PERFORMAN
  * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'SCHEMA' | 'UNKNOWN' } NotificationCategory
  */
 /**
- * Constants that represents the Category in the {@link GqlStatusObject}
+ * Constants that represents the Category in the {@link Notification}
+ * @deprecated use {@link notificationClassification} instead.
  */
 const notificationCategory: { [key in NotificationCategory]: key } = {
   HINT: 'HINT',
