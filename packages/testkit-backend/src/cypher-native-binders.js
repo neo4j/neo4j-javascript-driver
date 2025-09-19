@@ -188,7 +188,7 @@ export default function CypherNativeBinders (neo4j) {
       const minimumProtocolMajor = x._minimumProtocolMajor
       const minimumProtocolMinor = x._minimumProtocolMinor
       const message = x.message
-      return structResponse('CypherUnsupportedType', { name, minimumProtocolMajor, minimumProtocolMinor, message })
+      return structResponse('CypherUnsupportedType', { name, minimumProtocol: minimumProtocolMajor + '.' + minimumProtocolMinor, message })
     }
 
     // If all failed, interpret as a map
