@@ -44,6 +44,7 @@ type NotificationFilterDisabledCategory = ExcludeUnknown<NotificationCategory>
  */
 /**
  * Constants that represents the disabled categories in the {@link NotificationFilter}
+ * @deprecated use {@link notificationFilterDisabledClassification} instead.
  */
 const notificationFilterDisabledCategory: EnumRecord<NotificationFilterDisabledCategory> = {
   HINT: 'HINT',
@@ -65,7 +66,7 @@ type NotificationFilterDisabledClassification = ExcludeUnknown<NotificationClass
 /**
  * Constants that represents the disabled classifications in the {@link NotificationFilter}
  *
- * @type {notificationFilterDisabledCategory}
+ * @type {NotificationFilterDisabledClassification}
  */
 const notificationFilterDisabledClassification: EnumRecord<NotificationFilterDisabledClassification> = notificationFilterDisabledCategory
 
@@ -103,6 +104,7 @@ class NotificationFilter {
      * and it must not be enabled at same time.
      *
      * @type {?NotificationFilterDisabledCategory[]}
+     * @deprecated use{@link NotificationFilter#disabledClassifications}
      */
     this.disabledCategories = undefined
 

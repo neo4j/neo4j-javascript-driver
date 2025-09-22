@@ -87,11 +87,9 @@ describe('#integration ChannelConnection', () => {
           onComplete: metadata => {
             expect(metadata).not.toBeNull()
             done()
-          },
-          onError: done.fail.bind(done)
+          }
         })
       })
-      .catch(done.fail.bind(done))
   })
 
   it('should retrieve stream', done => {
@@ -105,8 +103,7 @@ describe('#integration ChannelConnection', () => {
         onCompleted: () => {
           expect(records[0].get(0)).toBe(1)
           done()
-        },
-        onError: done.fail.bind(done)
+        }
       }
 
       connection
@@ -125,11 +122,13 @@ describe('#integration ChannelConnection', () => {
             )
             .subscribe(pullAllObserver)
         })
-        .catch(done.fail.bind(done))
     })
   })
 
   it('should provide error message when connecting to http-port', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     const asyncMatchers = expectAsync(createConnection(`bolt://${sharedNeo4j.hostnameWithHttpPort}`, {
       encrypted: false
     }, null, new Logger('error', () => {})))
@@ -164,8 +163,6 @@ describe('#integration ChannelConnection', () => {
       .then(c => {
         connection = c
         connection._queueObserver({
-          onCompleted: done.fail.bind(done),
-          onComplete: done.fail.bind(done),
           onError: error => {
             expectNeo4jError(error, errorCode, errorMessage)
             done()
