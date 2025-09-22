@@ -26,7 +26,6 @@ describe('Vector', () => {
       ['BigInt64Array', BigInt64Array.from([BigInt(0)]), 'INT64'],
       ['Float32Array', Float32Array.from([0]), 'FLOAT32'],
       ['Float64Array', Float64Array.from([0]), 'FLOAT64']
-
     ])('should create vector from (%s)', (_, typedArray, expectedType) => {
       const vec = vector(typedArray)
       expect(vec.getType()).toEqual(expectedType)

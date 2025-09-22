@@ -132,11 +132,10 @@ export function vector<K extends Float32Array | Float64Array | Int8Array | Int16
 }
 
 /**
- * Test if given object is an instance of {@link Point} class.
+ * Test if given object is an instance of the {@link Vector} class.
  * @param {Object} obj the object to test.
- * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
+ * @return {boolean} `true` if given object is a {@link Vector}, `false` otherwise.
  */
-export function isVector<K extends Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array> (obj: unknown): obj is Vector<K> {
-  const anyObj: any | null | undefined = obj
-  return obj != null && anyObj[VECTOR_IDENTIFIER_PROPERTY] === true
+export function isVector<K extends Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array> (obj: any): obj is Vector<K> {
+  return obj != null && obj[VECTOR_IDENTIFIER_PROPERTY] === true
 }
