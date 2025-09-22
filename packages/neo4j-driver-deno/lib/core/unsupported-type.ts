@@ -18,7 +18,14 @@
 const UNSUPPORTED_TYPE_IDENTIFIER_PROPERTY = '__isType__'
 
 /**
- * A representation of a value that could not be transmitted over the wire due to an outdated protocol version.
+ * Represents a type unknown to the driver, received from the server.
+ * This type is used for instance when a newer DBMS produces a result containing a type that the current version of the driver does not yet understand.
+ *
+ * Note that this type may only be received from the server, but cannot be sent to the server (e.g., as a query parameter).
+ *
+ * The attributes exposed by this type are meant for displaying and debugging purposes.
+ * They may change in future versions of the server, and should not be relied upon for any logic in your application.
+ * If your application requires handling this type, you must upgrade your driver to a version that supports it.
  * @access public
  * @exports UnsupportedType
  */
@@ -76,11 +83,10 @@ Object.defineProperty(UnsupportedType.prototype, UNSUPPORTED_TYPE_IDENTIFIER_PRO
 })
 
 /**
- * Test if given object is an instance of {@link Point} class.
+ * Test if given object is an instance of the {@link UnsupportedType} class.
  * @param {Object} obj the object to test.
- * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
+ * @return {boolean} `true` if given object is a {@link UnsupportedType}, `false` otherwise.
  */
-export function isUnsupportedType (obj: unknown): obj is UnsupportedType {
-  const anyObj: any | null | undefined = obj
-  return obj != null && anyObj[UNSUPPORTED_TYPE_IDENTIFIER_PROPERTY] === true
+export function isUnsupportedType (obj: any): obj is UnsupportedType {
+  return obj != null && obj[UNSUPPORTED_TYPE_IDENTIFIER_PROPERTY] === true
 }
