@@ -43,7 +43,7 @@ export default class UnsupportedType {
     /**
      * The minimum required Bolt protocol version that supports this type.
      * To understand which driver version this corresponds to, refer to the driver's release notes or documentation.
-     * 
+     *
      * @type {string}
      */
     this.minimumProtocolVersion = `${minimumProtocolMajor}.${minimumProtocolMinor}`
