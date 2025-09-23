@@ -32,4 +32,20 @@ describe('Vector', () => {
       expect(vec.asTypedArray()).toEqual(typedArray)
     })
   })
+  describe('.toString()', () => {
+    it.each([
+      ['Int8Array', Int8Array.from([1]), 'vector([1], 1, INTEGER8 NOT NULL)'],
+      ['Int16Array', Int16Array.from([1, 2, 3]), 'vector([1, 2, 3], 3, INTEGER16 NOT NULL)'],
+      ['Int32Array', Int32Array.from([3]), 'vector([3], 1, INTEGER32 NOT NULL)'],
+      ['BigInt64Array', BigInt64Array.from([BigInt(0)]), 'vector([0], 1, INTEGER NOT NULL)'],
+      ['Float32Array', Float32Array.from([0.5, 1.875]), 'vector([0.5, 1.875], 2, FLOAT32 NOT NULL)'],
+      ['Float32Array with special values', Float32Array.from([-Infinity, Infinity, NaN, -NaN, 1.401298464324817e-45, 3.4028235e38]), 'vector([-Infinity, Infinity, NaN, NaN, 1.401298464324817e-45, 3.4028234663852886e+38], 6, FLOAT32 NOT NULL)'],
+      ['Float64Array', Float64Array.from([2]), 'vector([2], 1, FLOAT NOT NULL)'],
+      ['Float64Array with special values', Float64Array.from([-Infinity, Infinity, NaN, -NaN, 2.2250738585072014e-308, 1.7976931348623157e308]), 'vector([-Infinity, Infinity, NaN, NaN, 2.2250738585072014e-308, 1.7976931348623157e+308], 6, FLOAT NOT NULL)'],
+      ['Float64Array of huge size', Float64Array.from([...Array(10000).keys()]), `vector([${[...Array(10000).keys()].join(', ')}], 10000, FLOAT NOT NULL)`]
+    ])('should correctly stringify (%s)', (_, typedArray, expectedString) => {
+      const vec = vector(typedArray)
+      expect(vec.toString()).toEqual(expectedString)
+    })
+  })
 })

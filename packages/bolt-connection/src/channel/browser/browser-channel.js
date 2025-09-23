@@ -151,7 +151,7 @@ export default class WebSocketChannel {
           this._handleConnectionError()
         } else {
           // Some other error occured
-          throw error
+          throw newError('unexpected failure to write.', undefined, error)
         }
       }
     } else {

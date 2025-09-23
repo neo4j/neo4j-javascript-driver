@@ -102,7 +102,7 @@ import * as json from './json'
 import resultTransformers, { ResultTransformer } from './result-transformers'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate'
 import * as internal from './internal' // todo: removed afterwards
-import Vector, { VectorType, vector } from './vector'
+import Vector, { VectorType, vector, isVector } from './vector'
 import { StandardCase } from './mapping.nameconventions'
 import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel'
 import { rule } from './mapping.rulesfactories'
@@ -197,7 +197,9 @@ const forExport = {
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  isVector,
+  vector
 }
 
 export {
@@ -276,6 +278,7 @@ export {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
+  isVector,
   Vector,
   vector,
   rule,

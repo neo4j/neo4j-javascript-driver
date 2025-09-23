@@ -80,6 +80,7 @@ import {
   staticAuthTokenManager,
   clientCertificateProviders,
   resolveCertificateProvider,
+  isVector,
   Vector,
   VectorType,
   vector,
@@ -422,7 +423,9 @@ const forExport = {
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  isVector,
+  vector
 }
 
 export {
@@ -496,6 +499,7 @@ export {
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
+  isVector,
   vector,
   Vector,
   VectorType,
