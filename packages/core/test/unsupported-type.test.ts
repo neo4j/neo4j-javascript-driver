@@ -23,7 +23,7 @@ describe('UnsupportedType', () => {
     ['without message', ['CuniformInteger', 1, 1], '1.1', 'UnsupportedType<CuniformInteger>']
   ])('should create UnsupportedType (%s)', (_, parameters: [string, number, number, string], protocolString, representation) => {
     const unsupportedType = new UnsupportedType(...parameters)
-    expect(unsupportedType.minimumProtocolVersion()).toBe(protocolString)
+    expect(unsupportedType.minimumProtocolVersion).toBe(protocolString)
     expect(unsupportedType.toString()).toBe(representation)
     expect(unsupportedType.message).toBe(parameters[3])
   })

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-const UNSUPPORTED_TYPE_IDENTIFIER_PROPERTY = '__isType__'
+const UNSUPPORTED_TYPE_IDENTIFIER_PROPERTY = '__isUnsupportedType__'
 
 /**
  * Represents a type unknown to the driver, received from the server.
@@ -31,8 +31,7 @@ const UNSUPPORTED_TYPE_IDENTIFIER_PROPERTY = '__isType__'
  */
 export default class UnsupportedType {
   name: string
-  _minimumProtocolMajor: number
-  _minimumProtocolMinor: number
+  minimumProtocolVersion: string
   message: string | undefined
   constructor (name: string, minimumProtocolMajor: number, minimumProtocolMinor: number, message: string | undefined) {
     /**
@@ -42,32 +41,18 @@ export default class UnsupportedType {
      */
     this.name = name
     /**
-     * The major version of the protocol needed to transmit the value.
-     *
-     * @type {number}
-     * @access private
+     * The minimum required Bolt protocol version that supports this type.
+     * To understand which driver version this corresponds to, refer to the driver's release notes or documentation.
+     * 
+     * @type {string}
      */
-    this._minimumProtocolMajor = minimumProtocolMajor
-    /**
-     * The minor version of the protocol needed to transmit the value.
-     *
-     * @type {number}
-     * @access private
-     */
-    this._minimumProtocolMinor = minimumProtocolMinor
+    this.minimumProtocolVersion = `${minimumProtocolMajor}.${minimumProtocolMinor}`
     /**
      * An optional message, including additional information regarding the untransmittable value.
      *
      * @type {string | undefined}
      */
     this.message = message
-  }
-
-  /**
-   * @returns {string} The minimum version of the protocol needed to transmit this value.
-   */
-  minimumProtocolVersion (): string {
-    return `${this._minimumProtocolMajor}.${this._minimumProtocolMinor}`
   }
 
   toString (): string {
@@ -85,7 +70,7 @@ Object.defineProperty(UnsupportedType.prototype, UNSUPPORTED_TYPE_IDENTIFIER_PRO
 /**
  * Test if given object is an instance of the {@link UnsupportedType} class.
  * @param {Object} obj the object to test.
- * @return {boolean} `true` if given object is a {@link UnsupportedType}, `false` otherwise.
+ * @return {boolean} `true` if given object is an {@link UnsupportedType}, `false` otherwise.
  */
 export function isUnsupportedType (obj: any): obj is UnsupportedType {
   return obj != null && obj[UNSUPPORTED_TYPE_IDENTIFIER_PROPERTY] === true

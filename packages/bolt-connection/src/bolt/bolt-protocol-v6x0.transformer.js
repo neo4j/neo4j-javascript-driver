@@ -138,7 +138,7 @@ function createUnsupportedTypeTransformer () {
     signature: UNSUPPORTED,
     isTypeInstance: object => isUnsupportedType(object),
     toStructure: _ => {
-      throw newError('Unsupported Type object can not be transmitted')
+      throw newError('UnsupportedType object can not be transmitted')
     },
     fromStructure: structure => {
       return new UnsupportedType(structure.fields[0], structure.fields[1], structure.fields[2], structure.fields[3].message)
