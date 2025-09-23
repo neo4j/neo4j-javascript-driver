@@ -98,7 +98,8 @@ import {
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
   clientCertificateProviders,
-  types as coreTypes
+  types as coreTypes,
+  isVector
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -299,6 +300,7 @@ declare const forExport: {
   notificationFilterMinimumSeverityLevel: typeof notificationFilterMinimumSeverityLevel
   logging: typeof logging
   clientCertificateProviders: typeof clientCertificateProviders
+  isVector: typeof isVector
 }
 
 export {
@@ -379,7 +381,8 @@ export {
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   logging,
-  clientCertificateProviders
+  clientCertificateProviders,
+  isVector
 }
 
 export type {

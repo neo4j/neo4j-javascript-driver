@@ -18,7 +18,7 @@
 import v5x8 from './bolt-protocol-v5x8.transformer.js'
 import { TypeTransformer } from './transformer.js'
 import { structure } from '../packstream/index.js'
-import { Vector, newError } from '../../core/index.ts'
+import { Vector, isVector, newError } from '../../core/index.ts'
 const VECTOR = 0x56
 const FLOAT_32 = 0xc6
 const FLOAT_64 = 0xc1
@@ -39,7 +39,7 @@ const typeToTypeMarker = {
 function createVectorTransformer () {
   return new TypeTransformer({
     signature: VECTOR,
-    isTypeInstance: object => object instanceof Vector,
+    isTypeInstance: object => isVector(object),
     toStructure: vector => {
       const typeMarker = typeToTypeMarker[vector.getType()]
       if (typeMarker === undefined) {
