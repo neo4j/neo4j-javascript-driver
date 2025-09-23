@@ -419,13 +419,12 @@ const forExport = {
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
+  isVector,
   vector,
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase,
-  isVector,
-  vector
+  StandardCase
 }
 
 export {
