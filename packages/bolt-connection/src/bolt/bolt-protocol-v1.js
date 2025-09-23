@@ -499,17 +499,16 @@ export default class BoltProtocol {
    * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
    */
   write (message, observer, flush) {
+    this._lastMessageSignature = message.signature
+    const messageStruct = new structure.Structure(message.signature, message.fields)
+
+    this.packable(messageStruct)()
     const queued = this.queueObserverIfProtocolIsNotBroken(observer)
 
     if (queued) {
       if (this._log.isDebugEnabled()) {
         this._log.debug(`C: ${message}`)
       }
-
-      this._lastMessageSignature = message.signature
-      const messageStruct = new structure.Structure(message.signature, message.fields)
-
-      this.packable(messageStruct)()
 
       this._chunker.messageBoundary()
       if (flush) {
