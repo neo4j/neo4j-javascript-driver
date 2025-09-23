@@ -81,6 +81,7 @@ import {
   staticAuthTokenManager,
   clientCertificateProviders,
   resolveCertificateProvider,
+  isVector,
   Vector,
   VectorType,
   vector
@@ -412,6 +413,7 @@ const forExport = {
   notificationFilterDisabledCategory,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
+  isVector,
   vector
 }
 
@@ -487,6 +489,7 @@ export {
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
+  isVector,
   vector,
   Vector,
   VectorType

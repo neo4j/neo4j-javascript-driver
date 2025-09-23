@@ -102,7 +102,7 @@ import * as json from './json.ts'
 import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate.ts'
 import * as internal from './internal/index.ts'
-import Vector, { VectorType, vector } from './vector.ts'
+import Vector, { VectorType, vector, isVector } from './vector.ts'
 import UnsupportedType, { isUnsupportedType } from './unsupported-type.ts'
 
 /**
@@ -192,7 +192,9 @@ const forExport = {
   clientCertificateProviders,
   resolveCertificateProvider,
   UnsupportedType,
-  isUnsupportedType
+  isUnsupportedType,
+  isVector,
+  vector
 }
 
 export {
@@ -271,6 +273,7 @@ export {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
+  isVector,
   Vector,
   UnsupportedType,
   isUnsupportedType,

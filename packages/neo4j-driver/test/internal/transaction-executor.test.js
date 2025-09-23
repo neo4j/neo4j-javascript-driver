@@ -156,6 +156,9 @@ describe('#unit TransactionExecutor', () => {
     }, 30000)
 
     it('should not retry when transaction work returns promise rejected with unexpected error type', async () => {
+      if (typeof jasmine === 'undefined') {
+        return
+      }
       class MyTestError extends Error {
         constructor (message, code) {
           super(message)

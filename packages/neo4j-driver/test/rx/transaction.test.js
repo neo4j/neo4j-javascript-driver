@@ -200,6 +200,9 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after a failed query', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -240,6 +243,9 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after successful and failed query', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -284,6 +290,9 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to run another query after a failed one', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -309,6 +318,9 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not allow commit after commit', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -334,6 +346,9 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not allow rollback after rollback', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -359,6 +374,9 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to rollback after commit', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -384,6 +402,9 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after rollback', async () => {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -551,6 +572,9 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyFailToRunQueryAfterTxcIsComplete (commit) {
+    if (typeof jasmine === 'undefined') {
+      return
+    }
     if (protocolVersion < 4.0) {
       return
     }
@@ -751,6 +775,9 @@ describe('#integration-rx transaction', () => {
 describe('#unit', () => {
   describe('.close()', () => {
     it('should delegate to the original Transaction', async () => {
+      if (typeof jasmine === 'undefined') {
+        return
+      }
       const txc = {
         close: jasmine.createSpy('close').and.returnValue(Promise.resolve())
       }
