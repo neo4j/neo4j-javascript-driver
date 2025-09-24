@@ -89,7 +89,7 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
    * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}
-   * 
+   *
    * @experimental Part of the Record Object Mapping preview feature
    */
   as <T extends {} = Object>(rules: Rules): T
@@ -224,7 +224,7 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
    * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}
-   * 
+   *
    * @experimental Part of the Record Object Mapping preview feature
    */
   as <T extends {} = Object>(rules: Rules): T
@@ -363,7 +363,7 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
    * @param {GenericConstructor<T> | Rules} constructorOrRules Contructor for the desired type or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}
-   * 
+   *
    * @experimental Part of the Record Object Mapping preview feature
    */
   as <T extends {} = Object>(rules: Rules): T
