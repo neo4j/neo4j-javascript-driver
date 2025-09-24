@@ -63,14 +63,6 @@ describe('#unit ChannelConfig', () => {
     expect(config.trustedCertificates).toEqual(trustedCertificates)
   })
 
-  it('should respect given known hosts', () => {
-    const knownHostsPath = '~/.neo4j/known_hosts'
-
-    const config = new ChannelConfig(null, { knownHosts: knownHostsPath }, '')
-
-    expect(config.knownHostsPath).toEqual(knownHostsPath)
-  })
-
   it('should respect given connection error code', () => {
     const connectionErrorCode = 'ConnectionFailed'
 
@@ -95,12 +87,6 @@ describe('#unit ChannelConfig', () => {
     const config = new ChannelConfig(null, {}, '')
 
     expect(config.trustedCertificates).toEqual([])
-  })
-
-  it('should have null known hosts path when not configured', () => {
-    const config = new ChannelConfig(null, {}, '')
-
-    expect(config.knownHostsPath).toBeNull()
   })
 
   it('should have service unavailable as default error code', () => {

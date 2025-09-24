@@ -66,7 +66,6 @@ export class Config {
   encrypted?: boolean | EncryptionLevel
   trust?: TrustStrategy
   trustedCertificates?: string[]
-  knownHosts?: string
   fetchSize?: number
   maxConnectionPoolSize?: number
   maxTransactionRetryTime?: number
