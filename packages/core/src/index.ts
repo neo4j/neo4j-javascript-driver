@@ -103,6 +103,7 @@ import resultTransformers, { ResultTransformer } from './result-transformers'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate'
 import * as internal from './internal' // todo: removed afterwards
 import Vector, { VectorType, vector, isVector } from './vector'
+import UnsupportedType, { isUnsupportedType } from './unsupported-type'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -190,6 +191,8 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
+  UnsupportedType,
+  isUnsupportedType,
   isVector,
   vector
 }
@@ -272,6 +275,8 @@ export {
   resolveCertificateProvider,
   isVector,
   Vector,
+  UnsupportedType,
+  isUnsupportedType,
   vector
 }
 
