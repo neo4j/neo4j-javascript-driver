@@ -40,7 +40,7 @@ export class ProtocolVersion {
     return !this.isGreaterThan(other)
   }
 
-  equalTo (other: ProtocolVersion): boolean {
+  isEqualTo (other: ProtocolVersion): boolean {
     return this.major === other.major && this.minor === other.minor
   }
 

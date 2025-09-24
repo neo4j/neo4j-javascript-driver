@@ -160,7 +160,7 @@ function newHandshakeBuffer () {
  */
 export default function handshake (channel, log) {
   return initialHandshake(channel, log).then((result) => {
-    if (result.protocolVersion.equalTo(new ProtocolVersion(255, 1))) {
+    if (result.protocolVersion.isEqualTo(new ProtocolVersion(255, 1))) {
       return handshakeNegotiationV2(channel, result.buffer, log)
     } else {
       return result
