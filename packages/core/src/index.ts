@@ -107,6 +107,7 @@ import { StandardCase } from './mapping.nameconventions'
 import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel'
 import { rule } from './mapping.rulesfactories'
 import mappingDecorators from './mapping.decorators'
+import UnsupportedType, { isUnsupportedType } from './unsupported-type'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -198,6 +199,8 @@ const forExport = {
   mappingDecorators,
   RecordObjectMapping,
   StandardCase,
+  UnsupportedType,
+  isUnsupportedType,
   isVector,
   vector
 }
@@ -284,7 +287,9 @@ export {
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  UnsupportedType,
+  isUnsupportedType,
 }
 
 export type {
