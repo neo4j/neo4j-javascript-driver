@@ -42,7 +42,7 @@ export default class UnsupportedType {
     this.name = name
     /**
      * The minimum required Bolt protocol version that supports this type.
-     * To understand which driver version this corresponds to, refer to the driver's release notes or documentation.
+     * To understand which driver version this corresponds to, refer to the Neo4j JavaScript Manual Datatypes page at {@link https://neo4j.com/docs/javascript-manual/current/data-types/}.
      *
      * @type {string}
      */
