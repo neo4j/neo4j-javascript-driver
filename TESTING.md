@@ -29,7 +29,7 @@ Watch is not supported in the package `neo4j-driver`.
 
 ## Testing using Testkit
 
-Tests **require** latest [Testkit 5](https://github.com/neo4j-drivers/testkit/tree/5.0), Python3 and Docker.
+Tests **require** latest [Testkit 6](https://github.com/neo4j-drivers/testkit/tree/6.x), Python3 and Docker.
 
 Testkit is needed to be cloned and configured to run against the Javascript Lite Driver. Use the following steps to configure Testkit.
 
@@ -62,7 +62,7 @@ To run test against against some Neo4j version:
 python3 main.py
 ```
 
-More details about how to use Testkit could be found on [its repository](https://github.com/neo4j-drivers/testkit/tree/5.0)
+More details about how to use Testkit could be found on [its repository](https://github.com/neo4j-drivers/testkit/tree/6.x)
 
 ## Testing (Legacy)
 
