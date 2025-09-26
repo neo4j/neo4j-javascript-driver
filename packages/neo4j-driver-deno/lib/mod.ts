@@ -113,7 +113,13 @@ import {
   resolveCertificateProvider,
   vector,
   VectorType,
-  Vector
+  Vector,
+  Rule,
+  Rules,
+  rule,
+  RecordObjectMapping,
+  StandardCase,
+  MappedQueryResult
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -212,8 +218,7 @@ function driver (
       routing = true
       break
     default:
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      throw new Error(`Unknown scheme: ${parsedUrl.scheme ?? 'null'}`)
+      throw new Error(`Unknown scheme: ${(parsedUrl.scheme as string) ?? 'null'}`)
   }
 
   // Encryption enabled on URL, propagate trust to the config.
@@ -265,7 +270,6 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (!isEmptyObjectOrNull(parsedUrl.query)) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
@@ -451,7 +455,10 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   Vector,
-  vector
+  vector,
+  rule,
+  RecordObjectMapping,
+  StandardCase
 }
 
 export {
@@ -525,7 +532,10 @@ export {
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
-  vector
+  vector,
+  rule,
+  RecordObjectMapping,
+  StandardCase
 }
 export type {
   QueryResult,
@@ -558,6 +568,9 @@ export type {
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
   Vector,
-  VectorType
+  VectorType,
+  Rule,
+  Rules,
+  MappedQueryResult
 }
 export default forExport

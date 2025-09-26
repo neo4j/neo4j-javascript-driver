@@ -83,7 +83,7 @@ import NotificationFilter, {
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel
 } from './notification-filter'
-import Result, { QueryResult, ResultObserver } from './result'
+import Result, { MappedQueryResult, QueryResult, ResultObserver } from './result'
 import EagerResult from './result-eager'
 import ConnectionProvider, { Releasable } from './connection-provider'
 import Connection from './connection'
@@ -103,6 +103,10 @@ import resultTransformers, { ResultTransformer } from './result-transformers'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate'
 import * as internal from './internal' // todo: removed afterwards
 import Vector, { VectorType, vector, isVector } from './vector'
+import { StandardCase } from './mapping.nameconventions'
+import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel'
+import { rule } from './mapping.rulesfactories'
+import mappingDecorators from './mapping.decorators'
 import UnsupportedType, { isUnsupportedType } from './unsupported-type'
 
 /**
@@ -191,6 +195,10 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
+  rule,
+  mappingDecorators,
+  RecordObjectMapping,
+  StandardCase,
   UnsupportedType,
   isUnsupportedType,
   isVector,
@@ -275,9 +283,13 @@ export {
   resolveCertificateProvider,
   isVector,
   Vector,
+  vector,
+  rule,
+  mappingDecorators,
+  RecordObjectMapping,
+  StandardCase,
   UnsupportedType,
   isUnsupportedType,
-  vector
 }
 
 export type {
@@ -285,6 +297,7 @@ export type {
   NumberOrInteger,
   NotificationPosition,
   QueryResult,
+  MappedQueryResult,
   ResultObserver,
   TransactionConfig,
   BookmarkManager,
@@ -309,7 +322,9 @@ export type {
   ClientCertificateProvider,
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
-  VectorType
+  VectorType,
+  Rule,
+  Rules
 }
 
 export default forExport

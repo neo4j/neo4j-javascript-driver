@@ -83,7 +83,7 @@ import NotificationFilter, {
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel
 } from './notification-filter.ts'
-import Result, { QueryResult, ResultObserver } from './result.ts'
+import Result, { MappedQueryResult, QueryResult, ResultObserver } from './result.ts'
 import EagerResult from './result-eager.ts'
 import ConnectionProvider, { Releasable } from './connection-provider.ts'
 import Connection from './connection.ts'
@@ -103,6 +103,10 @@ import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate.ts'
 import * as internal from './internal/index.ts'
 import Vector, { VectorType, vector, isVector } from './vector.ts'
+import { StandardCase } from './mapping.nameconventions.ts'
+import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel.ts'
+import { rule } from './mapping.rulesfactories.ts'
+import mappingDecorators from './mapping.decorators.ts'
 import UnsupportedType, { isUnsupportedType } from './unsupported-type.ts'
 
 /**
@@ -191,6 +195,10 @@ const forExport = {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   resolveCertificateProvider,
+  rule,
+  mappingDecorators,
+  RecordObjectMapping,
+  StandardCase,
   UnsupportedType,
   isUnsupportedType,
   isVector,
@@ -275,9 +283,13 @@ export {
   resolveCertificateProvider,
   isVector,
   Vector,
+  vector,
+  rule,
+  mappingDecorators,
+  RecordObjectMapping,
+  StandardCase,
   UnsupportedType,
   isUnsupportedType,
-  vector
 }
 
 export type {
@@ -285,6 +297,7 @@ export type {
   NumberOrInteger,
   NotificationPosition,
   QueryResult,
+  MappedQueryResult,
   ResultObserver,
   TransactionConfig,
   BookmarkManager,
@@ -309,7 +322,9 @@ export type {
   ClientCertificateProvider,
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
-  VectorType
+  VectorType,
+  Rule,
+  Rules
 }
 
 export default forExport
