@@ -75,7 +75,7 @@ export const RecordObjectMapping = Object.freeze({
  */
   clearMappingRegistry,
   /**
- * Creates a translation frunction from record key names to object property names, for use with the {@link translateIdentifiers} function
+ * Creates a translation function from record key names to object property names, for use with the {@link translateIdentifiers} function
  *
  * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SCREAMING_SNAKE_CASE"
  *
@@ -141,17 +141,17 @@ interface Gettable { get: <V>(key: string) => V }
 export function as <T extends {} = Object> (gettable: Gettable, constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
   const GenericConstructor = typeof constructorOrRules === 'function' ? constructorOrRules : Object
   const theRules = getRules(constructorOrRules, rules)
-  const vistedKeys: string[] = []
+  const visitedKeys: string[] = []
 
   const obj = new GenericConstructor()
 
   for (const [key, rule] of Object.entries(theRules ?? {})) {
-    vistedKeys.push(key)
+    visitedKeys.push(key)
     _apply(gettable, obj, key, rule)
   }
 
   for (const key of Object.getOwnPropertyNames(obj)) {
-    if (!vistedKeys.includes(key)) {
+    if (!visitedKeys.includes(key)) {
       _apply(gettable, obj, key, theRules?.[key])
     }
   }
