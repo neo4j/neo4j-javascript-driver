@@ -43,6 +43,7 @@ const features = [
   'Feature:API:Session:NotificationsConfig',
   'Feature:API:Summary:GqlStatusObjects',
   'Feature:API:Liveness.Check',
+  'Feature:API:Type.UnsupportedType',
   'Feature:API:Type.Vector',
   'Optimization:AuthPipelining',
   'Optimization:EagerTransactionBegin',

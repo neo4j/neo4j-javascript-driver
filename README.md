@@ -2,7 +2,7 @@
 
 This is the official Neo4j driver for JavaScript.
 
-Starting with 5.0, the Neo4j Drivers will be moving to a monthly release cadence. A minor version will be released on the last Friday of each month so as to maintain versioning consistency with the core product (Neo4j DBMS) which has also moved to a monthly cadence.
+Starting with 6.0, the Neo4j Drivers is no longer on a  monthly release cadence. Minor version releases will happen when there are sufficient new features or improvements to warrant them. This is to reduce the required work of users updating their driver.
 
 As a policy, patch versions will not be released except on rare occasions. Bug fixes and updates will go into the latest minor version and users should upgrade to that. Driver upgrades within a major version will never contain breaking API changes.
 
@@ -14,9 +14,9 @@ Resources to get you started:
 - [Neo4j Driver Manual](https://neo4j.com/docs/javascript-manual/current/)
 - [Neo4j Cypher Cheatsheet](http://neo4j.com/docs/cypher-cheat-sheet/)
 
-## What's New in 5.x
+## What's New in 6.x
 
-- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/5.0-changelog)
+- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/6.x-changelog)
 
 ## Including the Driver
 

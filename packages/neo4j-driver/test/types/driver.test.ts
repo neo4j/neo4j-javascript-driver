@@ -54,7 +54,6 @@ const config: Config = dummy
 const encrypted: undefined | boolean | EncryptionLevel = config.encrypted
 const trust: undefined | TrustStrategy = config.trust
 const trustedCertificates: undefined | string[] = config.trustedCertificates
-const knownHosts: undefined | string = config.knownHosts
 const maxTransactionRetryTime: undefined | number =
   config.maxTransactionRetryTime
 const maxConnectionLifetime: undefined | number = config.maxConnectionLifetime

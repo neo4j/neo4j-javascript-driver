@@ -18,7 +18,7 @@
 import v5x8 from './bolt-protocol-v5x8.transformer.js'
 import { TypeTransformer } from './transformer.js'
 import { structure } from '../packstream/index.js'
-import { Vector, isVector, newError } from '../../core/index.ts'
+import { Vector, isVector, UnsupportedType, isUnsupportedType, newError } from '../../core/index.ts'
 const VECTOR = 0x56
 const FLOAT_32 = 0xc6
 const FLOAT_64 = 0xc1
@@ -26,6 +26,7 @@ const INT_8 = 0xc8
 const INT_16 = 0xc9
 const INT_32 = 0xca
 const INT_64 = 0xcb
+const UNSUPPORTED = 0x3F
 
 const typeToTypeMarker = {
   INT8: INT_8,
@@ -132,7 +133,21 @@ function checkLittleEndian () {
   return typeArray[0] === 1000
 }
 
+function createUnsupportedTypeTransformer () {
+  return new TypeTransformer({
+    signature: UNSUPPORTED,
+    isTypeInstance: object => isUnsupportedType(object),
+    toStructure: _ => {
+      throw newError('UnsupportedType object can not be transmitted')
+    },
+    fromStructure: structure => {
+      return new UnsupportedType(structure.fields[0], structure.fields[1], structure.fields[2], structure.fields[3].message)
+    }
+  })
+}
+
 export default {
   ...v5x8,
-  createVectorTransformer
+  createVectorTransformer,
+  createUnsupportedTypeTransformer
 }

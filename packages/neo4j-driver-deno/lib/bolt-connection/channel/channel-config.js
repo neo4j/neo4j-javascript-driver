@@ -53,7 +53,6 @@ export default class ChannelConfig {
     this.encrypted = extractEncrypted(driverConfig)
     this.trust = extractTrust(driverConfig)
     this.trustedCertificates = extractTrustedCertificates(driverConfig)
-    this.knownHostsPath = extractKnownHostsPath(driverConfig)
     this.connectionErrorCode = connectionErrorCode || SERVICE_UNAVAILABLE
     this.connectionTimeout = driverConfig.connectionTimeout
     this.clientCertificate = clientCertificate
@@ -82,8 +81,4 @@ function extractTrust (driverConfig) {
 
 function extractTrustedCertificates (driverConfig) {
   return driverConfig.trustedCertificates || []
-}
-
-function extractKnownHostsPath (driverConfig) {
-  return driverConfig.knownHosts || null
 }

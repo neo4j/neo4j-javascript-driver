@@ -104,6 +104,7 @@ import ClientCertificate, { clientCertificateProviders, ClientCertificateProvide
 import * as internal from './internal' // todo: removed afterwards
 import { ProtocolVersion } from './internal/protocol-version'
 import Vector, { VectorType, vector, isVector } from './vector'
+import UnsupportedType, { isUnsupportedType } from './unsupported-type'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -192,6 +193,8 @@ const forExport = {
   clientCertificateProviders,
   resolveCertificateProvider,
   ProtocolVersion,
+  UnsupportedType,
+  isUnsupportedType,
   isVector,
   vector
 }
@@ -275,7 +278,9 @@ export {
   isVector,
   Vector,
   vector,
-  ProtocolVersion
+  ProtocolVersion,
+  UnsupportedType,
+  isUnsupportedType,
 }
 
 export type {
