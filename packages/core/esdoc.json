@@ -11,7 +11,7 @@
         "stripPackageName": true,
         "replaces": [
           {
-            "from": "lib6\/.*",
+            "from": ".*",
             "to": "neo4j-driver"
           }
         ]

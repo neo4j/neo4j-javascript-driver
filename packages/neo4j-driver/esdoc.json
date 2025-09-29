@@ -11,7 +11,7 @@
         "stripPackageName": true,
         "replaces": [
           {
-            "from": "src\/.*",
+            "from": ".*",
             "to": "neo4j-driver"
           }
         ]
