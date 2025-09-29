@@ -83,7 +83,7 @@ import NotificationFilter, {
   notificationFilterMinimumSeverityLevel,
   NotificationFilterMinimumSeverityLevel
 } from './notification-filter'
-import Result, { QueryResult, ResultObserver } from './result'
+import Result, { MappedQueryResult, QueryResult, ResultObserver } from './result'
 import EagerResult from './result-eager'
 import ConnectionProvider, { Releasable } from './connection-provider'
 import Connection from './connection'
@@ -104,6 +104,10 @@ import ClientCertificate, { clientCertificateProviders, ClientCertificateProvide
 import * as internal from './internal' // todo: removed afterwards
 import { ProtocolVersion } from './internal/protocol-version'
 import Vector, { VectorType, vector, isVector } from './vector'
+import { StandardCase } from './mapping.nameconventions'
+import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel'
+import { rule } from './mapping.rulesfactories'
+import mappingDecorators from './mapping.decorators'
 import UnsupportedType, { isUnsupportedType } from './unsupported-type'
 
 /**
@@ -193,6 +197,10 @@ const forExport = {
   clientCertificateProviders,
   resolveCertificateProvider,
   ProtocolVersion,
+  rule,
+  mappingDecorators,
+  RecordObjectMapping,
+  StandardCase,
   UnsupportedType,
   isUnsupportedType,
   isVector,
@@ -279,6 +287,10 @@ export {
   Vector,
   vector,
   ProtocolVersion,
+  rule,
+  mappingDecorators,
+  RecordObjectMapping,
+  StandardCase,
   UnsupportedType,
   isUnsupportedType,
 }
@@ -288,6 +300,7 @@ export type {
   NumberOrInteger,
   NotificationPosition,
   QueryResult,
+  MappedQueryResult,
   ResultObserver,
   TransactionConfig,
   BookmarkManager,
@@ -312,7 +325,9 @@ export type {
   ClientCertificateProvider,
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
-  VectorType
+  VectorType,
+  Rule,
+  Rules
 }
 
 export default forExport

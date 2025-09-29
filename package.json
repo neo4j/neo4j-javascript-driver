@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
+    "@types/node": "^24.0.10",
     "husky": "^8.0.3",
     "lerna": "^4.0.0",
     "lint-staged": "^14.0.0",

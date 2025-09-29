@@ -16,6 +16,7 @@
  */
 import Integer from './integer.ts'
 import { stringify } from './json.ts'
+import { Rules, GenericConstructor, as } from './mapping.highlevel.ts'
 
 type StandardDate = Date
 /**
@@ -80,6 +81,24 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
      * @type {string}
      */
     this.elementId = _valueOrGetDefault(elementId, () => identity.toString())
+  }
+
+  /**
+   * Hydrates an object of a given type with the properties of the node
+   *
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type or {@link Rules} for the hydration
+   * @param {Rules} [rules] {@link Rules} for the hydration
+   * @returns {T}
+   *
+   * @experimental Part of the Record Object Mapping preview feature
+   */
+  as <T extends {} = Object>(rules: Rules): T
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
+  as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
+    return as({
+      get: (key) => this.properties[key]
+    }, constructorOrRules, rules)
   }
 
   /**
@@ -197,6 +216,24 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
      * @type {string}
      */
     this.endNodeElementId = _valueOrGetDefault(endNodeElementId, () => end.toString())
+  }
+
+  /**
+   * Hydrates an object of a given type with the properties of the relationship
+   *
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type or {@link Rules} for the hydration
+   * @param {Rules} [rules] {@link Rules} for the hydration
+   * @returns {T}
+   *
+   * @experimental Part of the Record Object Mapping preview feature
+   */
+  as <T extends {} = Object>(rules: Rules): T
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
+  as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
+    return as({
+      get: (key) => this.properties[key]
+    }, constructorOrRules, rules)
   }
 
   /**
@@ -318,6 +355,24 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
       start.elementId,
       end.elementId
     )
+  }
+
+  /**
+   * Hydrates an object of a given type with the properties of the relationship
+   *
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type or {@link Rules} for the hydration
+   * @param {Rules} [rules] {@link Rules} for the hydration
+   * @returns {T}
+   *
+   * @experimental Part of the Record Object Mapping preview feature
+   */
+  as <T extends {} = Object>(rules: Rules): T
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
+  as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
+    return as({
+      get: (key) => this.properties[key]
+    }, constructorOrRules, rules)
   }
 
   /**

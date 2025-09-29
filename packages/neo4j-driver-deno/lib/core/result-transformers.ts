@@ -22,6 +22,7 @@ import ResultSummary from './result-summary.ts'
 import { newError } from './error.ts'
 import { NumberOrInteger } from './graph-types.ts'
 import Integer from './integer.ts'
+import { GenericConstructor, Rules } from './mapping.highlevel.ts'
 
 type ResultTransformer<T> = (result: Result) => Promise<T>
 /**
@@ -257,6 +258,46 @@ class ResultTransformers {
    */
   summary <T extends NumberOrInteger = Integer> (): ResultTransformer<ResultSummary<T>> {
     return summary
+  }
+
+  hydrated <T extends {} = Object>(rules: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
+  hydrated <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }>
+  /**
+   * Creates a {@link ResultTransformer} which maps each record of the result to a hydrated object of a provided type and/or according to provided rules.
+   *
+   * @example
+   *
+   * class Person {
+   *   constructor (name) {
+   *     this.name = name
+   * }
+   *
+   * const personRules: Rules = {
+   *    name: neo4j.rule.asString()
+   * }
+   *
+   * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
+   *   resultTransformer: neo4j.resultTransformers.hydrated(Person, personClassRules)
+   * })
+   *
+   * // Alternatively, the rules can be registered in the mapping registry.
+   * // This registry exists in global memory and will persist even between driver instances.
+   *
+   * neo4j.RecordObjectMapping.register(Person, PersonRules)
+   *
+   * // after registering the rule the transformer will follow them when mapping to the provided type
+   * const summary = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
+   *   resultTransformer: neo4j.resultTransformers.hydrated(Person)
+   * })
+   *
+   * // A hydrated can be used without providing or registering Rules beforehand, but in such case the mapping will be done without any type validation
+   *
+   * @returns {ResultTransformer<ResultSummary<T>>} The result transformer
+   * @see {@link Driver#executeQuery}
+   * @experimental Part of the Record Object Mapping preview feature
+   */
+  hydrated <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }> {
+    return async result => await result.as(constructorOrRules as unknown as GenericConstructor<T>, rules).then()
   }
 }
 

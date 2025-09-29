@@ -16,6 +16,7 @@
  */
 
 import { newError } from './error'
+import { Rules, GenericConstructor, as } from './mapping.highlevel'
 
 type RecordShape<Key extends PropertyKey = PropertyKey, Value = any> = {
   [K in Key]: Value
@@ -130,6 +131,20 @@ class Record<
     }
 
     return resultArray
+  }
+
+  as <T extends {} = Object>(rules: Rules): T
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
+  as <T extends {} = Object>(genericConstructor: GenericConstructor<T>, rules?: Rules): T
+  /**
+   * Maps the record to a provided type and/or according to provided Rules.
+   *
+   * @param {GenericConstructor<T> | Rules} constructorOrRules
+   * @param {Rules} rules
+   * @returns {T}
+   */
+  as <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
+    return as(this, constructorOrRules, rules)
   }
 
   /**
