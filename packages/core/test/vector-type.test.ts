@@ -31,6 +31,14 @@ describe('Vector', () => {
       expect(vec.getType()).toEqual(expectedType)
       expect(vec.asTypedArray()).toEqual(typedArray)
     })
+
+    it.each([
+      ['array', [], 'should be TypedArray, got'],
+      ['Unsigned TypedArray', Uint16Array.from([]), 'should be signed integer or float TypedArray, got unsigned integer TypedArray']
+    ])('should fail to create create vector from (%s)', (_, typedArray, expectedMessage) => {
+      // @ts-expect-error
+      expect(() => vector(typedArray)).toThrow(expectedMessage)
+    })
   })
   describe('.toString()', () => {
     it.each([
