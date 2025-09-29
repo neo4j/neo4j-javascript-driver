@@ -25,6 +25,7 @@ import { LogLevel } from '../src/types'
 import resultTransformers from '../src/result-transformers'
 import Record, { RecordShape } from '../src/record'
 import { invalidNotificationFilters, validNotificationFilters } from './utils/notification-filters.fixtures'
+import { ProtocolVersion } from '../src/internal/protocol-version'
 
 describe('Driver', () => {
   let driver: Driver | null
@@ -391,7 +392,7 @@ describe('Driver', () => {
         const expected: EagerResult = {
           keys: ['a'],
           records: [],
-          summary: new ResultSummary(query, params, {}, 5.0)
+          summary: new ResultSummary(query, params, {}, new ProtocolVersion(5, 0))
         }
         spiedExecute.mockResolvedValue(expected)
 
@@ -414,7 +415,7 @@ describe('Driver', () => {
         const expected: EagerResult = {
           keys: ['a'],
           records: [],
-          summary: new ResultSummary(query, params, {}, 5.0)
+          summary: new ResultSummary(query, params, {}, new ProtocolVersion(5, 0))
         }
         spiedExecute.mockResolvedValue(expected)
 
@@ -447,7 +448,7 @@ describe('Driver', () => {
           records: [
             new Record(['name', 'age'], ['A Person', 25])
           ],
-          summary: new ResultSummary(query, params, {}, 5.0)
+          summary: new ResultSummary(query, params, {}, new ProtocolVersion(5, 0))
         }
         spiedExecute.mockResolvedValue(expected)
 

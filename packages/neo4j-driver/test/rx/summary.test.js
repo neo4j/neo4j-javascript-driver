@@ -260,7 +260,7 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnNonNullSummary (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -277,7 +277,7 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryWithQueryText (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -295,7 +295,7 @@ describe('#integration-rx summary', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -314,7 +314,7 @@ describe('#integration-rx summary', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -333,7 +333,7 @@ describe('#integration-rx summary', () => {
     session,
     useTransaction = false
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -370,7 +370,7 @@ describe('#integration-rx summary', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -402,7 +402,7 @@ describe('#integration-rx summary', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -440,7 +440,7 @@ describe('#integration-rx summary', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -472,7 +472,7 @@ describe('#integration-rx summary', () => {
     driver,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -513,7 +513,7 @@ describe('#integration-rx summary', () => {
     protocolVersion,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -544,7 +544,7 @@ describe('#integration-rx summary', () => {
     driver,
     runnable
   ) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -582,7 +582,7 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldNotReturnPlanAndProfile (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -602,7 +602,7 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnPlanButNoProfile (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -623,7 +623,7 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnPlanAndProfile (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -645,7 +645,7 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldNotReturnNotification (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -663,7 +663,7 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnNotification (protocolVersion, runnable) {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 

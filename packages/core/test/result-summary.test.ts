@@ -16,6 +16,7 @@
  */
 
 import { int } from '../src'
+import { ProtocolVersion } from '../src/internal/protocol-version'
 import {
   ServerInfo,
   ProfiledPlan,
@@ -29,10 +30,10 @@ describe('ServerInfo', () => {
   it.each([
     [
       { address: '192.168.0.1', version: 'neo4j' },
-      4.3,
+      new ProtocolVersion(4, 3),
       {
         address: '192.168.0.1',
-        protocolVersion: 4.3,
+        protocolVersion: new ProtocolVersion(4, 3),
         agent: 'neo4j'
       }
     ],
@@ -45,7 +46,7 @@ describe('ServerInfo', () => {
         agent: 'neo4j'
       }
     ],
-    [undefined, 4.3, { protocolVersion: 4.3 }],
+    [undefined, new ProtocolVersion(4, 3), { protocolVersion: new ProtocolVersion(4, 3) }],
     [undefined, undefined, {}]
   ])(
     'new ServerInfo(%o, %i) === %j',

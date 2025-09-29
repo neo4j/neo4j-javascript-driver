@@ -309,7 +309,7 @@ describe('#integration spatial-types', () => {
   }
 
   function neo4jDoesNotSupportPoints (done) {
-    if (protocolVersion < 2) {
+    if (protocolVersion.isLessThan({ major: 2, minor: 0 })) {
       done()
       return true
     }

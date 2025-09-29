@@ -118,7 +118,7 @@ describe('#integration examples', () => {
   }, 60000)
 
   it('rx autocommit transaction example', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -617,7 +617,7 @@ describe('#integration examples', () => {
   })
 
   it('rx result consume example', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -795,7 +795,7 @@ describe('#integration examples', () => {
   }, 60000)
 
   it('rx transaction function example', async () => {
-    if (protocolVersion < 4.0) {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
@@ -898,7 +898,7 @@ describe('#integration examples', () => {
   }, 60000)
 
   it('use another database example', async () => {
-    if (protocolVersion < 4.0 || edition !== 'enterprise') {
+    if (protocolVersion.isLessThan({ major: 4, minor: 0 }) || edition !== 'enterprise') {
       return
     }
 

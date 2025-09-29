@@ -69,7 +69,7 @@ export function Bookmarks ({ bookmarks }) {
 export function ServerInfo ({ serverInfo }) {
   return response('ServerInfo', {
     ...serverInfo,
-    protocolVersion: serverInfo.protocolVersion.toFixed(1)
+    protocolVersion: serverInfo.protocolVersion.toString()
   })
 }
 

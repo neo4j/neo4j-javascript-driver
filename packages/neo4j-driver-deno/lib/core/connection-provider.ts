@@ -18,6 +18,7 @@
 
 import Connection from './connection.ts'
 import { bookmarks } from './internal/index.ts'
+import { ProtocolVersion } from './internal/protocol-version.ts'
 import { ServerInfo } from './result-summary.ts'
 import { AuthToken } from './types.ts'
 
@@ -155,7 +156,7 @@ class ConnectionProvider {
    * @returns {Promise<number>} the protocol version negotiated via handshake.
    * @throws {Error} When protocol negotiation fails
    */
-  getNegotiatedProtocolVersion (): Promise<number> {
+  getNegotiatedProtocolVersion (): Promise<ProtocolVersion> {
     throw Error('Not Implemented')
   }
 
