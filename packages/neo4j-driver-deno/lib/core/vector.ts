@@ -69,7 +69,7 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
     ) {
       throw newError('The neo4j Vector class does not support Unsigned Integer Arrays, please use a signed IntArray')
     } else {
-      //@ts-expect-error
+      // @ts-expect-error
       throw newError(`The neo4j Vector class is a wrapper for TypedArrays. got ${(typedArray.toString() as string)}`)
     }
     this._typedArray = typedArray
@@ -131,8 +131,7 @@ Object.defineProperty(Vector.prototype, VECTOR_IDENTIFIER_PROPERTY, {
 export function vector<K extends Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array> (typedArray: K): Vector<K> {
   try {
     return new Vector(typedArray)
-  }
-  catch {
+  } catch {
     if (
       typedArray instanceof Uint8Array ||
       typedArray instanceof Uint16Array ||
