@@ -8,10 +8,11 @@
     {
       "name": "esdoc-importpath-plugin",
       "option": {
+        "stripPackageName": true,
         "replaces": [
           {
-            "from": "^src/",
-            "to": "lib/"
+            "from": "src\/.*",
+            "to": "neo4j-driver"
           }
         ]
       }

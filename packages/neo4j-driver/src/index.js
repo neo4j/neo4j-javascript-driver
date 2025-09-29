@@ -90,7 +90,9 @@ import {
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  GQLError,
+  UnsupportedType
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -298,7 +300,8 @@ const types = {
   Vector,
   VectorType,
   Rule,
-  Rules
+  Rules,
+  UnsupportedType
 }
 
 /**
@@ -372,6 +375,7 @@ const forExport = {
   isUnsupportedType,
   integer,
   Neo4jError,
+  GQLError,
   isRetriableError,
   isRetryableError,
   auth,
@@ -450,6 +454,7 @@ export {
   isUnsupportedType,
   integer,
   Neo4jError,
+  GQLError,
   isRetriableError,
   isRetryableError,
   auth,
@@ -510,6 +515,7 @@ export {
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  UnsupportedType
 }
 export default forExport
