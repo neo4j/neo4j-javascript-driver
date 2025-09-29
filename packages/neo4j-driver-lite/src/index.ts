@@ -57,6 +57,7 @@ import {
   LocalTime,
   ManagedTransaction,
   Neo4jError,
+  GQLError,
   Node,
   Notification,
   GqlStatusObject,
@@ -119,7 +120,8 @@ import {
   rule,
   RecordObjectMapping,
   StandardCase,
-  MappedQueryResult
+  MappedQueryResult,
+  UnsupportedType
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -403,6 +405,7 @@ const forExport = {
   isUnsupportedType,
   integer,
   Neo4jError,
+  GQLError,
   isRetriableError,
   isRetryableError,
   auth,
@@ -457,7 +460,8 @@ const forExport = {
   vector,
   rule,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  UnsupportedType
 }
 
 export {
@@ -481,6 +485,7 @@ export {
   isUnsupportedType,
   integer,
   Neo4jError,
+  GQLError,
   isRetriableError,
   isRetryableError,
   auth,
@@ -570,6 +575,7 @@ export type {
   VectorType,
   Rule,
   Rules,
-  MappedQueryResult
+  MappedQueryResult,
+  UnsupportedType
 }
 export default forExport

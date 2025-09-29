@@ -57,6 +57,7 @@ import {
   LocalTime,
   ManagedTransaction,
   Neo4jError,
+  GQLError,
   Node,
   Notification,
   GqlStatusObject,
@@ -119,7 +120,8 @@ import {
   rule,
   RecordObjectMapping,
   StandardCase,
-  MappedQueryResult
+  MappedQueryResult,
+  UnsupportedType
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -404,6 +406,7 @@ const forExport = {
   isUnsupportedType,
   integer,
   Neo4jError,
+  GQLError,
   isRetriableError,
   isRetryableError,
   auth,
@@ -458,7 +461,8 @@ const forExport = {
   vector,
   rule,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  UnsupportedType
 }
 
 export {
@@ -482,6 +486,7 @@ export {
   isUnsupportedType,
   integer,
   Neo4jError,
+  GQLError,
   isRetriableError,
   isRetryableError,
   auth,
@@ -571,6 +576,7 @@ export type {
   VectorType,
   Rule,
   Rules,
-  MappedQueryResult
+  MappedQueryResult,
+  UnsupportedType
 }
 export default forExport
