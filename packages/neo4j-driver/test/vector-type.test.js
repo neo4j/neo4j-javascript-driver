@@ -47,7 +47,7 @@ describe('#integration vector type', () => {
   })
 
   it('write and read vectors', async () => {
-    if (protocolVersion >= 6.0 && edition === 'enterprise') {
+    if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 }) && edition === 'enterprise') {
       const driver = driverGlobal
 
       const bufferWriter = Uint8Array.from([1, 1])

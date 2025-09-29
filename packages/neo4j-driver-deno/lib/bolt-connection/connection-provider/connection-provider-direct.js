@@ -91,7 +91,7 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
 
   async supportsMultiDb () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V4_0
+      version => version.isGreaterOrEqualTo(BOLT_PROTOCOL_V4_0)
     )
   }
 
@@ -104,19 +104,19 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
 
   async supportsTransactionConfig () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V3
+      version => version.isGreaterOrEqualTo(BOLT_PROTOCOL_V3)
     )
   }
 
   async supportsUserImpersonation () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V4_4
+      version => version.isGreaterOrEqualTo(BOLT_PROTOCOL_V4_4)
     )
   }
 
   async supportsSessionAuth () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V5_1
+      version => version.isGreaterOrEqualTo(BOLT_PROTOCOL_V5_1)
     )
   }
 

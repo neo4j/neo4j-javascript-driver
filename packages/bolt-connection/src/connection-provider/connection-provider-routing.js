@@ -260,25 +260,25 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   async supportsMultiDb () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V4_0
+      version => version.isGreaterOrEqualTo(BOLT_PROTOCOL_V4_0)
     )
   }
 
   async supportsTransactionConfig () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V3
+      version => version.isGreaterOrEqualTo(BOLT_PROTOCOL_V3)
     )
   }
 
   async supportsUserImpersonation () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V4_4
+      version => version.isGreaterOrEqualTo(BOLT_PROTOCOL_V4_4)
     )
   }
 
   async supportsSessionAuth () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V5_1
+      version => version.isGreaterOrEqualTo(BOLT_PROTOCOL_V5_1)
     )
   }
 
@@ -611,7 +611,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       const connectionProvider = new SingleConnectionProvider(delegateConnection)
 
       const protocolVersion = connection.protocol().version
-      if (protocolVersion < 4.0) {
+      if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
         return [new Session({
           mode: WRITE,
           bookmarks: Bookmarks.empty(),

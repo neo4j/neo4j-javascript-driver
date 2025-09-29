@@ -26,6 +26,7 @@ import ResultStreamObserverMock from './utils/result-stream-observer.mock'
 import Result from '../src/result'
 import FakeConnection from './utils/connection.fake'
 import { Logger } from '../src/internal/logger'
+import { ProtocolVersion } from '../src/internal/protocol-version'
 
 interface AB {
   a: number
@@ -188,7 +189,7 @@ describe('Result', () => {
             resultAvailableAfter: 124,
             extraInfo: 'extra'
           }
-          const protocolVersion = 5.0
+          const protocolVersion = new ProtocolVersion(5, 0)
 
           const expectedSummary = new ResultSummary(
             expected.query,
@@ -462,7 +463,7 @@ describe('Result', () => {
           expect(releaseConnection).toHaveBeenCalled()
         })
 
-        it.each([123, undefined])(
+        it.each([new ProtocolVersion(123, 0), undefined])(
           'should enrich summary with the protocol version onCompleted',
           async version => {
             const connectionMock = new FakeConnection()
@@ -470,7 +471,7 @@ describe('Result', () => {
             // this test is considering the situation where protocol version
             // is undefined, which should not happen during normal driver
             // operation.
-            connectionMock.protocolVersion = version as unknown as number
+            connectionMock.protocolVersion = version as unknown as ProtocolVersion
 
             connectionHolderMock.getConnection = async (): Promise<Connection> => {
               return connectionMock
@@ -676,7 +677,7 @@ describe('Result', () => {
           expect(releaseConnection).toHaveBeenCalled()
         })
 
-        it.each([123, undefined])(
+        it.each([new ProtocolVersion(123, 0), undefined])(
           'should enrich summary with the protocol version on completed',
           async version => {
             const connectionMock = new FakeConnection()
@@ -684,7 +685,7 @@ describe('Result', () => {
             // this test is considering the situation where protocol version
             // is undefined, which should not happen during normal driver
             // operation.
-            connectionMock.protocolVersion = version as unknown as number
+            connectionMock.protocolVersion = version as unknown as ProtocolVersion
 
             connectionHolderMock.getConnection = async (): Promise<Connection> => {
               return await Promise.resolve(connectionMock)

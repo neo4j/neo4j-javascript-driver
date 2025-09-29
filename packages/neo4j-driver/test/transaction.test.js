@@ -17,6 +17,7 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { READ } from '../src/driver'
+import { ProtocolVersion } from 'neo4j-driver-core'
 
 describe('#integration transaction', () => {
   let driver
@@ -92,7 +93,7 @@ describe('#integration transaction', () => {
         tx.commit()
           .then(() => {
             expect(result.summary.server.protocolVersion).toBeDefined()
-            expect(result.summary.server.protocolVersion).not.toBeLessThan(0)
+            expect(result.summary.server.protocolVersion.isLessThan(new ProtocolVersion(0, 0))).not.toBe(true)
             done()
           })
       })

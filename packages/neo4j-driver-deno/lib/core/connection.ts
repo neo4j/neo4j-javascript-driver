@@ -19,6 +19,7 @@
 import { Bookmarks } from './internal/bookmarks.ts'
 import { AccessMode, TelemetryApis } from './internal/constants.ts'
 import { ResultStreamObserver } from './internal/observers.ts'
+import { ProtocolVersion } from './internal/protocol-version.ts'
 import { TxConfig } from './internal/tx-config.ts'
 import NotificationFilter from './notification-filter.ts'
 
@@ -131,7 +132,7 @@ class Connection {
    *
    * @returns {number}
    */
-  getProtocolVersion (): number {
+  getProtocolVersion (): ProtocolVersion {
     throw new Error('Not implemented')
   }
 

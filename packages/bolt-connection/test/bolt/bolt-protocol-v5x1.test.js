@@ -34,7 +34,8 @@ import {
   Time,
   UnboundRelationship,
   Node,
-  internal
+  internal,
+  ProtocolVersion
 } from 'neo4j-driver-core'
 
 import { alloc } from '../../src/channel'
@@ -243,7 +244,7 @@ describe('#unit BoltProtocolV5x1', () => {
   it('should return correct bolt version number', () => {
     const protocol = new BoltProtocolV5x1(null, null, false)
 
-    expect(protocol.version).toBe(5.1)
+    expect(protocol.version).toEqual(new ProtocolVersion(5, 1))
   })
 
   it('should update metadata', () => {

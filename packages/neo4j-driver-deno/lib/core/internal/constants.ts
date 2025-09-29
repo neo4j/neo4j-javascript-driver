@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { ProtocolVersion } from './protocol-version.ts'
+
 const FETCH_ALL = -1
 const DEFAULT_POOL_ACQUISITION_TIMEOUT = 60 * 1000 // 60 seconds
 const DEFAULT_POOL_MAX_SIZE = 100
@@ -23,24 +25,24 @@ const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 30000 // 30 seconds by default
 const ACCESS_MODE_READ: 'READ' = 'READ'
 const ACCESS_MODE_WRITE: 'WRITE' = 'WRITE'
 
-const BOLT_PROTOCOL_V1: number = 1
-const BOLT_PROTOCOL_V2: number = 2
-const BOLT_PROTOCOL_V3: number = 3
-const BOLT_PROTOCOL_V4_0: number = 4.0
-const BOLT_PROTOCOL_V4_1: number = 4.1
-const BOLT_PROTOCOL_V4_2: number = 4.2
-const BOLT_PROTOCOL_V4_3: number = 4.3
-const BOLT_PROTOCOL_V4_4: number = 4.4
-const BOLT_PROTOCOL_V5_0: number = 5.0
-const BOLT_PROTOCOL_V5_1: number = 5.1
-const BOLT_PROTOCOL_V5_2: number = 5.2
-const BOLT_PROTOCOL_V5_3: number = 5.3
-const BOLT_PROTOCOL_V5_4: number = 5.4
-const BOLT_PROTOCOL_V5_5: number = 5.5
-const BOLT_PROTOCOL_V5_6: number = 5.6
-const BOLT_PROTOCOL_V5_7: number = 5.7
-const BOLT_PROTOCOL_V5_8: number = 5.8
-const BOLT_PROTOCOL_V6_0: number = 6.0
+const BOLT_PROTOCOL_V1: ProtocolVersion = new ProtocolVersion(1, 0)
+const BOLT_PROTOCOL_V2: ProtocolVersion = new ProtocolVersion(2, 0)
+const BOLT_PROTOCOL_V3: ProtocolVersion = new ProtocolVersion(3, 0)
+const BOLT_PROTOCOL_V4_0: ProtocolVersion = new ProtocolVersion(4, 0)
+const BOLT_PROTOCOL_V4_1: ProtocolVersion = new ProtocolVersion(4, 1)
+const BOLT_PROTOCOL_V4_2: ProtocolVersion = new ProtocolVersion(4, 2)
+const BOLT_PROTOCOL_V4_3: ProtocolVersion = new ProtocolVersion(4, 3)
+const BOLT_PROTOCOL_V4_4: ProtocolVersion = new ProtocolVersion(4, 4)
+const BOLT_PROTOCOL_V5_0: ProtocolVersion = new ProtocolVersion(5, 0)
+const BOLT_PROTOCOL_V5_1: ProtocolVersion = new ProtocolVersion(5, 1)
+const BOLT_PROTOCOL_V5_2: ProtocolVersion = new ProtocolVersion(5, 2)
+const BOLT_PROTOCOL_V5_3: ProtocolVersion = new ProtocolVersion(5, 3)
+const BOLT_PROTOCOL_V5_4: ProtocolVersion = new ProtocolVersion(5, 4)
+const BOLT_PROTOCOL_V5_5: ProtocolVersion = new ProtocolVersion(5, 5)
+const BOLT_PROTOCOL_V5_6: ProtocolVersion = new ProtocolVersion(5, 6)
+const BOLT_PROTOCOL_V5_7: ProtocolVersion = new ProtocolVersion(5, 7)
+const BOLT_PROTOCOL_V5_8: ProtocolVersion = new ProtocolVersion(5, 8)
+const BOLT_PROTOCOL_V6_0: ProtocolVersion = new ProtocolVersion(6, 0)
 
 const TELEMETRY_APIS = {
   MANAGED_TRANSACTION: 0,

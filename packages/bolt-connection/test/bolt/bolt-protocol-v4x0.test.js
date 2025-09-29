@@ -36,7 +36,8 @@ import {
   Time,
   UnboundRelationship,
   Node,
-  internal
+  internal,
+  ProtocolVersion
 } from 'neo4j-driver-core'
 
 import { alloc } from '../../src/channel'
@@ -149,7 +150,7 @@ describe('#unit BoltProtocolV4x0', () => {
   it('should return correct bolt version number', () => {
     const protocol = new BoltProtocolV4x0(null, null, false)
 
-    expect(protocol.version).toBe(4)
+    expect(protocol.version).toEqual(new ProtocolVersion(4, 0))
   })
 
   it('should request the routing table from the correct procedure', () => {

@@ -36,7 +36,8 @@ import {
   Node,
   internal,
   vector,
-  json
+  json,
+  ProtocolVersion
 } from 'neo4j-driver-core'
 
 import { alloc } from '../../src/channel'
@@ -256,7 +257,7 @@ describe('#unit BoltProtocolV6x0', () => {
   it('should return correct bolt version number', () => {
     const protocol = new BoltProtocolV6x0(null, null, false)
 
-    expect(protocol.version).toBe(6.0)
+    expect(protocol.version).toEqual(new ProtocolVersion(6, 0))
   })
 
   it('should update metadata', () => {

@@ -58,7 +58,7 @@ import neo4j, {
   RecordShape
 } from '../../'
 
-import { internal } from 'neo4j-driver-core'
+import { internal, ProtocolVersion } from 'neo4j-driver-core'
 
 const {
   logger: { Logger }
@@ -261,7 +261,7 @@ describe('index', () => {
         supportsTransactionConfig: async () => true,
         supportsUserImpersonation: async () => true,
         verifyConnectivityAndGetServerInfo: async () => new ServerInfo({}),
-        getNegotiatedProtocolVersion: async () => 5.0,
+        getNegotiatedProtocolVersion: async () => new ProtocolVersion(5, 0),
         verifyAuthentication: async () => true,
         supportsSessionAuth: async () => true,
         SSREnabled: () => false

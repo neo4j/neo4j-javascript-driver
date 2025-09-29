@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { newError } from '../../core/index.ts'
+import { newError, ProtocolVersion } from '../../core/index.ts'
 import BoltProtocolV1 from './bolt-protocol-v1.js'
 import BoltProtocolV2 from './bolt-protocol-v2.js'
 import BoltProtocolV3 from './bolt-protocol-v3.js'
@@ -112,8 +112,11 @@ function createProtocol (
   onProtocolError,
   log
 ) {
-  switch (version) {
-    case 1:
+  if (!(version instanceof ProtocolVersion) || version === undefined || version === null) {
+    throw newError('Unknown Bolt protocol version: ' + version)
+  }
+  switch (true) {
+    case version.isEqualTo({ major: 1, minor: 0 }):
       return new BoltProtocolV1(
         server,
         chunker,
@@ -122,7 +125,7 @@ function createProtocol (
         log,
         onProtocolError
       )
-    case 2:
+    case version.isEqualTo({ major: 2, minor: 0 }):
       return new BoltProtocolV2(
         server,
         chunker,
@@ -131,7 +134,7 @@ function createProtocol (
         log,
         onProtocolError
       )
-    case 3:
+    case version.isEqualTo({ major: 3, minor: 0 }):
       return new BoltProtocolV3(
         server,
         chunker,
@@ -140,7 +143,7 @@ function createProtocol (
         log,
         onProtocolError
       )
-    case 4.0:
+    case version.isEqualTo({ major: 4, minor: 0 }):
       return new BoltProtocolV4x0(
         server,
         chunker,
@@ -149,7 +152,7 @@ function createProtocol (
         log,
         onProtocolError
       )
-    case 4.1:
+    case version.isEqualTo({ major: 4, minor: 1 }):
       return new BoltProtocolV4x1(
         server,
         chunker,
@@ -159,7 +162,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 4.2:
+    case version.isEqualTo({ major: 4, minor: 2 }):
       return new BoltProtocolV4x2(
         server,
         chunker,
@@ -169,7 +172,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 4.3:
+    case version.isEqualTo({ major: 4, minor: 3 }):
       return new BoltProtocolV4x3(
         server,
         chunker,
@@ -179,7 +182,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 4.4:
+    case version.isEqualTo({ major: 4, minor: 4 }):
       return new BoltProtocolV4x4(
         server,
         chunker,
@@ -189,7 +192,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 5.0:
+    case version.isEqualTo({ major: 5, minor: 0 }):
       return new BoltProtocolV5x0(
         server,
         chunker,
@@ -199,7 +202,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 5.1:
+    case version.isEqualTo({ major: 5, minor: 1 }):
       return new BoltProtocolV5x1(
         server,
         chunker,
@@ -209,7 +212,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 5.2:
+    case version.isEqualTo({ major: 5, minor: 2 }):
       return new BoltProtocolV5x2(
         server,
         chunker,
@@ -219,7 +222,7 @@ function createProtocol (
         onProtocolError,
         serversideRouting
       )
-    case 5.3:
+    case version.isEqualTo({ major: 5, minor: 3 }):
       return new BoltProtocolV5x3(server,
         chunker,
         packingConfig,
@@ -227,7 +230,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.4:
+    case version.isEqualTo({ major: 5, minor: 4 }):
       return new BoltProtocolV5x4(server,
         chunker,
         packingConfig,
@@ -235,7 +238,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.5:
+    case version.isEqualTo({ major: 5, minor: 5 }):
       return new BoltProtocolV5x5(server,
         chunker,
         packingConfig,
@@ -243,7 +246,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.6:
+    case version.isEqualTo({ major: 5, minor: 6 }):
       return new BoltProtocolV5x6(server,
         chunker,
         packingConfig,
@@ -251,7 +254,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.7:
+    case version.isEqualTo({ major: 5, minor: 7 }):
       return new BoltProtocolV5x7(server,
         chunker,
         packingConfig,
@@ -259,7 +262,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 5.8:
+    case version.isEqualTo({ major: 5, minor: 8 }):
       return new BoltProtocolV5x8(server,
         chunker,
         packingConfig,
@@ -267,7 +270,7 @@ function createProtocol (
         log,
         onProtocolError,
         serversideRouting)
-    case 6.0:
+    case version.isEqualTo({ major: 6, minor: 0 }):
       return new BoltProtocolV6x0(server,
         chunker,
         packingConfig,

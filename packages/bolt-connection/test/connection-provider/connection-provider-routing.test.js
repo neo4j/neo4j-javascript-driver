@@ -24,7 +24,8 @@ import {
   internal,
   ServerInfo,
   staticAuthTokenManager,
-  authTokenManagers
+  authTokenManagers,
+  ProtocolVersion
 } from 'neo4j-driver-core'
 import { RoutingTable } from '../../src/rediscovery/'
 import SimpleHostNameResolver from '../../src/channel/browser/browser-host-name-resolver'
@@ -45,14 +46,10 @@ const READ = 'READ'
 const WRITE = 'WRITE'
 
 describe.each([
-  3,
-  4.0,
-  4.1,
-  4.2,
-  4.3,
-  4.4,
-  5.0,
-  5.1
+  new ProtocolVersion(4, 4),
+  new ProtocolVersion(5, 0),
+  new ProtocolVersion(5, 8),
+  new ProtocolVersion(6, 0)
 ])('#unit RoutingConnectionProvider (PROTOCOL_VERSION=%d)', (PROTOCOL_VERSION) => {
   const server0 = ServerAddress.fromUrl('server0')
   const server1 = ServerAddress.fromUrl('server1')
@@ -3043,7 +3040,7 @@ describe.each([
           [server3, server4],
           [server5, server6]
         )
-        const protocolVersion = 4.4
+        const protocolVersion = new ProtocolVersion(4, 4)
         const server = { address: 'localhost:123', version: 'neo4j/1234' }
 
         const seenConnectionsPerAddress = new Map()
@@ -3120,7 +3117,7 @@ describe.each([
         const pool = newPool({
           create: (address, release) => {
             if (i++ % 2 === 0) {
-              return new FakeConnection(address, release, 'version', 4.4, {})
+              return new FakeConnection(address, release, 'version', new ProtocolVersion(4, 4), {})
             }
             throw error
           }
@@ -3134,7 +3131,7 @@ describe.each([
         )
 
         const serverInfo = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
-        expect(serverInfo).toEqual(new ServerInfo({}, 4.4))
+        expect(serverInfo).toEqual(new ServerInfo({}, new ProtocolVersion(4, 4)))
       })
     })
 

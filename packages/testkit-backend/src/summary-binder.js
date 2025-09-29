@@ -69,7 +69,7 @@ export function nativeToTestkitSummary (summary, binder) {
     },
     serverInfo: {
       agent: summary.server.agent,
-      protocolVersion: summary.server.protocolVersion.toFixed(1)
+      protocolVersion: summary.server.protocolVersion.toString()
     },
     counters: mapCounters(summary.counters),
     plan: mapPlan(summary.plan),

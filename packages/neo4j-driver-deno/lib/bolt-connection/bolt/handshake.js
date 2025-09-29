@@ -16,7 +16,7 @@
  */
 
 import { alloc } from '../channel/index.js'
-import { newError } from '../../core/index.ts'
+import { newError, ProtocolVersion } from '../../core/index.ts'
 
 const BOLT_MAGIC_PREAMBLE = 0x6060b017
 const AVAILABLE_BOLT_PROTOCOLS = ['6.0', '5.8', '5.7', '5.6', '5.4', '5.3', '5.2', '5.1', '5.0', '4.4', '4.3', '4.2', '3.0'] // bolt protocols the client will accept, ordered by preference
@@ -69,7 +69,7 @@ function parseNegotiatedResponse (buffer, log) {
         '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
     )
   }
-  return Number(h[3] + '.' + h[2])
+  return new ProtocolVersion(h[3], h[2])
 }
 
 function handshakeNegotiationV2 (channel, buffer, log) {
@@ -112,7 +112,7 @@ function handshakeNegotiationV2 (channel, buffer, log) {
       selectionBuffer.writeVarInt(capabilites)
       channel.write(selectionBuffer)
       resolve({
-        protocolVersion: Number(major + '.' + minor),
+        protocolVersion: new ProtocolVersion(major, minor),
         capabilites,
         consumeRemainingBuffer: consumer => {
           if (buffer.hasRemaining()) {
@@ -146,7 +146,7 @@ function newHandshakeBuffer () {
  */
 /**
  * @typedef HandshakeResult
- * @property {number} protocolVersion The protocol version negotiated in the handshake
+ * @property {ProtocolVersion} protocolVersion The protocol version negotiated in the handshake
  * @property {number} capabilites A bitmask representing the capabilities negotiated in the handshake
  * @property {function(BufferConsumerCallback)} consumeRemainingBuffer A function to consume the remaining buffer if it exists
  */
@@ -160,7 +160,7 @@ function newHandshakeBuffer () {
  */
 export default function handshake (channel, log) {
   return initialHandshake(channel, log).then((result) => {
-    if (result.protocolVersion === 255.1) {
+    if (result.protocolVersion.isEqualTo(new ProtocolVersion(255, 1))) {
       return handshakeNegotiationV2(channel, result.buffer, log)
     } else {
       return result
