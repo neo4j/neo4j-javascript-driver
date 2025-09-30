@@ -61,16 +61,8 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
       this._type = vectorTypes.FLOAT32
     } else if (typedArray instanceof Float64Array) {
       this._type = vectorTypes.FLOAT64
-    } else if (
-      typedArray instanceof Uint8Array ||
-      typedArray instanceof Uint16Array ||
-      typedArray instanceof Uint32Array ||
-      typedArray instanceof BigUint64Array
-    ) {
-      throw newError('Invalid argument type passed to Vector constructor: should be signed integer or float TypedArray, got unsigned integer TypedArray')
     } else {
-      // @ts-expect-error
-      throw newError(`Invalid argument type passed to vector constructor function: should be TypedArray, got ${typedArray.toString() as string}`)
+      throw newError(`Invalid argument type passed to Vector constructor: should be signed integer or float TypedArray, got: ${(typedArray as any)?.constructor?.name as string ?? 'undefined or type without constructor name'}`)
     }
     this._typedArray = typedArray
   }
@@ -132,15 +124,7 @@ export function vector<K extends Float32Array | Float64Array | Int8Array | Int16
   try {
     return new Vector(typedArray)
   } catch {
-    if (
-      typedArray instanceof Uint8Array ||
-      typedArray instanceof Uint16Array ||
-      typedArray instanceof Uint32Array ||
-      typedArray instanceof BigUint64Array
-    ) {
-      throw newError('Invalid argument type passed to vector constructor function: should be signed integer or float TypedArray, got unsigned integer TypedArray')
-    }
-    throw newError(`Invalid argument type passed to vector constructor function: should be TypedArray, got ${typedArray.toString()}`)
+    throw newError(`Invalid argument type passed to vector constructor function: should be signed integer or float TypedArray, got: ${typedArray?.constructor?.name ?? 'undefined or type without constructor name'}`)
   }
 }
 
