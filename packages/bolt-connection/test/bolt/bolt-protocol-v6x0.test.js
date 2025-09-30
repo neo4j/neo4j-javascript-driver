@@ -37,6 +37,7 @@ import {
   internal,
   vector,
   json,
+  UnsupportedType,
   ProtocolVersion
 } from 'neo4j-driver-core'
 
@@ -1185,6 +1186,89 @@ describe('#unit BoltProtocolV6x0', () => {
 
       const unpacked = protocol.unpack(buffer)
       expect(unpacked).toEqual(struct)
+    })
+
+    it.each([
+      [
+        'float32',
+        new structure.Structure(0x56, [[0xC6], new Int8Array(Float32Array.from([13, Infinity, -Infinity, NaN]).buffer)]),
+        vector(Float32Array.from([13, Infinity, -Infinity, NaN]))
+      ],
+      [
+        'float64',
+        new structure.Structure(0x56, [[0xC1], new Int8Array(Float64Array.from([13, Infinity, -Infinity, NaN]).buffer)]),
+        vector(Float64Array.from([13, Infinity, -Infinity, NaN]))
+      ],
+      [
+        'int8',
+        new structure.Structure(0x56, [[0xC8], Int8Array.from([-128, 127])]),
+        vector(Int8Array.from([-128, 127]))
+      ],
+      [
+        'int16',
+        new structure.Structure(0x56, [[0xC9], new Int8Array(Int16Array.from([-32768, 32767]).buffer)]),
+        vector(Int16Array.from([-32768, 32767]))
+      ],
+      [
+        'int32',
+        new structure.Structure(0x56, [[0xCA], new Int8Array(Int32Array.from([-2147483648, 2147483647]).buffer)]),
+        vector(Int32Array.from([-2147483648, 2147483647]))
+      ],
+      [
+        'int64',
+        new structure.Structure(0x56, [[0xCB], new Int8Array(BigInt64Array.from([-9223372036854775808n, 9223372036854775807n]).buffer)]),
+        vector(BigInt64Array.from([-9223372036854775808n, 9223372036854775807n]))
+      ]
+    ])('should unpack (%s) vector', (_, struct, object) => {
+      const buffer = alloc(256)
+      const protocol = new BoltProtocolV6x0(
+        new utils.MessageRecordingConnection(),
+        buffer,
+        {
+          disableLosslessIntegers: true
+        }
+      )
+
+      const packable = protocol.packable(struct)
+
+      expect(packable).not.toThrow()
+
+      buffer.reset()
+
+      const unpacked = protocol.unpack(buffer)
+      expect(unpacked.asTypedArray().buffer).toEqual(object.asTypedArray().buffer) // compares buffers to successfully compare BigInts
+      expect(unpacked.getType()).toEqual(object.getType())
+    })
+
+    it.each([
+      [
+        'without message',
+        new structure.Structure(0x3F, ['Quantum Integer', 6, 10, {}]),
+        new UnsupportedType('Quantum Integer', 6, 10)
+      ],
+      [
+        'with message',
+        new structure.Structure(0x3F, ['Quantum Integer', 6, 10, { message: 'Quantum computing is always 10 years away' }]),
+        new UnsupportedType('Quantum Integer', 6, 10, 'Quantum computing is always 10 years away')
+      ]
+    ])('should unpack unknown type (%s)', (_, struct, object) => {
+      const buffer = alloc(256)
+      const protocol = new BoltProtocolV6x0(
+        new utils.MessageRecordingConnection(),
+        buffer,
+        {
+          disableLosslessIntegers: true
+        }
+      )
+
+      const packable = protocol.packable(struct)
+
+      expect(packable).not.toThrow()
+
+      buffer.reset()
+
+      const unpacked = protocol.unpack(buffer)
+      expect(unpacked).toEqual(object)
     })
   })
 
