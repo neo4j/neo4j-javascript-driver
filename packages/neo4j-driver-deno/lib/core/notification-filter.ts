@@ -37,7 +37,9 @@ const notificationFilterMinimumSeverityLevel: EnumRecord<NotificationFilterMinim
   INFORMATION: 'INFORMATION'
 }
 Object.freeze(notificationFilterMinimumSeverityLevel)
-
+/**
+ * @deprecated use {@link NotificationFilterDisabledClassification} instead.
+ */
 type NotificationFilterDisabledCategory = ExcludeUnknown<NotificationCategory>
 /**
  * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'SCHEMA'} NotificationFilterDisabledCategory
