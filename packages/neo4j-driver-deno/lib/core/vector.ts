@@ -67,10 +67,10 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
       typedArray instanceof Uint32Array ||
       typedArray instanceof BigUint64Array
     ) {
-      throw newError('The neo4j Vector class does not support Unsigned Integer Arrays, please use a signed IntArray')
+      throw newError('Invalid argument type passed to Vector constructor: should be signed integer or float TypedArray, got unsigned integer TypedArray')
     } else {
-      // @ts-expect-error
-      throw newError(`The neo4j Vector class is a wrapper for TypedArrays. got ${(typedArray.toString() as string)}`)
+      //@ts-expect-error
+      throw newError(`Invalid argument type passed to vector constructor function: should be TypedArray, got ${typedArray.toString() as string}`)
     }
     this._typedArray = typedArray
   }
