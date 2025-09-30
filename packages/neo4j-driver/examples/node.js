@@ -47,7 +47,7 @@ streamResult.subscribe({
     const summary = streamResult.summarize()
     // Print number of nodes created
     console.log('')
-    console.log(summary.updateStatistics.nodesCreated())
+    console.log(summary.counters.nodesCreated())
     streamSession.close()
   },
   onError: function (error) {
@@ -68,7 +68,7 @@ promiseResult
     const summary = promiseResult.summarize()
     // Print number of nodes created
     console.log('')
-    console.log(summary.updateStatistics.nodesCreated())
+    console.log(summary.counters.nodesCreated())
   })
   .catch(function (error) {
     console.log(error)

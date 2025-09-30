@@ -29,7 +29,6 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   query: { text: string, parameters: { [key: string]: any } }
   queryType: string
   counters: QueryStatistics
-  updateStatistics: QueryStatistics
   plan: Plan | false
   profile: ProfiledPlan | false
   notifications: Notification[]
@@ -74,12 +73,6 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      */
     this.counters = new QueryStatistics(metadata.stats ?? {})
     // for backwards compatibility, remove in future version
-    /**
-     * Use {@link ResultSummary.counters} instead.
-     * @type {QueryStatistics}
-     * @deprecated
-     */
-    this.updateStatistics = this.counters
 
     /**
      * This describes how the database will execute the query.
