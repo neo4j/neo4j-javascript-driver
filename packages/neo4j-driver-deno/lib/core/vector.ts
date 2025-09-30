@@ -69,7 +69,7 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
     ) {
       throw newError('Invalid argument type passed to Vector constructor: should be signed integer or float TypedArray, got unsigned integer TypedArray')
     } else {
-      //@ts-expect-error
+      // @ts-expect-error
       throw newError(`Invalid argument type passed to vector constructor function: should be TypedArray, got ${typedArray.toString() as string}`)
     }
     this._typedArray = typedArray
