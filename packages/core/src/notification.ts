@@ -61,6 +61,9 @@ const notificationSeverityLevel: { [key in NotificationSeverityLevel]: key } = {
 Object.freeze(notificationSeverityLevel)
 const severityLevels = Object.values(notificationSeverityLevel)
 
+/**
+ * @deprecated use {@link NotificationClassification} instead.
+ */
 type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' | 'PERFORMANCE' |
 'TOPOLOGY' | 'SECURITY' | 'DEPRECATION' | 'GENERIC' | 'SCHEMA' | 'UNKNOWN'
 /**
