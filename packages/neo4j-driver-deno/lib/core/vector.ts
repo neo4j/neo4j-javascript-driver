@@ -62,7 +62,7 @@ export default class Vector<K extends Float32Array | Float64Array | Int8Array | 
     } else if (typedArray instanceof Float64Array) {
       this._type = vectorTypes.FLOAT64
     } else {
-      throw newError(`Invalid argument type passed to Vector constructor: should be signed integer or float TypedArray, got: ${(typedArray as any)?.constructor?.name as string ?? "undefined or type without constructor name"}`)
+      throw newError(`Invalid argument type passed to Vector constructor: should be signed integer or float TypedArray, got: ${(typedArray as any)?.constructor?.name as string ?? 'undefined or type without constructor name'}`)
     }
     this._typedArray = typedArray
   }
@@ -124,7 +124,7 @@ export function vector<K extends Float32Array | Float64Array | Int8Array | Int16
   try {
     return new Vector(typedArray)
   } catch {
-    throw newError(`Invalid argument type passed to vector constructor function: should be signed integer or float TypedArray, got: ${typedArray?.constructor?.name as string ?? "undefined or type without constructor name"}`)
+    throw newError(`Invalid argument type passed to vector constructor function: should be signed integer or float TypedArray, got: ${typedArray?.constructor?.name ?? 'undefined or type without constructor name'}`)
   }
 }
 
