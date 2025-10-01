@@ -33,8 +33,9 @@ describe('Vector', () => {
     })
 
     it.each([
-      ['array', [], 'should be TypedArray, got'],
-      ['Unsigned TypedArray', Uint16Array.from([]), 'should be signed integer or float TypedArray, got unsigned integer TypedArray']
+      ['array', [], 'Invalid argument type passed to vector constructor function: should be signed integer or float TypedArray, got: Array'],
+      ['Unsigned TypedArray', Uint16Array.from([]), 'Invalid argument type passed to vector constructor function: should be signed integer or float TypedArray, got: Uint16Array'],
+      ['undefined', undefined, 'Invalid argument type passed to vector constructor function: should be signed integer or float TypedArray, got: undefined or type without constructor name']
     ])('should fail to create create vector from (%s)', (_, typedArray, expectedMessage) => {
       // @ts-expect-error
       expect(() => vector(typedArray)).toThrow(expectedMessage)
