@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ProtocolVersion } from './protocol-version.ts'
+import { ProtocolVersion } from '../protocol-version.ts'
 
 const FETCH_ALL = -1
 const DEFAULT_POOL_ACQUISITION_TIMEOUT = 60 * 1000 // 60 seconds

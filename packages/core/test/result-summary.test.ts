@@ -16,7 +16,7 @@
  */
 
 import { int } from '../src'
-import { ProtocolVersion } from '../src/internal/protocol-version'
+import { ProtocolVersion } from '../src/protocol-version'
 import {
   ServerInfo,
   ProfiledPlan,
