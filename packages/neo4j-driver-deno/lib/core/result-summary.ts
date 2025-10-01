@@ -19,7 +19,7 @@ import Integer from './integer.ts'
 import { NumberOrInteger } from './graph-types.ts'
 import { util } from './internal/index.ts'
 import GqlStatusObject, { Notification, buildGqlStatusObjectFromMetadata, buildNotificationsFromMetadata } from './notification.ts'
-import { ProtocolVersion } from './internal/protocol-version.ts'
+import { ProtocolVersion } from './protocol-version.ts'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.

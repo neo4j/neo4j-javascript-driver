@@ -18,7 +18,7 @@
 
 import Connection from './connection'
 import { bookmarks } from './internal'
-import { ProtocolVersion } from './internal/protocol-version'
+import { ProtocolVersion } from './protocol-version'
 import { ServerInfo } from './result-summary'
 import { AuthToken } from './types'
 

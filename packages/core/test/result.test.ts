@@ -26,7 +26,7 @@ import ResultStreamObserverMock from './utils/result-stream-observer.mock'
 import Result from '../src/result'
 import FakeConnection from './utils/connection.fake'
 import { Logger } from '../src/internal/logger'
-import { ProtocolVersion } from '../src/internal/protocol-version'
+import { ProtocolVersion } from '../src/protocol-version'
 
 interface AB {
   a: number

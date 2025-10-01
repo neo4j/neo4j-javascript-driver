@@ -119,7 +119,8 @@ import {
   rule,
   RecordObjectMapping,
   StandardCase,
-  MappedQueryResult
+  MappedQueryResult,
+  ProtocolVersion
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
@@ -458,7 +459,8 @@ const forExport = {
   vector,
   rule,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  ProtocolVersion
 }
 
 export {
@@ -571,6 +573,7 @@ export type {
   VectorType,
   Rule,
   Rules,
-  MappedQueryResult
+  MappedQueryResult,
+  ProtocolVersion
 }
 export default forExport

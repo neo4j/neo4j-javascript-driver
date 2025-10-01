@@ -18,7 +18,7 @@
 
 import Connection from './connection.ts'
 import { bookmarks } from './internal/index.ts'
-import { ProtocolVersion } from './internal/protocol-version.ts'
+import { ProtocolVersion } from './protocol-version.ts'
 import { ServerInfo } from './result-summary.ts'
 import { AuthToken } from './types.ts'
 

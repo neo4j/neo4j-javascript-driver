@@ -18,7 +18,7 @@
 import { Connection, ResultObserver, ResultSummary } from '../../src'
 import { BeginTransactionConfig, CommitTransactionConfig, RollbackConnectionConfig, RunQueryConfig } from '../../src/connection'
 import { ResultStreamObserver } from '../../src/internal/observers'
-import { ProtocolVersion } from '../../src/internal/protocol-version'
+import { ProtocolVersion } from '../../src/protocol-version'
 
 /**
  * This class is like a mock of {@link Connection} that tracks invocations count.

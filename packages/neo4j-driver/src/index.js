@@ -90,7 +90,8 @@ import {
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  ProtocolVersion
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -298,7 +299,8 @@ const types = {
   Vector,
   VectorType,
   Rule,
-  Rules
+  Rules,
+  ProtocolVersion
 }
 
 /**
@@ -426,7 +428,8 @@ const forExport = {
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  ProtocolVersion
 }
 
 export {
@@ -510,6 +513,7 @@ export {
   rule,
   mappingDecorators,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  ProtocolVersion
 }
 export default forExport

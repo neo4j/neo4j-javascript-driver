@@ -102,7 +102,7 @@ import * as json from './json.ts'
 import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate.ts'
 import * as internal from './internal/index.ts'
-import { ProtocolVersion } from './internal/protocol-version.ts'
+import { ProtocolVersion } from './protocol-version.ts'
 import Vector, { VectorType, vector, isVector } from './vector.ts'
 import { StandardCase } from './mapping.nameconventions.ts'
 import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel.ts'
@@ -292,7 +292,7 @@ export {
   RecordObjectMapping,
   StandardCase,
   UnsupportedType,
-  isUnsupportedType,
+  isUnsupportedType
 }
 
 export type {

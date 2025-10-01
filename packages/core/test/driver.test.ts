@@ -25,7 +25,7 @@ import { LogLevel } from '../src/types'
 import resultTransformers from '../src/result-transformers'
 import Record, { RecordShape } from '../src/record'
 import { invalidNotificationFilters, validNotificationFilters } from './utils/notification-filters.fixtures'
-import { ProtocolVersion } from '../src/internal/protocol-version'
+import { ProtocolVersion } from '../src/protocol-version'
 
 describe('Driver', () => {
   let driver: Driver | null
