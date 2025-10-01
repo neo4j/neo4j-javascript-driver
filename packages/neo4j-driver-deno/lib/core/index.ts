@@ -292,7 +292,7 @@ export {
   RecordObjectMapping,
   StandardCase,
   UnsupportedType,
-  isUnsupportedType,
+  isUnsupportedType
 }
 
 export type {

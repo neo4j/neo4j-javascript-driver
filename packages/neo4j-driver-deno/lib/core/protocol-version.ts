@@ -16,7 +16,7 @@
  */
 
 /**
- * 
+ *
  * @access public
  * @class A class representing a protocol version the driver is using to communicate with the server.
  * @param {number} major the major version of the protocol.
@@ -31,7 +31,7 @@ export class ProtocolVersion {
   }
 
   /**
-   * 
+   *
    * @returns {number} The major version of the protocol
    */
   getMajor (): number {
@@ -46,7 +46,7 @@ export class ProtocolVersion {
   }
 
   /**
-   * 
+   *
    * @param {ProtocolVersion | {major: number, minor: number}} other the protocol version to compare to
    * @returns {boolean} If this version semantically smaller than the other version.
    */
@@ -60,7 +60,7 @@ export class ProtocolVersion {
   }
 
   /**
-   * 
+   *
    * @param {ProtocolVersion | {major: number, minor: number}} other the protocol version to compare to
    * @returns {boolean} If this version is semantically larger than the other version.
    */
@@ -74,7 +74,7 @@ export class ProtocolVersion {
   }
 
   /**
-   * 
+   *
    * @param {ProtocolVersion | {major: number, minor: number}} other the protocol version to compare to
    * @returns {boolean} if this version is semantically larger or equal to the other version.
    */
@@ -83,7 +83,7 @@ export class ProtocolVersion {
   }
 
   /**
-   * 
+   *
    * @param {ProtocolVersion | {major: number, minor: number}} other the protocol version to compare to
    * @returns {boolean} if this version is semantically smaller or equal to the other version.
    */
@@ -92,7 +92,7 @@ export class ProtocolVersion {
   }
 
   /**
-   * 
+   *
    * @param {ProtocolVersion | {major: number, minor: number}} other the protocol version to compare to
    * @returns {boolean} If this version is the equal to the other version.
    */
