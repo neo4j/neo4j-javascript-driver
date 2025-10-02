@@ -30,20 +30,14 @@ Stable channel:
 npm install neo4j-driver
 ```
 
-Pre-release channel:
-
-```shell
-npm install neo4j-driver@next
-```
-
-Please note that `@next` only points to pre-releases that are not suitable for production use.
-To get the latest stable release omit `@next` part altogether or use `@latest` instead.
-
 ```javascript
+// If you are using CommonJS
 var neo4j = require('neo4j-driver')
+// Alternatively, if you are using ES6
+import neo4j from 'neo4j-driver'
 ```
 
-Driver instance should be closed when Node.js application exits:
+Driver instance should be closed when the application exits:
 
 ```javascript
 driver.close() // returns a Promise
@@ -225,7 +219,7 @@ readTxResultPromise
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
+  .finally(() => session.close())
 ```
 
 #### Reading with Reactive Session
@@ -269,7 +263,7 @@ writeTxResultPromise
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
+  .finally(() => session.close())
 ```
 
 #### Writing with Reactive Session
@@ -296,23 +290,23 @@ rxSession
 ```javascript
 // Run a Cypher statement, reading the result in a streaming manner as records arrive:
 session
-  .run('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
+  .executeWrite(tx => tx.run('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
     nameParam: 'Alice'
-  })
-  .subscribe({
-    onKeys: keys => {
-      console.log(keys)
-    },
-    onNext: record => {
-      console.log(record.get('name'))
-    },
-    onCompleted: () => {
-      session.close() // returns a Promise
-    },
-    onError: error => {
-      console.log(error)
-    }
-  })
+  }).subscribe({
+        onKeys: keys => {
+          console.log(keys)
+        },
+        onNext: record => {
+          console.log(record.get('name'))
+        },
+        onCompleted: () => {
+          session.close() // returns a Promise
+        },
+        onError: error => {
+          console.log(error)
+        }
+    })
+)
 ```
 
 Subscriber API allows following combinations of `onKeys`, `onNext`, `onCompleted` and `onError` callback invocations:
@@ -325,8 +319,8 @@ Subscriber API allows following combinations of `onKeys`, `onNext`, `onCompleted
 
 ```javascript
 // the Promise way, where the complete result is collected before we act on it:
-session
-  .run('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
+driver
+  .executeQuery('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
     nameParam: 'James'
   })
   .then(result => {
@@ -337,7 +331,7 @@ session
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
+  .then(() => driver.close())
 ```
 
 #### Consuming Records with Reactive API
@@ -403,7 +397,7 @@ rxSession
   .beginTransaction()
   .pipe(
     mergeMap(txc =>
-      concatWith(
+      concat(
         txc
           .run(
             'MERGE (bob:Person {name: $nameParam}) RETURN bob.name AS name',
@@ -449,20 +443,20 @@ _**Any javascript number value passed as a parameter will be recognized as `Floa
 
 #### Writing integers
 
-Numbers written directly e.g. `session.run("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
+Numbers written directly e.g. `driver.executeQuery("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
 
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
 var neo4j = require('neo4j-driver')
 
-session.run('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
+driver.executeQuery('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
 ```
 
 To write an integer value that are not within the range of `Number.MIN_SAFE_INTEGER` `-(2`<sup>`53`</sup>`- 1)` and `Number.MAX_SAFE_INTEGER` `(2`<sup>`53`</sup>`- 1)`, use a string argument to `neo4j.int`:
 
 ```javascript
-session.run('CREATE (n {age: $myIntParam})', {
+driver.executeQuery('CREATE (n {age: $myIntParam})', {
   myIntParam: neo4j.int('9223372036854775807')
 })
 ```

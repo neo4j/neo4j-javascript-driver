@@ -176,8 +176,8 @@ var session = driver.session({
 
 ```javascript
 // Run a Cypher statement, reading the result in a streaming manner as records arrive:
-session
-  .run('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
+driver
+  .executeQuery('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
     nameParam: 'Alice'
   })
   .subscribe({
@@ -206,8 +206,8 @@ Subscriber API allows following combinations of `onKeys`, `onNext`, `onCompleted
 
 ```javascript
 // the Promise way, where the complete result is collected before we act on it:
-session
-  .run('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
+driver
+  .executeQuery('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
     nameParam: 'James'
   })
   .then(result => {
@@ -336,20 +336,20 @@ _**Any javascript number value passed as a parameter will be recognized as `Floa
 
 #### Writing integers
 
-Numbers written directly e.g. `session.run("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
+Numbers written directly e.g. `driver.executeQuery("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
 
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
 var neo4j = require('neo4j-driver-lite')
 
-session.run('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
+driver.executeQuery('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
 ```
 
 To write an integer value that are not within the range of `Number.MIN_SAFE_INTEGER` `-(2`<sup>`53`</sup>`- 1)` and `Number.MAX_SAFE_INTEGER` `(2`<sup>`53`</sup>`- 1)`, use a string argument to `neo4j.int`:
 
 ```javascript
-session.run('CREATE (n {age: $myIntParam})', {
+driver.executeQuery('CREATE (n {age: $myIntParam})', {
   myIntParam: neo4j.int('9223372036854775807')
 })
 ```
