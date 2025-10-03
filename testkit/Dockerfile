@@ -14,6 +14,7 @@ RUN apt-get update && \
     apt-get install -y curl
 
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:-18}.x | bash -
+RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
 
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -77,10 +78,6 @@ WORKDIR /home/driver
 CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
 RUN npm config set prefix /home/driver/.npm_global
-
-RUN mkdir /home/driver/bin
-RUN npm install --global corepack@latest
-RUN corepack enable pnpm --install-directory ~/bin
 
 ## Versions
 RUN node --version
