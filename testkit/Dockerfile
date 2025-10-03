@@ -78,6 +78,7 @@ CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
 RUN npm config set prefix /home/driver/.npm_global
 
+RUN mkdir /home/driver/bin
 RUN npm install --global corepack@latest
 RUN corepack enable pnpm --install-directory ~/bin
 
