@@ -78,6 +78,9 @@ CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
 RUN npm config set prefix /home/driver/.npm_global
 
+RUN npm install --global corepack@latest
+RUN corepack use pnpm@latest-10
+
 
 ## Versions
 RUN node --version
