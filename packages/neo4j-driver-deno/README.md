@@ -49,17 +49,263 @@ For using system certificates, the `DENO_TLS_CA_STORE` should be set to `"system
 
 Client certificates are not support in this version of the driver since there is no support for this feature in the DenoJS API. See, https://deno.land/api@v1.29.0?s=Deno.ConnectTlsOptions.
 
-### Basic Example
+## Usage examples
 
-```typescript
-const URI = "bolt://localhost:7687";
-const driver = neo4j.driver(URI, neo4j.auth.basic("neo4j", "driverdemo"));
+### Constructing a Driver
 
-const { records } = await driver.executeQuery("MATCH (n) RETURN n LIMIT 25");
-console.log(records);
+```javascript
+// Create a driver instance, for the user `neo4j` with password `password`.
+// It should be enough to have a single driver per database per application.
+var driver = neo4j.driver(
+  'neo4j://localhost',
+  neo4j.auth.basic('neo4j', 'password')
+)
 
-await driver.close();
+// Close the driver when application exits.
+// This closes all used network connections.
+await driver.close()
+```
 
+### Acquiring a Session
+
+#### Regular Session
+
+```javascript
+// Create a session to run Cypher statements in.
+// Note: Always make sure to close sessions when you are done using them!
+var session = driver.session()
+```
+
+##### with a Default Access Mode of `READ`
+
+```javascript
+var session = driver.session({ defaultAccessMode: neo4j.session.READ })
+```
+
+##### with Bookmarks
+
+```javascript
+var session = driver.session({
+  bookmarks: [bookmark1FromPreviousSession, bookmark2FromPreviousSession]
+})
+```
+
+##### against a Database
+
+```javascript
+var session = driver.session({
+  database: 'foo',
+  defaultAccessMode: neo4j.session.WRITE
+})
+```
+
+### Transaction functions
+
+```javascript
+// Transaction functions provide a convenient API with minimal boilerplate and
+// retries on network fluctuations and transient errors. Maximum retry time is
+// configured on the driver level and is 30 seconds by default:
+// Applies both to standard and reactive sessions.
+neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'password'), {
+  maxTransactionRetryTime: 30000
+})
+```
+
+#### Reading with transaction functions
+
+```javascript
+// It is possible to execute read transactions that will benefit from automatic
+// retries on both single instance ('bolt' URI scheme) and Causal Cluster
+// ('neo4j' URI scheme) and will get automatic load balancing in cluster deployments
+var readTxResultPromise = session.executeRead(txc => {
+  // used transaction will be committed automatically, no need for explicit commit/rollback
+
+  var result = txc.run('MATCH (person:Person) RETURN person.name AS name')
+  // at this point it is possible to either return the result or process it and return the
+  // result of processing it is also possible to run more statements in the same transaction
+  return result
+})
+
+// returned Promise can be later consumed like this:
+readTxResultPromise
+  .then(result => {
+    console.log(result.records)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .finally(() => session.close())
+```
+
+#### Writing with transaction functions
+
+```javascript
+// It is possible to execute write transactions that will benefit from automatic retries
+// on both single instance ('bolt' URI scheme) and Causal Cluster ('neo4j' URI scheme)
+var writeTxResultPromise = session.executeWrite(async txc => {
+  // used transaction will be committed automatically, no need for explicit commit/rollback
+
+  var result = await txc.run(
+    "MERGE (alice:Person {name : 'Alice'}) RETURN alice.name AS name"
+  )
+  // at this point it is possible to either return the result or process it and return the
+  // result of processing it is also possible to run more statements in the same transaction
+  return result.records.map(record => record.get('name'))
+})
+
+// returned Promise can be later consumed like this:
+writeTxResultPromise
+  .then(namesArray => {
+    console.log(namesArray)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .finally(() => session.close())
+```
+
+### ExecuteQuery Function
+
+```javascript
+// Since 5.8.0, the driver has offered a way to run a single query transaction with minimal boilerplate.
+// The driver.executeQuery() function features the same automatic retries as transaction functions.
+// 
+var executeQueryResultPromise = driver
+  .executeQuery(
+    "MATCH (alice:Person {name: $nameParam}) RETURN alice.DOB AS DateOfBirth", 
+    {
+      nameParam: 'Alice'
+    }, 
+    {
+      routing: 'READ', 
+      database: 'neo4j'
+    }
+  )
+
+// returned Promise can be later consumed like this:
+executeQueryResultPromise
+  .then(result => {
+    console.log(result.records)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+```
+
+### Auto-Commit/Implicit Transaction
+
+```javascript
+// This is the most basic and limited form with which to run a Cypher query. 
+// The driver will not automatically retry implicit transactions.
+// This function should only be used when the other driver query interfaces do not fit the purpose.
+// Implicit transactions are the only ones that can be used for CALL { …​ } IN TRANSACTIONS queries. 
+
+var implicitTxResultPromise = session
+  .run(
+    "CALL { …​ } IN TRANSACTIONS", 
+    {
+      param1: 'param'
+    }, 
+    {
+      database: 'neo4j'
+    }
+  )
+
+// returned Promise can be later consumed like this:
+implicitTxResultPromise
+  .then(result => {
+    console.log(result.records)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .finally(() => session.close())
+```
+
+### Explicit Transactions
+
+```javascript
+// run statement in a transaction
+const txc = session.beginTransaction()
+try {
+  const result1 = await txc.run(
+    'MERGE (bob:Person {name: $nameParam}) RETURN bob.name AS name',
+    {
+      nameParam: 'Bob'
+    }
+  )
+  result1.records.forEach(r => console.log(r.get('name')))
+  console.log('First query completed')
+
+  const result2 = await txc.run(
+    'MERGE (adam:Person {name: $nameParam}) RETURN adam.name AS name',
+    {
+      nameParam: 'Adam'
+    }
+  )
+  result2.records.forEach(r => console.log(r.get('name')))
+  console.log('Second query completed')
+
+  await txc.commit()
+  console.log('committed')
+} catch (error) {
+  console.log(error)
+  await txc.rollback()
+  console.log('rolled back')
+} finally {
+  await session.close()
+}
+```
+
+### Consuming Records
+
+#### Consuming Records with Streaming API
+
+```javascript
+// Run a Cypher statement, reading the result in a streaming manner as records arrive:
+session
+  .executeWrite(tx => tx.run('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
+    nameParam: 'Alice'
+  }).subscribe({
+        onKeys: keys => {
+          console.log(keys)
+        },
+        onNext: record => {
+          console.log(record.get('name'))
+        },
+        onCompleted: () => {
+          session.close() // returns a Promise
+        },
+        onError: error => {
+          console.log(error)
+        }
+    })
+)
+```
+
+Subscriber API allows following combinations of `onKeys`, `onNext`, `onCompleted` and `onError` callback invocations:
+
+- zero or one `onKeys`,
+- zero or more `onNext` followed by `onCompleted` when operation was successful. `onError` will not be invoked in this case
+- zero or more `onNext` followed by `onError` when operation failed. Callback `onError` might be invoked after couple `onNext` invocations because records are streamed lazily by the database. `onCompleted` will not be invoked in this case.
+
+#### Consuming Records with Promise API
+
+```javascript
+// the Promise way, where the complete result is collected before we act on it:
+driver
+  .executeQuery('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
+    nameParam: 'James'
+  })
+  .then(result => {
+    result.records.forEach(record => {
+      console.log(record.get('name'))
+    })
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .then(() => driver.close())
 ```
 
 ### Numbers and the Integer type
@@ -75,18 +321,18 @@ _**Any javascript number value passed as a parameter will be recognized as `Floa
 
 #### Writing integers
 
-Numbers written directly e.g. `session.run("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
+Numbers written directly e.g. `driver.executeQuery("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
 
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
-session.run('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
+driver.executeQuery('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
 ```
 
 To write an integer value that are not within the range of `Number.MIN_SAFE_INTEGER` `-(2`<sup>`53`</sup>`- 1)` and `Number.MAX_SAFE_INTEGER` `(2`<sup>`53`</sup>`- 1)`, use a string argument to `neo4j.int`:
 
 ```javascript
-session.run('CREATE (n {age: $myIntParam})', {
+driver.executeQuery('CREATE (n {age: $myIntParam})', {
   myIntParam: neo4j.int('9223372036854775807')
 })
 ```
@@ -130,3 +376,26 @@ var driver = neo4j.driver(
 )
 ```
 
+#### Writing and reading Vectors
+
+Neo4j supports storing vector embeddings in a dedicated vector type. Sending large lists with the driver will result in significant overhead as each value will be transmitted with type information, so the 6.0.0 release of the driver introduced the Neo4j Vector type.
+
+The Vector type supports signed integers of 8, 16, 32 and 64 bits, and floats of 32 and 64 bits. The Vector type is a wrapper for JavaScript TypedArrays of those types.
+
+To create a neo4j Vector in your code, do the following:
+
+```javascript
+var typedArray = Float32Array.from([1, 2, 3]) //this is how to convert a regular array of numbers into a TypedArray, useful if you handle vectors as regular arrays in your code
+
+var neo4jVector = neo4j.vector(typedArray) //this creates a neo4j Vector of type Float32, containing the values [1, 2, 3]
+
+driver.executeQuery('CREATE (n {embeddings: $myVectorParam})', { myVectorParam: neo4jVector })
+```
+
+To access the data in a retrieved Vector you can do the following:
+
+```javascript
+var retrievedTypedArray = neo4jVector.asTypedArray() //This will return a TypedArray of the same type as the Vector
+
+var retrievedArray = Array.from(retrievedTypedArray) //This will convert the TypedArray to a regular array of Numbers. (Not safe for Int64 arrays)
+```
