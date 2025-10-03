@@ -14,7 +14,6 @@ RUN apt-get update && \
     apt-get install -y curl
 
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:-18}.x | bash -
-RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
 
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -72,6 +71,11 @@ RUN useradd -m driver && echo "driver:driver" | chpasswd && adduser driver sudo
 VOLUME /driver
 RUN chown -Rh driver:driver /home/driver
 WORKDIR /home/driver
+
+# Add pnpm
+RUN npm install --global corepack@latest
+RUN corepack enable pnpm --install-directory ~
+RUN corepack use pnpm@latest-10
 
 USER driver
 WORKDIR /home/driver
