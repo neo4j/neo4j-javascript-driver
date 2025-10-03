@@ -79,10 +79,12 @@ RUN mkdir /home/driver/.npm_global
 RUN npm config set prefix /home/driver/.npm_global
 
 RUN npm install --global corepack@latest
+RUN corepack enable pnpm
 RUN corepack use pnpm@latest-10
 
 
 ## Versions
 RUN node --version
 RUN npm --version
+RUN pnpm --version
 RUN deno --version
