@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "buffer": "^6.0.3",
-    "neo4j-driver-core": "6.0.0-dev",
+    "neo4j-driver-core": "workspace:*",
     "string_decoder": "^1.3.0"
   }
 }
