@@ -13,7 +13,7 @@ def copy_files_to_workdir():
 
 def init_monorepo():
     run_in_driver_repo(["rm", "-fr", "node_modules"], env=os.environ)
-    run_in_driver_repo(["pnpm", "ci"], env=os.environ)
+    run_in_driver_repo(["pnpm", "build"], env=os.environ)
 
 
 def clean_and_build():
