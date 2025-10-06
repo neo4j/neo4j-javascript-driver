@@ -41,7 +41,7 @@
     ]
   },
   "scripts": {
-    "clean": "pnpm clean -y && pnpm -r run clean",
+    "clean": "pnpm -r run clean",
     "build": "pnpm install --frozen-lockfile",
     "set_version::deno": "pnpm run set_version --scope neo4j-driver-deno -- ",
     "build::deno": "pnpm -C packages/neo4j-driver-deno run build -- --  ",
@@ -73,5 +73,6 @@
     "ts-standard::neo4j-driver-lite": "ts-standard --fix --project ./packages/neo4j-driver-lite/tsconfig.json",
     "ts-standard::neo4j-driver": "ts-standard --fix --project ./packages/neo4j-driver/tsconfig.json",
     "standard": "standard --fix --env jest"
-  }
+  },
+  "packageManager": "pnpm@10.18.1+sha512.77a884a165cbba2d8d1c19e3b4880eee6d2fcabd0d879121e282196b80042351d5eb3ca0935fa599da1dc51265cc68816ad2bddd2a2de5ea9fdf92adbec7cd34"
 }

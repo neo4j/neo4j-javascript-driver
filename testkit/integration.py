@@ -19,8 +19,8 @@ if __name__ == "__main__":
     if is_deno():
         pass
     elif is_browser():
-        run_in_driver_repo(["npm", "run", "test::browser",
+        run_in_driver_repo(["pnpm", "run", "test::browser",
                            "--", ignore], env=os.environ)
     else:
         run_in_driver_repo(
-            ["npm", "run", "test::integration", "--", ignore], env=os.environ)
+            ["pnpm", "run", "test::integration", "--", ignore], env=os.environ)
