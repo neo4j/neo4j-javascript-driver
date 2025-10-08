@@ -13,7 +13,7 @@ if __name__ == "__main__":
         ignore = "--ignore=neo4j-driver-@(lite|deno)"
 
     run_in_driver_repo(["npm", "run", "lint"])
-    run_in_driver_repo(["npm", "run", "test::unit", "--", ignore])
+    run_in_driver_repo(["npm", "run", "test::unit", ignore])
 
     if is_deno():
         run_in_driver_repo(["npm" "run", "test::deno"])
