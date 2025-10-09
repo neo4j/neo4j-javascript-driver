@@ -15,9 +15,9 @@ if __name__ == "__main__":
 
     if not is_browser():
         if is_lite():
-            ignore = "--ignore=neo4j-driver"
+            filter = "--filter=\!neo4j-driver"
         else:
-            ignore = "--ignore=neo4j-driver-@(lite|deno)"
+            filter = "--filter=\!neo4j-driver-deno --filter=\!neo4j-driver-lite"
 
         if not is_deno():
-            run_in_driver_repo(["pnpm", "run", "test::stress", ignore], env=os.environ)
+            run_in_driver_repo(["pnpm", filter, "run", "test::stress"], env=os.environ)
