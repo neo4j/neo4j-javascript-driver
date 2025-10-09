@@ -12,9 +12,9 @@ if __name__ == "__main__":
     os.environ["TEST_CONTAINERS_DISABLED"] = "True"
 
     if is_lite():
-        filter = "--filter=\!neo4j-driver"
+        filter = "--filter=\\!neo4j-driver"
     else:
-        filter = "--filter=\!neo4j-driver-deno --filter=\!neo4j-driver-lite"
+        filter = "--filter=\\!neo4j-driver-deno --filter=\\!neo4j-driver-lite"
 
     if is_deno():
         pass
