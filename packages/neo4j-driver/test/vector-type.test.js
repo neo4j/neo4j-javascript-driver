@@ -35,12 +35,11 @@ describe('#integration vector type', () => {
     await tmpDriver.close()
   })
 
-  beforeEach(async done => {
+  beforeEach(async () => {
     const driver = driverGlobal
     const session = driver.session()
     await session.run('MATCH (n) DETACH DELETE n')
-    await session.close()
-    done()
+    return session.close()
   })
 
   afterAll(async () => {
