@@ -37,7 +37,7 @@ describe('#integration vector type', () => {
 
   beforeEach(async () => {
     const driver = driverGlobal
-    const session = driver.session({ bookmarkManager: driver.executeQueryBookmarkManager })
+    const session = driver.session()
     await session.run('MATCH (n) DETACH DELETE n')
     await session.close()
   })
