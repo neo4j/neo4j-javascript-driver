@@ -61,6 +61,11 @@ export default class Transformer {
    * @returns {<T>|structure.Structure} The structure or the object, if any transformer was found
    */
   toStructure (type) {
+    const valueType = typeof type
+    // captures 'string' | 'boolean' | 'bigint' | 'number' | 'undefined' | null
+    if ((valueType !== 'object' && valueType !== 'function' && valueType !== 'symbol') || type === null) {
+      return type
+    }
     const transformer = this._transformers.find(({ isTypeInstance }) => isTypeInstance(type))
     if (transformer !== undefined) {
       return transformer.toStructure(type)
