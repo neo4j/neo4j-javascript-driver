@@ -65,6 +65,7 @@ export class Point<T extends NumberOrInteger = Integer> {
    * @ignore
    */
   toString (): string {
+    // Update this in 7.0 to be copy-pasteable into cypher (currently missing parenthesis)
     return this.z != null && !isNaN(this.z)
       ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
           this.x
