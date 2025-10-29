@@ -27,7 +27,9 @@ import driver, {
   RxResult,
   Session,
   Record,
-  types
+  types,
+  Vector,
+  vector
 } from '../../'
 
 const {
@@ -97,6 +99,7 @@ const instanceOfLocalDateTime: boolean = dummy instanceof types.LocalDateTime
 const instanceOfLocalTime: boolean = dummy instanceof types.LocalTime
 const instanceOfTime: boolean = dummy instanceof types.Time
 const instanceOfInteger: boolean = dummy instanceof types.Integer
+const instanceOfVector: boolean = dummy instanceof types.Vector
 const instanceOfResult: boolean = dummy instanceof types.Result
 const instanceOfResultSummary: boolean = dummy instanceof types.ResultSummary
 const instanceOfRecord: boolean = dummy instanceof types.Record
@@ -136,6 +139,7 @@ const instanceOfDriverRxSession: boolean = dummy instanceof driver.RxSession
 const instanceOfDriverRxTransaction: boolean = dummy instanceof driver.RxTransaction
 const instanceOfDriverRxManagedTransaction: boolean = dummy instanceof driver.RxManagedTransaction
 const instanceOfDriverRxResult: boolean = dummy instanceof driver.RxResult
+const instanceOfDriverVector: boolean = dummy instanceof driver.Vector
 
 const recordShape: RecordShape = {
   a: 1234,
