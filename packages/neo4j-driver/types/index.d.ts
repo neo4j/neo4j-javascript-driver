@@ -106,6 +106,9 @@ import {
   StandardCase,
   MappedQueryResult,
   types as coreTypes,
+  Vector,
+  VectorType,
+  vector,
   isVector
 } from 'neo4j-driver-core'
 import {
@@ -181,6 +184,7 @@ declare const types: {
   LocalDateTime: typeof LocalDateTime
   DateTime: typeof DateTime
   Integer: typeof Integer
+  Vector: typeof Vector
   RxSession: typeof RxSession
   RxTransaction: typeof RxTransaction
   RxManagedTransaction: typeof RxManagedTransaction
@@ -308,6 +312,8 @@ declare const forExport: {
   notificationFilterMinimumSeverityLevel: typeof notificationFilterMinimumSeverityLevel
   logging: typeof logging
   clientCertificateProviders: typeof clientCertificateProviders
+  Vector: typeof Vector
+  vector: typeof vector
   isVector: typeof isVector
 }
 
@@ -391,6 +397,8 @@ export {
   notificationFilterMinimumSeverityLevel,
   logging,
   clientCertificateProviders,
+  Vector,
+  vector,
   isVector
 }
 
@@ -416,6 +424,7 @@ export type {
   ClientCertificateProvider,
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
+  VectorType,
   Rule,
   Rules,
   rule,
