@@ -106,7 +106,12 @@ import {
   StandardCase,
   MappedQueryResult,
   types as coreTypes,
-  isVector
+  isVector,
+  vector,
+  Vector,
+  mappingDecorators,
+  ProtocolVersion,
+  VectorType
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -164,27 +169,28 @@ declare function hasReachableServer (
 ): Promise<true>
 
 declare const types: {
-  Node: typeof Node
-  Relationship: typeof Relationship
-  UnboundRelationship: typeof UnboundRelationship
-  PathSegment: typeof PathSegment
-  Path: typeof Path
-  Result: typeof Result
-  EagerResult: typeof EagerResult
-  ResultSummary: typeof ResultSummary
-  Record: typeof Record
-  Point: typeof Point
-  Duration: typeof Duration
-  LocalTime: typeof LocalTime
-  Time: typeof Time
   Date: typeof Date
-  LocalDateTime: typeof LocalDateTime
   DateTime: typeof DateTime
+  Duration: typeof Duration
+  EagerResult: typeof EagerResult
   Integer: typeof Integer
-  RxSession: typeof RxSession
-  RxTransaction: typeof RxTransaction
+  LocalDateTime: typeof LocalDateTime
+  LocalTime: typeof LocalTime
+  Node: typeof Node
+  Path: typeof Path
+  PathSegment: typeof PathSegment
+  Point: typeof Point
+  Record: typeof Record
+  Relationship: typeof Relationship
+  Result: typeof Result
+  ResultSummary: typeof ResultSummary
   RxManagedTransaction: typeof RxManagedTransaction
   RxResult: typeof RxResult
+  RxSession: typeof RxSession
+  RxTransaction: typeof RxTransaction
+  Time: typeof Time
+  UnboundRelationship: typeof UnboundRelationship
+  Vector: typeof Vector
 }
 
 declare const session: {
@@ -229,199 +235,202 @@ declare const graph: {
 */
 
 declare const forExport: {
+  auth: typeof auth
+  AuthToken: AuthToken
   authTokenManagers: typeof authTokenManagers
+  bookmarkManager: typeof bookmarkManager
+  clientCertificateProviders: typeof clientCertificateProviders
+  Config: Config
+  Date: typeof Date
+  DateTime: typeof DateTime
+  Driver: typeof Driver
   driver: typeof driver
+  Duration: typeof Duration
+  EagerResult: typeof EagerResult
+  EncryptionLevel: EncryptionLevel
+  error: typeof error
+  GqlStatusObject: typeof GqlStatusObject
+  graph: typeof graph
   hasReachableServer: typeof hasReachableServer
   int: typeof int
-  isInt: typeof isInt
-  integer: typeof integer
-  auth: typeof auth
-  types: typeof types
-  session: typeof session
-  routing: typeof routing
-  error: typeof error
-  graph: typeof graph
-  spatial: typeof spatial
-  temporal: typeof temporal
-  Driver: typeof Driver
-  AuthToken: AuthToken
-  Config: Config
-  EncryptionLevel: EncryptionLevel
-  TrustStrategy: TrustStrategy
-  SessionMode: SessionMode
-  Neo4jError: typeof Neo4jError
-  isRetriableError: typeof isRetriableError
-  isRetryableError: typeof isRetryableError
-  Node: typeof Node
-  Relationship: typeof Relationship
-  UnboundRelationship: typeof UnboundRelationship
-  PathSegment: typeof PathSegment
-  Path: typeof Path
   Integer: typeof Integer
-  Record: typeof Record
-  Result: typeof Result
-  EagerResult: typeof EagerResult
-  QueryResult: QueryResult
-  ResultObserver: ResultObserver
-  ResultSummary: typeof ResultSummary
-  Plan: typeof Plan
-  ProfiledPlan: typeof ProfiledPlan
-  QueryStatistics: typeof QueryStatistics
-  Notification: typeof Notification
-  GqlStatusObject: typeof GqlStatusObject
-  ServerInfo: typeof ServerInfo
-  NotificationPosition: NotificationPosition
-  Session: typeof Session
-  Transaction: typeof Transaction
-  ManagedTransaction: typeof ManagedTransaction
-  Point: typeof Point
-  isPoint: typeof isPoint
-  Duration: typeof Duration
-  LocalTime: typeof LocalTime
-  Time: typeof Time
-  Date: typeof Date
-  LocalDateTime: typeof LocalDateTime
-  DateTime: typeof DateTime
-  RxSession: typeof RxSession
-  RxTransaction: typeof RxTransaction
-  RxManagedTransaction: typeof RxManagedTransaction
-  RxResult: typeof RxResult
-  isDuration: typeof isDuration
-  isLocalTime: typeof isLocalTime
-  isTime: typeof isTime
+  integer: typeof integer
   isDate: typeof isDate
-  isLocalDateTime: typeof isLocalDateTime
   isDateTime: typeof isDateTime
+  isDuration: typeof isDuration
+  isInt: typeof isInt
+  isLocalDateTime: typeof isLocalDateTime
+  isLocalTime: typeof isLocalTime
   isNode: typeof isNode
   isPath: typeof isPath
   isPathSegment: typeof isPathSegment
+  isPoint: typeof isPoint
   isRelationship: typeof isRelationship
+  isRetriableError: typeof isRetriableError
+  isRetryableError: typeof isRetryableError
+  isTime: typeof isTime
   isUnboundRelationship: typeof isUnboundRelationship
   isUnsupportedType: typeof isUnsupportedType
-  bookmarkManager: typeof bookmarkManager
-  resultTransformers: typeof resultTransformers
+  isVector: typeof isVector
+  LocalDateTime: typeof LocalDateTime
+  LocalTime: typeof LocalTime
+  logging: typeof logging
+  ManagedTransaction: typeof ManagedTransaction
+  mappingDecorators: typeof mappingDecorators
+  Neo4jError: typeof Neo4jError
+  Node: typeof Node
+  Notification: typeof Notification
   notificationCategory: typeof notificationCategory
   notificationClassification: typeof notificationClassification
-  notificationSeverityLevel: typeof notificationSeverityLevel
   notificationFilterDisabledCategory: typeof notificationFilterDisabledCategory
   notificationFilterDisabledClassification: typeof notificationFilterDisabledClassification
   notificationFilterMinimumSeverityLevel: typeof notificationFilterMinimumSeverityLevel
-  logging: typeof logging
-  clientCertificateProviders: typeof clientCertificateProviders
-  isVector: typeof isVector
+  NotificationPosition: NotificationPosition
+  notificationSeverityLevel: typeof notificationSeverityLevel
+  Path: typeof Path
+  PathSegment: typeof PathSegment
+  Plan: typeof Plan
+  Point: typeof Point
+  ProfiledPlan: typeof ProfiledPlan
+  QueryResult: QueryResult
+  QueryStatistics: typeof QueryStatistics
+  Record: typeof Record
+  Relationship: typeof Relationship
+  Result: typeof Result
+  ResultObserver: ResultObserver
+  ResultSummary: typeof ResultSummary
+  resultTransformers: typeof resultTransformers
+  routing: typeof routing
+  RxManagedTransaction: typeof RxManagedTransaction
+  RxResult: typeof RxResult
+  RxSession: typeof RxSession
+  RxTransaction: typeof RxTransaction
+  ServerInfo: typeof ServerInfo
+  Session: typeof Session
+  session: typeof session
+  SessionMode: SessionMode
+  spatial: typeof spatial
+  StandardCase: typeof StandardCase
+  temporal: typeof temporal
+  Time: typeof Time
+  Transaction: typeof Transaction
+  TrustStrategy: TrustStrategy
+  types: typeof types
+  UnboundRelationship: typeof UnboundRelationship
+  Vector: typeof Vector
+  vector: typeof vector
 }
 
 export {
+  auth,
   authTokenManagers,
+  bookmarkManager,
+  clientCertificateProviders,
+  Config,
+  Date,
+  DateTime,
   driver,
+  Driver,
+  Duration,
+  EagerResult,
+  error,
+  GqlStatusObject,
+  graph,
   hasReachableServer,
   int,
-  isInt,
   integer,
-  auth,
-  types,
-  session,
-  routing,
-  error,
-  graph,
-  spatial,
-  temporal,
-  Driver,
-  AuthToken,
-  Config,
-  EncryptionLevel,
-  TrustStrategy,
-  SessionMode,
-  Neo4jError,
-  isRetriableError,
-  isRetryableError,
-  Node,
-  Relationship,
-  UnboundRelationship,
-  PathSegment,
-  Path,
   Integer,
-  Record,
-  Result,
-  EagerResult,
-  QueryResult,
-  ResultObserver,
-  ResultSummary,
-  Plan,
-  ProfiledPlan,
-  QueryStatistics,
-  Notification,
-  GqlStatusObject,
-  ServerInfo,
-  NotificationPosition,
-  Session,
-  Transaction,
-  ManagedTransaction,
-  Point,
-  isPoint,
-  Duration,
-  LocalTime,
-  Time,
-  Date,
-  LocalDateTime,
-  DateTime,
-  RxSession,
-  RxTransaction,
-  RxManagedTransaction,
-  RxResult,
-  isDuration,
-  isLocalTime,
-  isTime,
   isDate,
-  isLocalDateTime,
   isDateTime,
+  isDuration,
+  isInt,
+  isLocalDateTime,
+  isLocalTime,
   isNode,
   isPath,
   isPathSegment,
+  isPoint,
   isRelationship,
+  isRetriableError,
+  isRetryableError,
+  isTime,
   isUnboundRelationship,
   isUnsupportedType,
-  bookmarkManager,
-  resultTransformers,
+  isVector,
+  LocalDateTime,
+  LocalTime,
+  logging,
+  ManagedTransaction,
+  mappingDecorators,
+  Neo4jError,
+  Node,
+  Notification,
   notificationCategory,
   notificationClassification,
-  notificationSeverityLevel,
   notificationFilterDisabledCategory,
   notificationFilterDisabledClassification,
   notificationFilterMinimumSeverityLevel,
-  logging,
-  clientCertificateProviders,
-  isVector
+  notificationSeverityLevel,
+  Path,
+  PathSegment,
+  Plan,
+  Point,
+  ProfiledPlan,
+  ProtocolVersion,
+  QueryStatistics,
+  Record,
+  Relationship,
+  Result,
+  ResultSummary,
+  resultTransformers,
+  routing,
+  rule,
+  RxManagedTransaction,
+  RxResult,
+  RxSession,
+  RxTransaction,
+  ServerInfo,
+  session,
+  Session,
+  spatial,
+  temporal,
+  Time,
+  Transaction,
+  types,
+  UnboundRelationship,
+  vector,
+  Vector
 }
 
 export type {
+  AuthToken,
+  AuthTokenAndExpiration,
+  AuthTokenManager,
   AuthTokenManagers,
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig,
-  QueryConfig,
-  RoutingControl,
-  RecordShape,
-  ResultTransformer,
+  ClientCertificate,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  MappedQueryResult,
   NotificationCategory,
   NotificationClassification,
-  NotificationSeverityLevel,
   NotificationFilter,
   NotificationFilterDisabledCategory,
   NotificationFilterDisabledClassification,
   NotificationFilterMinimumSeverityLevel,
-  AuthTokenManager,
-  AuthTokenAndExpiration,
-  ClientCertificate,
-  ClientCertificateProvider,
-  ClientCertificateProviders,
+  NotificationSeverityLevel,
+  QueryConfig,
+  RecordObjectMapping,
+  RecordShape,
+  ResultTransformer,
   RotatingClientCertificateProvider,
+  RoutingControl,
   Rule,
   Rules,
-  rule,
-  RecordObjectMapping,
+  SessionConfig,
   StandardCase,
-  MappedQueryResult
+  VectorType
 }
 
 export default forExport

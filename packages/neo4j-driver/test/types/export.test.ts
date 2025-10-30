@@ -105,6 +105,8 @@ const instanceOfRxTransaction: boolean = dummy instanceof types.RxTransaction
 const instanceOfRxManagedTransaction: boolean = dummy instanceof types.RxManagedTransaction
 const instanceOfRxResult: boolean = dummy instanceof types.RxResult
 
+const instanceOfVector: boolean = dummy instanceof types.Vector
+
 const instanceOfDriverDriver: boolean = dummy instanceof driver.Driver
 const instanceOfDriverNeo4jError: boolean = dummy instanceof driver.Neo4jError
 const instanceOfDriverNode: boolean = dummy instanceof driver.Node
