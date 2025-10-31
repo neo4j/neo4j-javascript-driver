@@ -460,7 +460,7 @@ const forExport = {
   types,
   UnboundRelationship,
   vector,
-  Vector,
+  Vector
 }
 
 export {
@@ -537,7 +537,7 @@ export {
   TransactionPromise,
   types,
   UnboundRelationship,
-  vector,
+  vector
 }
 export type {
   AuthToken,
@@ -574,6 +574,6 @@ export type {
   SessionMode,
   TrustStrategy,
   Vector,
-  VectorType,
+  VectorType
 }
 export default forExport
