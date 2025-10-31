@@ -27,6 +27,7 @@ import driver, {
   RxResult,
   Session,
   Record,
+  VectorType,
   types
 } from '../../'
 
@@ -82,6 +83,7 @@ const dummy: any = null
 const rxSession: RxSession = dummy
 const rxTransaction: RxTransaction = dummy
 const rxResult: RxResult = dummy
+const vectorType: VectorType = dummy
 
 const record: Record = new Record(['role'], [124])
 
@@ -104,6 +106,7 @@ const instanceOfRxSession: boolean = dummy instanceof types.RxSession
 const instanceOfRxTransaction: boolean = dummy instanceof types.RxTransaction
 const instanceOfRxManagedTransaction: boolean = dummy instanceof types.RxManagedTransaction
 const instanceOfRxResult: boolean = dummy instanceof types.RxResult
+const instanceOfVector: boolean = dummy instanceof types.Vector
 
 const instanceOfDriverDriver: boolean = dummy instanceof driver.Driver
 const instanceOfDriverNeo4jError: boolean = dummy instanceof driver.Neo4jError

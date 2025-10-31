@@ -47,7 +47,8 @@ import {
   notificationFilterDisabledCategory,
   NotificationFilterDisabledClassification,
   notificationFilterDisabledClassification,
-  authTokenManagers
+  authTokenManagers,
+  vector
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -136,6 +137,8 @@ const neo4jIsPath: boolean = isPath({})
 const neo4jIsPathSegment: boolean = isPathSegment({})
 const neo4jIsRelationship: boolean = isRelationship({})
 const neo4jIsUnboundRelationship: boolean = isUnboundRelationship({})
+
+const vectorConstructorFunction = vector(Int16Array.from([0]))
 
 const unknownSeverityString: string = notificationSeverityLevel.UNKNOWN
 const warningSeverityString: string = notificationSeverityLevel.WARNING
