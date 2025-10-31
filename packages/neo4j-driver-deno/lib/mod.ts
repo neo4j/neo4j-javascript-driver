@@ -271,7 +271,7 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
-      if (!isEmptyObjectOrNull(parsedUrl.query)) {
+      if (isEmptyObjectOrNull(parsedUrl.query) !== true) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )
@@ -331,7 +331,8 @@ const types = {
   LocalDateTime,
   LocalTime,
   Time,
-  Integer
+  Integer,
+  Vector,
 }
 
 /**

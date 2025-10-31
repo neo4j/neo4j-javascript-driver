@@ -106,7 +106,10 @@ import {
   StandardCase,
   MappedQueryResult,
   types as coreTypes,
-  isVector
+  isVector,
+  vector,
+  Vector,
+  VectorType
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -185,6 +188,8 @@ declare const types: {
   RxTransaction: typeof RxTransaction
   RxManagedTransaction: typeof RxManagedTransaction
   RxResult: typeof RxResult
+  Vector: typeof Vector
+  VectorType: typeof VectorType
 }
 
 declare const session: {
@@ -309,6 +314,7 @@ declare const forExport: {
   logging: typeof logging
   clientCertificateProviders: typeof clientCertificateProviders
   isVector: typeof isVector
+  vector: typeof vector
 }
 
 export {
@@ -391,7 +397,8 @@ export {
   notificationFilterMinimumSeverityLevel,
   logging,
   clientCertificateProviders,
-  isVector
+  isVector,
+  vector
 }
 
 export type {
@@ -421,7 +428,9 @@ export type {
   rule,
   RecordObjectMapping,
   StandardCase,
-  MappedQueryResult
+  MappedQueryResult,
+  Vector,
+  VectorType
 }
 
 export default forExport
