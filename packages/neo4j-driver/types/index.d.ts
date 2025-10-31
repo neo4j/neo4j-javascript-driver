@@ -189,7 +189,6 @@ declare const types: {
   RxManagedTransaction: typeof RxManagedTransaction
   RxResult: typeof RxResult
   Vector: typeof Vector
-  VectorType: typeof VectorType
 }
 
 declare const session: {

@@ -297,7 +297,6 @@ const types = {
   Time,
   Integer,
   Vector,
-  VectorType,
   Rule,
   Rules,
   ProtocolVersion
