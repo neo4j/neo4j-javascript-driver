@@ -536,6 +536,7 @@ export {
   notificationFilterMinimumSeverityLevel,
   clientCertificateProviders,
   vector,
+  Vector,
   rule,
   RecordObjectMapping,
   StandardCase
@@ -570,7 +571,6 @@ export type {
   ClientCertificateProvider,
   ClientCertificateProviders,
   RotatingClientCertificateProvider,
-  Vector,
   VectorType,
   Rule,
   Rules,
