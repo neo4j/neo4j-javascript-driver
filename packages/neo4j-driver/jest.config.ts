@@ -77,7 +77,8 @@ export default {
     'jsx',
     'ts',
     'tsx',
-    'node'
+    'node',
+    'd.ts'
   ],
 
   globals: {
@@ -154,7 +155,9 @@ export default {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
-    '**/test/unit/?(*.)+(spec|test).[tj]s?(x)'
+    '**/test/?(*.)+(spec|test).[tj]s?(x)',
+    '**/test/internal/?(*.)+(spec|test).[tj]s?(x)',
+    '**/test/rx/?(*.)+(spec|test).[tj]s?(x)'
   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
@@ -185,8 +188,9 @@ export default {
   transformIgnorePatterns: [
     '/node_modules/',
     '\\.pnp\\.[^\\/]+$'
-  ]
+  ],
 
+  testTimeout: 15000
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,
 

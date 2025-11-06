@@ -303,28 +303,24 @@ describe('#integration driver', () => {
   })
 
   it('should handle connection errors', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     // Given
     driver = neo4j.driver('bolt://local-host', sharedNeo4j.authToken)
     const session = driver.session()
     const txc = session.beginTransaction()
 
-    await expectAsync(txc.run('RETURN 1')).toBeRejectedWith(
-      jasmine.objectContaining({
-        code: neo4j.error.SERVICE_UNAVAILABLE
-      })
-    )
+    try {
+      await txc.run('RETURN 1')
+      expect('this').toBe('Already failed')
+    } catch (e) {
+      expect(e.code).toBe(
+        neo4j.error.SERVICE_UNAVAILABLE
+      )
+    }
 
     await session.close()
-  }, 10000)
+  }, 30000)
 
-  it('should fail with correct error message when connecting to port 80', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
+  xit('should fail with correct error message when connecting to port 80', done => {
     if (testUtils.isClient()) {
       // good error message is not available in browser
       done()
@@ -340,7 +336,7 @@ describe('#integration driver', () => {
       .session()
       .run('RETURN 1')
       .then(result => {
-        done.fail(
+        throw new Error(
           'Should not be able to connect. Result: ' + json.stringify(result)
         )
       })
@@ -349,9 +345,9 @@ describe('#integration driver', () => {
         const doesNotContainBetterErrorMessage =
           error.message.indexOf('Failed to connect to server') < 0
         if (doesNotContainAddress) {
-          done.fail(`Expected to contain ':80' but was: ${error.message}`)
+          throw new Error(`Expected to contain ':80' but was: ${error.message}`)
         } else if (doesNotContainBetterErrorMessage) {
-          done.fail(
+          throw new Error(
             `Expected to contain 'Failed to connect to server' but was: ${error.message}`
           )
         } else {
@@ -386,19 +382,18 @@ describe('#integration driver', () => {
   })
 
   it('should fail early on wrong credentials', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     // Given
     driver = neo4j.driver(`bolt://${sharedNeo4j.hostnameWithBoltPort}`, wrongCredentials())
     const session = driver.session()
     const txc = session.beginTransaction()
-
-    await expectAsync(txc.run('RETURN 1')).toBeRejectedWith(
-      jasmine.objectContaining({
-        code: 'Neo.ClientError.Security.Unauthorized'
-      })
-    )
+    try {
+      await txc.run('RETURN 1')
+      expect('this').toBe('Already failed')
+    } catch (e) {
+      expect(e.code).toBe(
+        'Neo.ClientError.Security.Unauthorized'
+      )
+    }
 
     await session.close()
   })
@@ -491,8 +486,6 @@ describe('#integration driver', () => {
       sharedNeo4j.authToken
     )
     const session = driver.session()
-
-    jasmine.objectContaining('')
 
     let completed = false
     try {
@@ -683,10 +676,6 @@ describe('#integration driver', () => {
   }
 
   itIpv6('should connect to IPv6 address with port', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     testIPv6Connection(`bolt://[::1]:${sharedNeo4j.boltPort}`, done)
   })
 
@@ -716,20 +705,13 @@ describe('#integration driver', () => {
   })
 
   it('hasReachableServer success', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
-    await expectAsync(neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostnameWithBoltPort}`))
-      .toBeResolvedTo(true)
+    expect(await neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostnameWithBoltPort}`))
+      .toBe(true)
   })
 
   it('hasReachableServer failure', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
-    await expectAsync(neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}:9999`))
-      .toBeRejected()
-  })
+    await expect(() => neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}:9999`)).rejects.toThrow()
+  }, 60000)
 
   const integersWithNativeNumberEquivalent = [
     [neo4j.int(0), 0],

@@ -37,10 +37,6 @@ describe('#integration result summary', () => {
     })
 
     it('should get result summary', done => {
-      if (typeof jasmine === 'undefined') {
-        done()
-        return
-      }
       verifySummary(session, done)
     })
 
@@ -49,10 +45,6 @@ describe('#integration result summary', () => {
     })
 
     it('should get profile from summary', done => {
-      if (typeof jasmine === 'undefined') {
-        done()
-        return
-      }
       verifyProfile(session, done)
     })
 

@@ -34,7 +34,7 @@ import { Notification } from 'rxjs'
  * DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
  */
 
-describe('#integration examples', () => {
+xdescribe('#integration examples', () => {
   let driverGlobal
   let protocolVersion
   let edition

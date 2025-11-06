@@ -30,21 +30,16 @@ describe('#unit-rx retrylogic', () => {
   let scheduler
   let loggerFunc
   let logger
-  let clock
 
   beforeEach(() => {
     scheduler = new TestScheduler(assertDeepEqualSkipFrame)
-    if (typeof jasmine !== 'undefined') {
-      loggerFunc = jasmine.createSpy()
-    }
+    loggerFunc = jest.fn()
     logger = new Logger('debug', loggerFunc)
 
-    clock = jasmine.clock()
-    clock.install()
-    clock.mockDate(new Date())
+    jest.useFakeTimers()
   })
 
-  afterEach(() => clock.uninstall())
+  afterEach(jest.useRealTimers)
 
   describe('should not retry on non-transient errors', () => {
     let scheduler
@@ -160,15 +155,10 @@ describe('#unit-rx retrylogic', () => {
       })
 
       expect(loggerFunc).toHaveBeenCalledTimes(errorCount)
-      expect(loggerFunc.calls.allArgs()).toEqual(
-        sequenceOf(
-          [
-            'warn',
-            jasmine.stringMatching(/^Transaction failed and will be retried in/)
-          ],
-          errorCount
-        )
-      )
+      for (const i in loggerFunc.mock.calls) {
+        expect(loggerFunc.mock.calls[i][0]).toEqual('warn')
+        expect(loggerFunc.mock.calls[i][1]).toMatch(/^Transaction failed and will be retried in/)
+      }
     }
   })
 
@@ -199,10 +189,8 @@ describe('#unit-rx retrylogic', () => {
     })
 
     expect(loggerFunc).toHaveBeenCalledTimes(1)
-    expect(loggerFunc).toHaveBeenCalledWith(
-      'warn',
-      jasmine.stringMatching(/^Transaction failed and will be retried in/)
-    )
+    expect(loggerFunc.mock.calls[0][0]).toEqual('warn')
+    expect(loggerFunc.mock.calls[0][1]).toMatch(/^Transaction failed and will be retried in/)
   })
 
   it('should fail with service unavailable', () => {
@@ -227,22 +215,17 @@ describe('#unit-rx retrylogic', () => {
     })
 
     expect(loggerFunc).toHaveBeenCalledTimes(2)
-    expect(loggerFunc.calls.allArgs()).toEqual(
-      sequenceOf(
-        [
-          'warn',
-          jasmine.stringMatching(/^Transaction failed and will be retried in/)
-        ],
-        2
-      )
-    )
+    for (const i in loggerFunc.mock.calls) {
+      expect(loggerFunc.mock.calls[i][0]).toEqual('warn')
+      expect(loggerFunc.mock.calls[i][1]).toMatch(/^Transaction failed and will be retried in/)
+    }
   })
 
   function newFailingObserver ({ delayBy = 0, value, errors = [] } = {}) {
     let index = 0
     return defer(() => {
       if (delayBy) {
-        clock.tick(delayBy)
+        jest.advanceTimersByTime(delayBy)
       }
       if (index < errors.length) {
         const i = index++

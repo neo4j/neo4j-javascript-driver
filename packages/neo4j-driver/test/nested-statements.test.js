@@ -77,10 +77,6 @@ describe('#integration session', () => {
   }, 60000)
 
   it('should give proper error when nesting queries within one session', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const size = 20
     const result = session.run('UNWIND range(1, $size) AS x RETURN x', {
       size
@@ -88,15 +84,15 @@ describe('#integration session', () => {
     result.subscribe({
       onNext: async record => {
         const x = record.get('x').toInt()
-        await expectAsync(
-          session.run('CREATE (n:Node {id: $x}) RETURN n.id', { x })
-        ).toBeRejectedWith(
-          jasmine.objectContaining({
-            message:
-              'Queries cannot be run directly on a session with an open transaction; ' +
-              'either run from within the transaction or use a different session.'
-          })
-        )
+        try {
+          await session.run('CREATE (n:Node {id: $x}) RETURN n.id', { x })
+          expect(true).toBe(false)
+        } catch (e) {
+          expect(e.message).toBe(
+            'Queries cannot be run directly on a session with an open transaction; ' +
+            'either run from within the transaction or use a different session.'
+          )
+        }
       },
       onCompleted: () => {
         session.close().then(() => done())

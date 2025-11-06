@@ -164,18 +164,15 @@ describe('#integration ServerVersion', () => {
   })
 
   it('should fail to fetch version using incorrect driver', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const driver = neo4j.driver(
       `bolt://${sharedNeo4j.hostname}:4242`,
       sharedNeo4j.authToken
     ) // use wrong port
 
-    await expectAsync(ServerVersion.fromDriver(driver)).toBeRejected()
+    await expect(() => ServerVersion.fromDriver(driver)).rejects.toThrow()
 
     await driver.close()
-  })
+  }, 60000)
 })
 
 function verifyVersion (

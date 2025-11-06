@@ -47,11 +47,11 @@ describe('#unit RxResult', () => {
 
       const simuatedStream = simulateStream(queue, stream, fetchSize, 2)
 
-      spyOn(stream, 'resume').and.callFake(
+      jest.spyOn(stream, 'resume').mockImplementation(
         simuatedStream.resume.bind(simuatedStream)
       )
 
-      spyOn(stream, 'pause').and.callFake(
+      jest.spyOn(stream, 'pause').mockImplementation(
         simuatedStream.pause.bind(simuatedStream)
       )
 
@@ -106,11 +106,11 @@ describe('#unit RxResult', () => {
 
       const simuatedStream = simulateStream(queue, stream, fetchSize, 2)
 
-      spyOn(stream, 'resume').and.callFake(
+      jest.spyOn(stream, 'resume').mockImplementation(
         simuatedStream.resume.bind(simuatedStream)
       )
 
-      spyOn(stream, 'pause').and.callFake(
+      jest.spyOn(stream, 'pause').mockImplementation(
         simuatedStream.pause.bind(simuatedStream)
       )
 
@@ -158,11 +158,11 @@ describe('#unit RxResult', () => {
 
       const simuatedStream = simulateStream(queue, stream, fetchSize, 1)
 
-      const resume = spyOn(stream, 'resume').and.callFake(
+      const resume = jest.spyOn(stream, 'resume').mockImplementation(
         simuatedStream.resume.bind(simuatedStream)
       )
 
-      const pause = spyOn(stream, 'pause').and.callFake(
+      const pause = jest.spyOn(stream, 'pause').mockImplementation(
         simuatedStream.pause.bind(simuatedStream)
       )
 
@@ -189,8 +189,8 @@ describe('#unit RxResult', () => {
 
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      expect(resume.calls.mostRecent().invocationOrder).toBeLessThan(
-        pause.calls.mostRecent().invocationOrder
+      expect(resume.mock.invocationCallOrder[resume.mock.calls.length - 1]).toBeLessThan(
+        pause.mock.invocationCallOrder[pause.mock.calls.length - 1]
       )
     })
 
@@ -219,11 +219,11 @@ describe('#unit RxResult', () => {
 
       const simuatedStream = simulateStream(queue, stream, fetchSize, 1)
 
-      const resume = spyOn(stream, 'resume').and.callFake(
+      const resume = jest.spyOn(stream, 'resume').mockImplementation(
         simuatedStream.resume.bind(simuatedStream)
       )
 
-      const pause = spyOn(stream, 'pause').and.callFake(
+      const pause = jest.spyOn(stream, 'pause').mockImplementation(
         simuatedStream.pause.bind(simuatedStream)
       )
 
@@ -250,16 +250,16 @@ describe('#unit RxResult', () => {
 
       await waitFor(1000)
 
-      expect(resume.calls.mostRecent().invocationOrder).toBeLessThan(
-        pause.calls.mostRecent().invocationOrder
+      expect(resume.mock.invocationCallOrder[resume.mock.calls.length - 1]).toBeLessThan(
+        pause.mock.invocationCallOrder[pause.mock.calls.length - 1]
       )
 
       await rxResult.resume()
 
       await waitFor(1000)
 
-      expect(resume.calls.mostRecent().invocationOrder).toBeGreaterThan(
-        pause.calls.mostRecent().invocationOrder
+      expect(resume.mock.invocationCallOrder[resume.mock.calls.length - 1]).toBeGreaterThan(
+        pause.mock.invocationCallOrder[pause.mock.calls.length - 1]
       )
     })
 
@@ -288,11 +288,11 @@ describe('#unit RxResult', () => {
 
       const simuatedStream = simulateStream(queue, stream, fetchSize, 1)
 
-      const resume = spyOn(stream, 'resume').and.callFake(
+      const resume = jest.spyOn(stream, 'resume').mockImplementation(
         simuatedStream.resume.bind(simuatedStream)
       )
 
-      const pause = spyOn(stream, 'pause').and.callFake(
+      const pause = jest.spyOn(stream, 'pause').mockImplementation(
         simuatedStream.pause.bind(simuatedStream)
       )
 
@@ -329,8 +329,8 @@ describe('#unit RxResult', () => {
 
       await waitFor(1000)
 
-      expect(resume.calls.mostRecent().invocationOrder).toBeLessThan(
-        pause.calls.mostRecent().invocationOrder
+      expect(resume.mock.invocationCallOrder[resume.mock.calls.length - 1]).toBeLessThan(
+        pause.mock.invocationCallOrder[pause.mock.calls.length - 1]
       )
     })
 
@@ -406,11 +406,11 @@ describe('#unit RxResult', () => {
           metadata
         )
 
-        spyOn(stream, 'resume').and.callFake(
+        jest.spyOn(stream, 'resume').mockImplementation(
           simuatedStream.resume.bind(simuatedStream)
         )
 
-        spyOn(stream, 'pause').and.callFake(
+        jest.spyOn(stream, 'pause').mockImplementation(
           simuatedStream.pause.bind(simuatedStream)
         )
 
@@ -475,11 +475,11 @@ describe('#unit RxResult', () => {
           metadata
         )
 
-        spyOn(stream, 'resume').and.callFake(
+        jest.spyOn(stream, 'resume').mockImplementation(
           simuatedStream.resume.bind(simuatedStream)
         )
 
-        spyOn(stream, 'pause').and.callFake(
+        jest.spyOn(stream, 'pause').mockImplementation(
           simuatedStream.pause.bind(simuatedStream)
         )
 
@@ -592,11 +592,11 @@ describe('#unit RxResult', () => {
         metadata
       )
 
-      spyOn(stream, 'resume').and.callFake(
+      jest.spyOn(stream, 'resume').mockImplementation(
         simuatedStream.resume.bind(simuatedStream)
       )
 
-      spyOn(stream, 'pause').and.callFake(
+      jest.spyOn(stream, 'pause').mockImplementation(
         simuatedStream.pause.bind(simuatedStream)
       )
 
@@ -656,15 +656,15 @@ describe('#unit RxResult', () => {
         metadata
       )
 
-      spyOn(stream, 'resume').and.callFake(
+      jest.spyOn(stream, 'resume').mockImplementation(
         simuatedStream.resume.bind(simuatedStream)
       )
 
-      spyOn(stream, 'pause').and.callFake(
+      jest.spyOn(stream, 'pause').mockImplementation(
         simuatedStream.pause.bind(simuatedStream)
       )
 
-      const cancel = spyOn(stream, 'cancel').and.returnValue(undefined)
+      const cancel = jest.spyOn(stream, 'cancel').mockImplementation(() => undefined)
 
       stream.onKeys(keys)
       stream.onNext(rawRecord1)

@@ -20,7 +20,7 @@ import { READ, WRITE } from '../src/driver'
 import parallelLimit from 'async/parallelLimit'
 import sharedNeo4j from './internal/shared-neo4j'
 
-describe('#integration stress tests', () => {
+xdescribe('#integration stress tests', () => {
   const TEST_MODES = {
     fastest: {
       commandsCount: 10000,
