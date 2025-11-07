@@ -315,6 +315,8 @@ declare const forExport: {
   isVector: typeof isVector
   vector: typeof vector
   Vector: typeof Vector
+  RecordObjectMapping: typeof RecordObjectMapping
+  rule: typeof rule
 }
 
 export {
@@ -399,7 +401,9 @@ export {
   clientCertificateProviders,
   isVector,
   vector,
-  Vector
+  Vector,
+  RecordObjectMapping,
+  rule
 }
 
 export type {
@@ -426,8 +430,6 @@ export type {
   RotatingClientCertificateProvider,
   Rule,
   Rules,
-  rule,
-  RecordObjectMapping,
   StandardCase,
   MappedQueryResult,
   VectorType
