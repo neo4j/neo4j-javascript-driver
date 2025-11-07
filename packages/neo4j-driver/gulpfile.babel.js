@@ -35,7 +35,7 @@ const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const stream = require('stream')
 const ts = require('gulp-typescript')
 const log = require('fancy-log')
-const jest = require('jest-cli')
+const jest = require('jest')
 
 const browserOutput = 'lib/browser'
 
@@ -196,8 +196,21 @@ gulp.task(
 gulp.task('default', gulp.series('test'))
 
 function runJestTests (filterString) {
+  const options = {
+    passWithNoTests: true,
+    runInBand: true
+  }
+  if (filterString) {
+    options.testNamePattern = filterString
+  }
   return new Promise((resolve, reject) => {
-    jest.run([filterString ? `-t=${filterString}` : '', '--passWithNoTests', '--runInBand']).then(resolve())
+    jest.runCLI(options, ['.']).then(testResults => {
+      if (testResults.results.success) {
+        resolve()
+      } else {
+        reject(new Error('Some tests failed, please review the log'))
+      }
+    })
   })
 }
 
