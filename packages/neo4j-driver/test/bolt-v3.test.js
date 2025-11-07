@@ -66,7 +66,7 @@ describe('#integration Bolt V3 API', () => {
       { metadata }
     )
     const receivedMetadatas = result.records.map(r => r.get('metaData'))
-    expect(receivedMetadatas).toContain(metadata)
+    expect(receivedMetadatas).toContainEqual(metadata)
   }, 20000)
 
   it('should set transaction timeout for auto-commit transaction', async () => {
@@ -188,7 +188,7 @@ describe('#integration Bolt V3 API', () => {
     // call listTransactions procedure that should list itself with the specified metadata
     const result = await tx.run('CALL dbms.listTransactions()')
     const receivedMetadatas = result.records.map(r => r.get('metaData'))
-    expect(receivedMetadatas).toContain(metadata)
+    expect(receivedMetadatas).toContainEqual(metadata)
 
     await tx.commit()
   }, 20000)
@@ -468,7 +468,7 @@ describe('#integration Bolt V3 API', () => {
       tx.run('CALL dbms.listTransactions()')
     )
     const receivedMetadatas = result.records.map(r => r.get('metaData'))
-    expect(receivedMetadatas).toContain(metadata)
+    expect(receivedMetadatas).toContainEqual(metadata)
   }
 
   async function testAutoCommitTransactionConfigWhenBoltV3NotSupported (
