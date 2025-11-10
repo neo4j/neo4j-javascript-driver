@@ -331,15 +331,15 @@ describe('#integration transaction', () => {
   it('should fail nicely for illegal query', async () => {
     const tx = session.beginTransaction()
 
-    expect(() => tx.run()).toThrowError(TypeError)
-    expect(() => tx.run(null)).toThrowError(TypeError)
-    expect(() => tx.run({})).toThrowError(TypeError)
-    expect(() => tx.run(42)).toThrowError(TypeError)
-    expect(() => tx.run([])).toThrowError(TypeError)
-    expect(() => tx.run(['CREATE ()'])).toThrowError(TypeError)
+    await expect(() => tx.run()).rejects.toThrowError(TypeError)
+    await expect(() => tx.run(null)).rejects.toThrowError(TypeError)
+    await expect(() => tx.run({})).rejects.toThrowError(TypeError)
+    await expect(() => tx.run(42)).rejects.toThrowError(TypeError)
+    await expect(() => tx.run([])).rejects.toThrowError(TypeError)
+    await expect(() => tx.run(['CREATE ()'])).rejects.toThrowError(TypeError)
 
-    expect(() => tx.run({ query: 'CREATE ()' })).toThrowError(TypeError)
-    expect(() => tx.run({ cypher: 'CREATE ()' })).toThrowError(TypeError)
+    await expect(() => tx.run({ query: 'CREATE ()' })).rejects.toThrowError(TypeError)
+    await expect(() => tx.run({ cypher: 'CREATE ()' })).rejects.toThrowError(TypeError)
   }, 60000)
 
   it('should accept a query object ', done => {
@@ -355,8 +355,8 @@ describe('#integration transaction', () => {
       .catch(console.log)
   }, 60000)
 
-  it('should be open when neither committed nor rolled back', () => {
-    const tx = session.beginTransaction()
+  it('should be open when neither committed nor rolled back', async () => {
+    const tx = await session.beginTransaction()
     expect(tx.isOpen()).toBeTruthy()
   }, 60000)
 
