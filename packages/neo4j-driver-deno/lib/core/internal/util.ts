@@ -267,9 +267,9 @@ function equals (a: unknown, b: unknown): boolean {
  * @returns {number} The number
  */
 function toNumber (value: NumberOrInteger): number {
-  // @ts-ignore
-  if (value instanceof Integer || (typeof value?.high == "number" && typeof value?.low)) {
-    // @ts-ignore
+  // @ts-expect-error
+  if (value instanceof Integer || (typeof value?.high === 'number' && typeof value?.low === 'number')) {
+    // @ts-expect-error
     return value.toNumber()
   } else if (typeof value === 'bigint') {
     return int(value).toNumber()
