@@ -267,14 +267,12 @@ function equals (a: unknown, b: unknown): boolean {
  * @returns {number} The number
  */
 function toNumber (value: NumberOrInteger): number {
-  // @ts-expect-error
-  if (value instanceof Integer || (typeof value?.high === 'number' && typeof value?.low === 'number')) {
-    // @ts-expect-error
+  if (value instanceof Integer) {
     return value.toNumber()
-  } else if (typeof value === 'bigint') {
-    return int(value).toNumber()
-  } else {
+  } else if (typeof value === 'number') {
     return value
+  } else {
+    return int(value).toNumber()
   }
 }
 
