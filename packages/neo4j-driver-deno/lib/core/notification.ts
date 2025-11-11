@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import * as json from './json.ts'
-import { util } from './internal/index.ts'
 import { DiagnosticRecord, rawPolyfilledDiagnosticRecord } from './gql-constants.ts'
+import { toNumber } from './integer.ts'
 
 interface NotificationPosition {
   offset?: number
@@ -528,9 +528,9 @@ function _constructPosition (pos: any): NotificationPosition {
   }
   /* eslint-disable @typescript-eslint/no-non-null-assertion */
   return {
-    offset: util.toNumber(pos.offset!),
-    line: util.toNumber(pos.line!),
-    column: util.toNumber(pos.column!)
+    offset: toNumber(pos.offset!),
+    line: toNumber(pos.line!),
+    column: toNumber(pos.column!)
   }
   /* eslint-enable @typescript-eslint/no-non-null-assertion */
 }

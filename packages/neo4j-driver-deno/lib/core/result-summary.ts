@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import Integer from './integer.ts'
+import Integer, { toNumber } from './integer.ts'
 import { NumberOrInteger } from './graph-types.ts'
-import { util } from './internal/index.ts'
 import GqlStatusObject, { Notification, buildGqlStatusObjectFromMetadata, buildNotificationsFromMetadata } from './notification.ts'
 import { ProtocolVersion } from './protocol-version.ts'
 
@@ -369,9 +368,9 @@ class QueryStatistics {
       // To camelCase
       const camelCaseIndex = index.replace(/(-\w)/g, m => m[1].toUpperCase())
       if (camelCaseIndex in this._stats) {
-        this._stats[camelCaseIndex] = util.toNumber(statistics[index])
+        this._stats[camelCaseIndex] = toNumber(statistics[index])
       } else if (camelCaseIndex === 'systemUpdates') {
-        this._systemUpdates = util.toNumber(statistics[index])
+        this._systemUpdates = toNumber(statistics[index])
       } else if (camelCaseIndex === 'containsSystemUpdates') {
         this._containsSystemUpdates = statistics[index]
       } else if (camelCaseIndex === 'containsUpdates') {
@@ -471,7 +470,7 @@ function valueOrDefault (
 ): number {
   if (values !== false && key in values) {
     const value = values[key]
-    return util.toNumber(value)
+    return toNumber(value)
   } else {
     return defaultValue
   }
