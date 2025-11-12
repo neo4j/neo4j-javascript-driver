@@ -442,7 +442,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
-      await expectAsync(driver.supportsTransactionConfig()).toBeResolvedTo(
+      await expect(driver.supportsTransactionConfig()).toBe(
         expected
       )
 
@@ -471,7 +471,7 @@ describe('#stub-routing routing driver with stub server', () => {
         ]
       })
 
-      await expectAsync(driver.supportsTransactionConfig()).toBeResolvedTo(
+      await expect(driver.supportsTransactionConfig()).toBe(
         expected
       )
 
@@ -498,15 +498,10 @@ describe('#stub-routing routing driver with stub server', () => {
       60000
     )
     it('on error', async () => {
-      if (typeof jasmine === 'undefined') {
-        return
-      }
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
-      await expectAsync(driver.supportsTransactionConfig()).toBeRejectedWith(
-        jasmine.objectContaining({
-          code: SESSION_EXPIRED
-        })
+      await expect(driver.supportsTransactionConfig()).rejects.code.toBe(
+        SESSION_EXPIRED
       )
 
       await driver.close()
@@ -544,9 +539,6 @@ describe('#stub-routing routing driver with stub server', () => {
   }
 
   async function testForProtocolError (scriptFile) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (!boltStub.supported) {
       return
     }
@@ -555,8 +547,8 @@ describe('#stub-routing routing driver with stub server', () => {
     const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
     const session = driver.session()
 
-    await expectAsync(session.run('MATCH (n) RETURN n.name')).toBeRejectedWith(
-      jasmine.objectContaining({ code: neo4j.error.SERVICE_UNAVAILABLE })
+    await expect(session.run('MATCH (n) RETURN n.name')).rejects.code.toBe(
+      neo4j.error.SERVICE_UNAVAILABLE
     )
 
     await session.close()

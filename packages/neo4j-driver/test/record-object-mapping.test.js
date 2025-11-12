@@ -100,18 +100,12 @@ describe('#integration record object mapping', () => {
   })
 
   it('map transaction result with registered mappings', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     neo4j.RecordObjectMapping.register(Role, roleRules)
     neo4j.RecordObjectMapping.register(Person, personRules)
     neo4j.RecordObjectMapping.register(Movie, movieRules)
     neo4j.RecordObjectMapping.register(ActingJobs, actingJobsRules)
     const session = driverGlobal.session()
     await session.executeWrite(async (tx) => {
-      if (typeof jasmine === 'undefined') {
-        return
-      }
       return await tx.run(`MERGE (p1:Person {name: $name1, born: $born1})
       MERGE (p2:Person {name: $name2, born: $born2})
       MERGE (m:Movie {title: $title, release: 2015, tagline: $tagline})
@@ -146,9 +140,6 @@ describe('#integration record object mapping', () => {
   })
 
   it('map transaction result with mapping rules object', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const session = driverGlobal.session()
     await session.executeWrite(async (tx) => {
       return await tx.run(`MERGE (p1:Person {name: $name1, born: $born1})
