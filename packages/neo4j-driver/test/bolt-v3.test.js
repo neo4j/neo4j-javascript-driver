@@ -95,7 +95,7 @@ describe('#integration Bolt V3 API', () => {
         e.code !== 'Neo.ClientError.Transaction.LockClientStopped' &&
         e.code !== 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration'
       ) {
-        fail('Expected transaction timeout error but got: ' + e.code)
+        throw new Error('Expected transaction timeout error but got: ' + e.code)
       }
     }
     await tx.rollback()
@@ -220,7 +220,7 @@ describe('#integration Bolt V3 API', () => {
         e.code !== 'Neo.ClientError.Transaction.LockClientStopped' &&
         e.code !== 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration'
       ) {
-        fail('Expected transaction timeout error but got: ' + e.code)
+        throw new Error('Expected transaction timeout error but got: ' + e.code)
       }
     }
 

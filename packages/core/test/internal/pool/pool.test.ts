@@ -1334,7 +1334,7 @@ describe('#unit Pool', () => {
 
     try {
       await pool.acquire({}, address)
-      fail('should have thrown')
+      throw new Error('should have thrown')
     } catch (e) {
       expect(e).toEqual(
         newError(

@@ -208,7 +208,7 @@ describe('QueryExecutor', () => {
 
       try {
         await queryExecutor.execute(baseConfig, 'query', { a: 'b' })
-        fail('code should be unreachable')
+        throw new Error('code should be unreachable')
       } catch (errorGot) {
         expect(errorGot).toBe(closeError)
       }
@@ -411,7 +411,7 @@ describe('QueryExecutor', () => {
 
       try {
         await queryExecutor.execute(baseConfig, 'query', { a: 'b' })
-        fail('code should be not reachable')
+        throw new Error('code should be not reachable')
       } catch (errorGot) {
         expect(errorGot).toBe(closeError)
       }

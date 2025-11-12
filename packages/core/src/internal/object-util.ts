@@ -40,7 +40,7 @@ function createBrokenObject<T extends object> (error: Error, object: any = {}): 
       } else if (p === 'toJSON') {
         return undefined
       }
-      fail()
+      throw new Error()
     },
     set: fail,
     apply: fail,

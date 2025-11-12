@@ -461,7 +461,7 @@ describe('Driver', () => {
           expect(aPerson.get('name')).toEqual('A Person')
           expect(aPerson.get('age')).toEqual(25)
         } else {
-          fail('aPerson should not be null')
+          throw new Error('aPerson should not be null')
         }
 
         const aObject: Person = aPerson.toObject()

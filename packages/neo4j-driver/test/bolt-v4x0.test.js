@@ -131,7 +131,7 @@ describe('#integration Bolt V4.0 API', () => {
       try {
         await neoSession.run('RETURN 1')
 
-        fail('failure expected')
+        throw new Error('failure expected')
       } catch (error) {
         expect(error.code).toContain('DatabaseNotFound')
       } finally {

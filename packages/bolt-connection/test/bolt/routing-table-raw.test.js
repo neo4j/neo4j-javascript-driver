@@ -198,21 +198,21 @@ describe('#unit RawRoutingTable', () => {
     it('should not implement ttl', () => {
       expect(() => {
         const ttl = subject().ttl
-        fail(`it should not return ${ttl}`)
+        throw new Error(`it should not return ${ttl}`)
       }).toThrow(new Error('Not implemented'))
     })
 
     it('should not implement servers', () => {
       expect(() => {
         const servers = subject().servers
-        fail(`it should not return ${servers}`)
+        throw new Error(`it should not return ${servers}`)
       }).toThrow(new Error('Not implemented'))
     })
 
     it('should not implement db', () => {
       expect(() => {
         const db = subject().db
-        fail(`it should not return ${db}`)
+        throw new Error(`it should not return ${db}`)
       }).toThrow(new Error('Not implemented'))
     })
   }
