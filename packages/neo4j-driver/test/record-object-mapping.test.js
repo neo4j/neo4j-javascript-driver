@@ -18,6 +18,8 @@
 import neo4j, { Date, Duration, Time, Point, DateTime, LocalDateTime, LocalTime } from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 
+const itNotBrowser = process.env.TEST_JSDOM_ENVIRONMENT ? xit : it
+
 describe('#integration record object mapping', () => {
   let driverGlobal
 
@@ -99,7 +101,7 @@ describe('#integration record object mapping', () => {
     await driverGlobal.close()
   })
 
-  it('map transaction result with registered mappings', async () => {
+  itNotBrowser('map transaction result with registered mappings', async () => {
     neo4j.RecordObjectMapping.register(Role, roleRules)
     neo4j.RecordObjectMapping.register(Person, personRules)
     neo4j.RecordObjectMapping.register(Movie, movieRules)

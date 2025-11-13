@@ -20,6 +20,7 @@ const Config = require('./config')
 
 class BrowserEnvironment extends JSDOMEnvironment {
   async setup () {
+    process.env.TEST_JSDOM_ENVIRONMENT = true
     await super.setup()
     this.global.WebSocket = WebSocket
     this.global.window = globalThis
