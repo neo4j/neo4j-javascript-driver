@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const { TestEnvironment: NodeEnvironment } = require('jest-environment-node')
+const { TestEnvironment: JSDOMEnvironment } = require('jest-environment-jsdom')
 const WebSocket = require('isomorphic-ws')
 const Config = require('./config')
 
-class BrowserEnvironment extends NodeEnvironment {
+class BrowserEnvironment extends JSDOMEnvironment {
   async setup () {
     await super.setup()
     this.global.WebSocket = WebSocket
