@@ -1,0 +1,16 @@
+:include .gitignore
+
+.git
+.github
+.husky
+
+# Package managers
+*/node_modules/
+.npm/
+
+packages/benchkit-backend
+packages/testkit-backend
+packages/*/test
+testkit/
+benchkit/
+
