@@ -23,8 +23,7 @@ export default class Neo4jContainer {
 
     const tag = this._edition != null ? `${this._version}-${this._edition}` : this._version
 
-    // Browser does not support testcontainers
-    const path = globalThis.Window ? './browser/testcontainer' : './node/testcontainer'
+    const path = './node/testcontainer'
     const { GenericContainer, DockerImageName, Wait } = require(path)
 
     let container = new GenericContainer(new DockerImageName(null, 'neo4j', tag).toString())

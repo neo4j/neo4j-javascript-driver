@@ -22,7 +22,7 @@
     "lint": "eslint --fix --ext .js ./",
     "test": "gulp test",
     "test::unit": "gulp test-nodejs-unit && gulp run-ts-declaration-tests",
-    "test::browser": "jest -c jest.browser.config.ts --runInBand",
+    "test::browser": "gulp test-browser",
     "test::integration": "gulp test-nodejs-integration",
     "test::stress": "gulp run-stress-tests",
     "build": "gulp all",

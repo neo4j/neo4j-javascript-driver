@@ -111,16 +111,21 @@ gulp.task('test-nodejs', () => {
 })
 
 gulp.task('test-nodejs-unit', () => {
-  return runJestTests('#unit*')
+  return runJestTests('#unit*', false)
 })
 
 gulp.task('test-nodejs-stub', () => {
-  return runJestTests('#stub*')
+  return runJestTests('#stub*', false)
 })
 
 gulp.task('test-nodejs-integration', async () => {
   await sharedNeo4j.start()
-  return runJestTests('#integration*')
+  return runJestTests('#integration*', false)
+})
+
+gulp.task('test-browser', async () => {
+  await sharedNeo4j.start()
+  return runJestTests('#integration*', true)
 })
 
 gulp.task('watch', function () {
@@ -195,13 +200,18 @@ gulp.task(
 
 gulp.task('default', gulp.series('test'))
 
-function runJestTests (filterString) {
+function runJestTests (filterString, isBrowser) {
   const options = {
     passWithNoTests: true,
     runInBand: true
   }
   if (filterString) {
     options.testNamePattern = filterString
+  }
+  if (isBrowser) {
+    options.resolver = '<rootDir>/test/browser.resolver.js'
+    options.testEnvironment = '<rootDir>/test/browser.environment.js'
+    options.testPathIgnorePatterns = ['<rootDir>/test/examples.test.js', '<rootDir>/test/bolt-v3.test.js', '<rootDir>/test/stress.test.js']
   }
   return new Promise((resolve, reject) => {
     jest.runCLI(options, ['.']).then(testResults => {
