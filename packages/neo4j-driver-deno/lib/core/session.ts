@@ -194,7 +194,7 @@ class Session {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters,
-      {parameterRules: parameterRules}
+      { parameterRules }
     )
     const autoCommitTxConfig = (transactionConfig != null)
       ? new TxConfig(transactionConfig, this._log)

@@ -182,37 +182,36 @@ export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
 }
 
 export function validateAndCleanParams (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
-  let cleanedParams: Record<string, any> = {}
-  // @ts-ignore
+  const cleanedParams: Record<string, any> = {}
+  // @ts-expect-error
   const parameterRules = getRules(params.constructor, suppliedRules)
   if (parameterRules !== undefined) {
-    for(const key in parameterRules) {
-      if(!(parameterRules?.[key]?.optional === true)) {
+    for (const key in parameterRules) {
+      if (!(parameterRules?.[key]?.optional === true)) {
         let param = params[key]
         if (parameterRules[key]?.convertToParam !== undefined) {
           param = parameterRules[key].convertToParam(params[key])
         }
-        if(param === undefined) {
-          throw newError("Parameter object did not include required parameter.")
+        if (param === undefined) {
+          throw newError('Parameter object did not include required parameter.')
         }
-        if(parameterRules[key].validate) {
+        if (parameterRules[key].validate != null) {
           parameterRules[key].validate(param, key)
-          // @ts-ignore
-          if(parameterRules[key].apply !== undefined) {
-            for(const entryKey in param){
-              // @ts-ignore
+          // @ts-expect-error
+          if (parameterRules[key].apply !== undefined) {
+            for (const entryKey in param) {
+              // @ts-expect-error
               parameterRules[key].apply.validate(param[entryKey], entryKey)
             }
           }
         }
         const mappedKey = parameterRules[key].from ?? nameMapping(key)
-        
+
         cleanedParams[mappedKey] = param
       }
     }
     return cleanedParams
-  }
-  else {
+  } else {
     return params
   }
 }

@@ -94,18 +94,18 @@ export class Duration<T extends NumberOrInteger = Integer> {
     Object.freeze(this)
   }
 
-  static fromString(str: string): Duration<NumberOrInteger> {
+  static fromString (str: string): Duration<NumberOrInteger> {
     const matches = String(str).match(/P(?:([-?.,\d]+)Y)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)W)?(?:([-?.,\d]+)D)?T(?:([-?.,\d]+)H)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)S)?/)
-    if(matches !== null) {
+    if (matches !== null) {
       const dur = new Duration(
         ~~parseInt(matches[1]) * 12 + ~~parseInt(matches[2]),
         ~~parseInt(matches[3]) * 7 + ~~parseInt(matches[4]),
         ~~parseInt(matches[5]) * 3600 + ~~parseInt(matches[6]) * 60 + ~~parseInt(matches[7]),
-        Math.round((parseFloat(matches[7]) - parseInt(matches[7])) * 10**9)
+        Math.round((parseFloat(matches[7]) - parseInt(matches[7])) * 10 ** 9)
       )
       return dur
     }
-    throw newError("Duration could not be parsed from string")
+    throw newError('Duration could not be parsed from string')
   }
 
   /**
@@ -218,19 +218,19 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
     )
   }
 
-  static fromString(str: string): LocalTime<NumberOrInteger> {
+  static fromString (str: string): LocalTime<NumberOrInteger> {
     console.log(str)
     const values = String(str).match(/(\d+):(\d+):(\d+).(\d+)/)
     console.log(values)
-    if(values !== null) {
+    if (values !== null) {
       return new LocalTime(
         parseInt(values[0]),
         parseInt(values[1]),
         parseInt(values[2]),
-        Math.round(parseFloat("0." + values[3]) * 10**9)
+        Math.round(parseFloat('0.' + values[3]) * 10 ** 9)
       )
     }
-    throw newError("LocalTime could not be parsed from string")
+    throw newError('LocalTime could not be parsed from string')
   }
 }
 
@@ -342,21 +342,21 @@ export class Time<T extends NumberOrInteger = Integer> {
     )
   }
 
-  static fromString(str: string): Time<NumberOrInteger> {
+  static fromString (str: string): Time<NumberOrInteger> {
     const values = String(str).match(/(\d+):(\d+):(\d+).(\d+)(Z|\+|-)?(\d*)/)
-    if(values !== null) {
-      if(values[4] === "Z") {
-        return new Time(parseInt(values[0]), parseInt(values[1]), parseInt(values[2]), parseInt(values[3]) * 10**9, 0)
+    if (values !== null) {
+      if (values[4] === 'Z') {
+        return new Time(parseInt(values[0]), parseInt(values[1]), parseInt(values[2]), parseInt(values[3]) * 10 ** 9, 0)
       }
       return new Time(
         parseInt(values[0]),
         parseInt(values[1]),
         parseInt(values[2]),
-        Math.round(parseFloat("0." + values[3]) * 10**9),
-        (values[4] === "+" ? 1 : -1) * parseInt(values[5])
+        Math.round(parseFloat('0.' + values[3]) * 10 ** 9),
+        (values[4] === '+' ? 1 : -1) * parseInt(values[5])
       )
     }
-    throw newError("Time could not be parsed from string")
+    throw newError('Time could not be parsed from string')
   }
 }
 

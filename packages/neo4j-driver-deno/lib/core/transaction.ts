@@ -201,7 +201,7 @@ class Transaction {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters,
-      {parameterRules: parameterRules}
+      { parameterRules }
     )
 
     const result = this._state.run(validatedQuery, params, {

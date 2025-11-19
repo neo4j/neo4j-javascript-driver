@@ -63,7 +63,7 @@ function isObject (obj: any): boolean {
  * @throws TypeError when either given query or parameters are invalid.
  */
 function validateQueryAndParameters (
-  query: string | String | { text: string, parameters?: any, parameterRules?: Rules},
+  query: string | String | { text: string, parameters?: any, parameterRules?: Rules },
   parameters?: any,
   opt?: { skipAsserts?: boolean, parameterRules?: Rules }
 ): {
@@ -83,7 +83,7 @@ function validateQueryAndParameters (
     params = query.parameters ?? {}
     parameterRules = query.parameterRules
   }
-  
+
   if (!skipAsserts) {
     params = validateAndCleanParams(params, parameterRules)
     assertCypherQuery(validatedQuery)

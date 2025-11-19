@@ -250,7 +250,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: Duration) => rule?.stringify === true ? value.toString() : value,
-      convertToParam: rule?.stringify === true ? (str: string) => Duration.fromString(str): undefined,
+      convertToParam: rule?.stringify === true ? (str: string) => Duration.fromString(str) : undefined,
       ...rule
     }
   },
@@ -269,7 +269,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: LocalTime) => rule?.stringify === true ? value.toString() : value,
-      convertToParam: rule?.stringify  === true ? (str: string) => LocalTime.fromString(str): undefined,
+      convertToParam: rule?.stringify === true ? (str: string) => LocalTime.fromString(str) : undefined,
       ...rule
     }
   },
@@ -288,7 +288,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: Time) => rule?.stringify === true ? value.toString() : value,
-      convertToParam: rule?.stringify  === true ? (str: string) => Time.fromString(str): undefined,
+      convertToParam: rule?.stringify === true ? (str: string) => Time.fromString(str) : undefined,
       ...rule
     }
   },
@@ -307,7 +307,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: Date) => convertStdDate(value, rule),
-      convertToParam: rule?.stringify === true ? (str: string) => Date.fromStandardDateLocal(new StandardDateClass(str)): undefined,
+      convertToParam: rule?.stringify === true ? (str: string) => Date.fromStandardDateLocal(new StandardDateClass(str)) : undefined,
       ...rule
     }
   },
@@ -319,11 +319,11 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asLocalDateTime (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
-    let convertToParam = undefined
-    if(rule?.stringify === true) {
+    let convertToParam
+    if (rule?.stringify === true) {
       convertToParam = (str: string) => LocalDateTime.fromStandardDate(new StandardDateClass(str))
     }
-    if(rule?.toStandardDate === true) {
+    if (rule?.toStandardDate === true) {
       convertToParam = (standardDate: StandardDate) => LocalDateTime.fromStandardDate(standardDate)
     }
     return {
@@ -333,7 +333,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: LocalDateTime) => convertStdDate(value, rule),
-      convertToParam: convertToParam,
+      convertToParam,
       ...rule
     }
   },
@@ -345,11 +345,11 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asDateTime (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
-    let convertToParam = undefined
-    if(rule?.stringify === true) {
+    let convertToParam
+    if (rule?.stringify === true) {
       convertToParam = (str: string) => DateTime.fromStandardDate(new StandardDateClass(str))
     }
-    if(rule?.toStandardDate === true) {
+    if (rule?.toStandardDate === true) {
       convertToParam = (standardDate: StandardDate) => DateTime.fromStandardDate(standardDate)
     }
     return {
@@ -359,7 +359,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: DateTime) => convertStdDate(value, rule),
-      convertToParam: convertToParam,
+      convertToParam,
       ...rule
     }
   },
@@ -406,7 +406,7 @@ export const rule = Object.freeze({
         }
         return value
       },
-      convertToParam: rule?.asTypedList === true ? (typedArray: Int16Array | Int32Array | BigInt64Array | Float32Array | Float64Array) => vector(typedArray): undefined,
+      convertToParam: rule?.asTypedList === true ? (typedArray: Int16Array | Int32Array | BigInt64Array | Float32Array | Float64Array) => vector(typedArray) : undefined,
       ...rule
     }
   }
