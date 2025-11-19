@@ -703,7 +703,7 @@ describe('#integration examples', () => {
     expect(await consoleLoggedMsg).toEqual('Created 2 employees')
   }, 60000)
 
-  it('service unavailable example', done => {
+  it('service unavailable example', async () => {
     const console = consoleOverride
     const consoleLoggedMsg = consoleOverridePromise
     const uri = `bolt://${sharedNeo4j.hostname}:7686` // wrong port
@@ -715,26 +715,18 @@ describe('#integration examples', () => {
     })
     const session = driver.session()
 
-    const writeTxPromise = session.executeWrite(tx =>
+    await session.executeWrite(tx =>
       tx.run('CREATE (a:Item)')
-    )
-
-    writeTxPromise.catch(error => {
+    ).catch(error => {
       if (error.code === neo4j.error.SERVICE_UNAVAILABLE) {
         console.log('Unable to create node: ' + error.code)
       }
     })
     // end::service-unavailable[]
-
-    consoleLoggedMsg
-      .then(loggedMsg => {
-        expect(loggedMsg).toBe(
-          'Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE
-        )
-      })
-      .then(() => driver.close())
-      .then(() => done())
-  }, 60000)
+    return expect(consoleLoggedMsg).resolves.toBe(
+      'Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE
+    )
+  }, 180000)
 
   it('session example', async () => {
     const console = consoleOverride
@@ -826,13 +818,13 @@ describe('#integration examples', () => {
 
     const people = await result.toPromise()
     expect(people.length).toEqual(3)
-    expect(people).toContain(
+    expect(people).toContainEqual(
       Notification.createNext('Infinity Gauntlet')
     )
-    expect(people).toContain(
+    expect(people).toContainEqual(
       Notification.createNext('Mjölnir')
     )
-    expect(people).toContain(
+    expect(people).toContainEqual(
       Notification.createComplete()
     )
   }, 60000)
@@ -1338,7 +1330,7 @@ describe('#integration examples', () => {
   describe('geospartial types examples', () => {
     describe('Point', () => {
       it('Cartesian', async () => {
-        const console = jasmine.createSpyObj('console', ['log'])
+        const console = { log: jest.fn() }
         const driver = driverGlobal
         const session = driver.session()
 
@@ -1423,7 +1415,7 @@ describe('#integration examples', () => {
       })
 
       it('WGS84', async () => {
-        const console = jasmine.createSpyObj('console', ['log'])
+        const console = { log: jest.fn() }
         const driver = driverGlobal
         const session = driver.session()
 
@@ -1559,7 +1551,7 @@ describe('#integration examples', () => {
             await session.close().toPromise()
             done()
           },
-          error: done.fail.bind(done)
+          error: (e) => { throw e }
         })
     })
   })

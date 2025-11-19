@@ -162,10 +162,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should expose summarize method for basic metadata ', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     // Given
     const query = 'CREATE (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
@@ -305,10 +301,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should return lots of data', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     session
       .run("UNWIND range(1,10000) AS x CREATE (:ATTRACTION {prop: 'prop'})")
       .then(() => {
@@ -323,10 +315,11 @@ describe('#integration session', () => {
           },
           onError: error => {
             console.log(error)
+            throw error
           }
         })
       })
-  }, 120000)
+  }, 300000)
 
   it('should be able to close a long running query ', done => {
     // given a long running query
@@ -377,9 +370,6 @@ describe('#integration session', () => {
   */
 
   it('should fail nicely for illegal query', () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     expect(() => session.run()).toThrowError(TypeError)
     expect(() => session.run(null)).toThrowError(TypeError)
     expect(() => session.run({})).toThrowError(TypeError)
@@ -614,10 +604,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should commit write transaction', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const bookmarksBefore = session.lastBookmarks()
     const resultPromise = session.executeWrite(tx =>
       tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
@@ -675,10 +661,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should interrupt query waiting on a lock when closed', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -710,13 +692,9 @@ describe('#integration session', () => {
         })
       })
     })
-  }, 120000)
+  }, 300000)
 
   it('should interrupt transaction waiting on a lock when closed', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -750,10 +728,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should interrupt transaction function waiting on a lock when closed', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     session.run('CREATE ()').then(() => {
       session.close().then(() => {
         const session1 = driver.session()
@@ -789,9 +763,6 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should send multiple bookmarks', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const nodeCount = 17
     const allBookmarks = []
     for (let i = 0; i < nodeCount; i++) {

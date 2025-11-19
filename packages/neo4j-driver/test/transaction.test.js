@@ -39,10 +39,6 @@ describe('#integration transaction', () => {
   })
 
   it('should commit simple case', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const tx = session.beginTransaction()
     tx.run('CREATE (:TXNode1)')
       .then(() => {
@@ -100,10 +96,6 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should handle interactive session', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const tx = session.beginTransaction()
     tx.run("RETURN 'foo' AS res")
       .then(result => {
@@ -147,52 +139,41 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should handle failures on commit', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     // When
     const tx = session.beginTransaction()
     await tx.run('CREATE (:TXNode1)')
-    await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
-      jasmine.objectContaining({
-        code: 'Neo.ClientError.Statement.SyntaxError'
-      })
-    )
+    await tx.run('THIS IS NOT CYPHER')
+      .then(() => expect(true).toBe(false))
+      .catch((err) => expect(err.code).toBe('Neo.ClientError.Statement.SyntaxError'))
 
-    await expectAsync(tx.run('CREATE (:TXNode2)')).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Cannot run query in this transaction, because .* error/
-        )
-      })
-    )
-    await expectAsync(tx.commit()).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Cannot commit this transaction, because .* error/
-        )
-      })
-    )
+    try {
+      await tx.run('CREATE (:TXNode2)')
+      expect('to have thrown').toBe("but didn't")
+    } catch (e) {
+      expect(e.message).toMatch(/Cannot run query in this transaction, because .* error/)
+    }
+
+    try {
+      await tx.commit()
+      expect('to have thrown').toBe("but didn't")
+    } catch (e) {
+      expect(e.message).toMatch(/Cannot commit this transaction, because .* error/)
+    }
   }, 60000)
 
   it('should fail when committing on a failed query', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const tx = session.beginTransaction()
     await tx.run('CREATE (:TXNode1)')
-    await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
-      jasmine.objectContaining({
-        code: 'Neo.ClientError.Statement.SyntaxError'
-      })
-    )
-    await expectAsync(tx.commit()).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Cannot commit this transaction, because .* error/
-        )
-      })
-    )
+    await tx.run('THIS IS NOT CYPHER')
+      .then(() => expect(true).toBe(false))
+      .catch((err) => expect(err.code).toBe('Neo.ClientError.Statement.SyntaxError'))
+
+    try {
+      await tx.commit()
+      expect('to have thrown').toBe("but didn't")
+    } catch (e) {
+      expect(e.message).toMatch(/Cannot commit this transaction, because .* error/)
+    }
   }, 60000)
 
   it('should handle rollbacks', done => {
@@ -278,10 +259,6 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should rollback when some run fails', done => {
-    if (typeof jasmine === 'undefined') {
-      done()
-      return
-    }
     const tx1 = session.beginTransaction()
     tx1.run('CREATE (:Person)').then(() => {
       tx1.run('RETURN foo').catch(error => {
@@ -297,22 +274,19 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should fail to commit transaction that had run failures', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const tx1 = session.beginTransaction()
 
-    await expectAsync(tx1.run('CREATE (:Person)')).toBeResolved()
-    await expectAsync(tx1.run('RETURN foo')).toBeRejectedWith(
-      jasmine.objectContaining({
-        code: 'Neo.ClientError.Statement.SyntaxError'
-      })
-    )
-    await expectAsync(tx1.commit()).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(/Cannot commit this transaction/)
-      })
-    )
+    await tx1.run('CREATE (:Person)')
+    await tx1.run('THIS IS NOT CYPHER')
+      .then(() => expect(true).toBe(false))
+      .catch((err) => expect(err.code).toBe('Neo.ClientError.Statement.SyntaxError'))
+
+    try {
+      await tx1.commit()
+      expect('to have thrown').toBe("but didn't")
+    } catch (e) {
+      expect(e.message).toMatch(/Cannot commit this transaction, because .* error/)
+    }
 
     const tx2 = session.beginTransaction()
     const result = await tx2.run('MATCH (n:Person) RETURN count(n)')
@@ -355,10 +329,7 @@ describe('#integration transaction', () => {
   }, 60000)
 
   it('should fail nicely for illegal query', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
-    const tx = session.beginTransaction()
+    const tx = await session.beginTransaction()
 
     expect(() => tx.run()).toThrowError(TypeError)
     expect(() => tx.run(null)).toThrowError(TypeError)
@@ -384,11 +355,8 @@ describe('#integration transaction', () => {
       .catch(console.log)
   }, 60000)
 
-  it('should be open when neither committed nor rolled back', () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
-    const tx = session.beginTransaction()
+  it('should be open when neither committed nor rolled back', async () => {
+    const tx = await session.beginTransaction()
     expect(tx.isOpen()).toBeTruthy()
   }, 60000)
 

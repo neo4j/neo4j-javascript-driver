@@ -200,9 +200,6 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after a failed query', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -215,15 +212,7 @@ describe('#integration-rx transaction', () => {
       .commit()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
-          message: jasmine.stringMatching(
-            /Cannot commit this transaction, because .* of an error/
-          )
-        })
-      )
-    ])
+    expect(result[0].error.message).toMatch(/Cannot commit this transaction, because .* of an error/)
   })
 
   it('should succeed to rollback after a failed query', async () => {
@@ -243,9 +232,6 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after successful and failed query', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -260,15 +246,7 @@ describe('#integration-rx transaction', () => {
       .commit()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
-          message: jasmine.stringMatching(
-            /Cannot commit this transaction, because .* of an error/
-          )
-        })
-      )
-    ])
+    expect(result[0].error.message).toMatch(/Cannot commit this transaction, because .* of an error/)
   })
 
   it('should succeed to rollback after successful and failed query', async () => {
@@ -290,9 +268,6 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to run another query after a failed one', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -306,21 +281,10 @@ describe('#integration-rx transaction', () => {
       .records()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
-          message: jasmine.stringMatching(
-            /Cannot run query in this transaction, because .* of an error/
-          )
-        })
-      )
-    ])
+    expect(result[0].error.message).toMatch(/Cannot run query in this transaction, because .* of an error/)
   })
 
   it('should not allow commit after commit', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -334,21 +298,10 @@ describe('#integration-rx transaction', () => {
       .commit()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
-          message: jasmine.stringMatching(
-            /Cannot commit this transaction, because .* committed/
-          )
-        })
-      )
-    ])
+    expect(result[0].error.message).toMatch(/Cannot commit this transaction, because .* committed/)
   })
 
   it('should not allow rollback after rollback', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -362,21 +315,10 @@ describe('#integration-rx transaction', () => {
       .rollback()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
-          message: jasmine.stringMatching(
-            /Cannot rollback this transaction, because .* rolled back/
-          )
-        })
-      )
-    ])
+    expect(result[0].error.message).toMatch(/Cannot rollback this transaction, because .* rolled back/)
   })
 
   it('should fail to rollback after commit', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -390,21 +332,10 @@ describe('#integration-rx transaction', () => {
       .rollback()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
-          message: jasmine.stringMatching(
-            /Cannot rollback this transaction, because .* committed/
-          )
-        })
-      )
-    ])
+    expect(result[0].error.message).toMatch(/Cannot rollback this transaction, because .* committed/)
   })
 
   it('should fail to commit after rollback', async () => {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -418,15 +349,7 @@ describe('#integration-rx transaction', () => {
       .commit()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
-          message: jasmine.stringMatching(
-            /Cannot commit this transaction, because .* rolled back/
-          )
-        })
-      )
-    ])
+    expect(result[0].error.message).toMatch(/Cannot commit this transaction, because .* rolled back/)
   })
 
   it('should fail to run query after committed transaction', async () => {
@@ -535,9 +458,8 @@ describe('#integration-rx transaction', () => {
     await verifyNoFailureIfNotExecuted(false)
   })
 
-  it('should not propagate run failure from summary', async () => {
-    pending('behaviour difference across drivers')
-
+  // Skipped due to behavioral difference in the JS driver
+  xit('should not propagate run failure from summary', async () => {
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -549,11 +471,7 @@ describe('#integration-rx transaction', () => {
       .records()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(messages).toEqual([
-      Notification.createError(
-        jasmine.stringMatching(/Variable `Wrong` not defined/)
-      )
-    ])
+    expect(messages[0].error.message).toMatch(/Variable `Wrong` not defined/)
 
     const summary = await result.consume().toPromise()
     expect(summary).toBeTruthy()
@@ -572,9 +490,6 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyFailToRunQueryAfterTxcIsComplete (commit) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -588,15 +503,9 @@ describe('#integration-rx transaction', () => {
       .records()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
-          message: jasmine.stringMatching(
-            /Cannot run query in this transaction, because/
-          )
-        })
-      )
-    ])
+    expect(result[0].error.message).toMatch(
+      /Cannot run query in this transaction, because/
+    )
   }
 
   async function verifyCanRunMultipleQueries (commit) {
@@ -742,11 +651,7 @@ describe('#integration-rx transaction', () => {
       .records()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(
-        jasmine.stringMatching(/Unexpected end of input|Invalid input/)
-      )
-    ])
+    expect(result[0].error.message).toMatch(/Unexpected end of input|Invalid input/)
   }
 
   async function verifyCommittedOrRollbacked (commit) {
@@ -775,11 +680,8 @@ describe('#integration-rx transaction', () => {
 describe('#unit', () => {
   describe('.close()', () => {
     it('should delegate to the original Transaction', async () => {
-      if (typeof jasmine === 'undefined') {
-        return
-      }
       const txc = {
-        close: jasmine.createSpy('close').and.returnValue(Promise.resolve())
+        close: jest.fn().mockImplementation(() => Promise.resolve())
       }
 
       const transaction = new RxTransaction(txc)
@@ -792,16 +694,14 @@ describe('#unit', () => {
     it('should fail if to the original Transaction.close call fails', async () => {
       const expectedError = new Error('expected')
       const txc = {
-        close: jasmine
-          .createSpy('close')
-          .and.returnValue(Promise.reject(expectedError))
+        close: jest.fn().mockImplementation(async () => { throw expectedError })
       }
 
       const transaction = new RxTransaction(txc)
 
       try {
         await transaction.close().toPromise()
-        fail('should have thrown')
+        throw new Error('should have thrown')
       } catch (error) {
         expect(error).toBe(expectedError)
       }

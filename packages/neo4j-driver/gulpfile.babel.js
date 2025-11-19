@@ -18,7 +18,6 @@
 const buffer = require('vinyl-buffer')
 const gulp = require('gulp')
 const uglify = require('gulp-uglify')
-const jasmine = require('gulp-jasmine')
 const watch = require('gulp-watch')
 const batch = require('gulp-batch')
 const replace = require('gulp-replace')
@@ -35,14 +34,8 @@ const semver = require('semver')
 const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const stream = require('stream')
 const ts = require('gulp-typescript')
-const JasmineReporter = require('jasmine-spec-reporter').SpecReporter
 const log = require('fancy-log')
-const JasmineExec = require('jasmine')
-
-/**
- * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
- */
-const enableActiveNodeHandlesLogging = false
+const jest = require('jest')
 
 const browserOutput = 'lib/browser'
 
@@ -113,32 +106,26 @@ gulp.task(
   })
 )
 
-gulp.task(
-  'test-nodejs',
-  gulp.series('install-driver-into-sandbox', function () {
-    return gulp
-      .src(['./test/**/*.test.js', '!./test/**/browser/*.js'])
-      .pipe(
-        jasmine({
-          includeStackTrace: true,
-          reporter: newJasmineConsoleReporter()
-        })
-      )
-      .on('end', logActiveNodeHandles)
-  })
-)
+gulp.task('test-nodejs', () => {
+  return runJestTests()
+})
 
 gulp.task('test-nodejs-unit', () => {
-  return runJasmineTests('#unit*')
+  return runJestTests('#unit*', false)
 })
 
 gulp.task('test-nodejs-stub', () => {
-  return runJasmineTests('#stub*')
+  return runJestTests('#stub*', false)
 })
 
 gulp.task('test-nodejs-integration', async () => {
   await sharedNeo4j.start()
-  return runJasmineTests('#integration*')
+  return runJestTests('#integration*', false)
+})
+
+gulp.task('test-browser', async () => {
+  await sharedNeo4j.start()
+  return runJestTests('#integration*', true)
 })
 
 gulp.task('watch', function () {
@@ -149,13 +136,6 @@ gulp.task('watch', function () {
     })
   )
 })
-
-gulp.task(
-  'watch-n-test',
-  gulp.series('test-nodejs', function () {
-    return gulp.watch(['src/**/*.js', 'test/**/*.js'], ['test-nodejs'])
-  })
-)
 
 /** Set the project version, controls package.json and version.js */
 gulp.task('set', function () {
@@ -185,19 +165,7 @@ gulp.task('stop-neo4j', function (done) {
   sharedNeo4j.stop().then(done).catch(error => done.fail(error))
 })
 
-gulp.task('run-stress-tests', function () {
-  return gulp
-    .src('test/**/stress.test.js')
-    .pipe(
-      jasmine({
-        includeStackTrace: true,
-        reporter: newJasmineConsoleReporter()
-      })
-    )
-    .on('end', logActiveNodeHandles)
-})
-
-gulp.task('run-stress-tests-without-jasmine', async function () {
+gulp.task('run-stress-tests', async function () {
   await sharedNeo4j.start()
   const stresstest = require('./test/stress-test')
   return stresstest()
@@ -232,56 +200,27 @@ gulp.task(
 
 gulp.task('default', gulp.series('test'))
 
-function logActiveNodeHandles () {
-  if (enableActiveNodeHandlesLogging) {
-    console.log(
-      '-- Active NodeJS handles START\n',
-      process._getActiveHandles(),
-      '\n-- Active NodeJS handles END'
-    )
+function runJestTests (filterString, isBrowser) {
+  const options = {
+    passWithNoTests: true,
+    runInBand: true
   }
-}
-
-function newJasmineConsoleReporter () {
-  return new JasmineReporter({
-    colors: {
-      enabled: true
-    },
-    spec: {
-      displayDuration: true,
-      displayErrorMessages: true,
-      displayStacktrace: true,
-      displayFailed: true,
-      displaySuccessful: true,
-      displayPending: false
-    },
-    summary: {
-      displayFailed: true,
-      displayStacktrace: true,
-      displayErrorMessages: true
-    }
-  })
-}
-
-function runJasmineTests (filterString) {
+  if (filterString) {
+    options.testNamePattern = filterString
+  }
+  if (isBrowser) {
+    options.resolver = '<rootDir>/test/browser.resolver.js'
+    options.testEnvironment = '<rootDir>/test/browser.environment.js'
+    options.testPathIgnorePatterns = ['<rootDir>/test/examples.test.js', '<rootDir>/test/bolt-v3.test.js', '<rootDir>/test/stress.test.js']
+  }
   return new Promise((resolve, reject) => {
-    const jasmine = new JasmineExec()
-    jasmine.loadConfigFile('./spec/support/jasmine.json')
-    jasmine.loadHelpers()
-    jasmine.loadSpecs()
-    jasmine.configureDefaultReporter({
-      print: () => {}
+    jest.runCLI(options, ['.']).then(testResults => {
+      if (testResults.results.success) {
+        resolve()
+      } else {
+        reject(new Error('Some tests failed, please review the log'))
+      }
     })
-    jasmine.addReporter(newJasmineConsoleReporter())
-    jasmine.exitOnCompletion = false
-    jasmine.execute(null, filterString)
-      .then(result => {
-        if (result.overallStatus === 'passed') {
-          resolve()
-        } else {
-          reject(new Error('tests failed'))
-        }
-      })
   })
 }
 

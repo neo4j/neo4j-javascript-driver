@@ -368,7 +368,7 @@ describe('#unit Bolt', () => {
       it(`it should not create unknown protocol ${version}`, () => {
         try {
           Bolt.create(createBoltCreateParams({ version }))
-          fail(`should not create protocol version ${version} with success`)
+          throw new Error(`should not create protocol version ${version} with success`)
         } catch (error) {
           expect(error).toEqual(
             newError('Unknown Bolt protocol version: ' + version)

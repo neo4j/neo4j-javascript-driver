@@ -1385,9 +1385,6 @@ describe('#integration temporal-types', () => {
   }
 
   async function testReceiveTemporalValue (query, expectedValue) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     try {
       const result = await session.run(query)
 
@@ -1401,15 +1398,13 @@ describe('#integration temporal-types', () => {
         value.timeZoneOffsetSeconds != null &&
         neo4j.isDateTime(value) &&
         neo4j.isDateTime(expectedValue)) {
-        expect(value).toEqual(jasmine.objectContaining({
-          year: expectedValue.year,
-          month: expectedValue.month,
-          day: expectedValue.day,
-          hour: expectedValue.hour,
-          second: expectedValue.second,
-          nanosecond: expectedValue.nanosecond,
-          timeZoneId: expectedValue.timeZoneId
-        }))
+        expect(value.year).toEqual(value.year)
+        expect(value.month).toEqual(value.month)
+        expect(value.day).toEqual(value.day)
+        expect(value.hour).toEqual(value.hour)
+        expect(value.second).toEqual(value.second)
+        expect(value.nanosecond).toEqual(value.nanosecond)
+        expect(value.timeZoneId).toEqual(value.timeZoneId)
       } else {
         expect(value).toEqual(expectedValue)
       }
@@ -1419,9 +1414,6 @@ describe('#integration temporal-types', () => {
   }
 
   async function testSendReceiveTemporalValue (value) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     const result = await session.executeWrite(tx => tx.run(
       'CREATE (n:Node {value: $value}) RETURN n.value',
       { value }
@@ -1438,15 +1430,13 @@ describe('#integration temporal-types', () => {
         receivedValue.timeZoneOffsetSeconds != null &&
         neo4j.isDateTime(value) &&
         neo4j.isDateTime(receivedValue)) {
-      expect(receivedValue).toEqual(jasmine.objectContaining({
-        year: value.year,
-        month: value.month,
-        day: value.day,
-        hour: value.hour,
-        second: value.second,
-        nanosecond: value.nanosecond,
-        timeZoneId: value.timeZoneId
-      }))
+      expect(receivedValue.year).toEqual(value.year)
+      expect(receivedValue.month).toEqual(value.month)
+      expect(receivedValue.day).toEqual(value.day)
+      expect(receivedValue.hour).toEqual(value.hour)
+      expect(receivedValue.second).toEqual(value.second)
+      expect(receivedValue.nanosecond).toEqual(value.nanosecond)
+      expect(receivedValue.timeZoneId).toEqual(value.timeZoneId)
     } else {
       expect(receivedValue).toEqual(value)
     }

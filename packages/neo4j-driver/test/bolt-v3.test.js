@@ -66,7 +66,7 @@ describe('#integration Bolt V3 API', () => {
       { metadata }
     )
     const receivedMetadatas = result.records.map(r => r.get('metaData'))
-    expect(receivedMetadatas).toContain(metadata)
+    expect(receivedMetadatas).toContainEqual(metadata)
   }, 20000)
 
   it('should set transaction timeout for auto-commit transaction', async () => {
@@ -95,7 +95,7 @@ describe('#integration Bolt V3 API', () => {
         e.code !== 'Neo.ClientError.Transaction.LockClientStopped' &&
         e.code !== 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration'
       ) {
-        fail('Expected transaction timeout error but got: ' + e.code)
+        throw new Error('Expected transaction timeout error but got: ' + e.code)
       }
     }
     await tx.rollback()
@@ -188,7 +188,7 @@ describe('#integration Bolt V3 API', () => {
     // call listTransactions procedure that should list itself with the specified metadata
     const result = await tx.run('CALL dbms.listTransactions()')
     const receivedMetadatas = result.records.map(r => r.get('metaData'))
-    expect(receivedMetadatas).toContain(metadata)
+    expect(receivedMetadatas).toContainEqual(metadata)
 
     await tx.commit()
   }, 20000)
@@ -220,7 +220,7 @@ describe('#integration Bolt V3 API', () => {
         e.code !== 'Neo.ClientError.Transaction.LockClientStopped' &&
         e.code !== 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration'
       ) {
-        fail('Expected transaction timeout error but got: ' + e.code)
+        throw new Error('Expected transaction timeout error but got: ' + e.code)
       }
     }
 
@@ -468,7 +468,7 @@ describe('#integration Bolt V3 API', () => {
       tx.run('CALL dbms.listTransactions()')
     )
     const receivedMetadatas = result.records.map(r => r.get('metaData'))
-    expect(receivedMetadatas).toContain(metadata)
+    expect(receivedMetadatas).toContainEqual(metadata)
   }
 
   async function testAutoCommitTransactionConfigWhenBoltV3NotSupported (
@@ -478,19 +478,9 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
-    if (typeof jasmine === 'undefined') {
-      return
-    }
-
-    await expectAsync(
-      session.run('RETURN $x', { x: 42 }, txConfig)
-    ).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Driver is connected to the database that does not support transaction configuration/
-        )
-      })
-    )
+    expect(
+      (await session.run('RETURN $x', { x: 42 }, txConfig)).message
+    ).toContain('Driver is connected to the database that does not support transaction configuration')
   }
 
   async function testTransactionFunctionConfigWhenBoltV3NotSupported (
@@ -501,23 +491,15 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
-    if (typeof jasmine === 'undefined') {
-      return
-    }
-
     const txFunctionWithMetadata = work =>
       read
         ? session.executeRead(work, txConfig)
         : session.executeWrite(work, txConfig)
 
-    await expectAsync(
-      txFunctionWithMetadata(tx => tx.run('RETURN 42'))
-    ).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Driver is connected to the database that does not support transaction configuration/
-        )
-      })
+    expect(
+      await txFunctionWithMetadata(tx => tx.run('RETURN 42')).message
+    ).toContain(
+      'Driver is connected to the database that does not support transaction configuration'
     )
   }
 
@@ -528,19 +510,12 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
-    if (typeof jasmine === 'undefined') {
-      return
-    }
-
     const tx = session.beginTransaction(txConfig)
 
-    await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Driver is connected to the database that does not support transaction configuration/
-        )
-      })
-    )
+    expect((await tx.run('RETURN 42')).message)
+      .toContain(
+        'Driver is connected to the database that does not support transaction configuration'
+      )
   }
 
   async function testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported (
@@ -551,19 +526,12 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
-    if (typeof jasmine === 'undefined') {
-      return
-    }
-
     const tx = session.beginTransaction(txConfig)
 
-    await expectAsync(commit ? tx.commit() : tx.rollback()).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Driver is connected to the database that does not support transaction configuration/
-        )
-      })
-    )
+    expect((await (commit ? tx.commit() : tx.rollback())).message)
+      .toContain(
+        'Driver is connected to the database that does not support transaction configuration'
+      )
   }
 
   function databaseSupportsBoltV3 () {

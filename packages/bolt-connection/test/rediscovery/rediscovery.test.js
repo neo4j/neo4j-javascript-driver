@@ -127,7 +127,7 @@ describe('#unit Rediscovery', () => {
         connection
       })
 
-      fail('it should fail')
+      throw new Error('it should fail')
     } catch (error) {
       expect(error).toEqual(expectedError)
     }
@@ -152,7 +152,7 @@ describe('#unit Rediscovery', () => {
           rawRoutingTable
         })
 
-        fail('should not succeed')
+        throw new Error('should not succeed')
       } catch (error) {
         expect(error).toEqual(
           newError(

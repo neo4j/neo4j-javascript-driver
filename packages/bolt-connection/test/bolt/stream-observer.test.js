@@ -674,7 +674,7 @@ describe('#unit ResultStreamObserver', () => {
         newObserver(NO_OP, receivedError => {
           expect(receivedError).toEqual(expectedError)
         }, () => {
-          fail('Should not succeed')
+          throw new Error('Should not succeed')
         })
       )
     })
@@ -694,7 +694,7 @@ describe('#unit ResultStreamObserver', () => {
 
       streamObserver.subscribe(
         newObserver(NO_OP, () => {
-          fail('should not fail')
+          throw new Error('should not fail')
         }, meta => {
           expect(meta.type).toBe(type)
         })
@@ -997,7 +997,7 @@ describe('#unit RouteObserver', () => {
   }
 
   function shouldNotBeCalled (methodName) {
-    return () => fail(`${methodName} should not be called`)
+    return () => { throw new Error(`${methodName} should not be called`) }
   }
 })
 
@@ -1167,7 +1167,7 @@ describe('#unit ProcedureRouteObserver', () => {
   }
 
   function shouldNotBeCalled (methodName) {
-    return () => fail(`${methodName} should not be called`)
+    return () => { throw new Error(`${methodName} should not be called`) }
   }
 
   class FakeResultStreamObserver {

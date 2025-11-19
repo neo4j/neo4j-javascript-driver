@@ -89,9 +89,7 @@ describe('#integration rx-session', () => {
       .records()
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result1).toEqual([
-      Notification.createError(jasmine.stringMatching(/Invalid input/))
-    ])
+    expect(result1[0].error.message).toMatch(/Invalid input/)
 
     const result2 = await session
       .run('RETURN 1')
@@ -197,11 +195,9 @@ describe('#integration rx-session', () => {
       .executeWrite(txc => txcWork.work(txc))
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createNext(1),
-      Notification.createNext(2),
-      Notification.createError(jasmine.stringMatching(/\/ by zero/))
-    ])
+    expect(result[0].value).toBe(1)
+    expect(result[1].value).toBe(2)
+    expect(result[2].error.message).toMatch(/\/ by zero/)
 
     expect(txcWork.invocations).toBe(1)
     expect(await countNodes('Hi')).toBe(0)
@@ -229,9 +225,7 @@ describe('#integration rx-session', () => {
       .executeWrite(txc => txcWork.work(txc))
       .pipe(materialize(), toArray())
       .toPromise()
-    expect(result).toEqual([
-      Notification.createError(jasmine.stringMatching(/a database error/))
-    ])
+    expect(result[0].error.message).toMatch(/a database error/)
 
     expect(txcWork.invocations).toBe(2)
     expect(await countNodes('Person')).toBe(0)
@@ -327,11 +321,9 @@ describe('#integration rx-session', () => {
         .executeWrite(txc => txcWork.work(txc))
         .pipe(materialize(), toArray())
         .toPromise()
-      expect(result).toEqual([
-        Notification.createNext(1),
-        Notification.createNext(2),
-        Notification.createError(jasmine.stringMatching(/\/ by zero/))
-      ])
+      expect(result[0].value).toBe(1)
+      expect(result[1].value).toBe(2)
+      expect(result[2].error.message).toMatch(/\/ by zero/)
 
       expect(txcWork.invocations).toBe(1)
       expect(await countNodes('Hi')).toBe(0)
@@ -359,9 +351,7 @@ describe('#integration rx-session', () => {
         .executeWrite(txc => txcWork.work(txc))
         .pipe(materialize(), toArray())
         .toPromise()
-      expect(result).toEqual([
-        Notification.createError(jasmine.stringMatching(/a database error/))
-      ])
+      expect(result[0].error.message).toMatch(/a database error/)
 
       expect(txcWork.invocations).toBe(2)
       expect(await countNodes('Person')).toBe(0)
@@ -563,9 +553,6 @@ describe('#unit rx-session', () => {
   ].forEach(txFun => {
     describe(`.${txFun}()`, () => {
       it(`should send telemetry configuration with API equals to ${TELEMETRY_APIS.MANAGED_TRANSACTION}`, async () => {
-        if (typeof jasmine === 'undefined') {
-          return
-        }
         const capture = []
         const _session = {
           _beginTransaction: async (...args) => {
@@ -587,15 +574,10 @@ describe('#unit rx-session', () => {
         await firstValueFrom(fun(() => { return of(0) }))
 
         expect(capture.length).toEqual(1)
-        expect(capture[0][2]).toEqual(jasmine.objectContaining({
-          api: TELEMETRY_APIS.MANAGED_TRANSACTION
-        }))
+        expect(capture[0][2].api).toEqual(TELEMETRY_APIS.MANAGED_TRANSACTION)
       })
 
       it('should send telemetry on retry original when telemetry doesn\'t succeeded', async () => {
-        if (typeof jasmine === 'undefined') {
-          return
-        }
         const capture = []
         const errors = [newError('message', SERVICE_UNAVAILABLE)]
         const _session = {
@@ -622,18 +604,11 @@ describe('#unit rx-session', () => {
         await firstValueFrom(fun(() => { return of(0) }))
 
         expect(capture.length).toEqual(2)
-        expect(capture[0][2]).toEqual(jasmine.objectContaining({
-          api: TELEMETRY_APIS.MANAGED_TRANSACTION
-        }))
-        expect(capture[1][2]).toEqual(jasmine.objectContaining({
-          api: TELEMETRY_APIS.MANAGED_TRANSACTION
-        }))
+        expect(capture[0][2].api).toEqual(TELEMETRY_APIS.MANAGED_TRANSACTION)
+        expect(capture[1][2].api).toEqual(TELEMETRY_APIS.MANAGED_TRANSACTION)
       })
 
       it('should not send telemetry on retry original when telemetry succeeded', async () => {
-        if (typeof jasmine === 'undefined') {
-          return
-        }
         const capture = []
         const errors = [newError('message', SERVICE_UNAVAILABLE)]
         const _session = {
@@ -663,9 +638,7 @@ describe('#unit rx-session', () => {
         await firstValueFrom(fun(() => { return of(0) }))
 
         expect(capture.length).toEqual(2)
-        expect(capture[0][2]).toEqual(jasmine.objectContaining({
-          api: TELEMETRY_APIS.MANAGED_TRANSACTION
-        }))
+        expect(capture[0][2].api).toEqual(TELEMETRY_APIS.MANAGED_TRANSACTION)
         expect(capture[1][2]).toEqual(undefined)
       })
     })

@@ -167,7 +167,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           try {
             await tx
-            fail('should have thrown')
+            throw new Error('should have thrown')
           } catch (e) {
             expect(e).toEqual(expectedError)
           }
@@ -196,7 +196,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           try {
             await tx.run('RETURN 1')
-            fail('shoud not succeed')
+            throw new Error('shoud not succeed')
           } catch (e) {
             expect(e).toEqual(newError(
               'Cannot run query in this transaction, because it has been rolled back either because of an error or explicit termination.'
@@ -215,7 +215,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           try {
             await tx.commit()
-            fail('shoud not succeed')
+            throw new Error('shoud not succeed')
           } catch (e) {
             expect(e).toEqual(newError(
               'Cannot commit this transaction, because it has been rolled back either because of an error or explicit termination.'
@@ -281,7 +281,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
         try {
           await tx
-          fail('should have thrown')
+          throw new Error('should have thrown')
         } catch (e) {
           expect(e).toEqual(expectedError)
         }
@@ -301,7 +301,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
         try {
           await tx
-          fail('should have thrown')
+          throw new Error('should have thrown')
         } catch (e) {
           expect(e).toEqual(expectedError)
         }
@@ -458,7 +458,7 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
 
           try {
             await tx.close()
-            fail('should have thrown')
+            throw new Error('should have thrown')
           } catch (error) {
             expect(error).toEqual(expectedError)
           }

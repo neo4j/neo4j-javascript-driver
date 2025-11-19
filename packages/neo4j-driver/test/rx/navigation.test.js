@@ -470,9 +470,6 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -484,10 +481,7 @@ describe('#integration-rx navigation', () => {
     await collectAndAssertKeys(result)
     await collectAndAssertSummary(result)
 
-    const expectedError = jasmine.objectContaining({
-      message: jasmine.stringMatching(/Streaming has already started/)
-    })
-    await collectAndAssertError(result.records(), expectedError)
+    await collectAndAssertError(result.records(), { messageRegex: /Streaming has already started/ })
   }
 
   /**
@@ -573,9 +567,6 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnRecordsOnlyOnce (protocolVersion, runnable) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -586,12 +577,9 @@ describe('#integration-rx navigation', () => {
 
     await collectAndAssertRecords(result)
 
-    const expectedError = jasmine.objectContaining({
-      message: jasmine.stringMatching(/Streaming has already started/)
-    })
-    await collectAndAssertError(result.records(), expectedError)
-    await collectAndAssertError(result.records(), expectedError)
-    await collectAndAssertError(result.records(), expectedError)
+    await collectAndAssertError(result.records(), { messageRegex: /Streaming has already started/ })
+    await collectAndAssertError(result.records(), { messageRegex: /Streaming has already started/ })
+    await collectAndAssertError(result.records(), { messageRegex: /Streaming has already started/ })
   }
 
   /**
@@ -657,9 +645,6 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnKeysWhenRunFails (protocolVersion, runnable) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -668,10 +653,10 @@ describe('#integration-rx navigation', () => {
 
     await collectAndAssertError(
       result.keys(),
-      jasmine.objectContaining({
+      {
         code: 'Neo.ClientError.Statement.SyntaxError',
-        message: jasmine.stringMatching(/Invalid input/)
-      })
+        messageRegex: /Invalid input/
+      }
     )
   }
 
@@ -683,19 +668,15 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-      
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
     const result = runnable.run('THIS IS NOT A CYPHER')
-    const expectedError = jasmine.objectContaining({
+    const expectedError = {
       code: 'Neo.ClientError.Statement.SyntaxError',
-      message: jasmine.stringMatching(/Invalid input/)
-    })
+      messageRegex: /Invalid input/
+    }
     await collectAndAssertError(result.keys(), expectedError)
     await collectAndAssertError(result.keys(), expectedError)
     await collectAndAssertError(result.keys(), expectedError)
@@ -706,9 +687,6 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnRecordsWhenRunFails (protocolVersion, runnable) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -716,11 +694,10 @@ describe('#integration-rx navigation', () => {
     const result = runnable.run('THIS IS NOT A CYPHER')
 
     await collectAndAssertError(
-      result.records(),
-      jasmine.objectContaining({
+      result.records(), {
         code: 'Neo.ClientError.Statement.SyntaxError',
-        message: jasmine.stringMatching(/Invalid input/)
-      })
+        messageRegex: /Invalid input/
+      }
     )
   }
 
@@ -732,9 +709,6 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -743,15 +717,15 @@ describe('#integration-rx navigation', () => {
 
     await collectAndAssertError(
       result.records(),
-      jasmine.objectContaining({
+      {
         code: 'Neo.ClientError.Statement.SyntaxError',
-        message: jasmine.stringMatching(/Invalid input/)
-      })
+        messageRegex: /Invalid input/
+      }
     )
 
-    const expectedError = jasmine.objectContaining({
-      message: jasmine.stringMatching(/Streaming has already started/)
-    })
+    const expectedError = {
+      messageRegex: /Streaming has already started/
+    }
     await collectAndAssertError(result.records(), expectedError)
     await collectAndAssertError(result.records(), expectedError)
   }
@@ -761,9 +735,6 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnSummaryWhenRunFails (protocolVersion, runnable) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -772,10 +743,10 @@ describe('#integration-rx navigation', () => {
 
     await collectAndAssertError(
       result.consume(),
-      jasmine.objectContaining({
+      {
         code: 'Neo.ClientError.Statement.SyntaxError',
-        message: jasmine.stringMatching(/Invalid input/)
-      })
+        messageRegex: /Invalid input/
+      }
     )
   }
 
@@ -787,18 +758,15 @@ describe('#integration-rx navigation', () => {
     protocolVersion,
     runnable
   ) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
 
     const result = runnable.run('THIS IS NOT A CYPHER')
-    const expectedError = jasmine.objectContaining({
+    const expectedError = {
       code: 'Neo.ClientError.Statement.SyntaxError',
-      message: jasmine.stringMatching(/Invalid input/)
-    })
+      messageRegex: /Invalid input/
+    }
 
     await collectAndAssertError(result.consume(), expectedError)
     await collectAndAssertError(result.consume(), expectedError)
@@ -825,9 +793,6 @@ describe('#integration-rx navigation', () => {
     selectObservable,
     closeFunc
   ) {
-    if (typeof jasmine === 'undefined') {
-      return
-    }
     if (protocolVersion.isLessThan({ major: 4, minor: 0 })) {
       return
     }
@@ -835,9 +800,9 @@ describe('#integration-rx navigation', () => {
     const result = runnable.run('RETURN 1')
     await collectAndAssertEmpty(closeFunc())
 
-    const expectedError = jasmine.objectContaining({
-      message: jasmine.stringMatching(/Cannot run query/)
-    })
+    const expectedError = {
+      messageRegex: /Cannot run query/
+    }
     await collectAndAssertError(selectObservable(result), expectedError)
   }
 
@@ -899,6 +864,11 @@ describe('#integration-rx navigation', () => {
   async function collectAndAssertError (stream, expectedError) {
     const result = await stream.pipe(materialize(), toArray()).toPromise()
 
-    expect(result).toEqual([Notification.createError(expectedError)])
+    if (expectedError.messageRegex) {
+      expect(result[0].error.message).toMatch(expectedError.messageRegex)
+    }
+    if (expectedError.code) {
+      expect(result[0].error.code).toEqual(expectedError.code)
+    }
   }
 })

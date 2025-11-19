@@ -329,7 +329,7 @@ describe('#unit ConnectionHolder', () => {
 
           beforeEach(async () => {
             log = new Logger('warn', () => {})
-            warnSpy = spyOn(log, 'warn').and.callThrough()
+            warnSpy = jest.spyOn(log, 'warn')
 
             releaseError = new Error('something wrong is not right')
             connection = new FakeConnection()
@@ -351,9 +351,10 @@ describe('#unit ConnectionHolder', () => {
           })
 
           it('should log error as warning()', () => {
-            expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(
+            expect(warnSpy).toHaveBeenCalled()
+            expect(warnSpy.mock.calls[0][0]).toContain(
               `ConnectionHolder got an error while releasing the connection. Error ${releaseError}. Stacktrace:`
-            ))
+            )
           })
         })
 
@@ -365,7 +366,7 @@ describe('#unit ConnectionHolder', () => {
 
           beforeEach(async () => {
             log = new Logger('error', () => {})
-            warnSpy = spyOn(log, 'warn').and.callThrough()
+            warnSpy = jest.spyOn(log, 'warn')
 
             releaseError = new Error('something wrong is not right')
             connection = new FakeConnection()

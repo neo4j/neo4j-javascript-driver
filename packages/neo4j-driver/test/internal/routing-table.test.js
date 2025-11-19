@@ -369,7 +369,7 @@ describe('#unit RoutingTable', () => {
             database,
             metadata: newMetadata({ routers, readers, writers })
           })
-          fail('should not succeed')
+          throw new Error('should not succeed')
         } catch (error) {
           expect(error.code).toEqual(PROTOCOL_ERROR)
           expect(error.message).toContain(
@@ -389,7 +389,7 @@ describe('#unit RoutingTable', () => {
             database,
             metadata: newMetadata({ routers, readers, writers })
           })
-          fail('should not succeed')
+          throw new Error('should not succeed')
         } catch (error) {
           expect(error.code).toEqual(PROTOCOL_ERROR)
           expect(error.message).toContain(
@@ -409,7 +409,7 @@ describe('#unit RoutingTable', () => {
             database,
             metadata: newMetadata({ routers, readers, writers })
           })
-          fail('should not succeed')
+          throw new Error('should not succeed')
         } catch (error) {
           expect(error.code).toEqual(PROTOCOL_ERROR)
           expect(error.message).toContain(
@@ -451,7 +451,7 @@ describe('#unit RoutingTable', () => {
           metadata: newMetadata({ routers, readers, writers })
         })
 
-        fail('should not succeed')
+        throw new Error('should not succeed')
       } catch (error) {
         expect(error.code).toEqual(PROTOCOL_ERROR)
         expect(error.message).toContain('Received no')
@@ -470,7 +470,7 @@ describe('#unit RoutingTable', () => {
           metadata: newMetadata({ routers, readers, writers })
         })
 
-        fail('should not succeed')
+        throw new Error('should not succeed')
       } catch (error) {
         expect(error.code).toEqual(PROTOCOL_ERROR)
         expect(error.message).toContain('Received no')
