@@ -38,6 +38,7 @@ import { RecordShape } from './record.ts'
 import NotificationFilter from './notification-filter.ts'
 import { Logger } from './internal/logger.ts'
 import { cacheKey } from './internal/auth-util.ts'
+import { Rules } from './mapping.highlevel.ts'
 
 type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
@@ -45,6 +46,7 @@ type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 interface TransactionConfig {
   timeout?: NumberOrInteger
   metadata?: object
+  parameterRules?: Rules
 }
 
 /**
@@ -186,11 +188,13 @@ class Session {
   run<R extends RecordShape = RecordShape> (
     query: Query,
     parameters?: any,
-    transactionConfig?: TransactionConfig
+    transactionConfig?: TransactionConfig,
+    parameterRules?: Rules
   ): Result<R> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
-      parameters
+      parameters,
+      {parameterRules: parameterRules}
     )
     const autoCommitTxConfig = (transactionConfig != null)
       ? new TxConfig(transactionConfig, this._log)

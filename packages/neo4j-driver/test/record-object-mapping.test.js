@@ -306,4 +306,36 @@ describe('#integration record object mapping', () => {
 
     session.close()
   })
+
+  it('map input', async () => {
+    const session = driverGlobal.session()
+
+    const rules = {
+      number: neo4j.rule.asNumber(),
+      string: neo4j.rule.asString(),
+      bigint: neo4j.rule.asBigInt(),
+      date: neo4j.rule.asDate(),
+      dateTime: neo4j.rule.asDateTime(),
+      duration: neo4j.rule.asDuration(),
+      time: neo4j.rule.asTime({ from: 'heyaaaa' }),
+      list: neo4j.rule.asList({ apply: neo4j.rule.asString() })
+    }
+
+    const obj = {
+      string: 'hi',
+      number: 1,
+      bigint: BigInt(1),
+      date: new neo4j.Date(1, 1, 1),
+      dateTime: new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1),
+      duration: new neo4j.Duration(1, 1, 1, 1),
+      time: new neo4j.Time(1, 1, 1, 1, 1),
+      list: ['hi']
+    }
+
+    neo4j.RecordObjectMapping.translateIdentifiers(neo4j.RecordObjectMapping.getCaseTranslator('snake_case', 'camelCase'))
+
+    const res = await session.run('MERGE (n {string: $string, number: $number, bigint: $bigint, date: $date, date_time: $date_time, duration: $duration, time: $heyaaaa, list: $list}) RETURN n', obj, {}, rules)
+
+    expect(res.records[0].get('n').properties.date_time).toEqual(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1))
+  })
 })

@@ -19,6 +19,7 @@ import Integer, { isInt, int } from '../integer.ts'
 import { NumberOrInteger } from '../graph-types.ts'
 import { EncryptionLevel } from '../types.ts'
 import { stringify } from '../json.ts'
+import { Rules, validateAndCleanParams } from '../mapping.highlevel.ts'
 
 const ENCRYPTION_ON: EncryptionLevel = 'ENCRYPTION_ON'
 const ENCRYPTION_OFF: EncryptionLevel = 'ENCRYPTION_OFF'
@@ -62,17 +63,17 @@ function isObject (obj: any): boolean {
  * @throws TypeError when either given query or parameters are invalid.
  */
 function validateQueryAndParameters (
-  query: string | String | { text: string, parameters?: any },
+  query: string | String | { text: string, parameters?: any, parameterRules?: Rules},
   parameters?: any,
-  opt?: { skipAsserts: boolean }
+  opt?: { skipAsserts?: boolean, parameterRules?: Rules }
 ): {
     validatedQuery: string
     params: any
   } {
   let validatedQuery: string = ''
   let params = parameters ?? {}
+  let parameterRules = opt?.parameterRules
   const skipAsserts: boolean = opt?.skipAsserts ?? false
-
   if (typeof query === 'string') {
     validatedQuery = query
   } else if (query instanceof String) {
@@ -80,9 +81,11 @@ function validateQueryAndParameters (
   } else if (typeof query === 'object' && query.text != null) {
     validatedQuery = query.text
     params = query.parameters ?? {}
+    parameterRules = query.parameterRules
   }
-
+  
   if (!skipAsserts) {
+    params = validateAndCleanParams(params, parameterRules)
     assertCypherQuery(validatedQuery)
     assertQueryParameters(params)
   }

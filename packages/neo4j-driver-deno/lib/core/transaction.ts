@@ -38,6 +38,7 @@ import { Query } from './types.ts'
 import { RecordShape } from './record.ts'
 import NotificationFilter from './notification-filter.ts'
 import { TelemetryApis, TELEMETRY_APIS } from './internal/constants.ts'
+import { Rules } from './mapping.highlevel.ts'
 
 type NonAutoCommitTelemetryApis = Exclude<TelemetryApis, typeof TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION>
 type NonAutoCommitApiTelemetryConfig = ApiTelemetryConfig<NonAutoCommitTelemetryApis>
@@ -196,10 +197,11 @@ class Transaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run<R extends RecordShape = RecordShape> (query: Query, parameters?: any): Result<R> {
+  run<R extends RecordShape = RecordShape> (query: Query, parameters?: any, parameterRules?: Rules): Result<R> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
-      parameters
+      parameters,
+      {parameterRules: parameterRules}
     )
 
     const result = this._state.run(validatedQuery, params, {

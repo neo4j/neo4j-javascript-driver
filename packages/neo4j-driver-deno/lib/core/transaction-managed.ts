@@ -19,8 +19,9 @@ import Result from './result.ts'
 import Transaction from './transaction.ts'
 import { Query } from './types.ts'
 import { RecordShape } from './record.ts'
+import { Rules } from './mapping.highlevel.ts'
 
-type Run<R extends RecordShape = RecordShape> = (query: Query, parameters?: any) => Result<R>
+type Run<R extends RecordShape = RecordShape> = (query: Query, parameters?: any, parameterRules?: Rules) => Result<R>
 
 /**
  * Represents a transaction that is managed by the transaction executor.
@@ -59,8 +60,8 @@ class ManagedTransaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run<R extends RecordShape = RecordShape> (query: Query, parameters?: any): Result<R> {
-    return this._run(query, parameters)
+  run<R extends RecordShape = RecordShape> (query: Query, parameters?: any, parameterRules?: Rules): Result<R> {
+    return this._run(query, parameters, parameterRules)
   }
 }
 

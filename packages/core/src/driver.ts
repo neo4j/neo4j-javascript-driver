@@ -49,6 +49,7 @@ import NotificationFilter from './notification-filter'
 import HomeDatabaseCache from './internal/homedb-cache'
 import { cacheKey } from './internal/auth-util'
 import { ProtocolVersion } from './protocol-version'
+import { Rules } from './mapping.highlevel'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -368,6 +369,7 @@ class QueryConfig<T = EagerResult> {
   transactionConfig?: TransactionConfig
   auth?: AuthToken
   signal?: AbortSignal
+  parameterRules?: Rules
 
   /**
    * @constructor
@@ -630,7 +632,7 @@ class Driver {
       transactionConfig: config.transactionConfig,
       auth: config.auth,
       signal: config.signal
-    }, query, parameters)
+    }, query, parameters, config.parameterRules)
   }
 
   /**

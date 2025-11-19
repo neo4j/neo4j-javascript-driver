@@ -18,10 +18,10 @@
  */
 
 import { Rule, valueAs } from './mapping.highlevel.ts'
-import { StandardDate, isNode, isPath, isRelationship, isUnboundRelationship } from './graph-types.ts'
+import { StandardDateClass, StandardDate, isNode, isPath, isRelationship, isUnboundRelationship } from './graph-types.ts'
 import { isPoint } from './spatial-types.ts'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types.ts'
-import Vector from './vector.ts'
+import Vector, { vector } from './vector.ts'
 
 /**
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.
@@ -250,6 +250,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: Duration) => rule?.stringify === true ? value.toString() : value,
+      convertToParam: rule?.stringify === true ? (str: string) => Duration.fromString(str): undefined,
       ...rule
     }
   },
@@ -268,6 +269,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: LocalTime) => rule?.stringify === true ? value.toString() : value,
+      convertToParam: rule?.stringify  === true ? (str: string) => LocalTime.fromString(str): undefined,
       ...rule
     }
   },
@@ -286,6 +288,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: Time) => rule?.stringify === true ? value.toString() : value,
+      convertToParam: rule?.stringify  === true ? (str: string) => Time.fromString(str): undefined,
       ...rule
     }
   },
@@ -304,6 +307,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: Date) => convertStdDate(value, rule),
+      convertToParam: rule?.stringify === true ? (str: string) => Date.fromStandardDateLocal(new StandardDateClass(str)): undefined,
       ...rule
     }
   },
@@ -315,6 +319,13 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asLocalDateTime (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
+    let convertToParam = undefined
+    if(rule?.stringify === true) {
+      convertToParam = (str: string) => LocalDateTime.fromStandardDate(new StandardDateClass(str))
+    }
+    if(rule?.toStandardDate === true) {
+      convertToParam = (standardDate: StandardDate) => LocalDateTime.fromStandardDate(standardDate)
+    }
     return {
       validate: (value: any, field: string) => {
         if (!isLocalDateTime(value)) {
@@ -322,6 +333,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: LocalDateTime) => convertStdDate(value, rule),
+      convertToParam: convertToParam,
       ...rule
     }
   },
@@ -333,6 +345,13 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asDateTime (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
+    let convertToParam = undefined
+    if(rule?.stringify === true) {
+      convertToParam = (str: string) => DateTime.fromStandardDate(new StandardDateClass(str))
+    }
+    if(rule?.toStandardDate === true) {
+      convertToParam = (standardDate: StandardDate) => DateTime.fromStandardDate(standardDate)
+    }
     return {
       validate: (value: any, field: string) => {
         if (!isDateTime(value)) {
@@ -340,6 +359,7 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: DateTime) => convertStdDate(value, rule),
+      convertToParam: convertToParam,
       ...rule
     }
   },
@@ -386,6 +406,7 @@ export const rule = Object.freeze({
         }
         return value
       },
+      convertToParam: rule?.asTypedList === true ? (typedArray: Int16Array | Int32Array | BigInt64Array | Float32Array | Float64Array) => vector(typedArray): undefined,
       ...rule
     }
   }
