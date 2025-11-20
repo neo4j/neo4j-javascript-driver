@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { bookmarkManager, newError, Result, Session, TransactionConfig } from '../../src'
+import { bookmarkManager, newError, Result, Rules, Session, TransactionConfig } from '../../src'
 import QueryExecutor from '../../src/internal/query-executor'
 import ManagedTransaction from '../../src/transaction-managed'
 import ResultStreamObserverMock from '../utils/result-stream-observer.mock'
@@ -150,7 +150,7 @@ describe('QueryExecutor', () => {
       await queryExecutor.execute(baseConfig, 'query', { a: 'b' })
 
       expect(spyOnRun).toHaveBeenCalledTimes(1)
-      expect(spyOnRun).toHaveBeenCalledWith('query', { a: 'b' })
+      expect(spyOnRun).toHaveBeenCalledWith('query', { a: 'b' }, undefined)
     })
 
     it('should return the transformed result', async () => {
@@ -353,7 +353,7 @@ describe('QueryExecutor', () => {
       await queryExecutor.execute(baseConfig, 'query', { a: 'b' })
 
       expect(spyOnRun).toHaveBeenCalledTimes(1)
-      expect(spyOnRun).toHaveBeenCalledWith('query', { a: 'b' })
+      expect(spyOnRun).toHaveBeenCalledWith('query', { a: 'b' }, undefined)
     })
 
     it('should return the transformed result', async () => {
@@ -522,7 +522,7 @@ describe('QueryExecutor', () => {
 
   function createManagedTransaction (): {
     managedTransaction: ManagedTransaction
-    spyOnRun: jest.SpyInstance<Result, [query: Query, parameters?: any]>
+    spyOnRun: jest.SpyInstance<Result, [query: Query, parameters?: any, parameterRules?: Rules | undefined]>
     resultObservers: ResultStreamObserverMock[]
     results: Result[]
   } {
@@ -531,7 +531,7 @@ describe('QueryExecutor', () => {
 
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const managedTransaction = {
-      run: (query: string, parameters?: any): Result => {
+      run: (query: string, parameters?: any, parameterRules?: Rules | undefined): Result => {
         const resultObserver = new ResultStreamObserverMock()
         resultObservers.push(resultObserver)
         const result = new Result(
