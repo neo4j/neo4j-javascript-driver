@@ -282,9 +282,8 @@ describe('#integration session', () => {
     // Then
     session.run('RETURN 42').catch(error => {
       expect(error.message).toBe(
-        'Queries cannot be run directly on a ' +
-          'session with an open transaction; either run from within the ' +
-          'transaction or use a different session.'
+        'Queries cannot be run directly on a session with ongoing work; either ' +
+        'await the previous work, run in an existing transaction or use a different session.'
       )
       done()
     })
@@ -296,7 +295,7 @@ describe('#integration session', () => {
 
     // Then
     expect(() => session.beginTransaction()).toThrowError(
-      /You cannot begin a transaction on a session with an open transaction/
+      /You cannot begin a transaction on a session with ongoing work/
     )
   }, 70000)
 
