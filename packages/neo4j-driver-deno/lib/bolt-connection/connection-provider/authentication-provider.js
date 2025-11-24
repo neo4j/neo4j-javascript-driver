@@ -52,6 +52,7 @@ export default class AuthenticationProvider {
   handleError ({ connection, code }) {
     if (
       connection &&
+      code &&
       code.startsWith('Neo.ClientError.Security.')
     ) {
       return this._authTokenManager.handleSecurityException(connection.authToken, code)
