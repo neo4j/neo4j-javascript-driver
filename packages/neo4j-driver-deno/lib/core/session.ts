@@ -278,8 +278,8 @@ class Session {
       resultPromise = Promise.reject(
         newError(
           'Queries cannot be run directly on a ' +
-            'session with an open transaction; either run from within the ' +
-            'transaction or use a different session.'
+            'session with ongoing work; either await the previous work, ' +
+            'run in an existing transaction or use a different session.'
         )
       )
     }
@@ -316,8 +316,8 @@ class Session {
     }
     if (this._hasTx) {
       throw newError(
-        'You cannot begin a transaction on a session with an open transaction; ' +
-          'either run from within the transaction or use a different session.'
+        'You cannot begin a transaction on a session with ongoing work; ' +
+          'either run from within an existing transaction or use a different session.'
       )
     }
 

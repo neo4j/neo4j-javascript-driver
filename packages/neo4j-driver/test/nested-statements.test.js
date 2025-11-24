@@ -89,8 +89,8 @@ describe('#integration session', () => {
           expect(true).toBe(false)
         } catch (e) {
           expect(e.message).toBe(
-            'Queries cannot be run directly on a session with an open transaction; ' +
-            'either run from within the transaction or use a different session.'
+            'Queries cannot be run directly on a session with ongoing work; either ' +
+            'await the previous work, run in an existing transaction or use a different session.'
           )
         }
       },
