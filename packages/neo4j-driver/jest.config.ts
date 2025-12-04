@@ -61,7 +61,7 @@ export default {
     '\\.pnp\\.[^\\/]+$'
   ],
 
-  testNamePattern: '*',
+  testNamePattern: undefined,
 
   testTimeout: 15000
 }
