@@ -4,9 +4,10 @@
 .github
 .husky
 
-# Package managers
+# Package manager files
 */node_modules/
 .npm/
+*/package-lock.json
 
 packages/benchkit-backend
 packages/testkit-backend
