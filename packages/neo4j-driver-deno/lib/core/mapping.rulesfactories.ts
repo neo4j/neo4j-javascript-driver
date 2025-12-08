@@ -152,12 +152,12 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asInteger (rule?: Rule & { asNumber?: boolean, asBigInt?: boolean }): Rule {
-    if(rule?.asNumber === true && rule.asBigInt === true) {
-      throw newError("Cannot set both asNumber and asBigInt in a asInteger rule")
+    if (rule?.asNumber === true && rule.asBigInt === true) {
+      throw newError('Cannot set both asNumber and asBigInt in a asInteger rule')
     }
     return {
       validate: (value: any, field: string) => {
-        if (isInt(value) !== true) {
+        if (!isInt(value)) {
           throw new TypeError(`${field} should be an Integer but received ${typeof value}`)
         }
       },
@@ -171,10 +171,10 @@ export const rule = Object.freeze({
         return value
       },
       convertToParam: (objectValue: any) => {
-        if(rule?.asNumber === true) {
+        if (rule?.asNumber === true) {
           return int(objectValue)
         }
-        if(rule?.asBigInt === true) {
+        if (rule?.asBigInt === true) {
           return int(objectValue)
         }
         return objectValue
