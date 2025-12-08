@@ -181,6 +181,13 @@ export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
   return ((rule?.convert) != null) ? rule.convert(value, field) : value
 }
 
+export function valueAsParam (value: unknown, rule?: Rule): unknown {
+  if (rule?.optional === true && value == null) {
+    return value
+  }
+  return ((rule?.convertToParam) != null) ? rule.convertToParam(value) : value
+}
+
 export function validateAndCleanParams (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
   const cleanedParams: Record<string, any> = {}
   // @ts-expect-error

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector } from '../src'
+import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector, int } from '../src'
 import { as } from '../src/mapping.highlevel'
 
 describe('#unit Record Object Mapping', () => {
@@ -72,6 +72,45 @@ describe('#unit Record Object Mapping', () => {
       // @ts-expect-error
       expect(() => as(gettable, personRules)).toThrow('Object#name should be a number but received string')
     })
+
+    it.each([
+      ['Number', rule.asNumber(), 1, 1],
+      ['String', rule.asString(), 'hi', 'hi'],
+      ['BigInt', rule.asBigInt(), BigInt(1), BigInt(1)],
+      ['Integer Converted to BigInt', rule.asInteger({ asBigInt: true }), BigInt(1), int(1)],
+      ['Integer Converted to Number', rule.asInteger({ asNumber: true }), 1, int(1)],
+      ['Date', rule.asDate(), new Date(1, 1, 1), new Date(1, 1, 1)],
+      ['DateTime', rule.asDateTime(), new DateTime(1, 1, 1, 1, 1, 1, 1, 1), new DateTime(1, 1, 1, 1, 1, 1, 1, 1)],
+      ['Duration', rule.asDuration(), new Duration(1, 1, 1, 1), new Duration(1, 1, 1, 1)],
+      ['Time', rule.asTime(), new Time(1, 1, 1, 1, 1), new Time(1, 1, 1, 1, 1)],
+      ['Simple List', rule.asList({ apply: rule.asString() }), ['hello'], ['hello']],
+      [
+        'Complex List',
+        rule.asList({ apply: rule.asVector({ asTypedList: true }) }),
+        [Float32Array.from([0.1, 0.2]), Float32Array.from([0.3, 0.4]), Float32Array.from([0.5, 0.6])],
+        [new Vector(Float32Array.from([0.1, 0.2])), new Vector(Float32Array.from([0.3, 0.4])), new Vector(Float32Array.from([0.5, 0.6]))]
+      ],
+      [
+        'Vector',
+        rule.asVector(),
+        new Vector(Int32Array.from([0, 1, 2])),
+        new Vector(Int32Array.from([0, 1, 2]))
+      ],
+      [
+        'Converted Vector',
+        rule.asVector({ asTypedList: true, from: 'vec' }),
+        Float32Array.from([0.1, 0.2]),
+        new Vector(Float32Array.from([0.1, 0.2]))
+      ]
+    ])('should be able to map %s as property', (_, rule, param, expected) => {
+      if (rule.convertToParam != null) {
+        param = rule.convertToParam(param)
+      }
+      // @ts-expect-error
+      rule.validate(param)
+      expect(param).toEqual(expected)
+    })
+
     it('should be able to read all property types', () => {
       class Person {
         name

@@ -17,11 +17,13 @@
  * limitations under the License.
  */
 
-import { Rule, valueAs } from './mapping.highlevel.ts'
+import { Rule, valueAs, valueAsParam } from './mapping.highlevel.ts'
 import { StandardDateClass, StandardDate, isNode, isPath, isRelationship, isUnboundRelationship } from './graph-types.ts'
 import { isPoint } from './spatial-types.ts'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types.ts'
 import Vector, { vector } from './vector.ts'
+import { newError } from './error.ts'
+import Integer, { int, isInt } from './integer.ts'
 
 /**
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.
@@ -29,6 +31,8 @@ import Vector, { vector } from './vector.ts'
  * @property {function(rule: ?Rule & { acceptBigInt?: boolean })} asNumber Create a {@link Rule} that validates the value is a Number.
  *
  * @property {function(rule: ?Rule & { acceptNumber?: boolean })} AsBigInt Create a {@link Rule} that validates the value is a BigInt.
+ *
+ * @property {function(rule: ?Rule & { asNumber?: boolean, asBigInt?: boolean })} AsInteger Create a {@link Rule} that validates the value is an Integer.
  *
  * @property {function(rule: ?Rule)} asNode Create a {@link Rule} that validates the value is a {@link Node}.
  *
@@ -136,6 +140,44 @@ export const rule = Object.freeze({
           return BigInt(value)
         }
         return value
+      },
+      ...rule
+    }
+  },
+  /**
+   * Create a {@link Rule} that validates the value is an {@link Integer}.
+   *
+   * @experimental Part of the Record Object Mapping preview feature
+   * @param {Rule & { asNumber?: boolean, asBigInt?: boolean }} rule Configurations for the rule
+   * @returns {Rule} A new rule for the value
+   */
+  asInteger (rule?: Rule & { asNumber?: boolean, asBigInt?: boolean }): Rule {
+    if(rule?.asNumber === true && rule.asBigInt === true) {
+      throw newError("Cannot set both asNumber and asBigInt in a asInteger rule")
+    }
+    return {
+      validate: (value: any, field: string) => {
+        if (isInt(value) !== true) {
+          throw new TypeError(`${field} should be an Integer but received ${typeof value}`)
+        }
+      },
+      convert: (value: Integer) => {
+        if (rule?.asNumber === true) {
+          return value.low
+        }
+        if (rule?.asBigInt === true) {
+          return value.toBigInt()
+        }
+        return value
+      },
+      convertToParam: (objectValue: any) => {
+        if(rule?.asNumber === true) {
+          return int(objectValue)
+        }
+        if(rule?.asBigInt === true) {
+          return int(objectValue)
+        }
+        return objectValue
       },
       ...rule
     }
@@ -380,6 +422,12 @@ export const rule = Object.freeze({
       convert: (list: any[], field: string) => {
         if (rule?.apply != null) {
           return list.map((value, index) => valueAs(value, `${field}[${index}]`, rule.apply))
+        }
+        return list
+      },
+      convertToParam: (list: any[]) => {
+        if (rule?.apply != null) {
+          return list.map((value) => valueAsParam(value, rule.apply))
         }
         return list
       },
