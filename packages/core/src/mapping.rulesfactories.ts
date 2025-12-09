@@ -22,8 +22,6 @@ import { StandardDateClass, StandardDate, isNode, isPath, isRelationship, isUnbo
 import { isPoint } from './spatial-types'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types'
 import Vector, { vector } from './vector'
-import { newError } from './error'
-import Integer, { int, isInt } from './integer'
 
 /**
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.
@@ -140,44 +138,6 @@ export const rule = Object.freeze({
           return BigInt(value)
         }
         return value
-      },
-      ...rule
-    }
-  },
-  /**
-   * Create a {@link Rule} that validates the value is an {@link Integer}.
-   *
-   * @experimental Part of the Record Object Mapping preview feature
-   * @param {Rule & { asNumber?: boolean, asBigInt?: boolean }} rule Configurations for the rule
-   * @returns {Rule} A new rule for the value
-   */
-  asInteger (rule?: Rule & { asNumber?: boolean, asBigInt?: boolean }): Rule {
-    if (rule?.asNumber === true && rule.asBigInt === true) {
-      throw newError('Cannot set both asNumber and asBigInt in a asInteger rule')
-    }
-    return {
-      validate: (value: any, field: string) => {
-        if (!isInt(value)) {
-          throw new TypeError(`${field} should be an Integer but received ${typeof value}`)
-        }
-      },
-      convert: (value: Integer) => {
-        if (rule?.asNumber === true) {
-          return value.low
-        }
-        if (rule?.asBigInt === true) {
-          return value.toBigInt()
-        }
-        return value
-      },
-      convertToParam: (objectValue: any) => {
-        if (rule?.asNumber === true) {
-          return int(objectValue)
-        }
-        if (rule?.asBigInt === true) {
-          return int(objectValue)
-        }
-        return objectValue
       },
       ...rule
     }
