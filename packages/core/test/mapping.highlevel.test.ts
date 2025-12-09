@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector, int } from '../src'
+import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector } from '../src'
 import { as } from '../src/mapping.highlevel'
 
 describe('#unit Record Object Mapping', () => {
@@ -77,8 +77,6 @@ describe('#unit Record Object Mapping', () => {
       ['Number', rule.asNumber(), 1, 1],
       ['String', rule.asString(), 'hi', 'hi'],
       ['BigInt', rule.asBigInt(), BigInt(1), BigInt(1)],
-      ['Integer Converted to BigInt', rule.asInteger({ asBigInt: true }), BigInt(1), int(1)],
-      ['Integer Converted to Number', rule.asInteger({ asNumber: true }), 1, int(1)],
       ['Date', rule.asDate(), new Date(1, 1, 1), new Date(1, 1, 1)],
       ['DateTime', rule.asDateTime(), new DateTime(1, 1, 1, 1, 1, 1, 1, 1), new DateTime(1, 1, 1, 1, 1, 1, 1, 1)],
       ['Duration', rule.asDuration(), new Duration(1, 1, 1, 1), new Duration(1, 1, 1, 1)],

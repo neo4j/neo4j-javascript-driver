@@ -30,8 +30,6 @@ import Vector, { vector } from './vector.ts'
  *
  * @property {function(rule: ?Rule & { acceptNumber?: boolean })} AsBigInt Create a {@link Rule} that validates the value is a BigInt.
  *
- * @property {function(rule: ?Rule & { asNumber?: boolean, asBigInt?: boolean })} AsInteger Create a {@link Rule} that validates the value is an Integer.
- *
  * @property {function(rule: ?Rule)} asNode Create a {@link Rule} that validates the value is a {@link Node}.
  *
  * @property {function(rule: ?Rule)} asRelationship Create a {@link Rule} that validates the value is a {@link Relationship}.
