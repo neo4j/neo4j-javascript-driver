@@ -48,6 +48,7 @@
     "@rollup/plugin-commonjs": "^21.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@types/jest": "^29.5.10",
+    "@types/estree": "1.0.8",
     "browser-resolve": "^2.0.0",
     "browserify-sign": "^4.2.2",
     "esdoc": "^1.1.0",

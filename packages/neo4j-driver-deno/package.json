@@ -9,6 +9,7 @@
     "test": "test"
   },
   "scripts": {
+    "clean": "",
     "test": "npm run test::integration",
     "test::integration": "deno test --allow-all ./test",
     "set_version": "deno run --allow-read --allow-write ./versioning.ts --output=. --filename=current.version.ts",
