@@ -215,7 +215,7 @@ function trustStrategyName (config) {
 function newTlsOptions (hostname, ca = undefined, clientCertificate = undefined) {
   return {
     rejectUnauthorized: false, // we manually check for this in the connect callback, to give a more helpful error to the user
-    servername: hostname, // server name for the SNI (Server Name Indication) TLS extension
+    servername: (net.isIPv4(hostname) || net.isIPv6(hostname)) ? undefined : hostname, // server name for the SNI (Server Name Indication) TLS extension
     ca, // optional CA useful for TRUST_CUSTOM_CA_SIGNED_CERTIFICATES trust mode,
     ...clientCertificate
   }
