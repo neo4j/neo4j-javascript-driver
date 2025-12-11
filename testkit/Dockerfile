@@ -1,10 +1,12 @@
 FROM ubuntu:24.04
 
-ARG NODE_VERSION=18
+ARG NODE_VERSION=18.20.8
 ARG DENO_VERSION=2.2.11
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV NODE_OPTIONS="--max_old_space_size=4096 --use-openssl-ca"
+
+CMD /bin/bash
 
 # Configuring NodeJS version
 RUN apt-get clean 
@@ -13,7 +15,13 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y curl
 
-RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:-18}.x | bash -
+ENV NVM_DIR /usr/local/nvm
+RUN mkdir -p $NVM_DIR
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use --delete-prefix $NODE_VERSION && nvm install-latest-npm"
+
+ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
+ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -74,7 +82,6 @@ WORKDIR /home/driver
 
 USER driver
 WORKDIR /home/driver
-CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
 RUN npm config set prefix /home/driver/.npm_global
 
