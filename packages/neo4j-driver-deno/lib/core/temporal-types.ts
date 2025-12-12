@@ -219,9 +219,7 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
   }
 
   static fromString (str: string): LocalTime<NumberOrInteger> {
-    console.log(str)
     const values = String(str).match(/(\d+):(\d+):(\d+).(\d+)/)
-    console.log(values)
     if (values !== null) {
       return new LocalTime(
         parseInt(values[0]),
@@ -343,17 +341,23 @@ export class Time<T extends NumberOrInteger = Integer> {
   }
 
   static fromString (str: string): Time<NumberOrInteger> {
-    const values = String(str).match(/(\d+):(\d+):(\d+).(\d+)(Z|\+|-)?(\d*)/)
+    const values = String(str).match(/(\d+):(\d+):(\d+)(\.\d+)?(Z|\+|-)?(\d*):?(\d*):?(\d*)/)
     if (values !== null) {
-      if (values[4] === 'Z') {
-        return new Time(parseInt(values[0]), parseInt(values[1]), parseInt(values[2]), parseInt(values[3]) * 10 ** 9, 0)
+      if (values[5] === 'Z') {
+        return new Time(
+          parseInt(values[1]),
+          parseInt(values[2]),
+          parseInt(values[3]),
+          values[4] !== undefined ? Math.round(parseFloat('0.' + values[4]) * 10 ** 9) : 0,
+          0
+        )
       }
       return new Time(
-        parseInt(values[0]),
         parseInt(values[1]),
         parseInt(values[2]),
-        Math.round(parseFloat('0.' + values[3]) * 10 ** 9),
-        (values[4] === '+' ? 1 : -1) * parseInt(values[5])
+        parseInt(values[3]),
+        values[4] !== undefined ? Math.round(parseFloat('0.' + values[4]) * 10 ** 9) : 0,
+        (values[5] === '+' ? 1 : -1) * ( parseInt(values[6]) * 3600 + parseInt(values[7]) * 60 + parseInt(values[8])) 
       )
     }
     throw newError('Time could not be parsed from string')
@@ -619,6 +623,22 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
       this.nanosecond
     )
   }
+
+  static fromString (str: string): LocalDateTime<NumberOrInteger> {
+    const values = String(str).match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\.\d+)?(Z|\+|-)?(\d*):?(\d*):?(\d*)/)
+    if (values !== null) {
+      return new LocalDateTime(
+        parseInt(values[1]),
+        parseInt(values[2]),
+        parseInt(values[3]),
+        parseInt(values[4]),
+        parseInt(values[5]),
+        parseInt(values[6]),
+        Math.round(parseFloat('0' + values[7]) * 10 ** 9)
+      )
+    }
+    throw newError('Time could not be parsed from string')
+  }
 }
 
 Object.defineProperty(
@@ -793,6 +813,35 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       : ''
 
     return localDateTimeStr + timeOffset + timeZoneStr
+  }
+
+  static fromString (str: string): DateTime<NumberOrInteger> {
+    const values = String(str).match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\.\d+)?(Z|\+|-)?(\d*):?(\d*):?(\d*)/)
+    if (values !== null) {
+      if (values[8] === 'Z') {
+        return new DateTime(
+          parseInt(values[1]),
+          parseInt(values[2]),
+          parseInt(values[3]),
+          parseInt(values[4]),
+          parseInt(values[5]),
+          parseInt(values[6]), 
+          Math.round(parseFloat('0' + values[7]) * 10 ** 9),
+          0
+        )
+      }
+      return new DateTime(
+        parseInt(values[1]),
+        parseInt(values[2]),
+        parseInt(values[3]),
+        parseInt(values[4]),
+        parseInt(values[5]),
+        parseInt(values[6]),
+        Math.round(parseFloat('0.' + values[7]) * 10 ** 9),
+        (values[8] === '+' ? 1 : -1) * ( parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt(values[11])) 
+      )
+    }
+    throw newError('Time could not be parsed from string')
   }
 
   /**

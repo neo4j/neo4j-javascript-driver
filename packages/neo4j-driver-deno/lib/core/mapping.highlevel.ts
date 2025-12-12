@@ -29,7 +29,7 @@ export interface Rule {
   optional?: boolean
   from?: string
   convert?: (recordValue: any, field: string) => any
-  convertToParam?: (objectValue: any) => any
+  parameterConversion?: (objectValue: any) => any
   validate?: (recordValue: any, field: string) => void
 }
 
@@ -181,14 +181,14 @@ export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
   return ((rule?.convert) != null) ? rule.convert(value, field) : value
 }
 
-export function valueAsParam (value: unknown, rule?: Rule): unknown {
+export function optionalParameterConversion (value: unknown, rule?: Rule): unknown {
   if (rule?.optional === true && value == null) {
     return value
   }
-  return ((rule?.convertToParam) != null) ? rule.convertToParam(value) : value
+  return ((rule?.parameterConversion) != null) ? rule.parameterConversion(value) : value
 }
 
-export function validateAndCleanParams (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
+export function validateAndcleanParameters (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
   const cleanedParams: Record<string, any> = {}
   // @ts-expect-error
   const parameterRules = getRules(params.constructor, suppliedRules)
@@ -196,8 +196,8 @@ export function validateAndCleanParams (params: Record<string, any>, suppliedRul
     for (const key in parameterRules) {
       if (!(parameterRules?.[key]?.optional === true)) {
         let param = params[key]
-        if (parameterRules[key]?.convertToParam !== undefined) {
-          param = parameterRules[key].convertToParam(params[key])
+        if (parameterRules[key]?.parameterConversion !== undefined) {
+          param = parameterRules[key].parameterConversion(params[key])
         }
         if (param === undefined) {
           throw newError('Parameter object did not include required parameter.')

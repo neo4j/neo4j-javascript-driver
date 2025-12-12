@@ -19,7 +19,7 @@ import Integer, { isInt, int } from '../integer'
 import { NumberOrInteger } from '../graph-types'
 import { EncryptionLevel } from '../types'
 import { stringify } from '../json'
-import { Rules, validateAndCleanParams } from '../mapping.highlevel'
+import { Rules, validateAndcleanParameters } from '../mapping.highlevel'
 
 const ENCRYPTION_ON: EncryptionLevel = 'ENCRYPTION_ON'
 const ENCRYPTION_OFF: EncryptionLevel = 'ENCRYPTION_OFF'
@@ -85,7 +85,7 @@ function validateQueryAndParameters (
   }
 
   if (!skipAsserts) {
-    params = validateAndCleanParams(params, parameterRules)
+    params = validateAndcleanParameters(params, parameterRules)
     assertCypherQuery(validatedQuery)
     assertQueryParameters(params)
   }

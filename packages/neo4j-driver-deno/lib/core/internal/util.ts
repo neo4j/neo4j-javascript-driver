@@ -19,7 +19,7 @@ import Integer, { isInt, int } from '../integer.ts'
 import { NumberOrInteger } from '../graph-types.ts'
 import { EncryptionLevel } from '../types.ts'
 import { stringify } from '../json.ts'
-import { Rules, validateAndCleanParams } from '../mapping.highlevel.ts'
+import { Rules, validateAndcleanParameters } from '../mapping.highlevel.ts'
 
 const ENCRYPTION_ON: EncryptionLevel = 'ENCRYPTION_ON'
 const ENCRYPTION_OFF: EncryptionLevel = 'ENCRYPTION_OFF'
@@ -85,7 +85,7 @@ function validateQueryAndParameters (
   }
 
   if (!skipAsserts) {
-    params = validateAndCleanParams(params, parameterRules)
+    params = validateAndcleanParameters(params, parameterRules)
     assertCypherQuery(validatedQuery)
     assertQueryParameters(params)
   }
