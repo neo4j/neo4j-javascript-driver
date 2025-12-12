@@ -94,6 +94,12 @@ export class Duration<T extends NumberOrInteger = Integer> {
     Object.freeze(this)
   }
 
+  /**
+   * Creates a {@link Duration} from an ISO 8601 string
+   * 
+   * @param {string} str The string to convert
+   * @returns {Duration<NumberOrInteger>}
+   */
   static fromString (str: string): Duration<NumberOrInteger> {
     const matches = String(str).match(/P(?:([-?.,\d]+)Y)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)W)?(?:([-?.,\d]+)D)?T(?:([-?.,\d]+)H)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)S)?/)
     if (matches !== null) {
@@ -218,6 +224,12 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
     )
   }
 
+  /**
+   * Creates a {@link LocalTime} from an ISO 8601 string
+   * 
+   * @param {string} str The string to convert
+   * @returns {LocalTime<NumberOrInteger>}
+   */
   static fromString (str: string): LocalTime<NumberOrInteger> {
     const values = String(str).match(/(\d+):(\d+):(\d+).(\d+)/)
     if (values !== null) {
@@ -340,6 +352,12 @@ export class Time<T extends NumberOrInteger = Integer> {
     )
   }
 
+  /**
+   * Creates a {@link Time} from an ISO 8601 string.
+   * 
+   * @param {string} str The string to convert
+   * @returns {Time<NumberOrInteger>}
+   */
   static fromString (str: string): Time<NumberOrInteger> {
     const values = String(str).match(/(\d+):(\d+):(\d+)(\.\d+)?(Z|\+|-)?(\d*):?(\d*):?(\d*)/)
     if (values !== null) {
@@ -624,6 +642,12 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
     )
   }
 
+  /**
+   * Creates a {@link LocalDateTime} from an ISO 8601 string
+   * 
+   * @param {string} str The string to convert
+   * @returns {LocalDateTime<NumberOrInteger>}
+   */
   static fromString (str: string): LocalDateTime<NumberOrInteger> {
     const values = String(str).match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\.\d+)?(Z|\+|-)?(\d*):?(\d*):?(\d*)/)
     if (values !== null) {
@@ -815,6 +839,12 @@ export class DateTime<T extends NumberOrInteger = Integer> {
     return localDateTimeStr + timeOffset + timeZoneStr
   }
 
+  /**
+   * Creates a {@link DateTime} from an ISO 8601 string
+   * 
+   * @param {string} str The string to convert
+   * @returns {DateTime<NumberOrInteger>}
+   */
   static fromString (str: string): DateTime<NumberOrInteger> {
     const values = String(str).match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\.\d+)?(Z|\+|-)?(\d*):?(\d*):?(\d*)/)
     if (values !== null) {
