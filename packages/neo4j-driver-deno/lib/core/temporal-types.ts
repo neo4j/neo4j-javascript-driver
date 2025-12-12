@@ -96,7 +96,7 @@ export class Duration<T extends NumberOrInteger = Integer> {
 
   /**
    * Creates a {@link Duration} from an ISO 8601 string
-   * 
+   *
    * @param {string} str The string to convert
    * @returns {Duration<NumberOrInteger>}
    */
@@ -226,7 +226,7 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
 
   /**
    * Creates a {@link LocalTime} from an ISO 8601 string
-   * 
+   *
    * @param {string} str The string to convert
    * @returns {LocalTime<NumberOrInteger>}
    */
@@ -354,7 +354,7 @@ export class Time<T extends NumberOrInteger = Integer> {
 
   /**
    * Creates a {@link Time} from an ISO 8601 string.
-   * 
+   *
    * @param {string} str The string to convert
    * @returns {Time<NumberOrInteger>}
    */
@@ -644,7 +644,7 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
 
   /**
    * Creates a {@link LocalDateTime} from an ISO 8601 string
-   * 
+   *
    * @param {string} str The string to convert
    * @returns {LocalDateTime<NumberOrInteger>}
    */
@@ -841,7 +841,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
 
   /**
    * Creates a {@link DateTime} from an ISO 8601 string
-   * 
+   *
    * @param {string} str The string to convert
    * @returns {DateTime<NumberOrInteger>}
    */
