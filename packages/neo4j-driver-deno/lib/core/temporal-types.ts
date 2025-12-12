@@ -357,7 +357,7 @@ export class Time<T extends NumberOrInteger = Integer> {
         parseInt(values[2]),
         parseInt(values[3]),
         values[4] !== undefined ? Math.round(parseFloat('0.' + values[4]) * 10 ** 9) : 0,
-        (values[5] === '+' ? 1 : -1) * ( parseInt(values[6]) * 3600 + parseInt(values[7]) * 60 + parseInt(values[8])) 
+        (values[5] === '+' ? 1 : -1) * (parseInt(values[6]) * 3600 + parseInt(values[7]) * 60 + parseInt(values[8]))
       )
     }
     throw newError('Time could not be parsed from string')
@@ -825,7 +825,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
           parseInt(values[3]),
           parseInt(values[4]),
           parseInt(values[5]),
-          parseInt(values[6]), 
+          parseInt(values[6]),
           Math.round(parseFloat('0' + values[7]) * 10 ** 9),
           0
         )
@@ -838,7 +838,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         parseInt(values[5]),
         parseInt(values[6]),
         Math.round(parseFloat('0.' + values[7]) * 10 ** 9),
-        (values[8] === '+' ? 1 : -1) * ( parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt(values[11])) 
+        (values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt(values[11]))
       )
     }
     throw newError('Time could not be parsed from string')
