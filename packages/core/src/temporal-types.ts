@@ -101,7 +101,7 @@ export class Duration<T extends NumberOrInteger = Integer> {
    * @returns {Duration<NumberOrInteger>}
    */
   static fromString (str: string): Duration<NumberOrInteger> {
-    const matches = String(str).match(/P(?:([-?.,\d]+)Y)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)W)?(?:([-?.,\d]+)D)?T(?:([-?.,\d]+)H)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)S)?/)
+    const matches = String(str).match(/P(?:([-?.,\d]+)Y)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)W)?(?:([-?.,\d]+)D)?T?(?:([-?.,\d]+)H)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)S)?/)
     if (matches !== null) {
       const dur = new Duration(
         ~~parseInt(matches[1]) * 12 + ~~parseInt(matches[2]),
@@ -661,7 +661,7 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
         Math.round(parseFloat('0' + values[7]) * 10 ** 9)
       )
     }
-    throw newError('Time could not be parsed from string')
+    throw newError('LocalDateTime could not be parsed from string')
   }
 }
 
@@ -867,11 +867,11 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         parseInt(values[4]),
         parseInt(values[5]),
         parseInt(values[6]),
-        Math.round(parseFloat('0.' + values[7]) * 10 ** 9),
-        (values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt(values[11]))
+        Math.round(parseFloat('0' + values[7]) * 10 ** 9),
+        (values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11]))
       )
     }
-    throw newError('Time could not be parsed from string')
+    throw newError('DateTime could not be parsed from string')
   }
 
   /**

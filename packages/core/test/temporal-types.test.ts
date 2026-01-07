@@ -107,6 +107,13 @@ describe('LocalDateTime', () => {
       )
     })
   })
+  describe('fromString', () => {
+    it.each([
+      ['2026-01-05T15:36:42', new LocalDateTime(2026, 1, 5, 15, 36, 42, 0)]
+    ])('should successfully convert date strings', (string: string, expected: LocalDateTime<number>) => {
+      expect(LocalDateTime.fromString(string)).toEqual(expected)
+    })
+  })
 })
 
 describe('DateTime', () => {
@@ -183,6 +190,16 @@ describe('DateTime', () => {
       )
     })
   })
+
+  describe('fromString', () => {
+    it.each([
+      ['2026-01-05T15:36:42.01+01:00', new DateTime(2026, 1, 5, 15, 36, 42, 10000000, 3600)],
+      ['2026-01-05T15:36:42.01-01:00', new DateTime(2026, 1, 5, 15, 36, 42, 10000000, -3600)],
+      ['2026-01-05T15:36:42Z', new DateTime(2026, 1, 5, 15, 36, 42, 0, 0)]
+    ])('should successfully convert date strings', (string: string, expected: DateTime<number>) => {
+      expect(DateTime.fromString(string)).toEqual(expected)
+    })
+  })
 })
 
 describe('Duration', () => {
@@ -217,6 +234,19 @@ describe('Duration', () => {
     expect(duration.days).toEqual(days)
     expect(duration.seconds).toEqual(seconds)
     expect(duration.nanoseconds).toEqual(nanos)
+  })
+  describe('fromString', () => {
+    it.each([
+      ['PT1S', new Duration(0, 0, 1, 0)],
+      ['PT-1.001S', new Duration(0, 0, -2, 999000000)],
+      ['PT3H-1.001S', new Duration(0, 0, 3600 * 3 - 2, 999000000)],
+      ['PT-3H-1.001S', new Duration(0, 0, 3600 * -3 - 2, 999000000)],
+      ['P1Y4M2D', new Duration(16, 2, 0, 0)],
+      ['P4M', new Duration(4, 0, 0, 0)],
+      ['PT4M', new Duration(0, 0, 240, 0)]
+    ])('should successfully convert duration strings', (string: string, expected: Duration<number>) => {
+      expect(Duration.fromString(string)).toEqual(expected)
+    })
   })
 })
 
