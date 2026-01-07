@@ -868,7 +868,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         parseInt(values[5]),
         parseInt(values[6]),
         Math.round(parseFloat('0' + values[7]) * 10 ** 9),
-        (values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt("0" + values[11] ))
+        (values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11]))
       )
     }
     throw newError('DateTime could not be parsed from string')
