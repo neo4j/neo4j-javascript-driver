@@ -96,20 +96,23 @@ export class Duration<T extends NumberOrInteger = Integer> {
 
   /**
    * Creates a {@link Duration} from an ISO 8601 string
+   * NOTE: Bolt transmits durations as 4 integers: Months, Days, Seconds and Nanoseconds. Parsing strings like P1.5M4.3D will throw an error. P0.5Y can be sent as it can be simplified as 6 months.
    *
    * @param {string} str The string to convert
    * @returns {Duration<NumberOrInteger>}
    */
   static fromString (str: string): Duration<NumberOrInteger> {
-    const matches = String(str).match(/P(?:([-?.,\d]+)Y)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)W)?(?:([-?.,\d]+)D)?T?(?:([-?.,\d]+)H)?(?:([-?.,\d]+)M)?(?:([-?.,\d]+)S)?/)
+    const matches = String(str).match(/P(?:([-.,\d]+)Y)?(?:([-?.,\d]+)M)?(?:([-.,\d]+)W)?(?:([-.,\d]+)D)?T?(?:([-.,\d]+)H)?(?:([-.,\d]+)M)?(?:([-.,\d]+)S)?/)
     if (matches !== null) {
-      const dur = new Duration(
-        ~~parseInt(matches[1]) * 12 + ~~parseInt(matches[2]),
-        ~~parseInt(matches[3]) * 7 + ~~parseInt(matches[4]),
-        ~~parseInt(matches[5]) * 3600 + ~~parseInt(matches[6]) * 60 + ~~parseInt(matches[7]),
-        Math.round((parseFloat(matches[7]) - parseInt(matches[7])) * 10 ** 9)
-      )
-      return dur
+        let months = parseDurationFloat(matches[1], "Years") * 12 + parseDurationFloat(matches[2], "Months")
+        let days = parseDurationFloat(matches[3], "Weeks") * 7 + parseDurationFloat(matches[4], "Days")
+        let seconds = parseDurationFloat(matches[5], "Hours") * 3600 + parseDurationFloat(matches[6], "Minutes") * 60 + ~~parseInt(matches[7])
+        let nanos = parseDurationNanos(matches[7])
+      checkDurationFieldIsInt(months, "Months")
+      checkDurationFieldIsInt(days, "Days")
+      checkDurationFieldIsInt(seconds, "Seconds")
+      checkDurationFieldIsInt(nanos, "Nanoseconds")
+      return new Duration(months, days, seconds, nanos)
     }
     throw newError('Duration could not be parsed from string')
   }
@@ -984,5 +987,28 @@ function verifyStandardDateAndNanos (
   assertValidDate(standardDate, 'Standard date')
   if (nanosecond !== null && nanosecond !== undefined) {
     assertNumberOrInteger(nanosecond, 'Nanosecond')
+  }
+}
+
+function parseDurationFloat(str: string, field: string): number {
+  if (str === undefined || str.length === 0) {
+    return 0
+  }
+  else {
+    let value: number =  parseFloat(str)
+    if(isNaN(value) === true) {
+      throw newError(`Failed to parse duration field ${field}. Got string: ${str}.`)
+    }
+    return value
+  }
+}
+
+function parseDurationNanos(str: string): number {
+  return Math.round((parseDurationFloat(str, "Seconds") - ~~parseInt(str)) * 10 ** 9)
+}
+
+function checkDurationFieldIsInt(value: number, field: string): void {
+  if(!Number.isInteger(value)) {
+    throw newError(`Parsing Duration field: ${field} resulted in a non-integer value. Bolt protocol can onlue send durations which can be simplified to integer values of months, days, seconds and nanoseconds. `)
   }
 }

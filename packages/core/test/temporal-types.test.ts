@@ -243,7 +243,8 @@ describe('Duration', () => {
       ['PT-3H-1.001S', new Duration(0, 0, 3600 * -3 - 2, 999000000)],
       ['P1Y4M2D', new Duration(16, 2, 0, 0)],
       ['P4M', new Duration(4, 0, 0, 0)],
-      ['PT4M', new Duration(0, 0, 240, 0)]
+      ['PT4M', new Duration(0, 0, 240, 0)],
+      ['P0.5Y', new Duration(6, 0, 0, 0)]
     ])('should successfully convert duration strings', (string: string, expected: Duration<number>) => {
       expect(Duration.fromString(string)).toEqual(expected)
     })
