@@ -1008,6 +1008,6 @@ function parseDurationNanos (str: string): number {
 
 function checkDurationFieldIsInt (value: number, field: string): void {
   if (!Number.isInteger(value)) {
-    throw newError(`Parsing Duration field: ${field} resulted in a non-integer value. Bolt protocol can onlue send durations which can be simplified to integer values of months, days, seconds and nanoseconds. `)
+    throw newError(`Parsing Duration field: ${field} resulted in a non-integer value. Bolt protocol can onlue send durations which can be simplified to integer values of months, days, seconds and nanoseconds.`)
   }
 }

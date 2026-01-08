@@ -248,6 +248,12 @@ describe('Duration', () => {
     ])('should successfully convert duration strings', (string: string, expected: Duration<number>) => {
       expect(Duration.fromString(string)).toEqual(expected)
     })
+    it.each([
+      ['P0.5M', 'Parsing Duration field: Months resulted in a non-integer value. Bolt protocol can onlue send durations which can be simplified to integer values of months, days, seconds and nanoseconds.'],
+      ['P..0.2..25M', 'Failed to parse duration field Months. Got string: ..0.2..25.']
+    ])('should successfully convert duration strings', (string: string, expected: string) => {
+      expect(() => Duration.fromString(string)).toThrow(expected)
+    })
   })
 })
 
