@@ -5,6 +5,7 @@
   "devDependencies": {
     "@types/node": "^24.0.10",
     "husky": "^8.0.3",
+    "lerna": "^9.0.3",
     "lint-staged": "^16.2.3",
     "standard": "^17.1.2",
     "ts-standard": "^12.0.2",
@@ -59,6 +60,7 @@
     "start-testkit-backend::deno": "pnpm -C packages/testkit-backend run start::deno",
     "start-benchkit-backend": "pnpm -C packages/benchkit-backend run start",
     "prepare": "husky install",
+    "lerna": "lerna",
     "lint-staged": "lint-staged",
     "lint": "pnpm run lint::core && npm run lint::bolt-connection && pnpm run lint::bolt-connection && pnpm run lint::neo4j-driver-lite && pnpm run lint::neo4j-driver && pnpm run lint::testkit-backend && pnpm run lint::benchkit-backend",
     "lint::core": "pnpm run ts-standard::core -- packages/core/src/ && pnpm run ts-standard::core -- packages/core/test/",
