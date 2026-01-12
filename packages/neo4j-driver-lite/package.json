@@ -17,8 +17,6 @@
     "test::integration": "jest -c jest.integration.config.ts",
     "test::browser": "jest -c jest.browser.config.ts",
     "test::unit": "pnpm run test",
-    "version::set_version.ts": "sed 's/0.0.0-dev/'$VERSION'/g' src/version.ts > src/version.tmp && mv src/version.tmp src/version.ts",
-    "versionRelease": "pnpm version $VERSION --no-git-tag-version && pnpm run version::set_version.ts",
     "build::es6": "tsc -p tsconfig.build.json --target ES6 --outdir lib6",
     "predocs": "pnpm run build && pnpm run build::es6",
     "docs": "esdoc -c esdoc.json",

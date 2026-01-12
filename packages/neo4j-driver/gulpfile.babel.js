@@ -137,26 +137,6 @@ gulp.task('watch', function () {
   )
 })
 
-/** Set the project version, controls package.json and version.js */
-gulp.task('set', function () {
-  // example: gulp set --x 4.0.2
-
-  // Get the --x arg from command line
-  const command = minimist(process.argv.slice(2), { string: 'x' })
-  const version = command.x
-
-  if (!semver.valid(version)) {
-    throw new Error(`Invalid version "${version}"`)
-  }
-
-  // Change the version in relevant files
-  const versionFile = path.join('src', 'version.js')
-  return gulp
-    .src([versionFile], { base: './' })
-    .pipe(replace('0.0.0-dev', version))
-    .pipe(gulp.dest('./'))
-})
-
 gulp.task('start-neo4j', function (done) {
   sharedNeo4j.start().then(done).catch(error => done.fail(error))
 })
