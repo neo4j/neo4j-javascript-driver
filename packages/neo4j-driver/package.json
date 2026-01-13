@@ -31,6 +31,7 @@
     "run-stress-tests": "gulp run-stress-tests",
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "esdoc -c esdoc.json",
+    "versionRelease": "gulp set --x $VERSION && pnpm version $VERSION --no-git-tag-version",
     "browser": "gulp browser && gulp test-browser",
     "prepare": "pnpm run build",
     "clean": "rm -fr node_modules lib build"
@@ -50,9 +51,9 @@
     "@babel/runtime": "^7.20.7",
     "@rollup/plugin-commonjs": "^21.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
-    "@types/jest": "^29.5.14",
     "@types/node": "^24.3.0",
     "@types/vinyl": "^2.0.12",
+    "@types/jest": "^29.5.14",
     "async": "^3.2.5",
     "browser-resolve": "^2.0.0",
     "browserify-sign": "^4.2.2",
