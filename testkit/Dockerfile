@@ -74,7 +74,7 @@ WORKDIR /home/driver
 
 # Add pnpm
 RUN npm install --global corepack@latest \
-    && cache clean --force
+    && npm cache clean --force
 RUN corepack enable pnpm --install-directory ~ \
     && corepack use pnpm@latest-10 \
     && corepack cache clean
