@@ -73,9 +73,11 @@ RUN chown -Rh driver:driver /home/driver
 WORKDIR /home/driver
 
 # Add pnpm
-RUN npm install --global corepack@latest
-RUN corepack enable pnpm --install-directory ~
-RUN corepack use pnpm@latest-10
+RUN npm install --global corepack@latest \
+    && cache clean --force
+RUN corepack enable pnpm --install-directory ~ \
+    && corepack use pnpm@latest-10 \
+    && corepack cache clean
 
 USER driver
 WORKDIR /home/driver
