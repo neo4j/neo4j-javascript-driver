@@ -9,8 +9,8 @@
     "build": "tsc",
     "test": "jest --passWithNoTests",
     "test::watch": "jest --watch",
-    "test::unit": "npm run test",
-    "prepare": "npm run build",
+    "test::unit": "pnpm run test",
+    "prepare": "pnpm run build",
     "clean": "rm -fr node_modules lib"
   },
   "repository": {
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "buffer": "^6.0.3",
-    "neo4j-driver-core": "6.0.0-dev",
+    "neo4j-driver-core": "workspace:*",
     "string_decoder": "^1.3.0"
   }
 }

@@ -1,11 +1,4 @@
 {
-  "packages": [
-    "packages/*"
-  ],
   "version": "6.0.0-dev",
-  "command": {
-    "publish": {
-      "verifyAccess": false
-    }
-  }
+  "npmClient": "pnpm"
 }
