@@ -22,11 +22,11 @@ describe('neo4j-driver-lite', () => {
 
   beforeAll(async () => {
     await Config.startNeo4j()
-  }, 20000)
+  }, 60000)
 
   afterAll(async () => {
     await Config.stopNeo4j()
-  }, 20000)
+  }, 60000)
 
   beforeEach(() => {
     driver = neo4j.driver(

@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
-ARG NODE_VERSION=10
-ARG DENO_VERSION=1.37.2
+ARG NODE_VERSION=18
+ARG DENO_VERSION=2.5.1
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV NODE_OPTIONS --max_old_space_size=4096 --use-openssl-ca
@@ -59,14 +59,19 @@ VOLUME /driver
 RUN chown -Rh driver:driver /home/driver
 WORKDIR /home/driver
 
+# Add pnpm
+RUN npm install --global corepack@latest
+RUN corepack enable pnpm --install-directory ~
+RUN corepack use pnpm@latest-10
+
 USER driver
 WORKDIR /home/driver
 CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
 RUN npm config set prefix /home/driver/.npm_global
 
-
 ## Versions
 RUN node --version
 RUN npm --version
+RUN pnpm --version
 RUN deno --version

@@ -14,8 +14,9 @@
     "start": "node --version | grep -q v10. && node -r esm src/index.js || node --experimental-specifier-resolution=node src/index.js",
     "start::deno": "deno run --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run deno/index.ts",
     "clean": "rm -fr node_modules public/index.js",
-    "prepare": "npm run build",
-    "node": "node"
+    "prepare": "pnpm run build",
+    "node": "node",
+    "deno": "deno run --allow-read --allow-write --allow-net --allow-env --allow-sys --allow-run"
   },
   "repository": {
     "type": "git",
@@ -32,9 +33,10 @@
   },
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "dependencies": {
-    "neo4j-driver": "5.0.0-dev",
-    "neo4j-driver-lite": "5.0.0-dev",
-    "ws": "^8.11.0"
+    "neo4j-driver": "workspace:*",
+    "neo4j-driver-lite": "workspace:*",
+    "ws": "^8.11.0",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.1.0",

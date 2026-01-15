@@ -13,14 +13,13 @@ def copy_files_to_workdir():
 
 def init_monorepo():
     run_in_driver_repo(["rm", "-fr", "node_modules"], env=os.environ)
-    run_in_driver_repo(["npm", "ci"], env=os.environ)
+    run_in_driver_repo(["pnpm", "build"], env=os.environ)
 
 
 def clean_and_build():
-    run_in_driver_repo(["npm", "run", "clean"], env=os.environ)
-    run_in_driver_repo(["npm", "run", "build"], env=os.environ)
-    run_in_driver_repo(["npm", "run", "build::deno", "--", "--",
-                        "--output=lib2/"], env=os.environ)
+    run_in_driver_repo(["pnpm", "run", "clean"], env=os.environ)
+    run_in_driver_repo(["pnpm", "run", "build"], env=os.environ)
+    run_in_driver_repo(["pnpm", "run", "build::deno", "--output=lib2/"], env=os.environ)
 
     if is_deno() and is_team_city():
         run_in_driver_repo(["diff", "-r", "-u",
