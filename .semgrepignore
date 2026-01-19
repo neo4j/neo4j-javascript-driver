@@ -7,7 +7,7 @@
 # Package manager files
 */node_modules/
 .npm/
-*/package-lock.json
+pnpm-lock.yaml
 
 packages/benchkit-backend
 packages/testkit-backend
