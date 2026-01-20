@@ -1,0 +1,17 @@
+:include .gitignore
+
+.git
+.github
+.husky
+
+# Package manager files
+*/node_modules/
+.npm/
+pnpm-lock.yaml
+
+packages/benchkit-backend
+packages/testkit-backend
+packages/*/test
+testkit/
+benchkit/
+

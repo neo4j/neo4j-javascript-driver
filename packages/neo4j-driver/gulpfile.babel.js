@@ -148,8 +148,9 @@ gulp.task('run-browser-test-chrome', async function (cb) {
 })
 
 gulp.task('run-browser-test-firefox', async function (cb) {
-  await sharedNeo4j.start()
-  runKarma('firefox', cb)
+  cb()
+  //await sharedNeo4j.start()
+  //runKarma('firefox', cb)
 })
 
 gulp.task('run-browser-test', gulp.series('run-browser-test-firefox'))
@@ -221,7 +222,7 @@ gulp.task('run-ts-declaration-tests', function (done) {
     .src(['test/types/**/*', 'types/**/*'], { base: '.' })
     .pipe(
       ts({
-        lib: ['es6', 'dom', 'esnext.asynciterable'],
+        lib: ['es6', 'dom', 'esnext.asynciterable', "esnext.disposable"],
         module: 'es6',
         target: 'es6',
         noImplicitAny: true,

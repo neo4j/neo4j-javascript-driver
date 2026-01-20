@@ -1,0 +1,7 @@
+packages: 
+  - 'packages/*'
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - "ua-parser-js" # later major versions have elevated trust
+  - "semver" # later major versions have elevated trust
+blockExoticSubdeps: true

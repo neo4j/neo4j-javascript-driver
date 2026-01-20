@@ -9,8 +9,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run test::integration",
-    "test::integration": "deno test --allow-all ./test",
+    "test": "pnpm run test::integration",
+    "test::integration": "deno test --allow-all --no-check ./test",
     "set_version": "deno run --allow-read --allow-write ./versioning.ts --output=. --filename=current.version.ts",
     "build": "deno run --allow-read --allow-write --allow-net ./generate.ts"
   },

@@ -6,22 +6,22 @@
   "types": "types/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "build::browser": "rollup --config rollup.config.js && npm run minify",
+    "build::browser": "rollup --config rollup.config.js && pnpm run minify",
     "uglify": "uglifyjs --mangle --compress",
-    "minify": "npm run minify::esm && npm run minify::umd",
-    "minify::esm": "npm run uglify -- -o lib/browser/neo4j-lite-web.esm.min.js -- lib/browser/neo4j-lite-web.esm.js",
-    "minify::umd": "npm run uglify -- -o lib/browser/neo4j-lite-web.min.js -- lib/browser/neo4j-lite-web.js",
+    "minify": "pnpm run minify::esm && pnpm run minify::umd",
+    "minify::esm": "pnpm run uglify -o lib/browser/neo4j-lite-web.esm.min.js -- lib/browser/neo4j-lite-web.esm.js",
+    "minify::umd": "pnpm run uglify -o lib/browser/neo4j-lite-web.min.js -- lib/browser/neo4j-lite-web.js",
     "test": "jest",
     "test::watch": "jest --watch",
     "test::integration": "jest -c jest.integration.config.ts",
     "test::browser": "jest -c jest.browser.config.ts",
-    "test::unit": "npm run test",
+    "test::unit": "pnpm run test",
     "version::set_version.ts": "sed 's/0.0.0-dev/'$VERSION'/g' src/version.ts > src/version.tmp && mv src/version.tmp src/version.ts",
-    "versionRelease": "npm version $VERSION --no-git-tag-version && npm run version::set_version.ts",
+    "versionRelease": "pnpm run version::set_version.ts",
     "build::es6": "tsc -p tsconfig.build.json --target ES6 --outdir lib6",
-    "predocs": "npm run build && npm run build::es6",
+    "predocs": "pnpm run build && pnpm run build::es6",
     "docs": "esdoc -c esdoc.json",
-    "prepare": "npm run build && npm run build::browser",
+    "prepare": "pnpm run build && pnpm run build::browser",
     "clean": "rm -fr node_modules lib types"
   },
   "unpkg": "lib/browser/neo4j-lite-web.js",
@@ -44,6 +44,7 @@
     "@rollup/plugin-commonjs": "^21.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@types/jest": "^29.5.10",
+    "@types/node": "^24.3.0",
     "browser-resolve": "^2.0.0",
     "browserify-sign": "^4.2.2",
     "esdoc": "^1.1.0",
@@ -56,12 +57,12 @@
     "testcontainers": "^8.16.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.5",
+    "typescript": "^5.9.2",
     "uglify-js": "^3.17.4",
     "ws": "^8.14.2"
   },
   "dependencies": {
-    "neo4j-driver-bolt-connection": "5.0.0-dev",
-    "neo4j-driver-core": "5.0.0-dev"
+    "neo4j-driver-bolt-connection": "workspace:*",
+    "neo4j-driver-core": "workspace:*"
   }
 }
