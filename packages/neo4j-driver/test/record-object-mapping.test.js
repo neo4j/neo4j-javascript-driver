@@ -313,12 +313,16 @@ describe('#integration record object mapping', () => {
     const rules = {
       number: neo4j.rule.asNumber(),
       string: neo4j.rule.asString(),
-      bigint: neo4j.rule.asBigInt(),
+      bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
       date: neo4j.rule.asDate(),
       dateTime: neo4j.rule.asDateTime(),
       duration: neo4j.rule.asDuration(),
-      time: neo4j.rule.asTime({ from: 'heyaaaa' }),
+      time: neo4j.rule.asTime({ from: 'wakeup' }),
       list: neo4j.rule.asList({ apply: neo4j.rule.asString() })
+    }
+
+    const nodeRule = {
+      n: neo4j.rule.asNode({ convert: (node) => node.as(rules) })
     }
 
     const obj = {
@@ -334,8 +338,15 @@ describe('#integration record object mapping', () => {
 
     neo4j.RecordObjectMapping.translateIdentifiers(neo4j.RecordObjectMapping.getCaseTranslator('snake_case', 'camelCase'))
 
-    const res = await session.run('MERGE (n {string: $string, number: $number, bigint: $bigint, date: $date, date_time: $date_time, duration: $duration, time: $heyaaaa, list: $list}) RETURN n', obj, {}, rules)
-
-    expect(res.records[0].get('n').properties.date_time).toEqual(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1))
+    const res = await session.run('MERGE (n {string: $string, number: $number, bigint: $bigint, date: $date, date_time: $date_time, duration: $duration, wakeup: $wakeup, list: $list}) RETURN n', obj, {}, rules).as(nodeRule)
+    const node = res.records[0].n
+    expect(node.string).toEqual('hi')
+    expect(node.number).toEqual(1)
+    expect(node.bigint).toEqual(BigInt(1))
+    expect(node.date).toEqual(new neo4j.Date(1, 1, 1))
+    expect(node.dateTime).toEqual(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1))
+    expect(node.duration).toEqual(new neo4j.Duration(1, 1, 1, 1))
+    expect(node.time).toEqual(new neo4j.Time(1, 1, 1, 1, 1))
+    expect(node.list).toEqual(['hi'])
   })
 })
