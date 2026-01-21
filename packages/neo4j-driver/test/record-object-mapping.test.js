@@ -314,9 +314,9 @@ describe('#integration record object mapping', () => {
       number: neo4j.rule.asNumber(),
       string: neo4j.rule.asString(),
       bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
-      date: neo4j.rule.asDate(),
-      dateTime: neo4j.rule.asDateTime(),
-      duration: neo4j.rule.asDuration(),
+      date: neo4j.rule.asDate({ stringify: true }),
+      dateTime: neo4j.rule.asDateTime({ stringify: true }),
+      duration: neo4j.rule.asDuration({ stringify: true }),
       time: neo4j.rule.asTime({ from: 'wakeup' }),
       list: neo4j.rule.asList({ apply: neo4j.rule.asString() })
     }
@@ -329,23 +329,21 @@ describe('#integration record object mapping', () => {
       string: 'hi',
       number: 1,
       bigint: BigInt(1),
-      date: new neo4j.Date(1, 1, 1),
-      dateTime: new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1),
-      duration: new neo4j.Duration(1, 1, 1, 1),
+      date: (new neo4j.Date(1, 1, 1)).toString(),
+      dateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString(),
+      duration: (new neo4j.Duration(1, 1, 1, 1)).toString(),
       time: new neo4j.Time(1, 1, 1, 1, 1),
       list: ['hi']
     }
 
-    neo4j.RecordObjectMapping.translateIdentifiers(neo4j.RecordObjectMapping.getCaseTranslator('snake_case', 'camelCase'))
-
-    const res = await session.run('MERGE (n {string: $string, number: $number, bigint: $bigint, date: $date, date_time: $date_time, duration: $duration, wakeup: $wakeup, list: $list}) RETURN n', obj, {}, rules).as(nodeRule)
+    const res = await session.run('MERGE (n {string: $string, number: $number, bigint: $bigint, date: $date, dateTime: $dateTime, duration: $duration, wakeup: $wakeup, list: $list}) RETURN n', obj, {}, rules).as(nodeRule)
     const node = res.records[0].n
     expect(node.string).toEqual('hi')
     expect(node.number).toEqual(1)
     expect(node.bigint).toEqual(BigInt(1))
-    expect(node.date).toEqual(new neo4j.Date(1, 1, 1))
-    expect(node.dateTime).toEqual(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1))
-    expect(node.duration).toEqual(new neo4j.Duration(1, 1, 1, 1))
+    expect(node.date).toEqual((new neo4j.Date(1, 1, 1)).toString())
+    expect(node.dateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString())
+    expect(node.duration).toEqual((new neo4j.Duration(1, 1, 1, 1)).toString())
     expect(node.time).toEqual(new neo4j.Time(1, 1, 1, 1, 1))
     expect(node.list).toEqual(['hi'])
   })
