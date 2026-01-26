@@ -96,8 +96,5 @@
     "neo4j-driver-bolt-connection": "6.0.0-dev",
     "neo4j-driver-core": "6.0.0-dev",
     "rxjs": "^7.8.2"
-  },
-  "overrides": {
-    "graceful-fs": "^4.2.11"
   }
 }

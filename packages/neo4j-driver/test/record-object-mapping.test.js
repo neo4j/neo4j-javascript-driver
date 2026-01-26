@@ -316,9 +316,11 @@ describe('#integration record object mapping', () => {
       bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
       date: neo4j.rule.asDate({ stringify: true }),
       dateTime: neo4j.rule.asDateTime({ stringify: true }),
+      standardDateTime: neo4j.rule.asDateTime({ toStandardDate: true }),
       duration: neo4j.rule.asDuration({ stringify: true }),
       time: neo4j.rule.asTime({ from: 'wakeup' }),
-      list: neo4j.rule.asList({ apply: neo4j.rule.asString() })
+      list: neo4j.rule.asList({ apply: neo4j.rule.asString() }),
+      dateList: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ toStandardDate: true }) })
     }
 
     const nodeRule = {
@@ -331,20 +333,39 @@ describe('#integration record object mapping', () => {
       bigint: BigInt(1),
       date: (new neo4j.Date(1, 1, 1)).toString(),
       dateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString(),
+      standardDateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate(),
       duration: (new neo4j.Duration(1, 1, 1, 1)).toString(),
       time: new neo4j.Time(1, 1, 1, 1, 1),
-      list: ['hi']
+      list: ['hi'],
+      dateList: [(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]
     }
 
-    const res = await session.run('MERGE (n {string: $string, number: $number, bigint: $bigint, date: $date, dateTime: $dateTime, duration: $duration, wakeup: $wakeup, list: $list}) RETURN n', obj, {}, rules).as(nodeRule)
+    const res = await session.run('MERGE (n {string: $string, number: $number, bigint: $bigint, date: $date, dateTime: $dateTime, standardDateTime: $standardDateTime, duration: $duration, wakeup: $wakeup, list: $list, dateList: $dateList}) RETURN n', obj, {}, rules).as(nodeRule)
     const node = res.records[0].n
     expect(node.string).toEqual('hi')
     expect(node.number).toEqual(1)
     expect(node.bigint).toEqual(BigInt(1))
     expect(node.date).toEqual((new neo4j.Date(1, 1, 1)).toString())
     expect(node.dateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString())
+    expect(node.standardDateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate())
     expect(node.duration).toEqual((new neo4j.Duration(1, 1, 1, 1)).toString())
     expect(node.time).toEqual(new neo4j.Time(1, 1, 1, 1, 1))
     expect(node.list).toEqual(['hi'])
+    expect(node.dateList).toEqual([(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()])
+  })
+
+  it('map nestedList as mapped parameter', async () => {
+    const session = driverGlobal.session()
+
+    const rules = {
+      nestedList: neo4j.rule.asList({ apply: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ toStandardDate: true }) }) })
+    }
+
+    const obj = {
+      nestedList: [[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]]
+    }
+
+    const res = await session.run('return {nestedList: $nestedList', obj, {}, rules).as(rules)
+    expect(res.records[0].n.nestedList).toEqual([[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]])
   })
 })

@@ -190,7 +190,10 @@ export function validateAndcleanParameters (params: Record<string, any>, supplie
   const parameterRules = getRules(params.constructor, suppliedRules)
   if (parameterRules !== undefined) {
     for (const key in parameterRules) {
-      if (!(parameterRules?.[key]?.optional === true)) {
+      if (parameterRules?.[key]?.optional === true && params[key] == null) {
+        cleanedParams[key] = params[key]
+      }
+      else {
         let param = params[key]
         if (parameterRules[key]?.parameterConversion !== undefined) {
           param = parameterRules[key].parameterConversion(params[key])
