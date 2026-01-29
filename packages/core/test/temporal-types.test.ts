@@ -195,7 +195,8 @@ describe('DateTime', () => {
     it.each([
       ['2026-01-05T15:36:42.01+01:00', new DateTime(2026, 1, 5, 15, 36, 42, 10000000, 3600)],
       ['2026-01-05T15:36:42.01-01:00', new DateTime(2026, 1, 5, 15, 36, 42, 10000000, -3600)],
-      ['2026-01-05T15:36:42Z', new DateTime(2026, 1, 5, 15, 36, 42, 0, 0)]
+      ['2026-01-05T15:36:42Z', new DateTime(2026, 1, 5, 15, 36, 42, 0, 0)],
+      ['2026-01-05T15:36:42[America/Anchorage]', new DateTime(2026, 1, 5, 15, 36, 42, 0, undefined, 'America/Anchorage')]
     ])('should successfully convert date strings', (string: string, expected: DateTime<number>) => {
       expect(DateTime.fromString(string)).toEqual(expected)
     })
@@ -249,9 +250,9 @@ describe('Duration', () => {
       expect(Duration.fromString(string)).toEqual(expected)
     })
     it.each([
-      ['P0.5M', 'Parsing Duration field: Months resulted in a non-integer value. Bolt protocol can onlue send durations which can be simplified to integer values of months, days, seconds and nanoseconds.'],
+      ['P0.5M', 'Parsing Duration field: Months resulted in a non-integer value. Bolt protocol can only send durations which can be simplified to integer values of months, days, seconds and nanoseconds.'],
       ['P..0.2..25M', 'Failed to parse duration field Months. Got string: ..0.2..25.']
-    ])('should successfully convert duration strings', (string: string, expected: string) => {
+    ])('should fail to parse invalid duration strings', (string: string, expected: string) => {
       expect(() => Duration.fromString(string)).toThrow(expected)
     })
   })

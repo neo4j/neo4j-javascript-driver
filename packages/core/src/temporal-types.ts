@@ -849,7 +849,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    * @returns {DateTime<NumberOrInteger>}
    */
   static fromString (str: string): DateTime<NumberOrInteger> {
-    const values = String(str).match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\.\d+)?(Z|\+|-)?(\d*):?(\d*):?(\d*)/)
+    const values = String(str).match(/(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)(\.\d+)?(Z|\+|-)?(\d*):?(\d*):?(\d*)?(\[)?([^\]]*)?(\])?/)
     if (values !== null) {
       if (values[8] === 'Z') {
         return new DateTime(
@@ -863,16 +863,31 @@ export class DateTime<T extends NumberOrInteger = Integer> {
           0
         )
       }
-      return new DateTime(
-        parseInt(values[1]),
-        parseInt(values[2]),
-        parseInt(values[3]),
-        parseInt(values[4]),
-        parseInt(values[5]),
-        parseInt(values[6]),
-        Math.round(parseFloat('0' + values[7]) * 10 ** 9),
-        (values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11]))
-      )
+      if (values[8] === '+' || values[8] === '-') {
+        return new DateTime(
+          parseInt(values[1]),
+          parseInt(values[2]),
+          parseInt(values[3]),
+          parseInt(values[4]),
+          parseInt(values[5]),
+          parseInt(values[6]),
+          Math.round(parseFloat('0' + values[7]) * 10 ** 9),
+          (values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11]))
+        )
+      }
+      if (values[13] !== undefined) {
+        return new DateTime(
+          parseInt(values[1]),
+          parseInt(values[2]),
+          parseInt(values[3]),
+          parseInt(values[4]),
+          parseInt(values[5]),
+          parseInt(values[6]),
+          Math.round(parseFloat('0' + values[7]) * 10 ** 9),
+          undefined,
+          values[13]
+        )
+      }
     }
     throw newError('DateTime could not be parsed from string')
   }
@@ -1008,6 +1023,6 @@ function parseDurationNanos (str: string): number {
 
 function checkDurationFieldIsInt (value: number, field: string): void {
   if (!Number.isInteger(value)) {
-    throw newError(`Parsing Duration field: ${field} resulted in a non-integer value. Bolt protocol can onlue send durations which can be simplified to integer values of months, days, seconds and nanoseconds.`)
+    throw newError(`Parsing Duration field: ${field} resulted in a non-integer value. Bolt protocol can only send durations which can be simplified to integer values of months, days, seconds and nanoseconds.`)
   }
 }
