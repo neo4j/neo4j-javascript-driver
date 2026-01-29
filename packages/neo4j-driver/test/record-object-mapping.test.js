@@ -365,7 +365,7 @@ describe('#integration record object mapping', () => {
       nestedList: [[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]]
     }
 
-    const res = await session.run('return {nestedList: $nestedList', obj, {}, rules).as(rules)
-    expect(res.records[0].n.nestedList).toEqual([[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]])
+    const res = await session.run('return $nestedList as nestedList', obj, {}, rules).as(rules)
+    expect(res.records[0].nestedList).toEqual([[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]])
   })
 })
