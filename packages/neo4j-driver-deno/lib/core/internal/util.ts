@@ -74,6 +74,7 @@ function validateQueryAndParameters (
   let params = parameters ?? {}
   let parameterRules = opt?.parameterRules
   const skipAsserts: boolean = opt?.skipAsserts ?? false
+
   if (typeof query === 'string') {
     validatedQuery = query
   } else if (query instanceof String) {
