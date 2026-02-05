@@ -78,7 +78,7 @@
     "lolex": "^6.0.0",
     "minimist": "^1.2.8",
     "rollup": "^2.77.4-1",
-    "rollup-plugin-polyfill-node": "^0.11.0",
+    "rollup-plugin-polyfill-node": "^0.13.0",
     "semver": "^7.5.4",
     "source-map": "0.7.4",
     "testcontainers": "^8.16.0",
