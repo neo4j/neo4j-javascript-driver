@@ -81,7 +81,7 @@
     "rollup-plugin-polyfill-node": "^0.11.0",
     "semver": "^7.5.4",
     "source-map": "0.7.4",
-    "testcontainers": "^8.16.0",
+    "testcontainers": "^11.11.0",
     "tmp": "0.2.1",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
