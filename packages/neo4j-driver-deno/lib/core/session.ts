@@ -177,6 +177,17 @@ class Session {
    * Could be called with a query object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
    * or with the query and parameters as separate arguments.
    *
+   * This is an auto-commit query, meaning the server will commit the results without further input.
+   *
+   * The transaction is guaranteed to be committed anywhere between the start of
+   * it (i.e., calling :meth:`neo4j.Session.run`) and fully consuming the
+   * returned {@link Result}. The Result can be consumed as a promise or lazily using {@link Result#subscribe}.
+   *
+   * If the code moves on (i.e by calling {@link Session#close} or by starting another session)
+   * before the Result is fully consumed, it will be consumed in th background. However,
+   * in this case any error that occurs will be swallowed silently. Therefore, it is reccomended to always
+   * fully consume Results from Session.run.
+   *
    * @public
    * @param {mixed} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in query
