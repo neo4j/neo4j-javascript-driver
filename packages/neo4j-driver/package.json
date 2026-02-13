@@ -77,7 +77,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "lolex": "^6.0.0",
     "minimist": "^1.2.8",
-    "rollup": "^2.77.4-1",
+    "rollup": "^4.57.1",
     "rollup-plugin-polyfill-node": "^0.11.0",
     "semver": "^7.5.4",
     "source-map": "0.7.4",
