@@ -46,7 +46,7 @@
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.1.0",
-    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@types/jest": "^29.5.10",
     "browser-resolve": "^2.0.0",
     "browserify-sign": "^4.2.2",
