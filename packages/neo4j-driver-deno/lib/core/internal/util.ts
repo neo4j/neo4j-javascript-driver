@@ -82,7 +82,7 @@ function validateQueryAndParameters (
   } else if (typeof query === 'object' && query.text != null) {
     validatedQuery = query.text
     params = query.parameters ?? {}
-    parameterRules = query.parameterRules
+    parameterRules = query.parameterRules ?? parameterRules
   }
 
   if (!skipAsserts) {
