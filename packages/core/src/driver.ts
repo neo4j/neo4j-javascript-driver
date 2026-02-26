@@ -607,7 +607,7 @@ class Driver {
    * }
    *
    * @public
-   * @param {string | {text: string, parameters?: object}} query - Cypher query to execute
+   * @param {string | {text: string, parameters?: object, parameterRules?: Rules}} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in the query
    * @param {QueryConfig<T>} config - The query configuration
    * @returns {Promise<T>}

@@ -37,7 +37,7 @@ export type Rules = Record<string, Rule>
 
 export let rulesRegistry: Record<string, Rules> = {}
 
-export let nameMapping: (name: string) => string = (name) => name
+export let defaultNameMapping: (name: string) => string = (name) => name
 
 function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
   rulesRegistry[constructor.name] = rules
@@ -48,7 +48,7 @@ function clearMappingRegistry (): void {
 }
 
 function translateIdentifiers (translationFunction: (name: string) => string): void {
-  nameMapping = translationFunction
+  defaultNameMapping = translationFunction
 }
 
 function getCaseTranslator (databaseConvention: string, codeConvention: string): ((name: string) => string) {
@@ -108,6 +108,8 @@ export const RecordObjectMapping = Object.freeze({
  * Sets a default name translation from record keys to object properties.
  * If providing a function, provide a function that maps FROM your object properties names TO record key names.
  *
+ * NOTE: The keys of objects inside a record will only be translated if using the asObject rule with it, not by default.
+ *
  * The function getCaseTranslator can be used to provide a prewritten translation function between some common naming conventions.
  *
  * @example
@@ -157,7 +159,7 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 }
 
 function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: Rule): void {
-  const mappedkey = nameMapping(key)
+  const mappedkey = defaultNameMapping(key)
   const value = gettable.get(rule?.from ?? mappedkey)
   const field = `${obj.constructor.name}#${key}`
   const processedValue = valueAs(value, field, rule)
@@ -177,41 +179,41 @@ export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
   return ((rule?.convert) != null) ? rule.convert(value, field) : value
 }
 
-export function optionalParameterConversion (value: unknown, rule?: Rule): unknown {
-  if (rule?.optional === true && value == null) {
+export function optionalParameterConversion (value: unknown, rule: Rule): unknown {
+  if (rule.optional === true && value == null) {
     return value
   }
   return ((rule?.parameterConversion) != null) ? rule.parameterConversion(value) : value
 }
 
-export function validateAndcleanParameters (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
+export function validateAndCleanParameters (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
   const cleanedParams: Record<string, any> = {}
-  // @ts-expect-error
-  const parameterRules = getRules(params.constructor, suppliedRules)
-  if (parameterRules !== undefined) {
+  const parameterRules = getRules(Object.getPrototypeOf(params).constructor, suppliedRules)
+  if (parameterRules != null) {
     for (const key in parameterRules) {
-      if (!(parameterRules?.[key]?.optional === true)) {
-        let param = params[key]
-        if (parameterRules[key]?.parameterConversion !== undefined) {
-          param = parameterRules[key].parameterConversion(params[key])
-        }
-        if (param === undefined) {
-          throw newError('Parameter object did not include required parameter.')
-        }
-        if (parameterRules[key].validate != null) {
-          parameterRules[key].validate(param, key)
-          // @ts-expect-error
-          if (parameterRules[key].apply !== undefined) {
-            for (const entryKey in param) {
-              // @ts-expect-error
-              parameterRules[key].apply.validate(param[entryKey], entryKey)
-            }
+      let param = params[key]
+      if (param == null && parameterRules[key].optional === true) {
+        continue
+      }
+      if (parameterRules[key].parameterConversion != null) {
+        param = parameterRules[key].parameterConversion(param)
+        if (param == null) {
+          if (parameterRules[key].optional !== true) {
+            throw newError(
+              `Mapped Parameter object did not include required parameter with key ${key}, 
+              check provided parameters and parameter rules.`
+            )
+          } else {
+            continue
           }
         }
-        const mappedKey = parameterRules[key].from ?? nameMapping(key)
-
-        cleanedParams[mappedKey] = param
       }
+      if (parameterRules[key].validate != null) {
+        parameterRules[key].validate(param, key)
+      }
+      const mappedKey = parameterRules[key].from ?? defaultNameMapping(key)
+
+      cleanedParams[mappedKey] = param
     }
     return cleanedParams
   } else {

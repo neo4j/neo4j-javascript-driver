@@ -17,11 +17,12 @@
  * limitations under the License.
  */
 
-import { Rule, valueAs, optionalParameterConversion } from './mapping.highlevel'
+import { Rule, valueAs, optionalParameterConversion, Rules, defaultNameMapping } from './mapping.highlevel'
 import { JSDate, StandardDate, isNode, isPath, isRelationship, isUnboundRelationship } from './graph-types'
 import { isPoint } from './spatial-types'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types'
 import Vector, { vector } from './vector'
+import { newError } from './error'
 
 /**
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.
@@ -40,13 +41,13 @@ import Vector, { vector } from './vector'
  *
  * @property {function(rule: ?Rule & { stringify?: boolean })} asLocalTime Create a {@link Rule} that validates the value is a {@link LocalTime}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
  *
  * @property {function(rule: ?Rule & { stringify?: boolean })} asTime Create a {@link Rule} that validates the value is a {@link Time}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean })} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean})} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean })} asDate Create a {@link Rule} that validates the value is a {@link Date}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean})} asDate Create a {@link Rule} that validates the value is a {@link Date}.
  *
  * @property {function(rule: ?Rule)} asPoint Create a {@link Rule} that validates the value is a {@link Point}.
  *
@@ -228,7 +229,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Duration}
    *
-   * @param {Rule} rule Configurations for the rule
+   * @param {Rule} rule Configurations for the rule. Setting stringify will automatically convert between strings in user code and Durations in the database.
    * @returns {Rule} A new rule for the value
    */
   asDuration (rule?: Rule & { stringify?: boolean }): Rule {
@@ -246,7 +247,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalTime}
    *
-   * @param {Rule} rule Configurations for the rule
+   * @param {Rule} rule Configurations for the rule. Setting stringify will automatically convert between strings in user code and LocalTimes in the database.
    * @returns {Rule} A new rule for the value
    */
   asLocalTime (rule?: Rule & { stringify?: boolean }): Rule {
@@ -264,7 +265,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Time}
    *
-   * @param {Rule} rule Configurations for the rule
+   * @param {Rule} rule Configurations for the rule. Setting stringify will automatically convert between strings in user code and Times in the database.
    * @returns {Rule} A new rule for the value
    */
   asTime (rule?: Rule & { stringify?: boolean }): Rule {
@@ -282,10 +283,20 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Date}
    *
-   * @param {Rule} rule Configurations for the rule
+   * @param {Rule} rule Configurations for the rule. Setting stringify/JSNativeDate will automatically convert between strings/JavaScript Dates in user code and Dates in the database.
    * @returns {Rule} A new rule for the value
    */
-  asDate (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
+  asDate (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
+    if (rule?.stringify === true && rule?.JSNativeDate === true) {
+      throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
+    }
+    let parameterConversion
+    if (rule?.stringify === true) {
+      parameterConversion = (str: string) => Date.fromStandardDateLocal(new JSDate(str))
+    }
+    if (rule?.JSNativeDate === true) {
+      parameterConversion = (standardDate: StandardDate) => Date.fromStandardDateLocal(standardDate)
+    }
     return {
       validate: (value: any, field: string) => {
         if (!isDate(value)) {
@@ -293,22 +304,25 @@ export const rule = Object.freeze({
         }
       },
       convert: (value: Date) => convertStdDate(value, rule),
-      parameterConversion: rule?.stringify === true ? (str: string) => Date.fromStandardDateLocal(new JSDate(str)) : undefined,
+      parameterConversion,
       ...rule
     }
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalDateTime}
    *
-   * @param {Rule} rule Configurations for the rule
+   * @param {Rule} rule Configurations for the rule. Setting stringify/JSNativeDate will automatically convert between strings/JavaScript Dates in user code and LocalDateTimes in the database.
    * @returns {Rule} A new rule for the value
    */
-  asLocalDateTime (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
+  asLocalDateTime (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
+    if (rule?.stringify === true && rule?.JSNativeDate === true) {
+      throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
+    }
     let parameterConversion
     if (rule?.stringify === true) {
       parameterConversion = (str: string) => LocalDateTime.fromString(str)
     }
-    if (rule?.toStandardDate === true) {
+    if (rule?.JSNativeDate === true) {
       parameterConversion = (standardDate: StandardDate) => LocalDateTime.fromStandardDate(standardDate)
     }
     return {
@@ -325,15 +339,18 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link DateTime}
    *
-   * @param {Rule} rule Configurations for the rule
+   * @param {Rule} rule Configurations for the rule. Setting stringify/JSNativeDate will automatically convert between strings/JavaScript Dates in user code and DateTimes in the database.
    * @returns {Rule} A new rule for the value
    */
-  asDateTime (rule?: Rule & { stringify?: boolean, toStandardDate?: boolean }): Rule {
+  asDateTime (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
+    if (rule?.stringify === true && rule?.JSNativeDate === true) {
+      throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
+    }
     let parameterConversion
     if (rule?.stringify === true) {
       parameterConversion = (str: string) => DateTime.fromString(str)
     }
-    if (rule?.toStandardDate === true) {
+    if (rule?.JSNativeDate === true) {
       parameterConversion = (standardDate: StandardDate) => DateTime.fromStandardDate(standardDate)
     }
     return {
@@ -350,14 +367,18 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a List. Optionally taking a rule for hydrating the contained values.
    *
-   * @param {Rule & { apply?: Rule }} rule Configurations for the rule
+   * @param {Rule & { apply?: Rule }} rule Configurations for the rule. Setting apply to a rule will apply that rule to all elements of the list.
    * @returns {Rule} A new rule for the value
    */
   asList (rule?: Rule & { apply?: Rule }): Rule {
     return {
-      validate: (value: any, field: string) => {
-        if (!Array.isArray(value)) {
-          throw new TypeError(`${field} should be a list but received ${typeof value}`)
+      validate: (list: any, field: string) => {
+        if (!Array.isArray(list)) {
+          throw new TypeError(`${field} should be a list but received ${typeof list}`)
+        }
+        if (rule?.apply != null && rule.apply.validate != null) {
+          // @ts-expect-error
+          list.forEach((value, index) => rule.apply.validate(value, `${field}[${index}]`))
         }
       },
       convert: (list: any[], field: string) => {
@@ -367,8 +388,9 @@ export const rule = Object.freeze({
         return list
       },
       parameterConversion: (list: any[]) => {
-        if (rule?.apply != null) {
-          return list.map((value) => optionalParameterConversion(value, rule.apply))
+        const apply = rule?.apply
+        if (apply != null) {
+          return list.map((value) => optionalParameterConversion(value, apply))
         }
         return list
       },
@@ -378,7 +400,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a Vector.
    *
-   * @param {Rule & { asTypedList?: boolean }} rule Configurations for the rule
+   * @param {Rule & { asTypedList?: boolean }} rule Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
    * @returns {Rule} A new rule for the value
    */
   asVector (rule?: Rule & { asTypedList?: boolean }): Rule {
@@ -397,16 +419,70 @@ export const rule = Object.freeze({
       parameterConversion: rule?.asTypedList === true ? (typedArray: Int16Array | Int32Array | BigInt64Array | Float32Array | Float64Array) => vector(typedArray) : undefined,
       ...rule
     }
+  },
+  /**
+   * Create a {@link Rule} for an object, allowing complex mapping of even nested results
+   *
+   * NOTE: When using this rule, object identifiers will be mapped according to any name mapping set with neo4j.RecordObjectMapping.translateIdentifiers.
+   *
+   * @param {Rules} rules rules for the fields of the object.
+   * @returns {Rule} A new rule for the value
+   */
+  asObject (rules: Rules): Rule {
+    return {
+      validate: (value: Record<string, Object>, field: string) => {
+        for (const key in rules) {
+          const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
+          if (value[mappedkey] == null && rules[key].optional === true) {
+            continue
+          }
+          if (rules[key].validate != null) {
+            rules[key].validate(value[mappedkey], `${field}[${key}]`)
+          }
+        }
+      },
+      convert: (value: Record<string, Object>, field: string) => {
+        const convertedValue: Record<string, Object> = {}
+        for (const key in rules) {
+          const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
+          if (value[key] == null && rules[key].optional === true) {
+            continue
+          }
+          if (rules[key].convert != null) {
+            convertedValue[key] = rules[key].convert(value[mappedkey], `${field}[${mappedkey}]`)
+          } else {
+            convertedValue[key] = value[mappedkey]
+          }
+        }
+        return convertedValue
+      },
+      parameterConversion: (value: Record<string, Object>) => {
+        const convertedValue: Record<string, Object> = {}
+        for (const key in rules) {
+          const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
+          if (value[key] == null && rules[key].optional === true) {
+            continue
+          }
+          if (rules[key].parameterConversion != null) {
+            convertedValue[mappedkey] = rules[key].parameterConversion(value[key])
+          } else {
+            convertedValue[mappedkey] = value[key]
+          }
+        }
+        return convertedValue
+      },
+      ...rule
+    }
   }
 })
 
 interface ConvertableToStdDateOrStr { toStandardDate: () => StandardDate, toString: () => string }
 
-function convertStdDate<V extends ConvertableToStdDateOrStr> (value: V, rule?: { stringify?: boolean, toStandardDate?: boolean }): string | V | StandardDate {
+function convertStdDate<V extends ConvertableToStdDateOrStr> (value: V, rule?: { stringify?: boolean, JSNativeDate?: boolean }): string | V | StandardDate {
   if (rule != null) {
     if (rule.stringify === true) {
       return value.toString()
-    } else if (rule.toStandardDate === true) {
+    } else if (rule.JSNativeDate === true) {
       return value.toStandardDate()
     }
   }

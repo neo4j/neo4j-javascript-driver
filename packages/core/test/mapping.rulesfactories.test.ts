@@ -28,6 +28,18 @@ describe('Rulesfactories', () => {
       rule.asVector({ asTypedList: true, from: 'vec' }),
       Float32Array.from([0.1, 0.2]),
       new Vector(Float32Array.from([0.1, 0.2]))
+    ],
+    [
+      'Object with nested rules',
+      rule.asObject({ date: rule.asDate({ stringify: true }), vec: rule.asVector({ asTypedList: true, from: 'vector' }) }),
+      {
+        date: '2024-01-12',
+        vec: Int16Array.from([4, 8])
+      },
+      {
+        date: new Date(2024, 1, 12),
+        vector: new Vector(Int16Array.from([4, 8]))
+      }
     ]
   ])('should be able to map %s as property', (_, rule, param, expected) => {
     if (rule.parameterConversion != null) {
@@ -51,12 +63,20 @@ describe('Rulesfactories', () => {
     ],
     [
       'Converted Vector',
-      rule.asVector({ asTypedList: true, from: 'vec' }),
+      rule.asVector({ asTypedList: true }),
       Float32Array.from([0.1, 0.2])
+    ],
+    [
+      'Object with nested rules',
+      rule.asObject({ date: rule.asDate({ stringify: true }), vec: rule.asVector({ asTypedList: true }) }),
+      {
+        date: '2024-01-12',
+        vec: Int16Array.from([4, 8])
+      }
     ]
   ])('mapping %s as property and back should be lossless', (_, rule, param) => {
     if (rule.parameterConversion != null && rule.convert != null) {
-      expect(rule.convert(rule.parameterConversion(param), 'test convertion')).toEqual(param)
+      expect(rule.convert(rule.parameterConversion(param), 'test conversion')).toEqual(param)
     } else {
       throw new Error('rule lacks parameterConversion and/or convert')
     }

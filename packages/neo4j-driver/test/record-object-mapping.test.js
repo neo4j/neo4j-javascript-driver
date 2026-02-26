@@ -316,11 +316,11 @@ describe('#integration record object mapping', () => {
       bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
       date: neo4j.rule.asDate({ stringify: true }),
       dateTime: neo4j.rule.asDateTime({ stringify: true }),
-      standardDateTime: neo4j.rule.asDateTime({ toStandardDate: true }),
+      standardDateTime: neo4j.rule.asDateTime({ JSNativeDate: true }),
       duration: neo4j.rule.asDuration({ stringify: true }),
       time: neo4j.rule.asTime({ from: 'wakeup' }),
       list: neo4j.rule.asList({ apply: neo4j.rule.asString() }),
-      dateList: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ toStandardDate: true }) })
+      dateList: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ JSNativeDate: true }) })
     }
 
     const nodeRule = {
@@ -358,7 +358,7 @@ describe('#integration record object mapping', () => {
     const session = driverGlobal.session()
 
     const rules = {
-      nestedList: neo4j.rule.asList({ apply: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ toStandardDate: true }) }) })
+      nestedList: neo4j.rule.asList({ apply: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ JSNativeDate: true }) }) })
     }
 
     const obj = {
