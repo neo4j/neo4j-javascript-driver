@@ -107,7 +107,7 @@ export const RecordObjectMapping = Object.freeze({
   /**
  * Sets a default name translation from record keys to object properties.
  * If providing a function, provide a function that maps FROM your object properties names TO record key names.
- * 
+ *
  * NOTE: The keys of objects inside a record will only be translated if using the asObject rule with it, not by default.
  *
  * The function getCaseTranslator can be used to provide a prewritten translation function between some common naming conventions.
@@ -203,8 +203,7 @@ export function validateAndCleanParameters (params: Record<string, any>, supplie
               `Mapped Parameter object did not include required parameter with key ${key}, 
               check provided parameters and parameter rules.`
             )
-          }
-          else {
+          } else {
             continue
           }
         }

@@ -287,8 +287,8 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asDate (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
-    if(rule?.stringify === true && rule?.JSNativeDate === true ) {
-      throw newError("both stringify and JSNativeDate cannot be set; use one or neither")
+    if (rule?.stringify === true && rule?.JSNativeDate === true) {
+      throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
     }
     let parameterConversion
     if (rule?.stringify === true) {
@@ -315,8 +315,8 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asLocalDateTime (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
-    if(rule?.stringify === true && rule?.JSNativeDate === true ) {
-      throw newError("both stringify and JSNativeDate cannot be set; use one or neither")
+    if (rule?.stringify === true && rule?.JSNativeDate === true) {
+      throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
     }
     let parameterConversion
     if (rule?.stringify === true) {
@@ -343,8 +343,8 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asDateTime (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
-    if(rule?.stringify === true  && rule?.JSNativeDate === true ) {
-      throw newError("both stringify and JSNativeDate cannot be set; use one or neither")
+    if (rule?.stringify === true && rule?.JSNativeDate === true) {
+      throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
     }
     let parameterConversion
     if (rule?.stringify === true) {
@@ -377,7 +377,7 @@ export const rule = Object.freeze({
           throw new TypeError(`${field} should be a list but received ${typeof list}`)
         }
         if (rule?.apply != null && rule.apply.validate != null) {
-          // @ts-ignore
+          // @ts-expect-error
           list.forEach((value, index) => rule.apply.validate(value, `${field}[${index}]`))
         }
       },
@@ -388,7 +388,7 @@ export const rule = Object.freeze({
         return list
       },
       parameterConversion: (list: any[]) => {
-        let apply = rule?.apply
+        const apply = rule?.apply
         if (apply != null) {
           return list.map((value) => optionalParameterConversion(value, apply))
         }
@@ -422,52 +422,50 @@ export const rule = Object.freeze({
   },
   /**
    * Create a {@link Rule} for an object, allowing complex mapping of even nested results
-   * 
+   *
    * NOTE: When using this rule, object identifiers will be mapped according to any name mapping set with neo4j.RecordObjectMapping.translateIdentifiers.
    *
    * @param {Rules} rules rules for the fields of the object.
    * @returns {Rule} A new rule for the value
    */
-  asObject(rules: Rules): Rule {
+  asObject (rules: Rules): Rule {
     return {
       validate: (value: Record<string, Object>, field: string) => {
-        for(const key in rules) {
+        for (const key in rules) {
           const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
-          if(value[mappedkey] == null && rules[key].optional === true) {
-              continue
+          if (value[mappedkey] == null && rules[key].optional === true) {
+            continue
           }
-          if(rules[key].validate != null) {
+          if (rules[key].validate != null) {
             rules[key].validate(value[mappedkey], `${field}[${key}]`)
           }
         }
       },
       convert: (value: Record<string, Object>, field: string) => {
-        let convertedValue: Record<string, Object> = {}
-        for(const key in rules) {
+        const convertedValue: Record<string, Object> = {}
+        for (const key in rules) {
           const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
-          if(value[key] == null && rules[key].optional === true) {
-              continue
+          if (value[key] == null && rules[key].optional === true) {
+            continue
           }
-          if(rules[key].convert != null) {
+          if (rules[key].convert != null) {
             convertedValue[key] = rules[key].convert(value[mappedkey], `${field}[${mappedkey}]`)
-          }
-          else {
+          } else {
             convertedValue[key] = value[mappedkey]
           }
         }
         return convertedValue
       },
       parameterConversion: (value: Record<string, Object>) => {
-        let convertedValue: Record<string, Object> = {}
-        for(const key in rules) {
+        const convertedValue: Record<string, Object> = {}
+        for (const key in rules) {
           const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
-          if(value[key] == null && rules[key].optional === true) {
-              continue
+          if (value[key] == null && rules[key].optional === true) {
+            continue
           }
-          if(rules[key].parameterConversion != null) {
+          if (rules[key].parameterConversion != null) {
             convertedValue[mappedkey] = rules[key].parameterConversion(value[key])
-          }
-          else {
+          } else {
             convertedValue[mappedkey] = value[key]
           }
         }
