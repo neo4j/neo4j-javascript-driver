@@ -306,6 +306,24 @@ describe('#integration record object mapping', () => {
 
     session.close()
   })
+  it('should be able to map result with missing optional key', async () => {
+    const session = driverGlobal.session()
+
+    const res = await session.executeRead(async (tx) => {
+      const txres = tx.run(
+        'RETURN $obj as obj',
+        {
+          obj: new Point(4326, 32.812493, 42.983216)
+        }
+      )
+      return txres.as({ obj: neo4j.rule.asPoint(), notHere: neo4j.rule.asPoint({ optional: true }) })
+    })
+    expect(res.records[0].obj.x).toBe(32.812493)
+    expect(res.records[0].obj.srid).toBe(4326)
+    expect(res.records[0].notHere).toBe(undefined)
+
+    session.close()
+  })
 
   it('map input', async () => {
     const session = driverGlobal.session()

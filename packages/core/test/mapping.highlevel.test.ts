@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector } from '../src'
+import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector, newError } from '../src'
 import { as } from '../src/mapping.highlevel'
 
 describe('Record Object Mapping', () => {
@@ -173,6 +173,34 @@ describe('Record Object Mapping', () => {
       expect(result.vec._typedArray[0]).toBe(0)
 
       expect(result.convertedVec[2]).toBe(2)
+    })
+
+    it('should allow records with missing optional results', () => {
+      const rules: Rules = {
+        string: rule.asString({ optional: true })
+      }
+
+      class mapped {
+        string?: string
+      }
+
+      const gettable = {
+        get: (index: string) => {
+          switch (index) {
+            case 'string':
+              throw newError(
+                'This record has no field with key \'string\', available keys are: [].\''
+              )
+            default:
+              return undefined
+          }
+        }
+      }
+
+      // @ts-expect-error
+      const result = as<mapped>(gettable, rules)
+
+      expect(result.string).toBe(undefined)
     })
   })
 })

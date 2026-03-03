@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError } from './error.ts'
+import { Neo4jError, newError } from './error.ts'
 import { nameConventions } from './mapping.nameconventions.ts'
 
 /**
@@ -160,7 +160,16 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 
 function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: Rule): void {
   const mappedkey = defaultNameMapping(key)
-  const value = gettable.get(rule?.from ?? mappedkey)
+  let value
+  try {
+    value = gettable.get(rule?.from ?? mappedkey)
+  }
+  catch (e) {
+    if (rule?.optional === true && e instanceof Neo4jError && e.message.includes("This record has no field with key")) {
+      return
+    }
+    throw e
+  }
   const field = `${obj.constructor.name}#${key}`
   const processedValue = valueAs(value, field, rule)
   // @ts-expect-error
