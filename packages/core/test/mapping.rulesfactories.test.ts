@@ -1,4 +1,4 @@
-import { Date, DateTime, Duration, Time, Vector } from '../src'
+import { Date, DateTime, Duration, int, Time, Vector } from '../src'
 import { rule } from '../src/mapping.rulesfactories'
 
 describe('Rulesfactories', () => {
@@ -37,7 +37,7 @@ describe('Rulesfactories', () => {
         vec: Int16Array.from([4, 8])
       },
       {
-        date: new Date(2024, 1, 12),
+        date: new Date(int(2024), int(1), int(12)),
         vector: new Vector(Int16Array.from([4, 8]))
       }
     ]

@@ -525,6 +525,24 @@ export class Date<T extends NumberOrInteger = Integer> {
   toString (): string {
     return util.dateToIsoString(this.year, this.month, this.day)
   }
+
+  /**
+   * Creates a {@link Date} from an ISO 8601 string
+   *
+   * @param {string} str The string to convert
+   * @returns {Date<NumberOrInteger>}
+   */
+  static fromString (str: string): Date<Integer> {
+    const values = String(str.replace(/,/g, '.')).match(/^(\d+)-(\d+)-(\d+)$/)
+    if (values !== null) {
+      return new Date(
+        parseTemporalInt(values[1], 'years'),
+        parseTemporalInt(values[2], 'months'),
+        parseTemporalInt(values[3], 'days')
+      )
+    }
+    throw newError('Date could not be parsed from string. Expects date in format \'YYYY-MM-DD\'')
+  }
 }
 
 Object.defineProperty(

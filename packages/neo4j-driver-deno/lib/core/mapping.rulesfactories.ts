@@ -18,7 +18,7 @@
  */
 
 import { Rule, valueAs, optionalParameterConversion, Rules, defaultNameMapping } from './mapping.highlevel.ts'
-import { JSDate, StandardDate, isNode, isPath, isRelationship, isUnboundRelationship } from './graph-types.ts'
+import { StandardDate, isNode, isPath, isRelationship, isUnboundRelationship } from './graph-types.ts'
 import { isPoint } from './spatial-types.ts'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types.ts'
 import Vector, { vector } from './vector.ts'
@@ -292,7 +292,7 @@ export const rule = Object.freeze({
     }
     let parameterConversion
     if (rule?.stringify === true) {
-      parameterConversion = (str: string) => Date.fromStandardDateLocal(new JSDate(str))
+      parameterConversion = (str: string) => Date.fromString(str)
     }
     if (rule?.JSNativeDate === true) {
       parameterConversion = (standardDate: StandardDate) => Date.fromStandardDateLocal(standardDate)

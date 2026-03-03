@@ -78,6 +78,25 @@ describe('Date', () => {
       expect(standardDate.getUTCDate()).toEqual(localDatetime.day)
     })
   })
+  describe('fromString', () => {
+    it.each([
+      ['2026-01-05', new Date(int(2026), int(1), int(5))],
+      ['2026-01-05', new Date(int(2026), int(1), int(5))],
+      ['2026-01-05', new Date(int(2026), int(1), int(5))],
+      ['2026-01-05', new Date(int(2026), int(1), int(5))],
+      ['2026-01-05', new Date(int(2026), int(1), int(5))],
+      ['2026-01-05', new Date(int(2026), int(1), int(5))]
+    ])('should successfully convert date strings', (string: string, expected: Date<Integer>) => {
+      expect(Date.fromString(string)).toEqual(expected)
+    })
+    it.each([
+      ['2026-01-05T15:36:42ZZ', 'Date could not be parsed from string'],
+      ['2026-01-42', 'Day is expected to be in range [1, 31] but was: 42'],
+      ['2026-13-05', 'Month is expected to be in range [1, 12] but was: 13']
+    ])('should thrown when converting invalid string', (string: string, expected: string) => {
+      expect(() => Date.fromString(string)).toThrow(expected)
+    })
+  })
 })
 
 describe('LocalDateTime', () => {

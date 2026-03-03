@@ -18,7 +18,6 @@ import Integer from './integer'
 import { stringify } from './json'
 import { Rules, GenericConstructor, as } from './mapping.highlevel'
 
-export const JSDate = Date
 type StandardDate = Date
 /**
  * @typedef {number | Integer | bigint} NumberOrInteger
