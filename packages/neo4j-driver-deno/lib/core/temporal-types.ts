@@ -526,7 +526,7 @@ export class Date<T extends NumberOrInteger = Integer> {
     return util.dateToIsoString(this.year, this.month, this.day)
   }
 
-    /**
+  /**
    * Creates a {@link Date} from an ISO 8601 string
    *
    * @param {string} str The string to convert
@@ -541,7 +541,7 @@ export class Date<T extends NumberOrInteger = Integer> {
         parseTemporalInt(values[3], 'days')
       )
     }
-    throw newError(`Date could not be parsed from string. Expects date in format 'YYYY-MM-DD'`)
+    throw newError('Date could not be parsed from string. Expects date in format \'YYYY-MM-DD\'')
   }
 }
 
