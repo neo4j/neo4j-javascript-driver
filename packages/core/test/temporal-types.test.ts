@@ -81,16 +81,16 @@ describe('Date', () => {
   describe('fromString', () => {
     it.each([
       ['2026-01-05', new Date(int(2026), int(1), int(5))],
-      ['2026-01-05', new Date(int(2026), int(1), int(5))],
-      ['2026-01-05', new Date(int(2026), int(1), int(5))],
-      ['2026-01-05', new Date(int(2026), int(1), int(5))],
-      ['2026-01-05', new Date(int(2026), int(1), int(5))],
-      ['2026-01-05', new Date(int(2026), int(1), int(5))]
+      ['0001-01-05', new Date(int(1), int(1), int(5))],
+      ['2026-1-5', new Date(int(2026), int(1), int(5))]
     ])('should successfully convert date strings', (string: string, expected: Date<Integer>) => {
       expect(Date.fromString(string)).toEqual(expected)
     })
     it.each([
       ['2026-01-05T15:36:42ZZ', 'Date could not be parsed from string'],
+      ['2026-01-05hello', 'Date could not be parsed from string'],
+      ['godbye2026-01-05', 'Date could not be parsed from string'],
+      ['2026-01--05', 'Date could not be parsed from string'],
       ['2026-01-42', 'Day is expected to be in range [1, 31] but was: 42'],
       ['2026-13-05', 'Month is expected to be in range [1, 12] but was: 13']
     ])('should thrown when converting invalid string', (string: string, expected: string) => {
@@ -236,7 +236,10 @@ describe('DateTime', () => {
       expect(DateTime.fromString(string)).toEqual(expected)
     })
     it.each([
-      ['2026-01-05T15:36:42ZZ', 'DateTime could not be parsed from string']
+      ['2026-01-05T15:36:42ZZ', 'DateTime could not be parsed from string'],
+      ['2026-01-05T-15:36:42Z', 'DateTime could not be parsed from string'],
+      ['2026-01-05 15:36:42Z', 'DateTime could not be parsed from string'],
+      ['2026-01-05T15:36:42', 'DateTime could not be parsed from string']
     ])('should thrown when converting invalid string', (string: string, expected: string) => {
       expect(() => DateTime.fromString(string)).toThrow(expected)
     })
@@ -319,7 +322,12 @@ describe('Time', () => {
       expect(Time.fromString(string)).toEqual(expected)
     })
     it.each([
-      ['25:59:00Z', 'Hour is expected to be in range [0, 23] but was: 25']
+      ['25:59:00Z', 'Hour is expected to be in range [0, 23] but was: 25'],
+      ['23:61:00Z', 'Minute is expected to be in range [0, 59] but was: 61'],
+      ['23:59:61Z', 'Second is expected to be in range [0, 59] but was: 61'],
+      ['25:59:00', 'Time could not be parsed from string'],
+      ['25:59:00Zhello', 'Time could not be parsed from string'],
+      ['Time:25:59:00Z', 'Time could not be parsed from string']
     ])('should fail to parse invalid time strings', (string: string, expected: string) => {
       expect(() => Time.fromString(string)).toThrow(expected)
     })
