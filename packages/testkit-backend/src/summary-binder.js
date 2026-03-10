@@ -1,9 +1,10 @@
-function mapPlan (plan) {
+function mapPlan (plan, binder) {
+  const mapChild = (child) => mapPlan(child, binder)
   return {
     operatorType: plan.operatorType,
-    args: plan.arguments,
+    args: binder.objectMemberBitIntToNumber(plan.arguments, true),
     identifiers: plan.identifiers,
-    children: plan.children ? plan.children.map(mapPlan) : undefined
+    children: plan.children ? plan.children.map(mapChild) : undefined
   }
 }
 
@@ -16,27 +17,20 @@ function mapCounters (stats) {
   }
 }
 
-function mapProfile (profile, child = false, binder) {
-  const mapChild = (child) => mapProfile(child, true, binder)
-  const obj = {
-    args: binder.objectMemberBitIntToNumber(profile.arguments),
-    dbHits: Number(profile.dbHits),
+function mapProfile (profile, binder) {
+  const mapChild = (child) => mapProfile(child, binder)
+  return {
+    args: binder.objectMemberBitIntToNumber(profile.arguments, true),
+    dbHits: profile.hasDbHits() ? Number(profile.dbHits) : undefined,
     identifiers: profile.identifiers,
     operatorType: profile.operatorType,
-    rows: Number(profile.rows),
-    children: profile.children ? profile.children.map(mapChild) : undefined
+    rows: profile.hasRows() ? Number(profile.rows) : undefined,
+    pageCacheHitRatio: profile.hasPageCacheStats() ? Number(profile.pageCacheHitRatio) : undefined,
+    pageCacheHits: profile.hasPageCacheStats() ? Number(profile.pageCacheHits) : undefined,
+    pageCacheMisses: profile.hasPageCacheStats() ? Number(profile.pageCacheMisses) : undefined,
+    time: profile.hasTime() ? Number(profile.time) : undefined,
+    children: profile.children ? profile.children.map(mapChild) : undefined,
   }
-
-  if (child) {
-    return {
-      ...obj,
-      pageCacheHitRatio: profile.pageCacheHitRatio !== undefined ? Number(profile.pageCacheHitRatio) : undefined,
-      pageCacheHits: profile.pageCacheHits !== undefined ? Number(profile.pageCacheHits) : undefined,
-      pageCacheMisses: profile.pageCacheMisses !== undefined ? Number(profile.pageCacheMisses) : undefined,
-      time: profile.time !== undefined ? Number(profile.time) : undefined
-    }
-  }
-  return obj
 }
 
 function mapNotification (notification) {
@@ -72,8 +66,8 @@ export function nativeToTestkitSummary (summary, binder) {
       protocolVersion: summary.server.protocolVersion.toString()
     },
     counters: mapCounters(summary.counters),
-    plan: mapPlan(summary.plan),
-    profile: mapProfile(summary.profile, false, binder),
+    plan: summary.plan ? mapPlan(summary.plan, binder) : null,
+    profile: summary.profile ? mapProfile(summary.profile, binder) : null,
     notifications: summary.notifications.map(mapNotification),
     gqlStatusObjects: summary.gqlStatusObjects.map(mapGqlStatusObject(binder))
   }

@@ -205,11 +205,15 @@ class ProfiledPlan {
   operatorType: string
   identifiers: string[]
   arguments: { [key: string]: string }
+  private readonly _hasDbHits: boolean
   dbHits: number
+  private readonly _hasRows: boolean
   rows: number
+  private readonly _hasPageCacheStats: boolean
   pageCacheMisses: number
   pageCacheHits: number
   pageCacheHitRatio: number
+  private readonly _hasTime: boolean
   time: number
   children: ProfiledPlan[]
 
@@ -222,23 +226,60 @@ class ProfiledPlan {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
+    this._hasDbHits = hasValue('dbHits', profile)
     this.dbHits = valueOrDefault('dbHits', profile)
+    this._hasRows = hasValue('rows', profile)
     this.rows = valueOrDefault('rows', profile)
+    this._hasPageCacheStats = hasValue('pageCacheMisses', profile)
+      || hasValue('pageCacheHits', profile)
+      || hasValue('pageCacheHitRatio', profile)
     this.pageCacheMisses = valueOrDefault('pageCacheMisses', profile)
     this.pageCacheHits = valueOrDefault('pageCacheHits', profile)
     this.pageCacheHitRatio = valueOrDefault('pageCacheHitRatio', profile)
+    this._hasTime = hasValue('time', profile)
     this.time = valueOrDefault('time', profile)
     this.children = profile.children != null
       ? profile.children.map((child: any) => new ProfiledPlan(child))
       : []
   }
 
+  /**
+   * Whether dbHits was recorded. If false, the {dbHits} value has no meaning.
+   * @return {boolean}
+   */
+  hasDbHits (): boolean {
+    return this._hasDbHits
+  }
+
+  /**
+   * Whether rows was recorded. If false, the {rows} value has no meaning.
+   * @return {boolean}
+   */
+  hasRows (): boolean {
+    return this._hasRows
+  }
+
+
+  /**
+   * Whether page cache stats were recorded. If false, following values have no meaning:
+   *
+   * - {pageCacheMisses}
+   * - {pageCacheHits}
+   * - {pageCacheHitRatio}
+   *
+   * @return {boolean}
+   */
   hasPageCacheStats (): boolean {
-    return (
-      this.pageCacheMisses > 0 ||
-      this.pageCacheHits > 0 ||
-      this.pageCacheHitRatio > 0
-    )
+    return this._hasPageCacheStats
+  }
+
+
+  /**
+   * Whether time was recorded. If false, the {time} value has no meaning.
+   * @return {boolean}
+   */
+  hasTime (): boolean {
+    return this._hasTime
   }
 }
 
@@ -468,12 +509,19 @@ function valueOrDefault (
   values: { [key: string]: NumberOrInteger } | false,
   defaultValue: number = 0
 ): number {
-  if (values !== false && key in values) {
+  if (hasValue(key, values)) {
     const value = values[key]
     return toNumber(value)
   } else {
     return defaultValue
   }
+}
+
+function hasValue (
+  key: string,
+  values: { [key: string]: NumberOrInteger } | false,
+): values is { [key: string]: NumberOrInteger } {
+  return values !== false && key in values
 }
 
 /**

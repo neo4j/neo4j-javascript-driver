@@ -62,7 +62,13 @@ const profileIdentifiers: string[] | false = profile !== false
 const profileArguments: { [key: string]: string } | false = profile !== false
   ? profile.arguments
   : false
+const hasDbHits: boolean | false = profile !== false
+    ? profile.hasDbHits()
+    : false
 const profileDbHits: number | false = profile !== false ? profile.dbHits : false
+const hasRows: boolean | false = profile !== false
+    ? profile.hasRows()
+    : false
 const profileRows: number | false = profile !== false ? profile.rows : false
 const hasPageCacheStats: boolean | false = profile !== false
   ? profile.hasPageCacheStats()
@@ -76,6 +82,9 @@ const profilePageCacheHits: number | false = profile !== false
 const profilePageCacheHitRatio: number | false = profile !== false
   ? profile.pageCacheHitRatio
   : false
+const hasTime: boolean | false = profile !== false
+    ? profile.hasTime()
+    : false
 const time: number | false = profile !== false ? profile.time : false
 const profileChildren: ProfiledPlan[] | false = profile !== false
   ? profile.children

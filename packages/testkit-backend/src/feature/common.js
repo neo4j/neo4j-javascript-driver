@@ -10,6 +10,7 @@ const features = [
   'Feature:API:SSLClientCertificate',
   'Feature:API:SSLConfig',
   'Feature:API:SSLSchemes',
+  'Feature:API:Summary:Profile:OptionalStats',
   'Feature:API:Type.Temporal',
   'Feature:API:Type.Spatial',
   'AuthorizationExpiredTreatment',
