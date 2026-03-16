@@ -1,9 +1,10 @@
-function mapPlan (plan) {
+function mapPlan (plan, binder) {
+  const mapChild = (child) => mapPlan(child, binder)
   return {
     operatorType: plan.operatorType,
-    args: plan.arguments,
+    args: binder.objectMemberBitIntToNumber(plan.arguments, true),
     identifiers: plan.identifiers,
-    children: plan.children ? plan.children.map(mapPlan) : undefined
+    children: plan.children ? plan.children.map(mapChild) : undefined
   }
 }
 
@@ -19,7 +20,7 @@ function mapCounters (stats) {
 function mapProfile (profile, child = false, binder) {
   const mapChild = (child) => mapProfile(child, true, binder)
   const obj = {
-    args: binder.objectMemberBitIntToNumber(profile.arguments),
+    args: binder.objectMemberBitIntToNumber(profile.arguments, true),
     dbHits: Number(profile.dbHits),
     identifiers: profile.identifiers,
     operatorType: profile.operatorType,
@@ -72,7 +73,7 @@ export function nativeToTestkitSummary (summary, binder) {
       protocolVersion: summary.server.protocolVersion.toString()
     },
     counters: mapCounters(summary.counters),
-    plan: mapPlan(summary.plan),
+    plan: mapPlan(summary.plan, binder),
     profile: mapProfile(summary.profile, false, binder),
     notifications: summary.notifications.map(mapNotification),
     gqlStatusObjects: summary.gqlStatusObjects.map(mapGqlStatusObject(binder))

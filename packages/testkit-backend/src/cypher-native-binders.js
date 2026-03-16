@@ -20,7 +20,7 @@ export default function CypherNativeBinders (neo4j) {
       if (typeof val === 'bigint') {
         return Number(val)
       } else if (recursive && typeof val === 'object') {
-        return objectMemberBitIntToNumber(val)
+        return objectMemberBitIntToNumber(val, true)
       } else if (recursive && Array.isArray(val)) {
         return val.map(item => objectMemberBitIntToNumber(item, true))
       }
