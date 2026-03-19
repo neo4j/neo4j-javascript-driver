@@ -61,6 +61,7 @@ import ResultSummary, {
   queryType,
   ServerInfo,
   Plan,
+  Profile,
   ProfiledPlan,
   QueryStatistics,
   Stats
@@ -169,6 +170,7 @@ const forExport = {
   Notification,
   GqlStatusObject,
   Plan,
+  Profile,
   ProfiledPlan,
   QueryStatistics,
   Stats,
@@ -254,6 +256,7 @@ export {
   Notification,
   GqlStatusObject,
   Plan,
+  Profile,
   ProfiledPlan,
   QueryStatistics,
   Stats,
