@@ -101,8 +101,14 @@ export class Duration<T extends NumberOrInteger = Integer> {
    * @param {string} str The string to convert
    * @returns {Duration<NumberOrInteger>}
    */
-  static fromString (str: string): Duration<Integer> {
-    const matches = String(str.replace(/,/g, '.')).match(/^([-|+]?)[P|p](?:(-?[\d]*\.?[\d]*)[Y|y])?(?:(-?[\d]*\.?[\d]*)[M|m])?(?:(-?[\d]*\.?[\d]*)[W|w])?(?:(-?[\d]*\.?[\d]*)[D|d])?([T|t](?:(-?[\d]*\.?[\d]*)[H|h])?(?:(-?[\d]*\.?[\d]*)[M|m])?(?:(-)?([\d]*)(\.[\d]*)?[S|s])?)?$/)
+  static fromString (str: string): Duration {
+    if (str.slice(-1).toUpperCase() === 'T') {
+      throw newError(`Duration string '${str}' ends with 'T', time delimiter must be excluded if Duration contains no time components`)
+    }
+    const matches = String(str.replace(/,/g, '.')).match(new RegExp(
+      /^([-|+]?)[P|p](?:(-?\d*\.?\d*)[Y|y])?(?:(-?\d*\.?\d*)[M|m])?(?:(-?\d*\.?\d*)[W|w])?(?:(-?\d*\.?\d*)[D|d])?/.source + // Date portion
+      /([T|t](?:(-?\d*\.?\d*)[H|h])?(?:(-?\d*\.?\d*)[M|m])?(?:(-)?(\d*)(\.\d*)?[S|s])?)?$/.source // Time portion
+    ))
     if (matches !== null) {
       if (
         matches[2] == null && matches[3] == null && matches[4] == null && matches[5] == null &&
@@ -241,8 +247,8 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
    * @param {string} str The string to convert
    * @returns {LocalTime<NumberOrInteger>}
    */
-  static fromString (str: string): LocalTime<Integer> {
-    const values = String(str.replace(/,/g, '.')).match(/^T?(\d{2}):?(\d{2})?:?(\d{2})?(\.\d+)?$/)
+  static fromString (str: string): LocalTime {
+    const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::(\d{2}))?(?::(\d{2}))?(\.\d+)?$/)
     if (values !== null) {
       const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
       return new LocalTime(
@@ -370,8 +376,8 @@ export class Time<T extends NumberOrInteger = Integer> {
    * @param {string} str The string to convert
    * @returns {Time<NumberOrInteger>}
    */
-  static fromString (str: string): Time<Integer> {
-    const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2}):?(\d{2})?:?(\d{2})?(\.\d+)?(Z|\+|-)(\d{0,2}):?(\d{0,2}):?(\d{0,2})$/)
+  static fromString (str: string): Time {
+    const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::(\d{2}))?(?::(\d{2}))?(\.\d+)?([Z|z]$|\+|-)(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$/)
     if (values !== null) {
       const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
       if (values[5] === 'Z') {
@@ -382,6 +388,9 @@ export class Time<T extends NumberOrInteger = Integer> {
           nanoseconds,
           int(0)
         )
+      }
+      if (values[6] == null) {
+        throw newError('Error parsing timezone offset.')
       }
       return new Time<Integer>(
         hours,
@@ -532,8 +541,8 @@ export class Date<T extends NumberOrInteger = Integer> {
    * @param {string} str The string to convert
    * @returns {Date<NumberOrInteger>}
    */
-  static fromString (str: string): Date<Integer> {
-    const values = String(str.replace(/,/g, '.')).match(/^(\d+)-(\d+)-(\d+)$/)
+  static fromString (str: string): Date {
+    const values = String(str.replace(/,/g, '.')).match(/^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})$/)
     if (values !== null) {
       return new Date(
         parseTemporalInt(values[1], 'years'),
@@ -541,7 +550,7 @@ export class Date<T extends NumberOrInteger = Integer> {
         parseTemporalInt(values[3], 'days')
       )
     }
-    throw newError('Date could not be parsed from string. Expects date in format \'YYYY-MM-DD\'')
+    throw newError('Date could not be parsed from string. Expects date in format \'YYYY-MM-DD\' or \'[+|-]YYYYY-MM-DD\'')
   }
 }
 
@@ -683,8 +692,8 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
    * @param {string} str The string to convert
    * @returns {LocalDateTime<NumberOrInteger>}
    */
-  static fromString (str: string): LocalDateTime<Integer> {
-    const values = String(str.replace(/,/g, '.')).match(/^(\d+)-(\d+)-(\d+)[T|t](\d{2}):?(\d{2})?:?(\d{2})?(\.\d+)?$/)
+  static fromString (str: string): LocalDateTime {
+    const values = String(str.replace(/,/g, '.')).match(/^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::(\d{2}))?(?::(\d{2}))?(\.\d+)?$/)
     if (values !== null) {
       const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
       return new LocalDateTime(
@@ -881,8 +890,13 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    * @param {string} str The string to convert
    * @returns {DateTime<NumberOrInteger>}
    */
-  static fromString (str: string): DateTime<Integer> {
-    const values = String(str.replace(/,/g, '.')).match(/^(\d+)-(\d+)-(\d+)[T|t](\d{2}):?(\d{2})?:?(\d{2})?(\.\d+)?(Z|\+|-)?(\d{0,2}):?(\d{0,2}):?(\d{0,2})?((\[)([^\]]*)(\]))?$/)
+  static fromString (str: string): DateTime {
+    const values = String(str.replace(/,/g, '.')).match(
+      new RegExp(
+        /^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::(\d{2}))?(?::(\d{2}))?(\.\d+)?/.source + // DateTime
+        /([Z|z]$|\+|-)?(?:(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$)?((\[)([^\]]*)(\]))?$/.source // Timezone
+      )
+    )
     if (values !== null) {
       const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
       if (values[8] === 'Z') {
@@ -897,7 +911,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
           int(0)
         )
       }
-      if (values[8] === '+' || values[8] === '-') {
+      if ((values[8] === '+' || values[8] === '-') && values[9] != null) {
         return new DateTime<Integer>(
           parseTemporalInt(values[1], 'years'),
           parseTemporalInt(values[2], 'months'),
@@ -1039,7 +1053,7 @@ function verifyStandardDateAndNanos (
   }
 }
 
-function parseTemporalFloat (str: string, field: string, maxLength?: number): number {
+function parseTemporalFloat (str: string | undefined, field: string): number {
   if (str === undefined || str.length === 0) {
     return 0
   } else {
@@ -1051,7 +1065,7 @@ function parseTemporalFloat (str: string, field: string, maxLength?: number): nu
   }
 }
 
-function parseTemporalInt (str: string, field: string, maxLength?: number): Integer {
+function parseTemporalInt (str: string | undefined, field: string, maxLength?: number): Integer {
   if (str === undefined || str.length === 0 || str === 'undefined') {
     return int(0)
   } else if (maxLength != null && str.length > maxLength) {
@@ -1061,26 +1075,27 @@ function parseTemporalInt (str: string, field: string, maxLength?: number): Inte
   return result
 }
 
-function handleTimeDecimals (hourString: string, minuteString: string, secondString: string, decimalString: string): [Integer, Integer, Integer, Integer] {
+function handleTimeDecimals (hourString?: string, minuteString?: string, secondString?: string, decimalString?: string): [Integer, Integer, Integer, Integer] {
   let hours
   let minutes
   let seconds
   let nanoseconds
-  if (minuteString === undefined || secondString === '') {
+  const decimalInt = decimalString !== undefined ? parseFloat('0' + decimalString) : 0
+  if (minuteString === undefined || minuteString === '') {
     hours = parseTemporalInt(hourString, 'hours')
-    minutes = int(decimalString !== undefined ? Math.round(parseFloat('0' + decimalString) * 60) : 0)
-    seconds = int(decimalString !== undefined ? Math.round(parseFloat('0' + decimalString) * 3600) % 60 : 0)
-    nanoseconds = int(decimalString !== undefined ? Math.round(parseFloat('0' + decimalString) * 3600 * (10 ** 9)) % 10 ** 9 : 0)
+    minutes = int(decimalInt * 60)
+    seconds = int((decimalInt * 3600) % 60)
+    nanoseconds = int((decimalInt * 3600 * 10 ** 9) % 10 ** 9)
   } else if (secondString === undefined || secondString === '') {
     hours = parseTemporalInt(hourString, 'hours')
     minutes = parseTemporalInt(minuteString, 'minutes')
-    seconds = int(decimalString !== undefined ? Math.round(parseFloat('0' + decimalString) * 60) % 60 : 0)
-    nanoseconds = int(decimalString !== undefined ? Math.round(parseFloat('0' + decimalString) * 60 * (10 ** 9)) % 10 ** 9 : 0)
+    seconds = int((decimalInt * 60) % 60)
+    nanoseconds = int((decimalInt * 60 * (10 ** 9)) % 10 ** 9)
   } else {
     hours = parseTemporalInt(hourString, 'hours')
     minutes = parseTemporalInt(minuteString, 'minutes')
     seconds = parseTemporalInt(secondString, 'seconds')
-    nanoseconds = int(decimalString !== undefined ? Math.round(parseFloat('0' + decimalString) * 10 ** 9) : 0)
+    nanoseconds = int(decimalInt * 10 ** 9)
   }
   return [hours, minutes, seconds, nanoseconds]
 }

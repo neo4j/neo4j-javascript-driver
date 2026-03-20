@@ -25,12 +25,40 @@ import { nameConventions } from './mapping.nameconventions.ts'
  */
 export type GenericConstructor<T extends {}> = new (...args: any[]) => T
 
+/**
+ * Rule used to provide mapping and type validation of parameters and records.
+ */
 export interface Rule {
+  /**
+   * Whether or not the field is optional. If true, an undefined or null value will not fail validation.
+   */
   optional?: boolean
+  /**
+   * The string used to identify this value in the database. For when parameters or returned fields do not match the name of your domain objects fields.
+   */
   from?: string
+  /**
+   * A function to convert the value from a result after it has been validated.
+   *
+   * @param recordValue The value from the raw result.
+   * @param {string} field name of the field.
+   * @returns {any} The converted value.
+   */
   convert?: (recordValue: any, field: string) => any
+  /**
+   * A function to convert a parameter before validation and transmission to the database.
+   *
+   * @param objectValue The value provided as a parameter.
+   * @returns The converted value, this value will be passed to the validate function before transmission to the database.
+   */
   parameterConversion?: (objectValue: any) => any
-  validate?: (recordValue: any, field: string) => void
+  /**
+   * A function to validate the value, should throw an error if it is invalid.
+   *
+   * @param value The value to validate.
+   * @param {string} field The name of the field with the value.
+   */
+  validate?: (value: any, field: string) => void
 }
 
 export type Rules = Record<string, Rule>
@@ -159,10 +187,10 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 }
 
 function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: Rule): void {
-  const mappedkey = defaultNameMapping(key)
+  const mappedKey = defaultNameMapping(key)
   let value
   try {
-    value = gettable.get(rule?.from ?? mappedkey)
+    value = gettable.get(rule?.from ?? mappedKey)
   } catch (e) {
     if (rule?.optional === true && e instanceof Neo4jError && e.message.includes('This record has no field with key')) {
       return
@@ -191,7 +219,7 @@ export function optionalParameterConversion (value: unknown, rule: Rule): unknow
   if (rule.optional === true && value == null) {
     return value
   }
-  return ((rule?.parameterConversion) != null) ? rule.parameterConversion(value) : value
+  return (rule.parameterConversion != null) ? rule.parameterConversion(value) : value
 }
 
 export function validateAndCleanParameters (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
@@ -200,20 +228,17 @@ export function validateAndCleanParameters (params: Record<string, any>, supplie
   if (parameterRules != null) {
     for (const key in parameterRules) {
       let param = params[key]
-      if (param == null && parameterRules[key].optional === true) {
-        continue
-      }
-      if (parameterRules[key].parameterConversion != null) {
+      if (param != null && parameterRules[key].parameterConversion != null) {
         param = parameterRules[key].parameterConversion(param)
-        if (param == null) {
-          if (parameterRules[key].optional !== true) {
-            throw newError(
-              `Mapped Parameter object did not include required parameter with key ${key}, 
-              check provided parameters and parameter rules.`
-            )
-          } else {
-            continue
-          }
+      }
+      if (param == null) {
+        if (parameterRules[key].optional !== true) {
+          throw newError(
+            `Mapped Parameter object did not include required parameter with key ${key}, 
+            check provided parameters and parameter rules.`
+          )
+        } else {
+          continue
         }
       }
       if (parameterRules[key].validate != null) {

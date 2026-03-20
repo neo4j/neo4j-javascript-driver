@@ -76,6 +76,8 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a String.
    *
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -92,10 +94,12 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Number}.
    *
-   * @param {Rule & { acceptBigInt?: boolean }} rule Configurations for the rule
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
+   *
+   * @param {Rule & { acceptBigInt?: boolean }} rule Configurations for the rule. If `acceptBigInt` is set to true, the created validate function will allow BigInts through and the convert function will turn BigInts into Numbers.
    * @returns {Rule} A new rule for the value
    */
-  asNumber (rule?: Rule & { acceptBigInt?: boolean }): Rule {
+  asNumber (rule?: Rule & { acceptBigInt?: boolean }): Rule { // TODO: RECONSIDER HOW THE NUMBER RULES WORK, GIVEN Integers and Floats. asNumber and asBigInt should probably be asInteger and asFloat
     return {
       validate: (value: any, field: string) => {
         if (typeof value === 'object' && value.low !== undefined && value.high !== undefined && Object.keys(value).length === 2) {
@@ -117,7 +121,9 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link BigInt}.
    *
-   * @param {Rule & { acceptNumber?: boolean }} rule Configurations for the rule
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
+   *
+   * @param {Rule & { acceptNumber?: boolean } | undefined} rule Configurations for the rule, if `acceptNumber` is set to true, the created validate function will allow Numbers through and the convert function will turn Numbers into BigInts.
    * @returns {Rule} A new rule for the value
    */
   asBigInt (rule?: Rule & { acceptNumber?: boolean }): Rule {
@@ -138,6 +144,8 @@ export const rule = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Node}.
+   *
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
    * @example
    * const actingJobsRules: Rules = {
@@ -165,6 +173,18 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Relationship}.
    *
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
+   *
+   * @example
+   * const actingJobsRules: Rules = {
+   *  // Converts the role relationship to a Role object in accordance with provided rules
+   *  role: neo4j.rule.asRelationship({
+   *    convert: (rel: Relationship) => rel.as(Role, roleRules)
+   *  }),
+   *  // Returns the employment relationship as a Relationship
+   *  employment: neo4j.rule.asRelationship({}),
+   * }
+   *
    * @param {Rule} rule Configurations for the rule.
    * @returns {Rule} A new rule for the value
    */
@@ -180,6 +200,8 @@ export const rule = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is an {@link UnboundRelationship}
+   *
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
@@ -197,6 +219,8 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Path}
    *
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
+   *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
@@ -212,6 +236,8 @@ export const rule = Object.freeze({
   },
   /**
    * Create a {@link Rule} that validates the value is a {@link Point}
+   *
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
    * @param {Rule} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
@@ -229,10 +255,15 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Duration}
    *
-   * @param {Rule} rule Configurations for the rule. Setting stringify will automatically convert between strings in user code and Durations in the database.
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
+   *
+   * @param {Rule} rule Configurations for the rule. If `stringify` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link Duration}s in the database.
    * @returns {Rule} A new rule for the value
    */
   asDuration (rule?: Rule & { stringify?: boolean }): Rule {
+    if (rule?.stringify != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, stringify can not be used in combination with custom conversion functions.')
+    }
     return {
       validate: (value: any, field: string) => {
         if (!isDuration(value)) {
@@ -247,10 +278,13 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalTime}
    *
-   * @param {Rule} rule Configurations for the rule. Setting stringify will automatically convert between strings in user code and LocalTimes in the database.
+   * @param {Rule} rule Configurations for the rule. If `stringify` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link LocalTime}s in the database.
    * @returns {Rule} A new rule for the value
    */
   asLocalTime (rule?: Rule & { stringify?: boolean }): Rule {
+    if (rule?.stringify != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, stringify can not be used in combination with custom conversion functions.')
+    }
     return {
       validate: (value: any, field: string) => {
         if (!isLocalTime(value)) {
@@ -265,10 +299,13 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Time}
    *
-   * @param {Rule} rule Configurations for the rule. Setting stringify will automatically convert between strings in user code and Times in the database.
+   * @param {Rule} rule Configurations for the rule. If `stringify` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link Time}s in the database.
    * @returns {Rule} A new rule for the value
    */
   asTime (rule?: Rule & { stringify?: boolean }): Rule {
+    if (rule?.stringify != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, stringify can not be used in combination with custom conversion functions.')
+    }
     return {
       validate: (value: any, field: string) => {
         if (!isTime(value)) {
@@ -283,10 +320,16 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link Date}
    *
-   * @param {Rule} rule Configurations for the rule. Setting stringify/JSNativeDate will automatically convert between strings/JavaScript Dates in user code and Dates in the database.
+   * @param {Rule} rule Configurations for the rule. If `stringify`/`JSNativeDate` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link Date}s in the database.
    * @returns {Rule} A new rule for the value
    */
   asDate (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
+    if (rule?.stringify != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, stringify can not be used in combination with custom conversion functions.')
+    }
+    if (rule?.JSNativeDate != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, JSNativeDate can not be used in combination with custom conversion functions.')
+    }
     if (rule?.stringify === true && rule?.JSNativeDate === true) {
       throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
     }
@@ -311,10 +354,16 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link LocalDateTime}
    *
-   * @param {Rule} rule Configurations for the rule. Setting stringify/JSNativeDate will automatically convert between strings/JavaScript Dates in user code and LocalDateTimes in the database.
+   * @param {Rule} rule Configurations for the rule. If `stringify`/`JSNativeDate` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link LocalDateTime}s in the database.
    * @returns {Rule} A new rule for the value
    */
   asLocalDateTime (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
+    if (rule?.stringify != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, stringify can not be used in combination with custom conversion functions.')
+    }
+    if (rule?.JSNativeDate != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, JSNativeDate can not be used in combination with custom conversion functions.')
+    }
     if (rule?.stringify === true && rule?.JSNativeDate === true) {
       throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
     }
@@ -339,10 +388,15 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a {@link DateTime}
    *
-   * @param {Rule} rule Configurations for the rule. Setting stringify/JSNativeDate will automatically convert between strings/JavaScript Dates in user code and DateTimes in the database.
-   * @returns {Rule} A new rule for the value
+   * @param {Rule} rule Configurations for the rule. If `stringify`/`JSNativeDate` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link DateTime}s in the database.
    */
   asDateTime (rule?: Rule & { stringify?: boolean, JSNativeDate?: boolean }): Rule {
+    if (rule?.stringify != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, stringify can not be used in combination with custom conversion functions.')
+    }
+    if (rule?.JSNativeDate != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, JSNativeDate can not be used in combination with custom conversion functions.')
+    }
     if (rule?.stringify === true && rule?.JSNativeDate === true) {
       throw newError('both stringify and JSNativeDate cannot be set; use one or neither')
     }
@@ -404,6 +458,9 @@ export const rule = Object.freeze({
    * @returns {Rule} A new rule for the value
    */
   asVector (rule?: Rule & { asTypedList?: boolean }): Rule {
+    if (rule?.asTypedList != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, asTypedList can not be used in combination with custom conversion functions.')
+    }
     return {
       validate: (value: any, field: string) => {
         if (!(value instanceof Vector)) {
@@ -432,26 +489,33 @@ export const rule = Object.freeze({
     return {
       validate: (value: Record<string, Object>, field: string) => {
         for (const key in rules) {
-          const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
-          if (value[mappedkey] == null && rules[key].optional === true) {
-            continue
+          const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
+          if (value[mappedKey] == null) {
+            if (rules[key].optional === true) {
+              continue
+            } else {
+              throw newError(
+                `Mapped Parameter object did not include required field with key ${mappedKey}, 
+                check provided parameters and parameter rules.`
+              )
+            }
           }
           if (rules[key].validate != null) {
-            rules[key].validate(value[mappedkey], `${field}[${key}]`)
+            rules[key].validate(value[mappedKey], `${field}[${key}]`)
           }
         }
       },
       convert: (value: Record<string, Object>, field: string) => {
         const convertedValue: Record<string, Object> = {}
         for (const key in rules) {
-          const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
+          const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
           if (value[key] == null && rules[key].optional === true) {
             continue
           }
           if (rules[key].convert != null) {
-            convertedValue[key] = rules[key].convert(value[mappedkey], `${field}[${mappedkey}]`)
+            convertedValue[key] = rules[key].convert(value[mappedKey], `${field}[${mappedKey}]`)
           } else {
-            convertedValue[key] = value[mappedkey]
+            convertedValue[key] = value[mappedKey]
           }
         }
         return convertedValue
@@ -459,14 +523,14 @@ export const rule = Object.freeze({
       parameterConversion: (value: Record<string, Object>) => {
         const convertedValue: Record<string, Object> = {}
         for (const key in rules) {
-          const mappedkey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
+          const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
           if (value[key] == null && rules[key].optional === true) {
             continue
           }
           if (rules[key].parameterConversion != null) {
-            convertedValue[mappedkey] = rules[key].parameterConversion(value[key])
+            convertedValue[mappedKey] = rules[key].parameterConversion(value[key])
           } else {
-            convertedValue[mappedkey] = value[key]
+            convertedValue[mappedKey] = value[key]
           }
         }
         return convertedValue
