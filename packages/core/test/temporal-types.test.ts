@@ -82,7 +82,7 @@ describe('Date', () => {
     it.each([
       ['2026-01-05', new Date(int(2026), int(1), int(5))],
       ['0001-01-05', new Date(int(1), int(1), int(5))],
-      ['2026-1-5', new Date(int(2026), int(1), int(5))]
+      ['+20260-10-15', new Date(int(20260), int(10), int(15))]
     ])('should successfully convert date strings', (string: string, expected: Date<Integer>) => {
       expect(Date.fromString(string)).toEqual(expected)
     })
@@ -92,7 +92,9 @@ describe('Date', () => {
       ['godbye2026-01-05', 'Date could not be parsed from string'],
       ['2026-01--05', 'Date could not be parsed from string'],
       ['2026-01-42', 'Day is expected to be in range [1, 31] but was: 42'],
-      ['2026-13-05', 'Month is expected to be in range [1, 12] but was: 13']
+      ['2026-13-05', 'Month is expected to be in range [1, 12] but was: 13'],
+      ['20260-01-05T15:36:42', 'Date could not be parsed from string'],
+      ['2026-001-05T15:36:42', 'Date could not be parsed from string']
     ])('should thrown when converting invalid string', (string: string, expected: string) => {
       expect(() => Date.fromString(string)).toThrow(expected)
     })
@@ -141,7 +143,7 @@ describe('LocalDateTime', () => {
       ['2026-01-05TT15:36', 'LocalDateTime could not be parsed from string'],
       ['2026-01-05T15:36:-42', 'LocalDateTime could not be parsed from string'],
       ['2026--1-05T15:36:42', 'LocalDateTime could not be parsed from string'],
-      ['1000000000000000000000-01-05T00:01:00.1', 'Year is expected to be in range [-999999999, 999999999] but was:'],
+      ['+1000000000000000000000-01-05T00:01:00.1', 'Year is expected to be in range [-999999999, 999999999] but was:'],
       ['0000-01-05T00:01:00.1bc', 'LocalDateTime could not be parsed from string']
     ])('should thrown when converting invalid string', (string: string, expected: string) => {
       expect(() => LocalDateTime.fromString(string)).toThrow(expected)
@@ -231,7 +233,8 @@ describe('DateTime', () => {
       ['2026-01-05T15:36:42Z', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(0), int(0))],
       ['2026-01-05T15:36:42.12414Z', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(124140000), int(0))],
       ['2026-01-05T15:36.12414Z', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(7), int(448400000), int(0))],
-      ['2026-01-05T15:36:42[America/Anchorage]', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(0), undefined, 'America/Anchorage')]
+      ['2026-01-05T15:36:42[America/Anchorage]', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(0), undefined, 'America/Anchorage')],
+      ['0001-01-01T01:01:01.000000001+00:00:01', new DateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1))]
     ])('should successfully convert date strings', (string: string, expected: DateTime<Integer>) => {
       expect(DateTime.fromString(string)).toEqual(expected)
     })
@@ -303,8 +306,9 @@ describe('Duration', () => {
       ['PT0.3.3S', 'Duration could not be parsed from string: PT0.3.3'],
       ['ok... so somewhere in here is a PT1S duration...', 'Duration could not be parsed from string'],
       ['P', 'Duration could not be parsed from string: P'],
-      ['PT', 'Duration could not be parsed from string: PT'],
-      ['P1S', 'Duration could not be parsed from string: P1S']
+      ['PT', 'Duration string \'PT\' ends with \'T\', time delimiter must be excluded if Duration contains no time components'],
+      ['P1S', 'Duration could not be parsed from string: P1S'],
+      ['P1YT', 'Duration string \'P1YT\' ends with \'T\', time delimiter must be excluded if Duration contains no time components']
     ])('should fail to parse invalid duration strings', (string: string, expected: string) => {
       expect(() => Duration.fromString(string)).toThrow(expected)
     })
@@ -316,7 +320,7 @@ describe('Time', () => {
     it.each([
       ['23:59:00Z', new Time(int(23), int(59), int(0), int(0), int(0))],
       ['23:59:00+1010', new Time(int(23), int(59), int(0), int(0), int(10 * 3600 + 10 * 60))],
-      ['23:59:00+1', new Time(int(23), int(59), int(0), int(0), int(3600))],
+      ['23:59:00+01', new Time(int(23), int(59), int(0), int(0), int(3600))],
       ['23:59:00-01:01', new Time(int(23), int(59), int(0), int(0), int(-3660))]
     ])('should successfully convert time strings', (string: string, expected: Time<Integer>) => {
       expect(Time.fromString(string)).toEqual(expected)

@@ -386,4 +386,30 @@ describe('#integration record object mapping', () => {
     const res = await session.run('return $nestedList as nestedList', obj, {}, rules).as(rules)
     expect(res.records[0].nestedList).toEqual([[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]])
   })
+
+  it('map object with internal rules', async () => {
+    const session = driverGlobal.session()
+
+    const rules = { obj: neo4j.rule.asObject({ date: neo4j.rule.asDate({ stringify: true }), vec: neo4j.rule.asVector({ asTypedList: true, from: 'vector' }) }) }
+    const parameters = { obj: { date: '2024-01-12', vec: Int16Array.from([4, 8]) } }
+
+    const res = await session.run('return $obj as obj', parameters, {}, rules).as(rules)
+    expect(res.records[0].obj.date).toEqual(parameters.obj.date)
+    expect(res.records[0].obj.vec).toEqual(parameters.obj.vec)
+  })
+
+  it('should fail parameterMapping non-optional parameter is missing', async () => {
+    const session = driverGlobal.session()
+
+    const rules = {
+      number: neo4j.rule.asNumber(),
+      string: neo4j.rule.asString()
+    }
+
+    const obj = {
+      string: 'hi'
+    }
+
+    expect(() => session.run('RETURN $string', obj, {}, rules).then()).toThrow()
+  })
 })

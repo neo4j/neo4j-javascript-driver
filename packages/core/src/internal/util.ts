@@ -20,6 +20,7 @@ import { NumberOrInteger } from '../graph-types'
 import { EncryptionLevel } from '../types'
 import { stringify } from '../json'
 import { Rules, validateAndCleanParameters } from '../mapping.highlevel'
+import { newError } from '../error'
 
 const ENCRYPTION_ON: EncryptionLevel = 'ENCRYPTION_ON'
 const ENCRYPTION_OFF: EncryptionLevel = 'ENCRYPTION_OFF'
@@ -57,8 +58,9 @@ function isObject (obj: any): boolean {
 
 /**
  * Check and normalize given query and parameters.
- * @param {string|{text: string, parameters: Object}} query the query to check.
- * @param {Object} parameters
+ * @param {string|{text: string, parameters: Object, parameterRules: Rules}} query the query to check.
+ * @param {Object} parameters the parameters to validate
+ * @param {{skipAsserts: boolean, parameterRules: Rules}} opt options to skip assertions, and parameterRules to check if query is not an object.
  * @return {{validatedQuery: string|{text: string, parameters: Object}, params: Object}} the normalized query with parameters.
  * @throws TypeError when either given query or parameters are invalid.
  */
@@ -80,9 +82,15 @@ function validateQueryAndParameters (
   } else if (query instanceof String) {
     validatedQuery = query.toString()
   } else if (typeof query === 'object' && query.text != null) {
+    if (!skipAsserts) {
+      // TODO: in 7.0 throw error if parameters put in a separate argument when using Query object.
+      if (opt?.parameterRules != null) {
+        throw newError('When using a Query object, parameterRules should be present in the object and not in a separate argument.')
+      }
+    }
     validatedQuery = query.text
     params = query.parameters ?? {}
-    parameterRules = query.parameterRules ?? parameterRules
+    parameterRules = query.parameterRules
   }
 
   if (!skipAsserts) {
