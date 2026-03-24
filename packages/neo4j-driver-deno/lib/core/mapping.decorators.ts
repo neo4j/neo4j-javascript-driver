@@ -39,7 +39,7 @@ function stringProperty (config?: Rule) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a number.
  *
- * @param {Rule & { isInteger?: boolean }} rule Configurations for the rule. 
+ * @param {Rule & { isInteger?: boolean }} rule Configurations for the rule.
  * If `isInteger` is set to true, the created validate function will allow Integer values through, and the conversion functions will ensure results are return as numbers while parameters are transmitted as integers.
  * @returns {Function} Property Decorator
  */

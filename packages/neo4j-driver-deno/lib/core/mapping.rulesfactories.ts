@@ -97,7 +97,7 @@ export const rule = Object.freeze({
    *
    * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
-   * @param {Rule & { isInteger?: boolean }} rule Configurations for the rule. 
+   * @param {Rule & { isInteger?: boolean }} rule Configurations for the rule.
    * If `isInteger` is set to true, the created validate function will allow Integer values through, and the conversion functions will ensure results are return as numbers while parameters are transmitted as integers.
    * @returns {Rule} A new rule for the value
    */
@@ -124,7 +124,7 @@ export const rule = Object.freeze({
         return value
       },
       parameterConversion: (value: number | bigint | Integer) => {
-        if (rule?.isInteger === true ) {
+        if (rule?.isInteger === true) {
           return Integer.fromValue(value)
         }
         return value
@@ -153,7 +153,7 @@ export const rule = Object.freeze({
         if (typeof value === 'number') {
           return BigInt(value)
         }
-        if(isInt(value)) {
+        if (isInt(value)) {
           return value.toBigInt()
         }
         return value
@@ -166,7 +166,7 @@ export const rule = Object.freeze({
    *
    * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
-   * @param {Rule & { acceptNumber?: boolean } | undefined} rule Configurations for the rule, if `acceptNumber` is set to true, the created validate function will allow Numbers through and the conversion functions will turn Numbers into Integers. 
+   * @param {Rule & { acceptNumber?: boolean } | undefined} rule Configurations for the rule, if `acceptNumber` is set to true, the created validate function will allow Numbers through and the conversion functions will turn Numbers into Integers.
    * @returns {Rule} A new rule for the value
    */
   asInteger (rule?: Rule & { acceptNumber?: boolean }): Rule {
