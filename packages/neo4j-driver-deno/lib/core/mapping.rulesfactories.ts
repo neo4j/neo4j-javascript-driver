@@ -21,7 +21,7 @@ import { Rule, valueAs, optionalParameterConversion, Rules, defaultNameMapping }
 import { StandardDate, isNode, isPath, isRelationship, isUnboundRelationship } from './graph-types.ts'
 import { isPoint } from './spatial-types.ts'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types.ts'
-import Vector, { vector } from './vector.ts'
+import Vector, { isVector, vector } from './vector.ts'
 import { newError } from './error.ts'
 import Integer, { isInt } from './integer.ts'
 
@@ -506,7 +506,7 @@ export const rule = Object.freeze({
     }
     return {
       validate: (value: any, field: string) => {
-        if (!(value instanceof Vector)) {
+        if (!isVector(value)) {
           throw new TypeError(`${field} should be a vector but received ${typeof value}`)
         }
       },
