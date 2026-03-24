@@ -23,6 +23,7 @@ import { isPoint } from './spatial-types'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types'
 import Vector, { vector } from './vector'
 import { newError } from './error'
+import Integer, { isInt } from './integer'
 
 /**
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.
@@ -96,22 +97,35 @@ export const rule = Object.freeze({
    *
    * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
-   * @param {Rule & { acceptBigInt?: boolean }} rule Configurations for the rule. If `acceptBigInt` is set to true, the created validate function will allow BigInts through and the convert function will turn BigInts into Numbers.
+   * @param {Rule & { isInteger?: boolean }} rule Configurations for the rule.
+   * If `isInteger` is set to true, the created validate function will allow Integer values through, and the conversion functions will ensure results are return as numbers while parameters are transmitted as integers.
    * @returns {Rule} A new rule for the value
    */
-  asNumber (rule?: Rule & { acceptBigInt?: boolean }): Rule { // TODO: RECONSIDER HOW THE NUMBER RULES WORK, GIVEN Integers and Floats. asNumber and asBigInt should probably be asInteger and asFloat
+  asNumber (rule?: Rule & { isInteger?: boolean }): Rule {
     return {
       validate: (value: any, field: string) => {
-        if (typeof value === 'object' && value.low !== undefined && value.high !== undefined && Object.keys(value).length === 2) {
-          throw new TypeError('Number returned as Object. To use asNumber mapping, set disableLosslessIntegers or useBigInt in driver config object')
+        if (isInt(value) && rule?.isInteger !== true) {
+          throw new TypeError('Number returned as Integer Object. To use asNumber mapping with Integers, set "isInteger" in rule configuration.')
         }
-        if (typeof value !== 'number' && (rule?.acceptBigInt !== true || typeof value !== 'bigint')) {
+        if (rule?.isInteger !== true && typeof value === 'bigint') {
+          throw new TypeError('Number returned as BigInt. To use asNumber mapping with integer values, set "isInteger" in rule configuration.')
+        }
+        if (typeof value !== 'number') {
           throw new TypeError(`${field} should be a number but received ${typeof value}`)
         }
       },
-      convert: (value: number | bigint) => {
+      convert: (value: number | bigint | Integer) => {
         if (typeof value === 'bigint') {
           return Number(value)
+        }
+        if (isInt(value)) {
+          return value.toNumber()
+        }
+        return value
+      },
+      parameterConversion: (value: number | bigint | Integer) => {
+        if (rule?.isInteger === true) {
+          return Integer.fromValue(value)
         }
         return value
       },
@@ -129,13 +143,42 @@ export const rule = Object.freeze({
   asBigInt (rule?: Rule & { acceptNumber?: boolean }): Rule {
     return {
       validate: (value: any, field: string) => {
-        if (typeof value !== 'bigint' && (rule?.acceptNumber !== true || typeof value !== 'number')) {
+        if (
+          typeof value !== 'bigint' && (rule?.acceptNumber !== true || typeof value !== 'number') && !(isInt(value))
+        ) {
           throw new TypeError(`${field} should be a bigint but received ${typeof value}`)
         }
       },
-      convert: (value: number | bigint) => {
+      convert: (value: number | bigint | Integer) => {
         if (typeof value === 'number') {
           return BigInt(value)
+        }
+        if (isInt(value)) {
+          return value.toBigInt()
+        }
+        return value
+      },
+      ...rule
+    }
+  },
+  /**
+   * Create a {@link Rule} that validates the value is an {@link Integer}.
+   *
+   * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
+   *
+   * @param {Rule & { acceptNumber?: boolean } | undefined} rule Configurations for the rule, if `acceptNumber` is set to true, the created validate function will allow Numbers through and the conversion functions will turn Numbers into Integers.
+   * @returns {Rule} A new rule for the value
+   */
+  asInteger (rule?: Rule & { acceptNumber?: boolean }): Rule {
+    return {
+      validate: (value: any, field: string) => {
+        if (typeof value !== 'bigint' && !isInt(value)) {
+          throw new TypeError(`${field} should be an Integer but received ${typeof value}`)
+        }
+      },
+      convert: (value: number | bigint | Integer) => {
+        if (typeof value === 'bigint') {
+          return Integer.fromValue(value)
         }
         return value
       },

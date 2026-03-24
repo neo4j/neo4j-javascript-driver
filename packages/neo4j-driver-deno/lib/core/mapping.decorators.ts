@@ -39,10 +39,11 @@ function stringProperty (config?: Rule) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a number.
  *
- * @param {Rule & { acceptBigInt?: boolean }} config
+ * @param {Rule & { isInteger?: boolean }} rule Configurations for the rule. 
+ * If `isInteger` is set to true, the created validate function will allow Integer values through, and the conversion functions will ensure results are return as numbers while parameters are transmitted as integers.
  * @returns {Function} Property Decorator
  */
-function numberProperty (config?: Rule & { acceptBigInt?: boolean }) {
+function numberProperty (config?: Rule & { isInteger?: boolean }) {
   return (_: any, context: any) => {
     context.metadata[context.name] = rule.asNumber(config)
   }
@@ -51,12 +52,24 @@ function numberProperty (config?: Rule & { acceptBigInt?: boolean }) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a BigInt.
  *
- * @param {Rule & { acceptNumber?: boolean }} config
+ * @param {Rule & { acceptNumber?: boolean }} config Configurations for the rule, if `acceptNumber` is set to true, the created validate function will allow Numbers through and the convert function will turn Numbers into BigInts.
  * @returns {Function} Property Decorator
  */
 function bigIntProperty (config?: Rule & { acceptNumber?: boolean }) {
   return (_: any, context: any) => {
     context.metadata[context.name] = rule.asBigInt(config)
+  }
+}
+
+/**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to an Integer.
+ *
+ * @param {Rule & { acceptNumber?: boolean }} config Configurations for the rule, if `acceptNumber` is set to true, the created validate function will allow Numbers through and the convert function will turn Numbers into BigInts.
+ * @returns {Function} Property Decorator
+ */
+function integerProperty (config?: Rule & { acceptNumber?: boolean }) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asInteger(config)
   }
 }
 
@@ -188,6 +201,7 @@ const forExport = {
   stringProperty,
   numberProperty,
   bigIntProperty,
+  integerProperty,
   nodeProperty,
   relationshipProperty,
   pathProperty,

@@ -43,12 +43,12 @@ describe('#integration record object mapping', () => {
   // Create rules for the hydration of the created types
   const personRules = {
     name: neo4j.rule.asString(),
-    born: neo4j.rule.asNumber({ acceptBigInt: true, optional: true })
+    born: neo4j.rule.asNumber({ optional: true })
   }
 
   const movieRules = {
     title: neo4j.rule.asString(),
-    released: neo4j.rule.asNumber({ acceptBigInt: true, optional: true, from: 'release' }),
+    released: neo4j.rule.asNumber({ isInteger: true, optional: true, from: 'release' }),
     tagline: neo4j.rule.asString({ optional: true })
   }
 
@@ -90,9 +90,13 @@ describe('#integration record object mapping', () => {
     })
   }
   const uri = `bolt://${sharedNeo4j.hostnameWithBoltPort}`
+  let protocolVersion
+  let edition
 
-  beforeAll(() => {
+  beforeAll(async () => {
     driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken, { disableLosslessIntegers: true })
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driverGlobal)
+    edition = await sharedNeo4j.getEdition(driverGlobal)
   })
 
   afterAll(async () => {
@@ -388,14 +392,16 @@ describe('#integration record object mapping', () => {
   })
 
   it('map object with internal rules', async () => {
-    const session = driverGlobal.session()
+    if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 }) && edition === 'enterprise') {
+      const session = driverGlobal.session()
 
-    const rules = { obj: neo4j.rule.asObject({ date: neo4j.rule.asDate({ stringify: true }), vec: neo4j.rule.asVector({ asTypedList: true, from: 'vector' }) }) }
-    const parameters = { obj: { date: '2024-01-12', vec: Int16Array.from([4, 8]) } }
+      const rules = { obj: neo4j.rule.asObject({ date: neo4j.rule.asDate({ stringify: true }), vec: neo4j.rule.asVector({ asTypedList: true, from: 'vector' }) }) }
+      const parameters = { obj: { date: '2024-01-12', vec: Int16Array.from([4, 8]) } }
 
-    const res = await session.run('return $obj as obj', parameters, {}, rules).as(rules)
-    expect(res.records[0].obj.date).toEqual(parameters.obj.date)
-    expect(res.records[0].obj.vec).toEqual(parameters.obj.vec)
+      const res = await session.run('return $obj as obj', parameters, {}, rules).as(rules)
+      expect(res.records[0].obj.date).toEqual(parameters.obj.date)
+      expect(res.records[0].obj.vec).toEqual(parameters.obj.vec)
+    }
   })
 
   it('should fail parameterMapping non-optional parameter is missing', async () => {
