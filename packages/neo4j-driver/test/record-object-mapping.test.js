@@ -336,7 +336,6 @@ describe('#integration record object mapping', () => {
       number: neo4j.rule.asNumber(),
       string: neo4j.rule.asString(),
       bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
-      integer: neo4j.rule.asInteger(),
       date: neo4j.rule.asDate({ stringify: true }),
       dateTime: neo4j.rule.asDateTime({ stringify: true }),
       standardDateTime: neo4j.rule.asDateTime({ JSNativeDate: true }),
@@ -354,7 +353,6 @@ describe('#integration record object mapping', () => {
       string: 'hi',
       number: 1,
       bigint: BigInt(1),
-      integer: Integer.fromValue(1),
       date: (new neo4j.Date(1, 1, 1)).toString(),
       dateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString(),
       standardDateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate(),
@@ -369,7 +367,6 @@ describe('#integration record object mapping', () => {
     expect(node.string).toEqual('hi')
     expect(node.number).toEqual(1)
     expect(node.bigint).toEqual(BigInt(1))
-    expect(node.integer).toEqual(Integer.fromValue(1))
     expect(node.date).toEqual((new neo4j.Date(1, 1, 1)).toString())
     expect(node.dateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString())
     expect(node.standardDateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate())
@@ -392,6 +389,30 @@ describe('#integration record object mapping', () => {
 
     const res = await session.run('return $nestedList as nestedList', obj, {}, rules).as(rules)
     expect(res.records[0].nestedList).toEqual([[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]])
+  })
+
+  it('map integer with rule', async () => {
+    const integerDriver = neo4j.driver(uri, sharedNeo4j.authToken)
+
+    const session = integerDriver.session()
+
+    const rules = {
+      integer: neo4j.rule.asInteger()
+    }
+
+    const nodeRule = {
+      n: neo4j.rule.asNode({ convert: (node) => node.as(rules) })
+    }
+
+    const obj = {
+      integer: Integer.fromValue(1)
+    }
+
+    const res = await session.run('MERGE (n {integer: $integer}) RETURN n', obj, {}, rules).as(nodeRule)
+    const node = res.records[0].n
+    expect(node.integer).toEqual(Integer.fromValue(1))
+    await session.close()
+    await integerDriver.close()
   })
 
   it('map object with internal rules', async () => {
