@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import neo4j, { Date, Duration, Time, Point, DateTime, LocalDateTime, LocalTime } from '../src'
+import neo4j, { Date, Duration, Time, Point, DateTime, LocalDateTime, LocalTime, Integer } from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 
 describe('#integration record object mapping', () => {
@@ -336,6 +336,7 @@ describe('#integration record object mapping', () => {
       number: neo4j.rule.asNumber(),
       string: neo4j.rule.asString(),
       bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
+      integer: neo4j.rule.asInteger(),
       date: neo4j.rule.asDate({ stringify: true }),
       dateTime: neo4j.rule.asDateTime({ stringify: true }),
       standardDateTime: neo4j.rule.asDateTime({ JSNativeDate: true }),
@@ -353,6 +354,7 @@ describe('#integration record object mapping', () => {
       string: 'hi',
       number: 1,
       bigint: BigInt(1),
+      integer: Integer.fromValue(1),
       date: (new neo4j.Date(1, 1, 1)).toString(),
       dateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString(),
       standardDateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate(),
@@ -367,6 +369,7 @@ describe('#integration record object mapping', () => {
     expect(node.string).toEqual('hi')
     expect(node.number).toEqual(1)
     expect(node.bigint).toEqual(BigInt(1))
+    expect(node.integer).toEqual(Integer.fromValue(1))
     expect(node.date).toEqual((new neo4j.Date(1, 1, 1)).toString())
     expect(node.dateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString())
     expect(node.standardDateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate())

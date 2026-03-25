@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector, newError } from '../src'
+import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector, newError, Integer } from '../src'
 import { as } from '../src/mapping.highlevel'
 
 describe('Record Object Mapping', () => {
@@ -90,6 +90,7 @@ describe('Record Object Mapping', () => {
         number: rule.asNumber(),
         string: rule.asString(),
         bigint: rule.asBigInt(),
+        integer: rule.asInteger(),
         date: rule.asDate(),
         dateTime: rule.asDateTime(),
         duration: rule.asDuration(),
@@ -105,6 +106,7 @@ describe('Record Object Mapping', () => {
         string: string
         number: number
         bigint: BigInt
+        integer: Integer
         date: Date
         dateTime: DateTime
         duration: Duration
@@ -125,6 +127,8 @@ describe('Record Object Mapping', () => {
               return 1
             case 'bigint':
               return BigInt(1)
+            case 'integer':
+              return new Integer(1, 0)
             case 'date':
               return new Date(1, 1, 1)
             case 'dateTime':
@@ -155,6 +159,8 @@ describe('Record Object Mapping', () => {
       expect(result.number).toBe(1)
 
       expect(result.bigint).toBe(BigInt(1))
+
+      expect(result.integer).toEqual(new Integer(1, 0))
 
       expect(result.list[0]).toBe('hello')
 

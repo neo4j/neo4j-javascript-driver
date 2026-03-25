@@ -1,4 +1,4 @@
-import { Date, DateTime, Duration, int, Time, Vector } from '../src'
+import { Date, DateTime, Duration, int, Integer, Time, Vector } from '../src'
 import { rule } from '../src/mapping.rulesfactories'
 
 describe('Rulesfactories', () => {
@@ -6,6 +6,7 @@ describe('Rulesfactories', () => {
     ['Number', rule.asNumber(), 1, 1],
     ['String', rule.asString(), 'hi', 'hi'],
     ['BigInt', rule.asBigInt(), BigInt(1), BigInt(1)],
+    ['Integer', rule.asInteger(), Integer.fromValue(1), Integer.fromValue(1)],
     ['Date', rule.asDate(), new Date(1, 1, 1), new Date(1, 1, 1)],
     ['DateTime', rule.asDateTime(), new DateTime(1, 1, 1, 1, 1, 1, 1, 1), new DateTime(1, 1, 1, 1, 1, 1, 1, 1)],
     ['Duration', rule.asDuration(), new Duration(1, 1, 1, 1), new Duration(1, 1, 1, 1)],
@@ -73,6 +74,11 @@ describe('Rulesfactories', () => {
         date: '2024-01-12',
         vec: Int16Array.from([4, 8])
       }
+    ],
+    [
+      'Integer-mapped Number',
+      rule.asNumber({ isInteger: true }),
+      1
     ]
   ])('mapping %s as property and back should be lossless', (_, rule, param) => {
     if (rule.parameterConversion != null && rule.convert != null) {
