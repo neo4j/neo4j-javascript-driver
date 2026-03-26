@@ -205,7 +205,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._connectionPromise
   }
 
-  close (hasTx?: boolean): Promise<null | Connection> {
+  close (): Promise<null | Connection> {
     this._closed = true
     if (this._referenceCount === 0) {
       return this._connectionPromise
