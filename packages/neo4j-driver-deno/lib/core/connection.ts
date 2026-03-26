@@ -122,6 +122,14 @@ class Connection {
 
   /**
    *
+   * @returns {BoltProtocol}
+   */
+  protocol (): any {
+    throw new Error('Not implemented')
+  }
+
+  /**
+   *
    * @returns {boolean}
    */
   isOpen (): boolean {

@@ -229,7 +229,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._connectionPromise = this._connectionPromise
       .then((connection?: Connection & Releasable | null) => {
         if (connection != null) {
-          if (connection.isOpen() && (connection.hasOngoingObservableRequests() || hasTx === true)) {
+          if (connection.isOpen() && (connection.hasOngoingObservableRequests() || hasTx === true || (connection.protocol().isLastMessageReset() !== true && connection.protocol().isLastMessageLogon() !== true))) {
             return connection
               .resetAndFlush()
               .catch(ignoreError)
@@ -246,7 +246,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   }
 
   _logError (error: Error): null {
-    if (this._log.isWarnEnabled()) {
+    if (this._log?.isWarnEnabled()) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       this._log.warn(`ConnectionHolder got an error while releasing the connection. Error ${error}. Stacktrace: ${error.stack}`)
     }
