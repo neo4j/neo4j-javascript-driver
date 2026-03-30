@@ -1,4 +1,8 @@
 packages: 
   - 'packages/*'
 trustPolicy: no-downgrade
+trustPolicyExclude:
+  - 'semver'
+  - '@octokit/endpoint@9.0.6'
+  - 'rollup@2.80.0'
 blockExoticSubdeps: true
