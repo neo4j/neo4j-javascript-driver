@@ -149,6 +149,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   private _error: Error | null
   private readonly _watermarks: { high: number, low: number }
   private _mapper: Function | null
+  private _consumed: boolean
 
   /**
    * Inject the observer to be used.
@@ -177,6 +178,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     this._error = null
     this._mapper = null
     this._watermarks = watermarks
+    this._consumed = false
   }
 
   as <T extends {} = Object>(rules: Rules): MappedResult<T>
@@ -239,7 +241,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
           observer.subscribe(this._decorateObserver({
             onKeys: keys => resolve(keys),
             onError: err => reject(err)
-          }, true))
+          }))
         )
         .catch(reject)
     })
@@ -284,6 +286,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    * @return {Promise} new Promise.
    */
   private _getOrCreatePromise (): Promise<T> {
+    this._consumed = true
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
         const records: R[] = []
@@ -318,7 +321,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    * @returns {PeekableAsyncIterator<R, ResultSummary>} The async iterator for the Results
    */
   [Symbol.asyncIterator] (): PeekableAsyncIterator<R, ResultSummary> {
-    if (!this.isOpen()) {
+    if (this._consumed) {
       const error = newError('Result is already consumed')
       return {
         next: () => Promise.reject(error),
@@ -379,12 +382,14 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
         const queuedObserver = await initializeObserver()
         const next = await queuedObserver.dequeue()
         if (next.done === true) {
+          this._consumed = true
           state.finished = next.done
           state.summary = next.value
         }
         return next
       },
       return: async (value?: ResultSummary) => {
+        this._consumed = true
         if (state.finished) {
           if (assertSummary(state.summary)) {
             return { done: true, value: value ?? state.summary }
@@ -489,6 +494,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    * @returns {Promise<observer.ResultStreamObserver>} The result stream observer.
    */
   _subscribe (observer: GenericResultObserver<R>, paused: boolean = false): Promise<observer.ResultStreamObserver> {
+    this._consumed = true
     const _observer = this._decorateObserver(observer)
 
     return this._streamObserverPromise
