@@ -239,7 +239,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
           observer.subscribe(this._decorateObserver({
             onKeys: keys => resolve(keys),
             onError: err => reject(err)
-          }))
+          }, true))
         )
         .catch(reject)
     })
@@ -514,7 +514,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    * @param {ResultObserver} observer The ResultObserver to decorate.
    * @returns The decorated result observer
    */
-  _decorateObserver (observer: GenericResultObserver<R>): GenericResultObserver<R> {
+  _decorateObserver (observer: GenericResultObserver<R>, skipOnCompleted?: boolean): GenericResultObserver<R> {
     const onCompletedOriginal = observer.onCompleted ?? DEFAULT_ON_COMPLETED
     const onErrorOriginal = observer.onError ?? DEFAULT_ON_ERROR
     const onKeysOriginal = observer.onKeys ?? DEFAULT_ON_KEYS
@@ -547,7 +547,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     return {
       onNext: (observer.onNext != null) ? observer.onNext.bind(observer) : undefined,
       onKeys: onKeysWrapper,
-      onCompleted: onCompletedWrapper,
+      onCompleted: skipOnCompleted === true ? undefined : onCompletedWrapper,
       onError: onErrorWrapper
     }
   }
