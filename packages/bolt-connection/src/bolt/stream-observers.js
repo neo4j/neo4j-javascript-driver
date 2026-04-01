@@ -115,6 +115,7 @@ class ResultStreamObserver extends StreamObserver {
     this._pulled = !reactive
     this._haveRecordStreamed = false
     this._onDb = onDb
+    this.waitingForMore = false
   }
 
   /**
@@ -173,6 +174,7 @@ class ResultStreamObserver extends StreamObserver {
    */
   onError (error) {
     this._state.onError(this, error)
+    this.waitingForMore = false
   }
 
   /**
@@ -180,6 +182,10 @@ class ResultStreamObserver extends StreamObserver {
    */
   cancel () {
     this._discard = true
+    if (this.waitingForMore) {
+      this._discardFunction(this._queryId, this)
+      this.waitingForMore = false
+    }
   }
 
   /**
@@ -206,6 +212,7 @@ class ResultStreamObserver extends StreamObserver {
     this._fieldKeys = []
     this._tail = {}
     this._setState(_states.SUCCEEDED)
+    this.waitingForMore = false
   }
 
   /**
@@ -722,8 +729,10 @@ const _states = {
   STREAMING: {
     onSuccess: (streamObserver, meta) => {
       if (meta.has_more) {
+        streamObserver.waitingForMore = true
         streamObserver._handleHasMore(meta)
       } else {
+        streamObserver.waitingForMore = false
         streamObserver._handlePullSuccess(meta)
       }
     },
