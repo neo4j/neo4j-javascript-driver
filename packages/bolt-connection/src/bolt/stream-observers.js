@@ -116,6 +116,7 @@ class ResultStreamObserver extends StreamObserver {
     this._haveRecordStreamed = false
     this._onDb = onDb
     this.waitingForMore = false
+    this.eagerlyDiscarded = false
   }
 
   /**
@@ -185,6 +186,7 @@ class ResultStreamObserver extends StreamObserver {
     if (this.waitingForMore) {
       this._discardFunction(this._queryId, this)
       this.waitingForMore = false
+      this.eagerlyDiscarded = true
     }
   }
 
@@ -418,7 +420,7 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   _more () {
-    if (this._discard) {
+    if (this._discard && !this.eagerlyDiscarded) {
       this._discardFunction(this._queryId, this)
     } else {
       this._pulled = true
