@@ -754,6 +754,9 @@ const _states = {
     pull: () => { }
   },
   SUCCEEDED: {
+    onError: _error => {
+      // more errors are ignored
+    },
     name: () => {
       return 'SUCCEEDED'
     },
