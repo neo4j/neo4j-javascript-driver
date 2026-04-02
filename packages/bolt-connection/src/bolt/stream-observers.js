@@ -420,8 +420,10 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   _more () {
-    if (this._discard && !this.eagerlyDiscarded) {
-      this._discardFunction(this._queryId, this)
+    if (this._discard) {
+      if (!this.eagerlyDiscarded) {
+        this._discardFunction(this._queryId, this)
+      }
     } else {
       this._pulled = true
       this._moreFunction(this._queryId, this._fetchSize, this)
