@@ -344,7 +344,8 @@ describe('LocalTime', () => {
       ['23:59:00', new LocalTime(int(23), int(59), int(0), int(0))],
       ['23:59:00.1', new LocalTime(int(23), int(59), int(0), int(100000000))],
       ['23', new LocalTime(int(23), int(0), int(0), int(0))],
-      ['23.5', new LocalTime(int(23), int(30), int(0), int(0))]
+      ['23.5', new LocalTime(int(23), int(30), int(0), int(0))],
+      ['T010203', new LocalTime(int(1), int(2), int(3), int(0))]
     ])('should successfully convert localtime strings', (string: string, expected: LocalTime<Integer>) => {
       expect(LocalTime.fromString(string)).toEqual(expected)
     })

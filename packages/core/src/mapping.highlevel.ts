@@ -40,13 +40,17 @@ export interface Rule {
   /**
    * A function to convert the value from a result after it has been validated.
    *
-   * @param recordValue The value from the raw result.
+   * NOTE: This function will not be called on null-ish values on optional fields
+   *
+   * @param {any} recordValue The value from the raw result.
    * @param {string} field name of the field.
    * @returns {any} The converted value.
    */
   convert?: (recordValue: any, field: string) => any
   /**
    * A function to convert a parameter before validation and transmission to the database.
+   *
+   * NOTE: This function will not be called on null-ish values on optional parameters
    *
    * @param objectValue The value provided as a parameter.
    * @returns The converted value, this value will be passed to the validate function before transmission to the database.
@@ -192,7 +196,7 @@ function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: R
   try {
     value = gettable.get(rule?.from ?? mappedKey)
   } catch (e) {
-    if (rule?.optional === true && e instanceof Neo4jError && e.message.includes('This record has no field with key')) {
+    if (rule?.optional === true && e instanceof Neo4jError) {
       return
     }
     throw e
@@ -219,7 +223,7 @@ export function optionalParameterConversion (value: unknown, rule: Rule): unknow
   if (rule.optional === true && value == null) {
     return value
   }
-  return (rule.parameterConversion != null) ? rule.parameterConversion(value) : value
+  return (value != null && rule.parameterConversion != null) ? rule.parameterConversion(value) : value
 }
 
 export function validateAndCleanParameters (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {

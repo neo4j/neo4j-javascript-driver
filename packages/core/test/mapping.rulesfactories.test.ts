@@ -1,4 +1,4 @@
-import { Date, DateTime, Duration, int, Integer, Time, Vector } from '../src'
+import { Date, DateTime, Duration, int, Integer, LocalDateTime, LocalTime, Point, Time, Vector } from '../src'
 import { rule } from '../src/mapping.rulesfactories'
 
 describe('Rulesfactories', () => {
@@ -7,10 +7,13 @@ describe('Rulesfactories', () => {
     ['String', rule.asString(), 'hi', 'hi'],
     ['BigInt', rule.asBigInt(), BigInt(1), BigInt(1)],
     ['Integer', rule.asInteger(), Integer.fromValue(1), Integer.fromValue(1)],
-    ['Date', rule.asDate(), new Date(1, 1, 1), new Date(1, 1, 1)],
-    ['DateTime', rule.asDateTime(), new DateTime(1, 1, 1, 1, 1, 1, 1, 1), new DateTime(1, 1, 1, 1, 1, 1, 1, 1)],
+    ['Point', rule.asPoint(), new Point(0, 1, 1), new Point(0, 1, 1)],
     ['Duration', rule.asDuration(), new Duration(1, 1, 1, 1), new Duration(1, 1, 1, 1)],
+    ['LocalTime', rule.asLocalTime(), new LocalTime(1, 1, 1, 1), new LocalTime(1, 1, 1, 1)],
     ['Time', rule.asTime(), new Time(1, 1, 1, 1, 1), new Time(1, 1, 1, 1, 1)],
+    ['Date', rule.asDate(), new Date(1, 1, 1), new Date(1, 1, 1)],
+    ['LocalDateTime', rule.asLocalDateTime(), new LocalDateTime(1, 1, 1, 1, 1, 1, 1), new LocalDateTime(1, 1, 1, 1, 1, 1, 1)],
+    ['DateTime', rule.asDateTime(), new DateTime(1, 1, 1, 1, 1, 1, 1, 1), new DateTime(1, 1, 1, 1, 1, 1, 1, 1)],
     ['Simple List', rule.asList({ apply: rule.asString() }), ['hello'], ['hello']],
     [
       'Complex List',

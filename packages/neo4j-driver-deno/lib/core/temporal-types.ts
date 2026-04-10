@@ -99,7 +99,7 @@ export class Duration<T extends NumberOrInteger = Integer> {
    * NOTE: Bolt transmits durations as 4 integers: Months, Days, Seconds and Nanoseconds. Parsing strings like P1.5M4.3D will throw an error. P0.5Y can be sent as it can be simplified as 6 months.
    *
    * @param {string} str The string to convert
-   * @returns {Duration<NumberOrInteger>}
+   * @returns {Duration}
    */
   static fromString (str: string): Duration {
     if (str.slice(-1).toUpperCase() === 'T') {
@@ -120,7 +120,7 @@ export class Duration<T extends NumberOrInteger = Integer> {
       const months = negativeDuration * parseTemporalFloat(matches[2], 'Years') * 12 + parseTemporalFloat(matches[3], 'Months')
       const days = negativeDuration * parseTemporalFloat(matches[4], 'Weeks') * 7 + parseTemporalFloat(matches[5], 'Days')
       const hoursAndMinutes = (parseTemporalFloat(matches[7], 'Hours') * 3600 + parseTemporalFloat(matches[8], 'Minutes') * 60)
-      const seconds = parseTemporalInt((matches[9] ?? '') + (matches[10] ?? '0'), 'seconds')
+      const seconds = parseTemporalInt((matches[9] ?? '') + (matches[10] ?? '0'))
       const nanos = negativeDuration * parseDurationNanos((matches[9] ?? '') + '0' + (matches[11] ?? ''))
       checkDurationFieldIsInt(months, 'Months')
       checkDurationFieldIsInt(days, 'Days')
@@ -245,10 +245,10 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
    * Creates a {@link LocalTime} from an ISO 8601 string
    *
    * @param {string} str The string to convert
-   * @returns {LocalTime<NumberOrInteger>}
+   * @returns {LocalTime}
    */
   static fromString (str: string): LocalTime {
-    const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::(\d{2}))?(?::(\d{2}))?(\.\d+)?$/)
+    const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?$/)
     if (values !== null) {
       const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
       return new LocalTime(
@@ -374,10 +374,10 @@ export class Time<T extends NumberOrInteger = Integer> {
    * Creates a {@link Time} from an ISO 8601 string.
    *
    * @param {string} str The string to convert
-   * @returns {Time<NumberOrInteger>}
+   * @returns {Time}
    */
   static fromString (str: string): Time {
-    const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::(\d{2}))?(?::(\d{2}))?(\.\d+)?([Z|z]$|\+|-)(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$/)
+    const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?([Z|z]$|\+|-)(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$/)
     if (values !== null) {
       const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
       if (values[5] === 'Z') {
@@ -392,15 +392,15 @@ export class Time<T extends NumberOrInteger = Integer> {
       if (values[6] == null) {
         throw newError('Error parsing timezone offset.')
       }
-      return new Time<Integer>(
+      return new Time(
         hours,
         minutes,
         seconds,
         nanoseconds,
         int((values[5] === '+' ? 1 : -1) * (
-          parseTemporalInt(values[6], 'timezone offset hours').toInt() * 3600 +
-          parseTemporalInt(values[7], 'timezone offset minutes').toInt() * 60 +
-          parseTemporalInt(values[8], 'timezone offset seconds').toInt()
+          parseTemporalInt(values[6]).toInt() * 3600 + //timezone offset hours
+          parseTemporalInt(values[7]).toInt() * 60 + //timezone offset minutes
+          parseTemporalInt(values[8]).toInt() // timezone offset seconds
         ))
       )
     }
@@ -539,15 +539,15 @@ export class Date<T extends NumberOrInteger = Integer> {
    * Creates a {@link Date} from an ISO 8601 string
    *
    * @param {string} str The string to convert
-   * @returns {Date<NumberOrInteger>}
+   * @returns {Date}
    */
   static fromString (str: string): Date {
     const values = String(str.replace(/,/g, '.')).match(/^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})$/)
     if (values !== null) {
       return new Date(
-        parseTemporalInt(values[1], 'years'),
-        parseTemporalInt(values[2], 'months'),
-        parseTemporalInt(values[3], 'days')
+        parseTemporalInt(values[1]), // years
+        parseTemporalInt(values[2]), // months
+        parseTemporalInt(values[3]) // days
       )
     }
     throw newError('Date could not be parsed from string. Expects date in format \'YYYY-MM-DD\' or \'[+|-]YYYYY-MM-DD\'')
@@ -690,16 +690,16 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
    * Creates a {@link LocalDateTime} from an ISO 8601 string
    *
    * @param {string} str The string to convert
-   * @returns {LocalDateTime<NumberOrInteger>}
+   * @returns {LocalDateTime}
    */
   static fromString (str: string): LocalDateTime {
-    const values = String(str.replace(/,/g, '.')).match(/^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::(\d{2}))?(?::(\d{2}))?(\.\d+)?$/)
+    const values = String(str.replace(/,/g, '.')).match(/^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?$/)
     if (values !== null) {
       const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
       return new LocalDateTime(
-        parseTemporalInt(values[1], 'years'),
-        parseTemporalInt(values[2], 'months'),
-        parseTemporalInt(values[3], 'days'),
+        parseTemporalInt(values[1]), // years
+        parseTemporalInt(values[2]), // months
+        parseTemporalInt(values[3]), // days
         hours,
         minutes,
         seconds,
@@ -888,12 +888,12 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    * Creates a {@link DateTime} from an ISO 8601 string
    *
    * @param {string} str The string to convert
-   * @returns {DateTime<NumberOrInteger>}
+   * @returns {DateTime}
    */
   static fromString (str: string): DateTime {
     const values = String(str.replace(/,/g, '.')).match(
       new RegExp(
-        /^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::(\d{2}))?(?::(\d{2}))?(\.\d+)?/.source + // DateTime
+        /^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?/.source + // DateTime
         /([Z|z]$|\+|-)?(?:(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$)?((\[)([^\]]*)(\]))?$/.source // Timezone
       )
     )
@@ -901,9 +901,9 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
       if (values[8] === 'Z') {
         return new DateTime(
-          parseTemporalInt(values[1], 'years'),
-          parseTemporalInt(values[2], 'months'),
-          parseTemporalInt(values[3], 'days'),
+          parseTemporalInt(values[1]), // years
+          parseTemporalInt(values[2]), // months
+          parseTemporalInt(values[3]), // days
           hours,
           minutes,
           seconds,
@@ -912,10 +912,10 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         )
       }
       if ((values[8] === '+' || values[8] === '-') && values[9] != null) {
-        return new DateTime<Integer>(
-          parseTemporalInt(values[1], 'years'),
-          parseTemporalInt(values[2], 'months'),
-          parseTemporalInt(values[3], 'days'),
+        return new DateTime(
+          parseTemporalInt(values[1]), // years
+          parseTemporalInt(values[2]), // months
+          parseTemporalInt(values[3]), // days
           hours,
           minutes,
           seconds,
@@ -925,9 +925,9 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       }
       if (values[14] !== undefined) {
         return new DateTime(
-          parseTemporalInt(values[1], 'years'),
-          parseTemporalInt(values[2], 'months'),
-          parseTemporalInt(values[3], 'days'),
+          parseTemporalInt(values[1]), // years
+          parseTemporalInt(values[2]), // months
+          parseTemporalInt(values[3]), // days
           hours,
           minutes,
           seconds,
@@ -1065,11 +1065,9 @@ function parseTemporalFloat (str: string | undefined, field: string): number {
   }
 }
 
-function parseTemporalInt (str: string | undefined, field: string, maxLength?: number): Integer {
-  if (str === undefined || str.length === 0 || str === 'undefined') {
+function parseTemporalInt (str: string | undefined): Integer {
+  if (str === undefined || str.length === 0) {
     return int(0)
-  } else if (maxLength != null && str.length > maxLength) {
-    throw newError(`Failed to parse temporal field ${field}. Got string: ${str} which is longer than max length: ${maxLength}.`)
   }
   const result = int(str)
   return result
@@ -1080,22 +1078,22 @@ function handleTimeDecimals (hourString?: string, minuteString?: string, secondS
   let minutes
   let seconds
   let nanoseconds
-  const decimalInt = decimalString !== undefined ? parseFloat('0' + decimalString) : 0
+  const decimalNumber = decimalString !== undefined ? parseFloat('0' + decimalString) : 0
   if (minuteString === undefined || minuteString === '') {
-    hours = parseTemporalInt(hourString, 'hours')
-    minutes = int(decimalInt * 60)
-    seconds = int((decimalInt * 3600) % 60)
-    nanoseconds = int((decimalInt * 3600 * 10 ** 9) % 10 ** 9)
+    hours = parseTemporalInt(hourString)
+    minutes = int(decimalNumber * 60)
+    seconds = int((decimalNumber * 3600) % 60)
+    nanoseconds = int((decimalNumber * 3600 * 10 ** 9) % 10 ** 9)
   } else if (secondString === undefined || secondString === '') {
-    hours = parseTemporalInt(hourString, 'hours')
-    minutes = parseTemporalInt(minuteString, 'minutes')
-    seconds = int((decimalInt * 60) % 60)
-    nanoseconds = int((decimalInt * 60 * (10 ** 9)) % 10 ** 9)
+    hours = parseTemporalInt(hourString)
+    minutes = parseTemporalInt(minuteString)
+    seconds = int((decimalNumber * 60) % 60)
+    nanoseconds = int((decimalNumber * 60 * (10 ** 9)) % 10 ** 9)
   } else {
-    hours = parseTemporalInt(hourString, 'hours')
-    minutes = parseTemporalInt(minuteString, 'minutes')
-    seconds = parseTemporalInt(secondString, 'seconds')
-    nanoseconds = int(decimalInt * 10 ** 9)
+    hours = parseTemporalInt(hourString)
+    minutes = parseTemporalInt(minuteString)
+    seconds = parseTemporalInt(secondString)
+    nanoseconds = int(decimalNumber * 10 ** 9)
   }
   return [hours, minutes, seconds, nanoseconds]
 }

@@ -329,20 +329,24 @@ describe('#integration record object mapping', () => {
     session.close()
   })
 
-  it('map input', async () => {
+  it('map simple input', async () => {
     const session = driverGlobal.session()
 
     const rules = {
-      number: neo4j.rule.asNumber(),
+      bool: neo4j.rule.asBoolean(),
       string: neo4j.rule.asString(),
+      number: neo4j.rule.asNumber(),
       bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
-      date: neo4j.rule.asDate({ stringify: true }),
-      dateTime: neo4j.rule.asDateTime({ stringify: true }),
-      standardDateTime: neo4j.rule.asDateTime({ JSNativeDate: true }),
+      point: neo4j.rule.asPoint(),
       duration: neo4j.rule.asDuration({ stringify: true }),
-      time: neo4j.rule.asTime({ from: 'wakeup' }),
+      localTime: neo4j.rule.asLocalTime(),
+      time: neo4j.rule.asTime({ from: 'timeToWakeup' }),
+      date: neo4j.rule.asDate({ stringify: true }),
+      localDateTime: neo4j.rule.asLocalDateTime(),
+      dateTime: neo4j.rule.asDateTime({ stringify: true }),
+      standardDateTime: neo4j.rule.asDateTime({ jsNativeDate: true }),
       list: neo4j.rule.asList({ apply: neo4j.rule.asString() }),
-      dateList: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ JSNativeDate: true }) })
+      dateList: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ jsNativeDate: true }) })
     }
 
     const nodeRule = {
@@ -350,28 +354,36 @@ describe('#integration record object mapping', () => {
     }
 
     const obj = {
+      bool: true,
       string: 'hi',
       number: 1,
       bigint: BigInt(1),
+      point: new neo4j.Point(4326, 1, 1),
+      duration: (new neo4j.Duration(1, 1, 1, 1)).toString(),
+      localTime: new neo4j.LocalTime(1, 1, 1, 1),
+      time: new neo4j.Time(1, 1, 1, 1, 1),
       date: (new neo4j.Date(1, 1, 1)).toString(),
+      localDateTime: new neo4j.LocalDateTime(1, 1, 1, 1, 1, 1, 1),
       dateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString(),
       standardDateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate(),
-      duration: (new neo4j.Duration(1, 1, 1, 1)).toString(),
-      time: new neo4j.Time(1, 1, 1, 1, 1),
       list: ['hi'],
       dateList: [(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]
     }
 
-    const res = await session.run('MERGE (n {string: $string, number: $number, bigint: $bigint, date: $date, dateTime: $dateTime, standardDateTime: $standardDateTime, duration: $duration, wakeup: $wakeup, list: $list, dateList: $dateList}) RETURN n', obj, {}, rules).as(nodeRule)
+    const res = await session.run('MERGE (n {bool: $bool, string: $string, number: $number, bigint: $bigint, point: $point, duration: $duration, localTime: $localTime, timeToWakeup: $timeToWakeup, date: $date, localDateTime: $localDateTime, dateTime: $dateTime, standardDateTime: $standardDateTime, list: $list, dateList: $dateList}) RETURN n', obj, {}, rules).as(nodeRule)
     const node = res.records[0].n
+    expect(node.bool).toEqual(true)
     expect(node.string).toEqual('hi')
     expect(node.number).toEqual(1)
     expect(node.bigint).toEqual(BigInt(1))
+    expect(node.point).toEqual(new neo4j.Point(4326, 1, 1))
+    expect(node.duration).toEqual((new neo4j.Duration(1, 1, 1, 1)).toString())
+    expect(node.localTime).toEqual(new neo4j.LocalTime(1, 1, 1, 1))
+    expect(node.time).toEqual(new neo4j.Time(1, 1, 1, 1, 1))
     expect(node.date).toEqual((new neo4j.Date(1, 1, 1)).toString())
+    expect(node.localDateTime).toEqual(new neo4j.LocalDateTime(1, 1, 1, 1, 1, 1, 1))
     expect(node.dateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString())
     expect(node.standardDateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate())
-    expect(node.duration).toEqual((new neo4j.Duration(1, 1, 1, 1)).toString())
-    expect(node.time).toEqual(new neo4j.Time(1, 1, 1, 1, 1))
     expect(node.list).toEqual(['hi'])
     expect(node.dateList).toEqual([(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()])
   })
@@ -380,7 +392,7 @@ describe('#integration record object mapping', () => {
     const session = driverGlobal.session()
 
     const rules = {
-      nestedList: neo4j.rule.asList({ apply: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ JSNativeDate: true }) }) })
+      nestedList: neo4j.rule.asList({ apply: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ jsNativeDate: true }) }) })
     }
 
     const obj = {
@@ -415,6 +427,19 @@ describe('#integration record object mapping', () => {
     await integerDriver.close()
   })
 
+  it('map vector as input and output', async () => {
+    if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 }) && edition === 'enterprise') {
+      const session = driverGlobal.session()
+
+      const rules = { vec: neo4j.rule.asVector({ from: 'vector' }), typedListVector: neo4j.rule.asVector({ asTypedList: true }) }
+      const parameters = { vec: neo4j.vector(Int16Array.from([4, 8])), typedListVector: Int16Array.from([4, 8]) }
+
+      const res = await session.run('return $vector as vector, $typedListVector as typedListVector', parameters, {}, rules).as(rules)
+      expect(res.records[0].vec).toEqual(parameters.vec)
+      expect(res.records[0].typedListVector).toEqual(parameters.typedListVector)
+    }
+  })
+
   it('map object with internal rules', async () => {
     if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 }) && edition === 'enterprise') {
       const session = driverGlobal.session()
@@ -441,5 +466,18 @@ describe('#integration record object mapping', () => {
     }
 
     expect(() => session.run('RETURN $string', obj, {}, rules).then()).toThrow()
+  })
+
+  it('map integer as input and output', async () => {
+    const driver = neo4j.driver(uri, sharedNeo4j.authToken)
+    const session = driver.session()
+
+    const rules = { int: neo4j.rule.asInteger() }
+    const parameters = { int: neo4j.int(1) }
+
+    const res = await session.run('return $int as int', parameters, {}, rules).as(rules)
+    expect(res.records[0].int).toEqual(parameters.int)
+    await session.close()
+    await driver.close()
   })
 })
