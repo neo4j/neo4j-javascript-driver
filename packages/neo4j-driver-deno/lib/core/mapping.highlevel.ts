@@ -39,7 +39,7 @@ export interface Rule {
   from?: string
   /**
    * A function to convert the value from a result after it has been validated.
-   * 
+   *
    * NOTE: This function will not be called on null-ish values on optional fields
    *
    * @param {any} recordValue The value from the raw result.
@@ -49,7 +49,7 @@ export interface Rule {
   convert?: (recordValue: any, field: string) => any
   /**
    * A function to convert a parameter before validation and transmission to the database.
-   * 
+   *
    * NOTE: This function will not be called on null-ish values on optional parameters
    *
    * @param objectValue The value provided as a parameter.

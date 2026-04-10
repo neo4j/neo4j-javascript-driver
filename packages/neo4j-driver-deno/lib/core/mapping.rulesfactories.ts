@@ -449,8 +449,8 @@ export const rule = Object.freeze({
     }
   },
   /**
-   * Create a {@link Rule} that validates the value is a List. 
-   * 
+   * Create a {@link Rule} that validates the value is a List.
+   *
    * Optionally taking a rule for hydrating the contained values.
    *
    * @param {Rule & { apply?: Rule }} rule Configurations for the rule. Setting apply to a rule will apply that rule to all elements of the list.
@@ -489,7 +489,7 @@ export const rule = Object.freeze({
    * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' }} rule Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
    * @returns {Rule} A new rule for the value
    */
-  asVector (rule?: Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64'}): Rule {
+  asVector (rule?: Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' }): Rule {
     if (rule?.asTypedList != null && (rule?.convert != null || rule.parameterConversion != null)) {
       throw newError('Provided rule already has convert and/or parameterConversion function, asTypedList can not be used in combination with custom conversion functions.')
     }
@@ -498,10 +498,10 @@ export const rule = Object.freeze({
         if (!isVector(value)) {
           throw new TypeError(`${field} should be a vector but received ${typeof value}`)
         }
-        if(rule?.dimension != null && value.asTypedArray().length !== rule.dimension) {
+        if (rule?.dimension != null && value.asTypedArray().length !== rule.dimension) {
           throw new TypeError(`${field} should be a vector of length ${rule.dimension} but received length ${value.asTypedArray().length}`)
         }
-        if(rule?.type != null && value.getType() !== rule.type) {
+        if (rule?.type != null && value.getType() !== rule.type) {
           throw new TypeError(`${field} should be a vector of type ${rule.type} but received type ${value.getType()}`)
         }
       },

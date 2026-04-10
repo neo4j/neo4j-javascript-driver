@@ -398,8 +398,8 @@ export class Time<T extends NumberOrInteger = Integer> {
         seconds,
         nanoseconds,
         int((values[5] === '+' ? 1 : -1) * (
-          parseTemporalInt(values[6]).toInt() * 3600 + //timezone offset hours
-          parseTemporalInt(values[7]).toInt() * 60 + //timezone offset minutes
+          parseTemporalInt(values[6]).toInt() * 3600 + // timezone offset hours
+          parseTemporalInt(values[7]).toInt() * 60 + // timezone offset minutes
           parseTemporalInt(values[8]).toInt() // timezone offset seconds
         ))
       )
