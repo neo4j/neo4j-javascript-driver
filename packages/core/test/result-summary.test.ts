@@ -57,7 +57,7 @@ describe('ServerInfo', () => {
   )
 })
 
-function testPlanNumberFields(PlanClass: typeof ProfiledPlan | typeof Profile) {
+function testPlanNumberFields (PlanClass: typeof ProfiledPlan | typeof Profile): void {
   describe.each([
     'dbHits',
     'rows',
