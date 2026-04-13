@@ -30,6 +30,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   counters: QueryStatistics
   plan: Plan | false
   profile: ProfiledPlan | false
+  queryProfile: Profile | false
   notifications: Notification[]
   gqlStatusObjects: [GqlStatusObject, ...GqlStatusObject[]]
   server: ServerInfo
@@ -91,8 +92,18 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * Will only be populated for queries that start with "PROFILE".
      * @type {ProfiledPlan}
      * @public
+     * @deprecated has been superseded by {@link ResultSummary.queryProfile}
      */
     this.profile = metadata.profile != null ? new ProfiledPlan(metadata.profile) : false
+
+    /**
+     * This describes how the database did execute your query. This will contain detailed information about what
+     * each step of the plan did. Profiled query plan for the executed query if available, otherwise undefined.
+     * Will only be populated for queries that start with "PROFILE".
+     * @type {Plan}
+     * @public
+     */
+    this.queryProfile = metadata.profile != null ? new Profile(metadata.profile) : false
 
     /**
      * An array of notifications that might arise when executing the query. Notifications can be warnings about
@@ -100,7 +111,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * or errors, notifications do not affect the execution of a query.
      * @type {Array<Notification>}
      * @public
-     * @deprecated has been superceded by {@link ResultSummary.gqlStatusObjects}
+     * @deprecated has been superseded by {@link ResultSummary.gqlStatusObjects}
      */
     this.notifications = buildNotificationsFromMetadata(metadata)
 
@@ -200,20 +211,17 @@ class Plan {
 /**
  * Class for execution plan received by prepending Cypher with PROFILE.
  * @access public
+ * @deprecated has been superseded by {@link Plan}
  */
 class ProfiledPlan {
   operatorType: string
   identifiers: string[]
   arguments: { [key: string]: string }
-  private readonly _hasDbHits: boolean
   dbHits: number
-  private readonly _hasRows: boolean
   rows: number
-  private readonly _hasPageCacheStats: boolean
   pageCacheMisses: number
   pageCacheHits: number
   pageCacheHitRatio: number
-  private readonly _hasTime: boolean
   time: number
   children: ProfiledPlan[]
 
@@ -226,60 +234,60 @@ class ProfiledPlan {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
-    this._hasDbHits = hasValue('dbHits', profile)
-    this.dbHits = valueOrDefault('dbHits', profile)
-    this._hasRows = hasValue('rows', profile)
-    this.rows = valueOrDefault('rows', profile)
-    this._hasPageCacheStats = hasValue('pageCacheMisses', profile)
-      || hasValue('pageCacheHits', profile)
-      || hasValue('pageCacheHitRatio', profile)
-    this.pageCacheMisses = valueOrDefault('pageCacheMisses', profile)
-    this.pageCacheHits = valueOrDefault('pageCacheHits', profile)
-    this.pageCacheHitRatio = valueOrDefault('pageCacheHitRatio', profile)
-    this._hasTime = hasValue('time', profile)
-    this.time = valueOrDefault('time', profile)
+    this.dbHits = numberOrDefault('dbHits', profile)
+    this.rows = numberOrDefault('rows', profile)
+    this.pageCacheMisses = numberOrDefault('pageCacheMisses', profile)
+    this.pageCacheHits = numberOrDefault('pageCacheHits', profile)
+    this.pageCacheHitRatio = numberOrDefault('pageCacheHitRatio', profile)
+    this.time = numberOrDefault('time', profile)
     this.children = profile.children != null
       ? profile.children.map((child: any) => new ProfiledPlan(child))
       : []
   }
 
-  /**
-   * Whether dbHits was recorded. If false, the {dbHits} value has no meaning.
-   * @return {boolean}
-   */
-  hasDbHits (): boolean {
-    return this._hasDbHits
-  }
-
-  /**
-   * Whether rows was recorded. If false, the {rows} value has no meaning.
-   * @return {boolean}
-   */
-  hasRows (): boolean {
-    return this._hasRows
-  }
-
-
-  /**
-   * Whether page cache stats were recorded. If false, following values have no meaning:
-   *
-   * - {pageCacheMisses}
-   * - {pageCacheHits}
-   * - {pageCacheHitRatio}
-   *
-   * @return {boolean}
-   */
   hasPageCacheStats (): boolean {
-    return this._hasPageCacheStats
+    return (
+      this.pageCacheMisses > 0 ||
+      this.pageCacheHits > 0 ||
+      this.pageCacheHitRatio > 0
+    )
   }
+}
 
+/**
+ * Class for execution plan received by prepending Cypher with PROFILE.
+ * @access public
+ */
+class Profile {
+  operatorType: string
+  identifiers: string[]
+  arguments: { [key: string]: string }
+  dbHits: number | null
+  rows: number | null
+  pageCacheMisses: number | null
+  pageCacheHits: number | null
+  pageCacheHitRatio: number | null
+  time: number | null
+  children: Profile[]
 
   /**
-   * Whether time was recorded. If false, the {time} value has no meaning.
-   * @return {boolean}
+   * Create a Profile instance
+   * @constructor
+   * @param {Object} profile - Object with profile data
    */
-  hasTime (): boolean {
-    return this._hasTime
+  constructor(profile: any) {
+    this.operatorType = profile.operatorType
+    this.identifiers = profile.identifiers
+    this.arguments = profile.args
+    this.dbHits = numberOrDefault('dbHits', profile, null)
+    this.rows = numberOrDefault('rows', profile, null)
+    this.pageCacheMisses = numberOrDefault('pageCacheMisses', profile, null)
+    this.pageCacheHits = numberOrDefault('pageCacheHits', profile, null)
+    this.pageCacheHitRatio = numberOrDefault('pageCacheHitRatio', profile, null)
+    this.time = numberOrDefault('time', profile, null)
+    this.children = profile.children != null
+        ? profile.children.map((child: any) => new Profile(child))
+        : []
   }
 }
 
@@ -504,16 +512,16 @@ class ServerInfo {
   }
 }
 
-function valueOrDefault (
+function numberOrDefault<T = number> (
   key: string,
   values: { [key: string]: NumberOrInteger } | false,
-  defaultValue: number = 0
-): number {
+  defaultValue?: T
+): number | T {
   if (hasValue(key, values)) {
     const value = values[key]
     return toNumber(value)
   } else {
-    return defaultValue
+    return defaultValue !== undefined ? defaultValue : 0
   }
 }
 
@@ -540,6 +548,7 @@ export {
   ServerInfo,
   Plan,
   ProfiledPlan,
+  Profile,
   QueryStatistics,
   Stats
 }
