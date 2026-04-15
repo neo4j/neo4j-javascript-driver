@@ -175,7 +175,7 @@ class Session {
     this._log = log
     this._databaseGuess = config?.cachedHomeDatabase
     this._isRoutingSession = config?.routingDriver ?? false
-    this._disableAutoCommitRetries = disableAutoCommitRetries ?? config.disableAutoCommitRetries ?? false
+    this._disableAutoCommitRetries = disableAutoCommitRetries ?? config?.disableAutoCommitRetries ?? false
   }
 
   /**
