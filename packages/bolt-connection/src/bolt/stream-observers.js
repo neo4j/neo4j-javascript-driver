@@ -244,6 +244,10 @@ class ResultStreamObserver extends StreamObserver {
     }
   }
 
+  unsubscribeAll () {
+    this._observers = []
+  }
+
   _handleHasMore (meta) {
     // We've consumed current batch and server notified us that there're more
     // records to stream. Let's invoke more or discard function based on whether
@@ -736,6 +740,9 @@ const _states = {
     pull: () => { }
   },
   FAILED: {
+    onSuccess: _error => {
+      // more successes are ignored
+    },
     onError: _error => {
       // more errors are ignored
     },

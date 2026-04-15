@@ -107,6 +107,7 @@ type CreateSession = (args: {
   auth?: AuthToken
   log: Logger
   homeDatabaseCallback?: (user: string, database: any) => void
+  disableAutoCommitRetries?: boolean
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -118,6 +119,7 @@ interface DriverConfig {
   logging?: LoggingConfig
   notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
+  disableAutoCommitRetries?: boolean
 }
 
 /**
@@ -134,6 +136,7 @@ class SessionConfig {
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
   auth?: AuthToken
+  disableAutoCommitRetries?: boolean
 
   /**
    * @constructor
@@ -334,6 +337,14 @@ class SessionConfig {
      * @since 5.7
      */
     this.notificationFilter = undefined
+    /**
+     * Allows session level override of the driver config `disableAutoCommitRetries`.
+     * Retries on `Session.run()` are limited to a specific set of errors. Namely those errors marked as *idempotent* by the DBMS, i.e., errors that are guaranteed to not have altered the state of any database. At the time of writing, this set encompasses only admission control errors.
+     * When set to `true`, calls to `Session.run()` will fail without retrying when receiving an error from the server, even when only idempotent work has occurred. By default, these calls will be rerun with a one-shot retry to avoid friction when encountering rate limiting and other errors that can be safely retried.
+     * Default value: driver configured value, which is {@link false} if not provided.
+     * @type {boolean|undefined}
+     */
+    this.disableAutoCommitRetries = undefined
   }
 }
 
@@ -807,7 +818,8 @@ class Driver {
     fetchSize,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    disableAutoCommitRetries
   }: SessionConfig = {}): Session {
     return this._newSession({
       defaultAccessMode,
@@ -819,7 +831,8 @@ class Driver {
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!),
       bookmarkManager,
       notificationFilter,
-      auth
+      auth,
+      disableAutoCommitRetries
     })
   }
 
@@ -875,7 +888,8 @@ class Driver {
     fetchSize,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    disableAutoCommitRetries
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
@@ -886,6 +900,7 @@ class Driver {
     bookmarkManager?: BookmarkManager
     notificationFilter?: NotificationFilter
     auth?: AuthToken
+    disableAutoCommitRetries?: boolean
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -913,7 +928,8 @@ class Driver {
       notificationFilter,
       auth,
       log: this._log,
-      homeDatabaseCallback
+      homeDatabaseCallback,
+      disableAutoCommitRetries: disableAutoCommitRetries,
     })
   }
 

@@ -144,7 +144,13 @@ class ConnectionProvider {
    * @returns {Promise<boolean>} promise resolved with true if succeed, false if failed with
    *  authentication issue and rejected with error if non-authentication error happens.
    */
-  verifyAuthentication (param?: { auth?: AuthToken, database?: string, accessMode?: string }): Promise<boolean> {
+  verifyAuthentication (param?: { 
+    auth?: AuthToken,
+    /**
+     * @deprecated verifyAuthentication will cease taking a database in 7.0
+     */
+    database?: string,
+    accessMode?: string }): Promise<boolean> {
     throw Error('Not implemented')
   }
 

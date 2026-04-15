@@ -91,6 +91,10 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     config.connectionLivenessCheckTimeout = data.livenessCheckTimeoutMs
   }
 
+  if ('disableAutoCommitRetries' in data) {
+    config.disableAutoCommitRetries = data.disableAutoCommitRetries
+  }
+
   if (data.clientCertificate != null && data.clientCertificateProviderId != null) {
     throw new Error('Can not set clientCertificate and clientCertificateProviderId')
   } if (data.clientCertificate != null) {
@@ -99,6 +103,16 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     config.clientCertificate = context.getClientCertificate(data.clientCertificateProviderId)
     if (config.clientCertificate == null) {
       throw new Error('Invalid ClientCertificateProvider')
+    }
+  }
+
+  config.logging = {
+    // setting the logging level to debug, possible options 'debug', 'info', 'warn', 'error'
+    level: 'debug',
+    // the logger function. It will receive log level and the message to be logged.
+    logger: (level, message) => {
+      const currentTime = new Date().toISOString()
+      console.log(console, `${currentTime} ${level.toUpperCase()} ${message}`)
     }
   }
 
@@ -152,6 +166,9 @@ export function NewSession ({ neo4j }, context, data, wire) {
       disabledCategories: data.notificationsDisabledCategories
     }
   }
+
+  const disableAutoCommitRetries = data.disableAutoCommitRetries
+
   const auth = data.authorizationToken != null
     ? context.binder.parseAuthToken(data.authorizationToken.data)
     : undefined
@@ -165,7 +182,8 @@ export function NewSession ({ neo4j }, context, data, wire) {
     impersonatedUser,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    disableAutoCommitRetries
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))

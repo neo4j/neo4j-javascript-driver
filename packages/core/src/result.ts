@@ -21,7 +21,7 @@ import ResultSummary from './result-summary'
 import Record, { RecordShape } from './record'
 import { Query, PeekableAsyncIterator } from './types'
 import { observer, util, connectionHolder } from './internal'
-import { newError, PROTOCOL_ERROR } from './error'
+import { Neo4jError, newError, PROTOCOL_ERROR } from './error'
 import { NumberOrInteger } from './graph-types'
 import Integer from './integer'
 import { GenericConstructor, Rules } from './mapping.highlevel'
@@ -139,7 +139,7 @@ function replaceStacktrace (error: Error, newStack?: string | null): void {
 
 class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   private readonly _stack: string | null
-  private readonly _streamObserverPromise: Promise<observer.ResultStreamObserver>
+  private _streamObserverPromise: Promise<observer.ResultStreamObserver>
   private _p: Promise<T> | null
   private readonly _query: Query
   private readonly _parameters: any
@@ -149,6 +149,9 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   private _error: Error | null
   private readonly _watermarks: { high: number, low: number }
   private _mapper: Function | null
+  private readonly _retry: (() => Promise<observer.ResultStreamObserver>) | undefined
+  private readonly _queuedObservers: observer.StreamObserver[]
+  private _hasRetried: boolean
 
   /**
    * Inject the observer to be used.
@@ -164,7 +167,8 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     query: Query,
     parameters?: any,
     connectionHolder?: connectionHolder.ConnectionHolder,
-    watermarks: { high: number, low: number } = { high: Number.MAX_VALUE, low: Number.MAX_VALUE }
+    watermarks: { high: number, low: number } = { high: Number.MAX_VALUE, low: Number.MAX_VALUE },
+    retry?: () => Promise<observer.ResultStreamObserver>
   ) {
     this._stack = captureStacktrace()
     this._streamObserverPromise = streamObserverPromise
@@ -177,6 +181,9 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     this._error = null
     this._mapper = null
     this._watermarks = watermarks
+    this._retry = retry
+    this._queuedObservers = []
+    this._hasRetried = false
   }
 
   as <T extends {} = Object>(rules: Rules): MappedResult<T>
@@ -302,7 +309,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
             reject(error)
           }
         }
-        this.subscribe(observer)
+        this._subscribe(observer).catch(() => {})
       })
     }
 
@@ -490,6 +497,8 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    */
   _subscribe (observer: GenericResultObserver<R>, paused: boolean = false): Promise<observer.ResultStreamObserver> {
     const _observer = this._decorateObserver(observer)
+    // @ts-expect-error
+    this._queuedObservers.push(_observer)
 
     return this._streamObserverPromise
       .then(o => {
@@ -530,13 +539,24 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     }
 
     const onErrorWrapper = (error: Error): void => {
-      // notify connection holder that the used connection is not needed any more because error happened
-      // and result can't bee consumed any further; call the original onError callback after that
-      this._connectionHolder.releaseConnection().then(() => {
-        replaceStacktrace(error, this._stack)
-        this._error = error
-        onErrorOriginal.call(observer, error)
-      }).catch(onErrorOriginal)
+      if (!this._hasRetried && error instanceof Neo4jError && error.diagnosticRecord?._idempotent === true && this._retry !== undefined) {
+        this._hasRetried = true
+        this._streamObserverPromise.then(obs => { if (obs.unsubscribeAll !== undefined) obs.unsubscribeAll() }, () => {})
+        this._streamObserverPromise = this._retry()
+        this._streamObserverPromise.then((obs) => {
+          this._queuedObservers.forEach((o) => {
+            obs.subscribe(o)
+          })
+        }, () => {})
+      } else {
+        // notify connection holder that the used connection is not needed any more because error happened
+        // and result can't bee consumed any further; call the original onError callback after that
+        this._connectionHolder.releaseConnection().then(() => {
+          replaceStacktrace(error, this._stack)
+          this._error = error
+          onErrorOriginal.call(observer, error)
+        }).catch(onErrorOriginal)
+      }
     }
 
     const onKeysWrapper = (keys: string[]): void => {
