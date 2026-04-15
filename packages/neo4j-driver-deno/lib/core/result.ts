@@ -149,8 +149,8 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   private _error: Error | null
   private readonly _watermarks: { high: number, low: number }
   private _mapper: Function | null
-  private _retry: (() => Promise<observer.ResultStreamObserver>) | undefined
-  private _queuedObservers: observer.StreamObserver[]
+  private readonly _retry: (() => Promise<observer.ResultStreamObserver>) | undefined
+  private readonly _queuedObservers: observer.StreamObserver[]
   private _hasRetried: boolean
 
   /**
@@ -497,7 +497,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    */
   _subscribe (observer: GenericResultObserver<R>, paused: boolean = false): Promise<observer.ResultStreamObserver> {
     const _observer = this._decorateObserver(observer)
-    // @ts-ignore
+    // @ts-expect-error
     this._queuedObservers.push(_observer)
 
     return this._streamObserverPromise
@@ -539,17 +539,16 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     }
 
     const onErrorWrapper = (error: Error): void => {
-      if (this._hasRetried === false && error instanceof Neo4jError && error.diagnosticRecord?._idempotent === true && this._retry !== undefined) {
+      if (!this._hasRetried && error instanceof Neo4jError && error.diagnosticRecord?._idempotent === true && this._retry !== undefined) {
         this._hasRetried = true
-        this._streamObserverPromise.then(obs => {if (obs.unsubscribeAll !== undefined) obs.unsubscribeAll()}, () => {} )
+        this._streamObserverPromise.then(obs => { if (obs.unsubscribeAll !== undefined) obs.unsubscribeAll() }, () => {})
         this._streamObserverPromise = this._retry()
         this._streamObserverPromise.then((obs) => {
           this._queuedObservers.forEach((o) => {
             obs.subscribe(o)
           })
         }, () => {})
-      }
-      else {
+      } else {
         // notify connection holder that the used connection is not needed any more because error happened
         // and result can't bee consumed any further; call the original onError callback after that
         this._connectionHolder.releaseConnection().then(() => {

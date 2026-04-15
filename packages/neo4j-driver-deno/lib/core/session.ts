@@ -224,9 +224,11 @@ class Session {
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
-        apiTelemetryConfig: noTelemetry === true ? undefined : {
-          api: TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION
-        },
+        apiTelemetryConfig: noTelemetry === true
+          ? undefined
+          : {
+              api: TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION
+            },
         impersonatedUser: this._impersonatedUser,
         afterComplete: (meta: any) => this._onCompleteCallback(meta, bookmarks),
         reactive: this._reactive,
@@ -249,10 +251,12 @@ class Session {
     const { connectionHolder, resultPromise } = this._acquireAndConsumeConnection(customRunner)
     const observerPromise = resultPromise.catch(error => Promise.resolve(new FailedObserver({ error })))
     const watermarks = { high: this._highRecordWatermark, low: this._lowRecordWatermark }
-    const retryFunction = this._disableAutoCommitRetries === true ? undefined : () => {
-      const { resultPromise } = this._acquireAndConsumeConnection(customRunner, true)
-      return resultPromise.catch(error => Promise.resolve(new FailedObserver({ error })))
-    } 
+    const retryFunction = this._disableAutoCommitRetries
+      ? undefined
+      : () => {
+          const { resultPromise } = this._acquireAndConsumeConnection(customRunner, true)
+          return resultPromise.catch(error => Promise.resolve(new FailedObserver({ error })))
+        }
     return new Result(observerPromise, query, parameters, connectionHolder, watermarks, retryFunction)
   }
 

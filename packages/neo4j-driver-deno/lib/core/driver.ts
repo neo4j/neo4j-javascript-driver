@@ -929,7 +929,7 @@ class Driver {
       auth,
       log: this._log,
       homeDatabaseCallback,
-      disableAutoCommitRetries: disableAutoCommitRetries,
+      disableAutoCommitRetries
     })
   }
 
