@@ -109,26 +109,26 @@ export class Duration<T extends NumberOrInteger = Integer> {
       /^([-|+]?)[P|p](?:(-?\d*\.?\d*)[Y|y])?(?:(-?\d*\.?\d*)[M|m])?(?:(-?\d*\.?\d*)[W|w])?(?:(-?\d*\.?\d*)[D|d])?/.source + // Date portion
       /([T|t](?:(-?\d*\.?\d*)[H|h])?(?:(-?\d*\.?\d*)[M|m])?(?:(-)?(\d*)(\.\d*)?[S|s])?)?$/.source // Time portion
     ))
-    if (matches !== null) {
-      if (
-        matches[2] == null && matches[3] == null && matches[4] == null && matches[5] == null &&
-        matches[7] == null && matches[8] == null && matches[10] == null && matches[11] == null
-      ) {
-        throw newError(`Duration could not be parsed from string: ${str}`)
-      }
-      const negativeDuration = matches[1] === '-' ? -1 : 1
-      const months = negativeDuration * parseTemporalFloat(matches[2], 'Years') * 12 + parseTemporalFloat(matches[3], 'Months')
-      const days = negativeDuration * parseTemporalFloat(matches[4], 'Weeks') * 7 + parseTemporalFloat(matches[5], 'Days')
-      const hoursAndMinutes = (parseTemporalFloat(matches[7], 'Hours') * 3600 + parseTemporalFloat(matches[8], 'Minutes') * 60)
-      const seconds = parseTemporalInt((matches[9] ?? '') + (matches[10] ?? '0'))
-      const nanos = negativeDuration * parseDurationNanos((matches[9] ?? '') + '0' + (matches[11] ?? ''))
-      checkDurationFieldIsInt(months, 'Months')
-      checkDurationFieldIsInt(days, 'Days')
-      checkDurationFieldIsInt(hoursAndMinutes, 'Seconds')
-      checkDurationFieldIsInt(nanos, 'Nanoseconds')
-      return new Duration(int(months), int(days), int(BigInt(negativeDuration) * (BigInt(hoursAndMinutes) + seconds.toBigInt())), int(nanos))
+    if (matches === null) {
+      throw newError(`Duration could not be parsed from string: ${str}`)
     }
-    throw newError(`Duration could not be parsed from string: ${str}`)
+    if (
+      matches[2] == null && matches[3] == null && matches[4] == null && matches[5] == null &&
+      matches[7] == null && matches[8] == null && matches[10] == null && matches[11] == null
+    ) {
+      throw newError(`Duration could not be parsed from string: ${str}`)
+    }
+    const negativeDuration = matches[1] === '-' ? -1 : 1
+    const months = negativeDuration * parseTemporalFloat(matches[2], 'Years') * 12 + parseTemporalFloat(matches[3], 'Months')
+    const days = negativeDuration * parseTemporalFloat(matches[4], 'Weeks') * 7 + parseTemporalFloat(matches[5], 'Days')
+    const hoursAndMinutes = (parseTemporalFloat(matches[7], 'Hours') * 3600 + parseTemporalFloat(matches[8], 'Minutes') * 60)
+    const seconds = parseTemporalInt((matches[9] ?? '') + (matches[10] ?? '0'))
+    const nanos = negativeDuration * parseDurationNanos((matches[9] ?? '') + '0' + (matches[11] ?? ''))
+    checkDurationFieldIsInt(months, 'Months')
+    checkDurationFieldIsInt(days, 'Days')
+    checkDurationFieldIsInt(hoursAndMinutes, 'Seconds')
+    checkDurationFieldIsInt(nanos, 'Nanoseconds')
+    return new Duration(int(months), int(days), int(BigInt(negativeDuration) * (BigInt(hoursAndMinutes) + seconds.toBigInt())), int(nanos))
   }
 
   /**
@@ -249,16 +249,16 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
    */
   static fromString (str: string): LocalTime {
     const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?$/)
-    if (values !== null) {
-      const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
-      return new LocalTime(
-        hours,
-        minutes,
-        seconds,
-        nanoseconds
-      )
+    if (values === null) {
+      throw newError('LocalTime could not be parsed from string')
     }
-    throw newError('LocalTime could not be parsed from string')
+    const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
+    return new LocalTime(
+      hours,
+      minutes,
+      seconds,
+      nanoseconds
+    )
   }
 }
 
@@ -375,36 +375,36 @@ export class Time<T extends NumberOrInteger = Integer> {
    *
    * @param {string} str The string to convert
    * @returns {Time}
-   */
+  */
   static fromString (str: string): Time {
     const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?([Z|z]$|\+|-)(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$/)
-    if (values !== null) {
-      const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
-      if (values[5] === 'Z') {
-        return new Time(
-          hours,
-          minutes,
-          seconds,
-          nanoseconds,
-          int(0)
-        )
-      }
-      if (values[6] == null) {
-        throw newError('Error parsing timezone offset.')
-      }
+    if (values === null) {
+      throw newError('Time could not be parsed from string')
+    }
+    const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
+    if (values[5] === 'Z') {
       return new Time(
         hours,
         minutes,
         seconds,
         nanoseconds,
-        int((values[5] === '+' ? 1 : -1) * (
-          parseTemporalInt(values[6]).toInt() * 3600 + // timezone offset hours
-          parseTemporalInt(values[7]).toInt() * 60 + // timezone offset minutes
-          parseTemporalInt(values[8]).toInt() // timezone offset seconds
-        ))
+        int(0)
       )
     }
-    throw newError('Time could not be parsed from string')
+    if (values[6] == null) {
+      throw newError('Error parsing timezone offset.')
+    }
+    return new Time(
+      hours,
+      minutes,
+      seconds,
+      nanoseconds,
+      int((values[5] === '+' ? 1 : -1) * (
+        parseTemporalInt(values[6]).toInt() * 3600 + // timezone offset hours
+        parseTemporalInt(values[7]).toInt() * 60 + // timezone offset minutes
+        parseTemporalInt(values[8]).toInt() // timezone offset seconds
+      ))
+    )
   }
 }
 
@@ -543,14 +543,14 @@ export class Date<T extends NumberOrInteger = Integer> {
    */
   static fromString (str: string): Date {
     const values = String(str.replace(/,/g, '.')).match(/^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})$/)
-    if (values !== null) {
-      return new Date(
-        parseTemporalInt(values[1]), // years
-        parseTemporalInt(values[2]), // months
-        parseTemporalInt(values[3]) // days
-      )
+    if (values === null) {
+      throw newError('Date could not be parsed from string. Expects date in format \'YYYY-MM-DD\' or \'[+|-]YYYYY-MM-DD\'')
     }
-    throw newError('Date could not be parsed from string. Expects date in format \'YYYY-MM-DD\' or \'[+|-]YYYYY-MM-DD\'')
+    return new Date(
+      parseTemporalInt(values[1]), // years
+      parseTemporalInt(values[2]), // months
+      parseTemporalInt(values[3]) // days
+    )
   }
 }
 
@@ -694,19 +694,19 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
    */
   static fromString (str: string): LocalDateTime {
     const values = String(str.replace(/,/g, '.')).match(/^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?$/)
-    if (values !== null) {
-      const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
-      return new LocalDateTime(
-        parseTemporalInt(values[1]), // years
-        parseTemporalInt(values[2]), // months
-        parseTemporalInt(values[3]), // days
-        hours,
-        minutes,
-        seconds,
-        nanoseconds
-      )
+    if (values === null) {
+      throw newError('LocalDateTime could not be parsed from string')
     }
-    throw newError('LocalDateTime could not be parsed from string')
+    const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
+    return new LocalDateTime(
+      parseTemporalInt(values[1]), // years
+      parseTemporalInt(values[2]), // months
+      parseTemporalInt(values[3]), // days
+      hours,
+      minutes,
+      seconds,
+      nanoseconds
+    )
   }
 }
 
@@ -897,47 +897,48 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         /([Z|z]$|\+|-)?(?:(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$)?((\[)([^\]]*)(\]))?$/.source // Timezone
       )
     )
-    if (values !== null) {
-      const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
-      if (values[8] === 'Z') {
-        return new DateTime(
-          parseTemporalInt(values[1]), // years
-          parseTemporalInt(values[2]), // months
-          parseTemporalInt(values[3]), // days
-          hours,
-          minutes,
-          seconds,
-          nanoseconds,
-          int(0)
-        )
-      }
-      if ((values[8] === '+' || values[8] === '-') && values[9] != null) {
-        return new DateTime(
-          parseTemporalInt(values[1]), // years
-          parseTemporalInt(values[2]), // months
-          parseTemporalInt(values[3]), // days
-          hours,
-          minutes,
-          seconds,
-          nanoseconds,
-          int((values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11])))
-        )
-      }
-      if (values[14] !== undefined) {
-        return new DateTime(
-          parseTemporalInt(values[1]), // years
-          parseTemporalInt(values[2]), // months
-          parseTemporalInt(values[3]), // days
-          hours,
-          minutes,
-          seconds,
-          nanoseconds,
-          undefined,
-          values[14]
-        )
-      }
+    if (values === null) {
+      throw newError('DateTime could not be parsed from string')
     }
-    throw newError('DateTime could not be parsed from string')
+    const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
+    if (values[8] === 'Z') {
+      return new DateTime(
+        parseTemporalInt(values[1]), // years
+        parseTemporalInt(values[2]), // months
+        parseTemporalInt(values[3]), // days
+        hours,
+        minutes,
+        seconds,
+        nanoseconds,
+        int(0)
+      )
+    }
+    if ((values[8] === '+' || values[8] === '-') && values[9] != null) {
+      return new DateTime(
+        parseTemporalInt(values[1]), // years
+        parseTemporalInt(values[2]), // months
+        parseTemporalInt(values[3]), // days
+        hours,
+        minutes,
+        seconds,
+        nanoseconds,
+        int((values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11])))
+      )
+    }
+    if (values[14] !== undefined) {
+      return new DateTime(
+        parseTemporalInt(values[1]), // years
+        parseTemporalInt(values[2]), // months
+        parseTemporalInt(values[3]), // days
+        hours,
+        minutes,
+        seconds,
+        nanoseconds,
+        undefined,
+        values[14]
+      )
+    }
+    throw newError('DateTime could not be parsed from string, provided string needs either timezoneId or offset')
   }
 
   /**
