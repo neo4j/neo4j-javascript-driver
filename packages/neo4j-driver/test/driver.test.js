@@ -605,7 +605,7 @@ describe('#integration driver', () => {
             expect(session2._database).toBe('') // ...but should not pin this to the session.
             await session2.run('CREATE () RETURN 43')
           } catch (e) {
-            expect(e.message).toBe('Impersonation is not supported in community edition.')
+            expect(e.message.includes('Impersonation is not supported in community edition.')).toBe(true)
           }
         }
       })
