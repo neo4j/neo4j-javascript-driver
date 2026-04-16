@@ -376,9 +376,9 @@ export class Time<T extends NumberOrInteger = Integer> {
    * @param {string} str The string to convert
    * @returns {Time}
   */
- static fromString (str: string): Time {
-   const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?([Z|z]$|\+|-)(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$/)
-   if (values === null) {
+  static fromString (str: string): Time {
+    const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?([Z|z]$|\+|-)(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$/)
+    if (values === null) {
       throw newError('Time could not be parsed from string')
     }
     const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[1], values[2], values[3], values[4])
