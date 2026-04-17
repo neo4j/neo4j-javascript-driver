@@ -171,8 +171,8 @@ class ResultStreamObserver extends StreamObserver {
    * to it's onError method, otherwise set instance variable _error.
    * @param {Object} error - An error object
    */
-  onError (error) {
-    this._state.onError(this, error)
+  onError (error, runError) {
+    this._state.onError(this, error, runError)
   }
 
   /**
@@ -376,7 +376,7 @@ class ResultStreamObserver extends StreamObserver {
     }
   }
 
-  _handleError (error) {
+  _handleError (error, runError) {
     this._setState(_states.FAILED)
     this._error = error
 
@@ -389,7 +389,7 @@ class ResultStreamObserver extends StreamObserver {
       if (this._observers.some(o => o.onError)) {
         this._observers.forEach(o => {
           if (o.onError) {
-            o.onError(error)
+            o.onError(error, runError)
           }
         })
       }
@@ -699,8 +699,8 @@ const _states = {
         // state
       )
     },
-    onError: (streamObserver, error) => {
-      streamObserver._handleError(error)
+    onError: (streamObserver, error, runError) => {
+      streamObserver._handleError(error, runError ?? true)
     },
     name: () => {
       return 'READY_STREAMING'
@@ -715,8 +715,8 @@ const _states = {
         () => streamObserver._handleStreaming() // after run succeeded received, reactive shall start pulling
       )
     },
-    onError: (streamObserver, error) => {
-      streamObserver._handleError(error)
+    onError: (streamObserver, error, runError) => {
+      streamObserver._handleError(error, runError ?? true)
     },
     name: () => {
       return 'READY'

@@ -581,7 +581,7 @@ export default class BoltProtocol {
    */
   notifyFatalErrorToObserver (observer) {
     if (observer && observer.onError) {
-      observer.onError(this._fatalError)
+      observer.onError(this._fatalError, false)
     }
   }
 

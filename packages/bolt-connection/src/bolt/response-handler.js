@@ -121,7 +121,7 @@ export default class ResponseHandler {
         } finally {
           this._updateCurrentObserver()
           // Things are now broken. Pending observers will get FAILURE messages routed until we are done handling this failure.
-          this._observer.onFailure(this._currentFailure)
+          this._observer.onFailure(this._currentFailure, false)
         }
         break
       case IGNORED:
@@ -130,7 +130,7 @@ export default class ResponseHandler {
         }
         try {
           if (this._currentFailure && this._currentObserver.onError) {
-            this._currentObserver.onError(this._currentFailure)
+            this._currentObserver.onError(this._currentFailure, false)
           } else if (this._currentObserver.onError) {
             this._currentObserver.onError(
               newError('Ignored either because of an error or RESET')
@@ -181,7 +181,7 @@ export default class ResponseHandler {
     while (this._pendingObservers.length > 0) {
       const observer = this._pendingObservers.shift()
       if (observer && observer.onError) {
-        observer.onError(error)
+        observer.onError(error, false)
       }
     }
   }
