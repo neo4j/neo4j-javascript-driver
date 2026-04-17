@@ -540,8 +540,8 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
 
     const onErrorWrapper = (error: Error, runError?: boolean): void => {
       if (
-        runError === true && !this._hasRetried && error instanceof Neo4jError
-        && error.diagnosticRecord?._idempotent === true && this._retry !== undefined
+        runError === true && !this._hasRetried && error instanceof Neo4jError &&
+        error.diagnosticRecord?._idempotent === true && this._retry !== undefined
       ) {
         this._hasRetried = true
         this._streamObserverPromise.then(obs => { if (obs.unsubscribeAll !== undefined) obs.unsubscribeAll() }, () => {})
