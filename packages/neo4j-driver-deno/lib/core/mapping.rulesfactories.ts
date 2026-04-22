@@ -420,6 +420,7 @@ export const rule = Object.freeze({
    * Create a {@link Rule} that validates the value is a {@link DateTime}
    *
    * @param {Rule & { stringify?: boolean, jsNativeDate?: boolean } | undefined} rule Configurations for the rule. If `stringify`/`jsNativeDate` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link DateTime}s in the database.
+   * @returns {Rule} A new rule for the value
    */
   asDateTime (rule?: Rule & { stringify?: boolean, jsNativeDate?: boolean }): Rule {
     if (rule?.stringify != null && (rule?.convert != null || rule.parameterConversion != null)) {
