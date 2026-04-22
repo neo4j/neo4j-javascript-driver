@@ -498,9 +498,12 @@ describe('#integration record object mapping', () => {
       await session.run('RETURN $undefined', obj, {}, rules)
       expect(true).toBe(false)
     } catch (e) {
-      expect(e.gqlStatus).toBe('42001')
+      if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 })) {
+        expect(e.gqlStatus).toBe('42001')
+      } else {
+        expect(e.code).toBe('Neo.ClientError.Statement.ParameterMissing')
+      }
     }
-    // THIS DOES NOT WORK YET
     let result = await session.run('RETURN $null as null', obj, {}, rules)
     expect(result.records[0].get('null')).toEqual(null)
     result = await session.run('RETURN NULL as null').as(rules)
