@@ -211,7 +211,7 @@ function listProperty (config?: Rule & { apply?: Rule }) {
  * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64"; }} config
  * @returns {Function} Property Decorator
  */
-function vectorProperty (config?: Rule & { asTypedList?: boolean, dimension?: number, type?: "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64" }) {
+function vectorProperty (config?: Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' }) {
   return (_: any, context: any) => {
     context.metadata[context.name] = rule.asVector(config)
   }

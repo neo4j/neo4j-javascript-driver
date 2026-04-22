@@ -245,8 +245,7 @@ export function validateAndCleanParameters (params: Record<string, any>, supplie
             check provided parameters and parameter rules.`
           )
         }
-      }
-      else if (parameterRules[key].validate != null) {
+      } else if (parameterRules[key].validate != null) {
         parameterRules[key].validate(param, key)
       }
       cleanedParams[mappedKey] = param
