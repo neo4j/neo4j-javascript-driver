@@ -40,6 +40,8 @@ import Integer, { isInt } from './integer'
  *
  * @property {function(rule: ?Rule)} asRelationship Create a {@link Rule} that validates the value is a {@link Relationship}.
  *
+ * @property {function(rule: ?Rule)} asUnboundRelationship Create a {@link Rule} that validates the value is an {@link UnboundRelationship}.
+ *
  * @property {function(rule: ?Rule)} asPath Create a {@link Rule} that validates the value is a {@link Path}.
  *
  * @property {function(rule: ?Rule)} asPoint Create a {@link Rule} that validates the value is a {@link Point}.
@@ -50,15 +52,15 @@ import Integer, { isInt } from './integer'
  *
  * @property {function(rule: ?Rule & { stringify?: boolean })} asTime Create a {@link Rule} that validates the value is a {@link Time}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean, jsNativeDate?: boolean })} asDate Create a {@link Rule} that validates the value is a {@link Date}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean })} asDate Create a {@link Rule} that validates the value is a {@link Date}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean, jsNativeDate?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean, jsNativeDate?: boolean })} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean })} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
  *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
  *
- * @property {function(rule: ?Rule & { asTypedList?: boolean })} asVector Create a {@link Rule} that validates the value is a Vector.
+ * @property {function(rule: ?Rule & { asTypedList?: boolean, dimension?: number, type?: "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64" })} asVector Create a {@link Rule} that validates the value is a Vector.
  *
  * @property {function(rules: Rules)} asObject Create a {@link Rule} for an object, allowing complex mapping of even nested results.
  */
@@ -66,7 +68,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a Boolean.
    *
-   * @param {Rule} rule Configurations for the rule
+   * @param {Rule | undefined} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
   asBoolean (rule?: Rule): Rule {
@@ -84,7 +86,7 @@ export const rule = Object.freeze({
    *
    * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
-   * @param {Rule} rule Configurations for the rule
+   * @param {Rule | undefined} rule Configurations for the rule
    * @returns {Rule} A new rule for the value
    */
   asString (rule?: Rule): Rule {
@@ -102,7 +104,7 @@ export const rule = Object.freeze({
    *
    * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
-   * @param {Rule & { isInteger?: boolean }| undefined } rule Configurations for the rule.
+   * @param {Rule & { isInteger?: boolean } | undefined } rule Configurations for the rule.
    * If `isInteger` is set to true, the created validate function will allow Integer values through, and the conversion functions will ensure results are return as numbers while parameters are transmitted as integers.
    * @returns {Rule} A new rule for the value
    */
@@ -142,7 +144,6 @@ export const rule = Object.freeze({
    *
    * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
-          typeof value !== 'bigint' && (rule?.acceptNumber !== true || typeof value !== 'number') && !isInt(value)
    * @returns {Rule} A new rule for the value
    */
   asBigInt (rule?: Rule & { acceptNumber?: boolean }): Rule {
@@ -206,7 +207,7 @@ export const rule = Object.freeze({
    * }
    *
    * @param {Rule | undefined} rule Configurations for the rule
-   * @returns {Rule | undefined} A new rule for the value
+   * @returns {Rule} A new rule for the value
    */
   asNode (rule?: Rule): Rule {
     return {
@@ -453,7 +454,7 @@ export const rule = Object.freeze({
    *
    * Optionally taking a rule for hydrating the contained values.
    *
-   * @param {Rule & { apply?: Rule }} rule Configurations for the rule. Setting apply to a rule will apply that rule to all elements of the list.
+   * @param {Rule & { apply?: Rule } | undefined} rule Configurations for the rule. Setting apply to a rule will apply that rule to all elements of the list.
    * @returns {Rule} A new rule for the value
    */
   asList (rule?: Rule & { apply?: Rule }): Rule {
@@ -486,7 +487,7 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a Vector.
    *
-   * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' }} rule Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
+   * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' } | undefined} rule Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
    * @returns {Rule} A new rule for the value
    */
   asVector (rule?: Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' }): Rule {
@@ -526,7 +527,6 @@ export const rule = Object.freeze({
   asObject (rules: Rules): Rule {
     return {
       validate: (value: Record<string, Object>, field: string) => {
-        console.error(JSON.stringify(value))
         for (const key in rules) {
           const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
           if (value[mappedKey] == null) {
@@ -548,10 +548,7 @@ export const rule = Object.freeze({
         const convertedValue: Record<string, Object> = {}
         for (const key in rules) {
           const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
-          if (value[key] == null && rules[key].optional === true) {
-            continue
-          }
-          if (rules[key].convert != null) {
+          if (value[mappedKey] != null && rules[key].convert != null) {
             convertedValue[key] = rules[key].convert(value[mappedKey], `${field}[${mappedKey}]`)
           } else {
             convertedValue[key] = value[mappedKey]
@@ -563,9 +560,6 @@ export const rule = Object.freeze({
         const convertedValue: Record<string, Object> = {}
         for (const key in rules) {
           const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
-          if (value[key] == null && rules[key].optional === true) {
-            continue
-          }
           if (value[key] != null && rules[key].parameterConversion != null) {
             convertedValue[mappedKey] = rules[key].parameterConversion(value[key])
           } else {

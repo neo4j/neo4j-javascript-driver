@@ -232,5 +232,50 @@ describe('Record Object Mapping', () => {
 
       expect(result.string).toBe(undefined)
     })
+
+    it('should keep optional undefined as undefined and null as null', () => {
+      const rules: Rules = {
+        string: rule.asString({ optional: true }),
+        null: rule.asString({ optional: true }),
+        obj: rule.asObject({ undefined: rule.asString({ optional: true }), null: rule.asString({ optional: true }) })
+      }
+
+      class Obj {
+        undefined?: undefined
+        null?: null
+      }
+
+      class Mapped {
+        string?: string
+        null?: string | null
+        obj?: Obj
+      }
+
+      const gettable = {
+        get: (index: string) => {
+          switch (index) {
+            case 'string':
+              throw newError(
+                'This record has no field with key \'string\', available keys are: [].\''
+              )
+            case 'null':
+              return null
+            case 'obj':
+              return { undefined, null: null }
+            default:
+              return undefined
+          }
+        }
+      }
+      // @ts-expect-error
+      const result = as<Mapped>(gettable, rules)
+
+      expect(result.string).toBe(undefined)
+      expect(result.null).toBe(null)
+      // @ts-expect-error
+      expect(result.obj.null).toBe(null)
+      // @ts-expect-error
+      expect(result.obj.undefined).toBe(undefined)
+    })
   })
 })

@@ -480,4 +480,31 @@ describe('#integration record object mapping', () => {
     await session.close()
     await driver.close()
   })
+
+  it('should not alter undefined or null in optional fields', async () => {
+    const session = driverGlobal.session()
+
+    const rules = {
+      undefined: neo4j.rule.asString({ optional: true }),
+      null: neo4j.rule.asString({ optional: true })
+    }
+
+    const obj = {
+      undefined,
+      null: null
+    }
+
+    try {
+      await session.run('RETURN $undefined', obj, {}, rules)
+      expect(true).toBe(false)
+    } catch (e) {
+      expect(e.gqlStatus).toBe('42001')
+    }
+    // THIS DOES NOT WORK YET
+    let result = await session.run('RETURN $null as null', obj, {}, rules)
+    expect(result.records[0].get('null')).toEqual(null)
+    result = await session.run('RETURN NULL as null').as(rules)
+    expect(result.records[0].undefined).toEqual(undefined)
+    expect(result.records[0].null).toEqual(null)
+  })
 })

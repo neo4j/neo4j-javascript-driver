@@ -39,7 +39,7 @@ function stringProperty (config?: Rule) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a number.
  *
- * @param {Rule & { isInteger?: boolean }} rule Configurations for the rule.
+ * @param {Rule & { isInteger?: boolean }} config Configurations for the rule.
  * If `isInteger` is set to true, the created validate function will allow Integer values through, and the conversion functions will ensure results are return as numbers while parameters are transmitted as integers.
  * @returns {Function} Property Decorator
  */
@@ -134,6 +134,66 @@ function durationProperty (config?: Rule & { stringify?: boolean }) {
 }
 
 /**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to a LocalTime
+ *
+ * @param {Rule & { apply?: Rule }} config
+ * @returns {Function} Property Decorator
+ */
+function localTimeProperty (config?: Rule & { stringify?: boolean }) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asLocalTime(config)
+  }
+}
+
+/**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to a Time
+ *
+ * @param {Rule & { apply?: Rule }} config
+ * @returns {Function} Property Decorator
+ */
+function timeProperty (config?: Rule & { stringify?: boolean }) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asTime(config)
+  }
+}
+
+/**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to a Date
+ *
+ * @param {Rule & { apply?: Rule }} config
+ * @returns {Function} Property Decorator
+ */
+function dateProperty (config?: Rule & { stringify?: boolean, jsNativeDate?: boolean }) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asDate(config)
+  }
+}
+
+/**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to a LocalDateTIme
+ *
+ * @param {Rule & { apply?: Rule }} config
+ * @returns {Function} Property Decorator
+ */
+function localDateTimeProperty (config?: Rule & { stringify?: boolean, jsNativeDate?: boolean }) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asLocalDateTime(config)
+  }
+}
+
+/**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to a DateTIme
+ *
+ * @param {Rule & { apply?: Rule }} config
+ * @returns {Function} Property Decorator
+ */
+function dateTimeProperty (config?: Rule & { stringify?: boolean, jsNativeDate?: boolean }) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asDateTime(config)
+  }
+}
+
+/**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a List
  *
  * @param {Rule & { apply?: Rule }} config
@@ -148,10 +208,10 @@ function listProperty (config?: Rule & { apply?: Rule }) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a Vector
  *
- * @param {Rule & { asTypedList?: boolean }} config
+ * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64"; }} config
  * @returns {Function} Property Decorator
  */
-function vectorProperty (config?: Rule & { asTypedList?: boolean }) {
+function vectorProperty (config?: Rule & { asTypedList?: boolean, dimension?: number, type?: "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64" }) {
   return (_: any, context: any) => {
     context.metadata[context.name] = rule.asVector(config)
   }
@@ -161,7 +221,6 @@ function vectorProperty (config?: Rule & { asTypedList?: boolean }) {
  * Property Decorator Factory that sets this property to optional.
  * NOTE: Should be put above a type decorator.
  *
- * @param {Rule} config
  * @returns {Function} Property Decorator
  */
 function optionalProperty () {
@@ -174,7 +233,7 @@ function optionalProperty () {
  * Property Decorator Factory that sets a custom parameter name to map this property to.
  * NOTE: Should be put above a type decorator.
  *
- * @param {Rule} config
+ * @param {string} name
  * @returns {Function} Property Decorator
  */
 function mapPropertyFromName (name: string) {
@@ -187,7 +246,7 @@ function mapPropertyFromName (name: string) {
  * Property Decorator Factory that sets the Neo4j Driver to convert this property to another type.
  * NOTE: Should be put above a type decorator of type Node or Relationship.
  *
- * @param {Rule} config
+ * @param {any} type
  * @returns {Function} Property Decorator
  */
 function convertPropertyToType (type: any) {
@@ -207,6 +266,11 @@ const forExport = {
   pathProperty,
   pointProperty,
   durationProperty,
+  localTimeProperty,
+  timeProperty,
+  dateProperty,
+  localDateTimeProperty,
+  dateTimeProperty,
   listProperty,
   vectorProperty,
   optionalProperty,

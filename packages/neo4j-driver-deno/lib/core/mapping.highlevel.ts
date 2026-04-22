@@ -30,7 +30,7 @@ export type GenericConstructor<T extends {}> = new (...args: any[]) => T
  */
 export interface Rule {
   /**
-   * Whether or not the field is optional. If true, an undefined or null value will not fail validation.
+   * Whether or not the field is optional. If true, an undefined or null value will not fail validation, these will not be passed to conversion functions.
    */
   optional?: boolean
   /**
@@ -52,14 +52,14 @@ export interface Rule {
    *
    * NOTE: This function will not be called on null-ish values on optional parameters
    *
-   * @param objectValue The value provided as a parameter.
+   * @param {any} objectValue The value provided as a parameter.
    * @returns The converted value, this value will be passed to the validate function before transmission to the database.
    */
   parameterConversion?: (objectValue: any) => any
   /**
    * A function to validate the value, should throw an error if it is invalid.
    *
-   * @param value The value to validate.
+   * @param {any} value The value to validate.
    * @param {string} field The name of the field with the value.
    */
   validate?: (value: any, field: string) => void
@@ -203,8 +203,10 @@ function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: R
   }
   const field = `${obj.constructor.name}#${key}`
   const processedValue = valueAs(value, field, rule)
-  // @ts-expect-error
-  obj[key] = processedValue ?? obj[key]
+  if (processedValue != null || rule?.optional === true) {
+    // @ts-expect-error
+    obj[key] = processedValue
+  }
 }
 
 export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
@@ -232,6 +234,7 @@ export function validateAndCleanParameters (params: Record<string, any>, supplie
   if (parameterRules != null) {
     for (const key in parameterRules) {
       let param = params[key]
+      const mappedKey = parameterRules[key].from ?? defaultNameMapping(key)
       if (param != null && parameterRules[key].parameterConversion != null) {
         param = parameterRules[key].parameterConversion(param)
       }
@@ -241,15 +244,11 @@ export function validateAndCleanParameters (params: Record<string, any>, supplie
             `Mapped Parameter object did not include required parameter with key ${key}, 
             check provided parameters and parameter rules.`
           )
-        } else {
-          continue
         }
       }
-      if (parameterRules[key].validate != null) {
+      else if (parameterRules[key].validate != null) {
         parameterRules[key].validate(param, key)
       }
-      const mappedKey = parameterRules[key].from ?? defaultNameMapping(key)
-
       cleanedParams[mappedKey] = param
     }
     return cleanedParams

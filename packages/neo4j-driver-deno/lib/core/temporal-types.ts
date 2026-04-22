@@ -894,7 +894,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
     const values = String(str.replace(/,/g, '.')).match(
       new RegExp(
         /^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?/.source + // DateTime
-        /([Z|z]$|\+|-)?(?:(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$)?((\[)([^\]]*)(\]))?$/.source // Timezone
+        /([Z|z]$|\+|-)?(?:(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$)?(?:\[([^\]]*)\])?$/.source // Timezone
       )
     )
     if (values === null) {
@@ -925,7 +925,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         int((values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11])))
       )
     }
-    if (values[14] !== undefined) {
+    if (values[12] !== undefined) {
       return new DateTime(
         parseTemporalInt(values[1]), // years
         parseTemporalInt(values[2]), // months
@@ -935,7 +935,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         seconds,
         nanoseconds,
         undefined,
-        values[14]
+        values[12]
       )
     }
     throw newError('DateTime could not be parsed from string, provided string needs either timezoneId or offset')
@@ -1070,8 +1070,7 @@ function parseTemporalInt (str: string | undefined): Integer {
   if (str === undefined || str.length === 0) {
     return int(0)
   }
-  const result = int(str)
-  return result
+  return int(str)
 }
 
 function handleTimeDecimals (hourString?: string, minuteString?: string, secondString?: string, decimalString?: string): [Integer, Integer, Integer, Integer] {

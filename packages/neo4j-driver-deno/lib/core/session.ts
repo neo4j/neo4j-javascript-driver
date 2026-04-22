@@ -182,7 +182,7 @@ class Session {
    * @param {mixed} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in query
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
-   * @param {Rules} parameterRules - Rules to typecheck and/or map the parameter object. Must not be provided as a separate argument if an Object is passed as first argument
+   * @param {Rules} [parameterRules] - Rules to typecheck and/or map the parameter object. Must not be provided as a separate argument if an Object is passed as first argument
    * @return {Result} New Result.
    */
   run<R extends RecordShape = RecordShape> (
