@@ -915,7 +915,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       )
     }
     if (values[8] === '+' || values[8] === '-') {
-      if(values[9] == null) {
+      if (values[9] == null) {
         throw newError(`DateTime could not be parsed from string, could not parse an offset after ${values[8]} sign.`)
       }
       return new DateTime(
