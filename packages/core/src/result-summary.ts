@@ -100,7 +100,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * This describes how the database did execute your query. This will contain detailed information about what
      * each step of the plan did. Profiled query plan for the executed query if available, otherwise undefined.
      * Will only be populated for queries that start with "PROFILE".
-     * @type {Plan}
+     * @type {Profile}
      * @public
      */
     this.queryProfile = metadata.profile != null ? new Profile(metadata.profile) : false
@@ -211,7 +211,7 @@ class Plan {
 /**
  * Class for execution plan received by prepending Cypher with PROFILE.
  * @access public
- * @deprecated has been superseded by {@link Plan}
+ * @deprecated has been superseded by {@link Profile}
  */
 class ProfiledPlan {
   operatorType: string
@@ -275,7 +275,7 @@ class Profile {
    * @constructor
    * @param {Object} profile - Object with profile data
    */
-  constructor(profile: any) {
+  constructor (profile: any) {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
@@ -286,8 +286,8 @@ class Profile {
     this.pageCacheHitRatio = numberOrDefault('pageCacheHitRatio', profile, null)
     this.time = numberOrDefault('time', profile, null)
     this.children = profile.children != null
-        ? profile.children.map((child: any) => new Profile(child))
-        : []
+      ? profile.children.map((child: any) => new Profile(child))
+      : []
   }
 }
 
@@ -527,7 +527,7 @@ function numberOrDefault<T = number> (
 
 function hasValue (
   key: string,
-  values: { [key: string]: NumberOrInteger } | false,
+  values: { [key: string]: NumberOrInteger } | false
 ): values is { [key: string]: NumberOrInteger } {
   return values !== false && key in values
 }
