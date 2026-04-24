@@ -124,7 +124,7 @@ function pointProperty (config?: Rule) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a Duration.
  *
- * @param {Rule & { stringify?: boolean }} config Configurations for the rule. If `stringify` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link Duration}s in the database.
+ * @param {Rule & { stringify?: boolean }} config Configurations for the rule. If `stringify` is set, the applied rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link Duration}s in the database.
  * @returns {Function} Property Decorator
  */
 function durationProperty (config?: Rule & { stringify?: boolean }) {
@@ -136,7 +136,7 @@ function durationProperty (config?: Rule & { stringify?: boolean }) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a LocalTime
  *
- * @param {Rule & { stringify?: boolean }} config Configurations for the rule. If `stringify` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link LocalTime}s in the database.
+ * @param {Rule & { stringify?: boolean }} config Configurations for the rule. If `stringify` is set, the applied rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link LocalTime}s in the database.
  * @returns {Function} Property Decorator
  */
 function localTimeProperty (config?: Rule & { stringify?: boolean }) {
@@ -148,7 +148,7 @@ function localTimeProperty (config?: Rule & { stringify?: boolean }) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a Time
  *
- * @param {Rule & { stringify?: boolean }} config Configurations for the rule. If `stringify` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link Time}s in the database.
+ * @param {Rule & { stringify?: boolean }} config Configurations for the rule. If `stringify` is set, the applied rule will have `convert` and `parameterConversion` functions which automatically convert between strings in user code and {@link Time}s in the database.
  * @returns {Function} Property Decorator
  */
 function timeProperty (config?: Rule & { stringify?: boolean }) {
@@ -160,7 +160,7 @@ function timeProperty (config?: Rule & { stringify?: boolean }) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a Date
  *
- * @param {Rule & { stringify?: boolean, jsNativeDate?: boolean }} config Configurations for the rule. If `stringify`/`jsNativeDate` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link Date}s in the database.
+ * @param {Rule & { stringify?: boolean, jsNativeDate?: boolean }} config Configurations for the rule. If `stringify`/`jsNativeDate` is set, the applied rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link Date}s in the database.
  * @returns {Function} Property Decorator
  */
 function dateProperty (config?: Rule & { stringify?: boolean, jsNativeDate?: boolean }) {
@@ -172,7 +172,7 @@ function dateProperty (config?: Rule & { stringify?: boolean, jsNativeDate?: boo
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a LocalDateTIme
  *
- * @param {Rule & { stringify?: boolean, jsNativeDate?: boolean }} config Configurations for the rule. If `stringify`/`jsNativeDate` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link LocalDateTime}s in the database.
+ * @param {Rule & { stringify?: boolean, jsNativeDate?: boolean }} config Configurations for the rule. If `stringify`/`jsNativeDate` is set, the applied rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link LocalDateTime}s in the database.
  * @returns {Function} Property Decorator
  */
 function localDateTimeProperty (config?: Rule & { stringify?: boolean, jsNativeDate?: boolean }) {
@@ -184,7 +184,7 @@ function localDateTimeProperty (config?: Rule & { stringify?: boolean, jsNativeD
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a DateTIme
  *
- * @param {Rule & { stringify?: boolean, jsNativeDate?: boolean }} config Configurations for the rule. If `stringify`/`jsNativeDate` is set, the returned rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link DateTime}s in the database.
+ * @param {Rule & { stringify?: boolean, jsNativeDate?: boolean }} config Configurations for the rule. If `stringify`/`jsNativeDate` is set, the applied rule will have `convert` and `parameterConversion` functions which automatically convert between strings/JavaScript Dates in user code and {@link DateTime}s in the database.
  * @returns {Function} Property Decorator
  */
 function dateTimeProperty (config?: Rule & { stringify?: boolean, jsNativeDate?: boolean }) {
@@ -208,7 +208,7 @@ function listProperty (config?: Rule & { apply?: Rule }) {
 /**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to a Vector
  *
- * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64"; }} config Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
+ * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64" }} config Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
  * @returns {Function} Property Decorator
  */
 function vectorProperty (config?: Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' }) {

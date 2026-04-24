@@ -40,8 +40,6 @@ import Integer, { isInt } from './integer.ts'
  *
  * @property {function(rule: ?Rule)} asRelationship Create a {@link Rule} that validates the value is a {@link Relationship}.
  *
- * @property {function(rule: ?Rule)} asUnboundRelationship Create a {@link Rule} that validates the value is an {@link UnboundRelationship}.
- *
  * @property {function(rule: ?Rule)} asPath Create a {@link Rule} that validates the value is a {@link Path}.
  *
  * @property {function(rule: ?Rule)} asPoint Create a {@link Rule} that validates the value is a {@link Point}.
@@ -52,11 +50,11 @@ import Integer, { isInt } from './integer.ts'
  *
  * @property {function(rule: ?Rule & { stringify?: boolean })} asTime Create a {@link Rule} that validates the value is a {@link Time}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean })} asDate Create a {@link Rule} that validates the value is a {@link Date}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, jsNativeDate?: boolean })} asDate Create a {@link Rule} that validates the value is a {@link Date}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, jsNativeDate?: boolean })} asLocalDateTime Create a {@link Rule} that validates the value is a {@link LocalDateTime}.
  *
- * @property {function(rule: ?Rule & { stringify?: boolean, JSNativeDate?: boolean })} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
+ * @property {function(rule: ?Rule & { stringify?: boolean, jsNativeDate?: boolean })} asDateTime Create a {@link Rule} that validates the value is a {@link DateTime}.
  *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
  *
@@ -104,7 +102,7 @@ export const rule = Object.freeze({
    *
    * Optionally takes a {@link Rule}, in which case the returned rule will keep all fields of the one provided.
    *
-   * @param {Rule & { isInteger?: boolean } | undefined } rule Configurations for the rule.
+   * @param {Rule & { isInteger?: boolean } | undefined} rule Configurations for the rule.
    * If `isInteger` is set to true, the created validate function will allow Integer values through, and the conversion functions will ensure results are return as numbers while parameters are transmitted as integers.
    * @returns {Rule} A new rule for the value
    */

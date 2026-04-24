@@ -202,11 +202,8 @@ function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: R
     throw e
   }
   const field = `${obj.constructor.name}#${key}`
-  const processedValue = valueAs(value, field, rule)
-  if (processedValue != null || rule?.optional === true) {
-    // @ts-expect-error
-    obj[key] = processedValue
-  }
+  // @ts-expect-error
+  obj[key] = valueAs(value, field, rule)
 }
 
 export function valueAs (value: unknown, field: string, rule?: Rule): unknown {

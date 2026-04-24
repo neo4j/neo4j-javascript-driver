@@ -234,16 +234,21 @@ describe('DateTime', () => {
       ['2026-01-05T15:36:42.12414Z', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(124140000), int(0))],
       ['2026-01-05T15:36.12414Z', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(7), int(448400000), int(0))],
       ['2026-01-05T15:36:42[America/Anchorage]', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(0), undefined, 'America/Anchorage')],
-      ['0001-01-01T01:01:01.000000001+00:00:01', new DateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1))]
-    ])('should successfully convert date strings', (string: string, expected: DateTime<Integer>) => {
+      ['0001-01-01T01:01:01.000000001+00:00:01', new DateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1))],
+      ['2026-01-05T15:36:42+0001[America/Anchorage]', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(0), int(60), 'America/Anchorage')],
+      ['2026-01-05T15:36:42Z[America/Anchorage]', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(0), int(0), 'America/Anchorage')],
+      ['2026-01-05T15:36:42-00:00[America/Anchorage]', new DateTime(int(2026), int(1), int(5), int(15), int(36), int(42), int(0), int(0), 'America/Anchorage')]
+    ])('should successfully convert date string %s', (string: string, expected: DateTime<Integer>) => {
       expect(DateTime.fromString(string)).toEqual(expected)
     })
     it.each([
       ['2026-01-05T15:36:42ZZ', 'DateTime could not be parsed from string'],
       ['2026-01-05T-15:36:42Z', 'DateTime could not be parsed from string'],
       ['2026-01-05 15:36:42Z', 'DateTime could not be parsed from string'],
-      ['2026-01-05T15:36:42', 'DateTime could not be parsed from string']
-    ])('should thrown when converting invalid string', (string: string, expected: string) => {
+      ['2026-01-05T15:36:42', 'DateTime could not be parsed from string'],
+      ['2026-01-05T15:36:42+[America/Anchorage]', 'DateTime could not be parsed from string'],
+      ['2026-01-05T15:36:42-[America/Anchorage]', 'DateTime could not be parsed from string']
+    ])('should thrown when converting invalid string %s', (string: string, expected: string) => {
       expect(() => DateTime.fromString(string)).toThrow(expected)
     })
   })

@@ -375,7 +375,7 @@ export class Time<T extends NumberOrInteger = Integer> {
    *
    * @param {string} str The string to convert
    * @returns {Time}
-  */
+   */
   static fromString (str: string): Time {
     const values = String(str.replace(/,/g, '.')).match(/^[T|t]?(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?([Z|z]$|\+|-)(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$/)
     if (values === null) {
@@ -894,7 +894,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
     const values = String(str.replace(/,/g, '.')).match(
       new RegExp(
         /^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?/.source + // DateTime
-        /([Z|z]$|\+|-)?(?:(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?$)?(?:\[([^\]]*)\])?$/.source // Timezone
+        /([Z|z]|\+|-)?(?:(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?)?(?:\[([^\]]*)\])?$/.source // Timezone
       )
     )
     if (values === null) {
@@ -910,10 +910,14 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         minutes,
         seconds,
         nanoseconds,
-        int(0)
+        int(0),
+        values[12]
       )
     }
-    if ((values[8] === '+' || values[8] === '-') && values[9] != null) {
+    if (values[8] === '+' || values[8] === '-') {
+      if(values[9] == null) {
+        throw newError(`DateTime could not be parsed from string, could not parse an offset after ${values[8]} sign.`)
+      }
       return new DateTime(
         parseTemporalInt(values[1]), // years
         parseTemporalInt(values[2]), // months
@@ -922,7 +926,8 @@ export class DateTime<T extends NumberOrInteger = Integer> {
         minutes,
         seconds,
         nanoseconds,
-        int((values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11])))
+        int((values[8] === '+' ? 1 : -1) * (parseInt(values[9]) * 3600 + parseInt(values[10]) * 60 + parseInt('0' + values[11]))),
+        values[12]
       )
     }
     if (values[12] !== undefined) {
