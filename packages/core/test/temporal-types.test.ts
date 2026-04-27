@@ -242,12 +242,14 @@ describe('DateTime', () => {
       expect(DateTime.fromString(string)).toEqual(expected)
     })
     it.each([
+      ['2026-01-05T15:36:42Z00:00', 'DateTime could not be parsed from string, can not parse string with offset after Z'],
       ['2026-01-05T15:36:42ZZ', 'DateTime could not be parsed from string'],
       ['2026-01-05T-15:36:42Z', 'DateTime could not be parsed from string'],
       ['2026-01-05 15:36:42Z', 'DateTime could not be parsed from string'],
       ['2026-01-05T15:36:42', 'DateTime could not be parsed from string'],
       ['2026-01-05T15:36:42+[America/Anchorage]', 'DateTime could not be parsed from string'],
-      ['2026-01-05T15:36:42-[America/Anchorage]', 'DateTime could not be parsed from string']
+      ['2026-01-05T15:36:42-[America/Anchorage]', 'DateTime could not be parsed from string'],
+      ['2026-01-05T15:36:42Z00:00[America/Anchorage]', 'DateTime could not be parsed from string, can not parse string with offset after Z']
     ])('should thrown when converting invalid string %s', (string: string, expected: string) => {
       expect(() => DateTime.fromString(string)).toThrow(expected)
     })

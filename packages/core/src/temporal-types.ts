@@ -902,6 +902,9 @@ export class DateTime<T extends NumberOrInteger = Integer> {
     }
     const [hours, minutes, seconds, nanoseconds] = handleTimeDecimals(values[4], values[5], values[6], values[7])
     if (values[8] === 'Z') {
+      if (values[9] != null) {
+        throw newError('DateTime could not be parsed from string, can not parse string with offset after Z')
+      }
       return new DateTime(
         parseTemporalInt(values[1]), // years
         parseTemporalInt(values[2]), // months
