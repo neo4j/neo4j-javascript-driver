@@ -275,7 +275,7 @@ class Profile {
    * @constructor
    * @param {Object} profile - Object with profile data
    */
-  constructor(profile: any) {
+  constructor (profile: any) {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
@@ -286,8 +286,8 @@ class Profile {
     this.pageCacheHitRatio = numberOrDefault('pageCacheHitRatio', profile, null)
     this.time = numberOrDefault('time', profile, null)
     this.children = profile.children != null
-        ? profile.children.map((child: any) => new Profile(child))
-        : []
+      ? profile.children.map((child: any) => new Profile(child))
+      : []
   }
 }
 
@@ -527,7 +527,7 @@ function numberOrDefault<T = number> (
 
 function hasValue (
   key: string,
-  values: { [key: string]: NumberOrInteger } | false,
+  values: { [key: string]: NumberOrInteger } | false
 ): values is { [key: string]: NumberOrInteger } {
   return values !== false && key in values
 }
