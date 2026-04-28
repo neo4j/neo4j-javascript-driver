@@ -17,7 +17,7 @@
 
 import { newError, error as err, internal } from 'neo4j-driver-core'
 import { TimeoutsMock } from './timers-util'
-import lolex from 'lolex'
+import lolex from '@sinonjs/fake-timers'
 
 const {
   transactionExecutor: { TransactionExecutor }

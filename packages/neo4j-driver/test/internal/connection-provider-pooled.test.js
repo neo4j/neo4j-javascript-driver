@@ -16,7 +16,7 @@
  */
 import PooledConnectionProvider from '../../../bolt-connection/lib/connection-provider/connection-provider-pooled'
 import FakeConnection from './fake-connection'
-import lolex from 'lolex'
+import lolex from '@sinonjs/fake-timers'
 
 describe('#unit PooledConnectionProvider', () => {
   it('should treat closed connections as invalid', async () => {
