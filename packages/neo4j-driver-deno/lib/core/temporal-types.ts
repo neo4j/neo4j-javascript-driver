@@ -894,7 +894,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
     const values = String(str.replace(/,/g, '.')).match(
       new RegExp(
         /^([+|-]\d{5,}|\d{4})-(\d{2})-(\d{2})[T|t](\d{2})(?::?(\d{2}))?(?::?(\d{2}))?(\.\d+)?/.source + // DateTime
-        /([Z|z]|\+|-)?(?:(\d{2})?(?::?(\d{2}))?(?::?(\d{2}))?)?(?:\[([^\]]*)\])?$/.source // Timezone
+        /([Z|z]|\+|-)?(?:(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?)?(?:\[([^\]]*)\])?$/.source // Timezone
       )
     )
     if (values === null) {
