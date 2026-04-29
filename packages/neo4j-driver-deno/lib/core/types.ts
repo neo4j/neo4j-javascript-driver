@@ -16,12 +16,13 @@
  */
 
 import ClientCertificate, { ClientCertificateProvider } from './client-certificate.ts'
+import { Rules } from './mapping.highlevel.ts'
 import NotificationFilter from './notification-filter.ts'
 
 /**
  * @private
  */
-export type Query = string | String | { text: string, parameters?: any }
+export type Query = string | String | { text: string, parameters?: any, parameterRules?: Rules }
 
 export type EncryptionLevel = 'ENCRYPTION_ON' | 'ENCRYPTION_OFF'
 

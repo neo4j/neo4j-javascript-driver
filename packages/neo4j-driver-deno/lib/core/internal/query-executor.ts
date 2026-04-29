@@ -21,6 +21,7 @@ import Result from '../result.ts'
 import ManagedTransaction from '../transaction-managed.ts'
 import { AuthToken, Query } from '../types.ts'
 import { TELEMETRY_APIS } from './constants.ts'
+import { Rules } from '../mapping.highlevel.ts'
 
 type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkManager, impersonatedUser?: string, auth?: AuthToken }) => Session
 
@@ -42,7 +43,7 @@ export default class QueryExecutor {
 
   }
 
-  public async execute<T>(config: ExecutionConfig<T>, query: Query, parameters?: any): Promise<T> {
+  public async execute<T>(config: ExecutionConfig<T>, query: Query, parameters?: any, parameterRules?: Rules): Promise<T> {
     const session = this._createSession({
       database: config.database,
       bookmarkManager: config.bookmarkManager,
@@ -65,7 +66,7 @@ export default class QueryExecutor {
         : session.executeWrite.bind(session)
 
       return await executeInTransaction(async (tx: ManagedTransaction) => {
-        const result = tx.run(query, parameters)
+        const result = tx.run(query, parameters, parameterRules)
         return await config.resultTransformer(result)
       }, config.transactionConfig)
     } finally {

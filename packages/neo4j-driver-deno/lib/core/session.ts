@@ -38,6 +38,7 @@ import { RecordShape } from './record.ts'
 import NotificationFilter from './notification-filter.ts'
 import { Logger } from './internal/logger.ts'
 import { cacheKey } from './internal/auth-util.ts'
+import { Rules } from './mapping.highlevel.ts'
 
 type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
@@ -192,16 +193,19 @@ class Session {
    * @param {mixed} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in query
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
+   * @param {Rules} [parameterRules] - Rules to typecheck and/or map the parameter object. Must not be provided as a separate argument if an Object is passed as first argument
    * @return {Result} New Result.
    */
   run<R extends RecordShape = RecordShape> (
     query: Query,
     parameters?: any,
-    transactionConfig?: TransactionConfig
+    transactionConfig?: TransactionConfig,
+    parameterRules?: Rules
   ): Result<R> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
-      parameters
+      parameters,
+      { parameterRules }
     )
     const autoCommitTxConfig = (transactionConfig != null)
       ? new TxConfig(transactionConfig, this._log)

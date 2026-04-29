@@ -16,12 +16,13 @@
  */
 
 import ClientCertificate, { ClientCertificateProvider } from './client-certificate'
+import { Rules } from './mapping.highlevel'
 import NotificationFilter from './notification-filter'
 
 /**
  * @private
  */
-export type Query = string | String | { text: string, parameters?: any }
+export type Query = string | String | { text: string, parameters?: any, parameterRules?: Rules }
 
 export type EncryptionLevel = 'ENCRYPTION_ON' | 'ENCRYPTION_OFF'
 

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError } from './error'
+import { Neo4jError, newError } from './error'
 import { nameConventions } from './mapping.nameconventions'
 
 /**
@@ -25,18 +25,51 @@ import { nameConventions } from './mapping.nameconventions'
  */
 export type GenericConstructor<T extends {}> = new (...args: any[]) => T
 
+/**
+ * Rule used to provide mapping and type validation of parameters and records.
+ */
 export interface Rule {
+  /**
+   * Whether or not the field is optional. If true, an undefined or null value will not fail validation, these will not be passed to conversion functions.
+   */
   optional?: boolean
+  /**
+   * The string used to identify this value in the database. For when parameters or returned fields do not match the name of your domain objects fields.
+   */
   from?: string
+  /**
+   * A function to convert the value from a result after it has been validated.
+   *
+   * NOTE: This function will not be called on null-ish values on optional fields
+   *
+   * @param {any} recordValue The value from the raw result.
+   * @param {string} field name of the field.
+   * @returns {any} The converted value.
+   */
   convert?: (recordValue: any, field: string) => any
-  validate?: (recordValue: any, field: string) => void
+  /**
+   * A function to convert a parameter before validation and transmission to the database.
+   *
+   * NOTE: This function will not be called on null-ish values on optional parameters
+   *
+   * @param {any} objectValue The value provided as a parameter.
+   * @returns The converted value, this value will be passed to the validate function before transmission to the database.
+   */
+  parameterConversion?: (objectValue: any) => any
+  /**
+   * A function to validate the value, should throw an error if it is invalid.
+   *
+   * @param {any} value The value to validate.
+   * @param {string} field The name of the field with the value.
+   */
+  validate?: (value: any, field: string) => void
 }
 
 export type Rules = Record<string, Rule>
 
 export let rulesRegistry: Record<string, Rules> = {}
 
-let nameMapping: (name: string) => string = (name) => name
+export let defaultNameMapping: (name: string) => string = (name) => name
 
 function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
   rulesRegistry[constructor.name] = rules
@@ -47,7 +80,7 @@ function clearMappingRegistry (): void {
 }
 
 function translateIdentifiers (translationFunction: (name: string) => string): void {
-  nameMapping = translationFunction
+  defaultNameMapping = translationFunction
 }
 
 function getCaseTranslator (databaseConvention: string, codeConvention: string): ((name: string) => string) {
@@ -71,7 +104,6 @@ function getCaseTranslator (databaseConvention: string, codeConvention: string):
 export const RecordObjectMapping = Object.freeze({
   /**
  * Clears all registered type mappings from the record object mapping registry.
- * @experimental Part of the Record Object Mapping preview feature
  */
   clearMappingRegistry,
   /**
@@ -79,7 +111,6 @@ export const RecordObjectMapping = Object.freeze({
  *
  * Recognized naming conventions are "camelCase", "PascalCase", "snake_case", "kebab-case", "SCREAMING_SNAKE_CASE"
  *
- * @experimental Part of the Record Object Mapping preview feature
  * @param {string} databaseConvention The naming convention in use in database result Records
  * @param {string} codeConvention The naming convention in use in JavaScript object properties
  * @returns {function} translation function
@@ -101,7 +132,6 @@ export const RecordObjectMapping = Object.freeze({
  *  resultTransformer: neo4j.resultTransformers.hydrated(Person)
  * })
  *
- * @experimental Part of the Record Object Mapping preview feature
  * @param {GenericConstructor} constructor The constructor function of the class to set rules for
  * @param {Rules} rules The rules to set for the provided class
  */
@@ -109,6 +139,8 @@ export const RecordObjectMapping = Object.freeze({
   /**
  * Sets a default name translation from record keys to object properties.
  * If providing a function, provide a function that maps FROM your object properties names TO record key names.
+ *
+ * NOTE: The keys of objects inside a record will only be translated if using the asObject rule with it, not by default.
  *
  * The function getCaseTranslator can be used to provide a prewritten translation function between some common naming conventions.
  *
@@ -130,7 +162,6 @@ export const RecordObjectMapping = Object.freeze({
  * //or by registering them to the mapping registry
  * RecordObjectMapping.register(Person, personRules)
  *
- * @experimental Part of the Record Object Mapping preview feature
  * @param {function} translationFunction A function translating the names of your JS object property names to record key names
  */
   translateIdentifiers
@@ -160,12 +191,19 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
 }
 
 function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: Rule): void {
-  const mappedkey = nameMapping(key)
-  const value = gettable.get(rule?.from ?? mappedkey)
+  const mappedKey = defaultNameMapping(key)
+  let value
+  try {
+    value = gettable.get(rule?.from ?? mappedKey)
+  } catch (e) {
+    if (rule?.optional === true && e instanceof Neo4jError) {
+      return
+    }
+    throw e
+  }
   const field = `${obj.constructor.name}#${key}`
-  const processedValue = valueAs(value, field, rule)
   // @ts-expect-error
-  obj[key] = processedValue ?? obj[key]
+  obj[key] = valueAs(value, field, rule)
 }
 
 export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
@@ -179,6 +217,42 @@ export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
 
   return ((rule?.convert) != null) ? rule.convert(value, field) : value
 }
+
+export function optionalParameterConversion (value: unknown, rule: Rule): unknown {
+  if (rule.optional === true && value == null) {
+    return value
+  }
+  return (value != null && rule.parameterConversion != null) ? rule.parameterConversion(value) : value
+}
+
+export function validateAndCleanParameters (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
+  const cleanedParams: Record<string, any> = {}
+  const parameterRules = getRules(Object.getPrototypeOf(params).constructor, suppliedRules)
+  if (parameterRules != null) {
+    for (const key in parameterRules) {
+      let param = params[key]
+      const mappedKey = parameterRules[key].from ?? defaultNameMapping(key)
+      if (param != null && parameterRules[key].parameterConversion != null) {
+        param = parameterRules[key].parameterConversion(param)
+      }
+      if (param == null) {
+        if (parameterRules[key].optional !== true) {
+          throw newError(
+            `Mapped Parameter object did not include required parameter with key ${key}, 
+            check provided parameters and parameter rules.`
+          )
+        }
+      } else if (parameterRules[key].validate != null) {
+        parameterRules[key].validate(param, key)
+      }
+      cleanedParams[mappedKey] = param
+    }
+    return cleanedParams
+  } else {
+    return params
+  }
+}
+
 function getRules<T extends {} = Object> (constructorOrRules: Rules | GenericConstructor<T>, rules: Rules | undefined): Rules | undefined {
   const rulesDefined = typeof constructorOrRules === 'object' ? constructorOrRules : rules
   if (rulesDefined != null) {

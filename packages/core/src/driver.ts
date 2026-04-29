@@ -49,6 +49,7 @@ import NotificationFilter from './notification-filter'
 import HomeDatabaseCache from './internal/homedb-cache'
 import { cacheKey } from './internal/auth-util'
 import { ProtocolVersion } from './protocol-version'
+import { Rules } from './mapping.highlevel'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -605,14 +606,15 @@ class Driver {
    * }
    *
    * @public
-   * @param {string | {text: string, parameters?: object}} query - Cypher query to execute
+   * @param {string | {text: string, parameters?: object, parameterRules?: Rules}} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in the query
    * @param {QueryConfig<T>} config - The query configuration
+   * @param {Rules} parameterRules - Rules to typecheck and/or map the parameter object. Must not be provided as a separate argument if an Object is passed as first argument
    * @returns {Promise<T>}
    *
    * @see {@link resultTransformers} for provided result transformers.
    */
-  async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
+  async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}, parameterRules?: Rules): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.executeQueryBookmarkManager)
     const resultTransformer = (config.resultTransformer ?? resultTransformers.eager()) as ResultTransformer<T>
     const routingConfig: string = config.routing ?? routing.WRITE
@@ -630,7 +632,7 @@ class Driver {
       transactionConfig: config.transactionConfig,
       auth: config.auth,
       signal: config.signal
-    }, query, parameters)
+    }, query, parameters, parameterRules)
   }
 
   /**
