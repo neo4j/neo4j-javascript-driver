@@ -21,11 +21,8 @@ const uglify = require('gulp-uglify')
 const watch = require('gulp-watch')
 const batch = require('gulp-batch')
 const replace = require('gulp-replace')
-const fs = require('fs-extra')
 const path = require('path')
 const minimist = require('minimist')
-const install = require('gulp-install')
-const file = require('gulp-file')
 const rollup = require('rollup')
 const rollupCommonJs = require('@rollup/plugin-commonjs')
 const rollupNodeResolve = require('@rollup/plugin-node-resolve').default
@@ -85,26 +82,6 @@ gulp.task('browser::esm', gulp.series('generate-esm-bundle', 'minify-esm-bundle'
 
 /** Build all-in-one files for use in the browser */
 gulp.task('browser', gulp.series('nodejs', gulp.parallel('browser::umd', 'browser::esm')))
-
-// prepares directory for package.test.js
-gulp.task(
-  'install-driver-into-sandbox',
-  gulp.series('nodejs', function () {
-    const testDir = path.join('build', 'sandbox')
-    fs.emptyDirSync(testDir)
-
-    const packageJsonContent = JSON.stringify({
-      private: true,
-      dependencies: {
-        'neo4j-driver': __dirname
-      }
-    })
-
-    return file('package.json', packageJsonContent, { src: true })
-      .pipe(gulp.dest(testDir))
-      .pipe(install())
-  })
-)
 
 gulp.task('test-nodejs', () => {
   return runJestTests()
