@@ -115,8 +115,8 @@ class ResultStreamObserver extends StreamObserver {
     this._pulled = !reactive
     this._haveRecordStreamed = false
     this._onDb = onDb
-    this.waitingForMore = false
-    this.eagerlyDiscarded = false
+    this._waitingForMore = false
+    this._eagerlyDiscarded = false
   }
 
   /**
@@ -175,7 +175,7 @@ class ResultStreamObserver extends StreamObserver {
    */
   onError (error) {
     this._state.onError(this, error)
-    this.waitingForMore = false
+    this._waitingForMore = false
   }
 
   /**
@@ -183,10 +183,11 @@ class ResultStreamObserver extends StreamObserver {
    */
   cancel () {
     this._discard = true
-    if (this.waitingForMore) {
+    if (this._waitingForMore) {
       this._discardFunction(this._queryId, this)
-      this.waitingForMore = false
-      this.eagerlyDiscarded = true
+      this._waitingForMore = false
+      this._eagerlyDiscarded = true
+      this._setState(_states.STREAMING)
     }
   }
 
@@ -214,7 +215,7 @@ class ResultStreamObserver extends StreamObserver {
     this._fieldKeys = []
     this._tail = {}
     this._setState(_states.SUCCEEDED)
-    this.waitingForMore = false
+    this._waitingForMore = false
   }
 
   /**
@@ -421,7 +422,7 @@ class ResultStreamObserver extends StreamObserver {
 
   _more () {
     if (this._discard) {
-      if (!this.eagerlyDiscarded) {
+      if (!this._eagerlyDiscarded) {
         this._discardFunction(this._queryId, this)
       }
     } else {
@@ -733,10 +734,10 @@ const _states = {
   STREAMING: {
     onSuccess: (streamObserver, meta) => {
       if (meta.has_more) {
-        streamObserver.waitingForMore = true
+        streamObserver._waitingForMore = true
         streamObserver._handleHasMore(meta)
       } else {
-        streamObserver.waitingForMore = false
+        streamObserver._waitingForMore = false
         streamObserver._handlePullSuccess(meta)
       }
     },
