@@ -158,10 +158,12 @@ gulp.task('set', function () {
 })
 
 gulp.task('start-neo4j', function (done) {
+  // .catch(done) passes the error to the callback, which is why we cannot just use .finally()
   sharedNeo4j.start().then(done).catch(done)
 })
 
 gulp.task('stop-neo4j', function (done) {
+  // .catch(done) passes the error to the callback, which is why we cannot just use .finally()
   sharedNeo4j.stop().then(done).catch(done)
 })
 
