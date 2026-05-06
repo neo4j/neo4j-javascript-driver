@@ -167,7 +167,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   }
 
   /**
-   * Check if the result summary has a plan
+   * Check if the result summary has a plan (i.e., {@link ResultSummary.plan} is not false).
    * @return {boolean}
    */
   hasPlan (): boolean {
@@ -176,10 +176,11 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
 
   /**
    * Check if the result summary has a profile
+   * (i.e., {@link ResultSummary.queryProfile} and {@link ResultSummary.profile} are not false).
    * @return {boolean}
    */
   hasProfile (): boolean {
-    return this.profile instanceof ProfiledPlan
+    return this.queryProfile instanceof Profile
   }
 }
 
