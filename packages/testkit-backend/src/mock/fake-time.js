@@ -2,7 +2,10 @@ import sinon from 'sinon'
 
 export default class FakeTime {
   constructor (time) {
-    this._clock = sinon.useFakeTimers(time || new Date().getTime())
+    this._clock = sinon.useFakeTimers({
+      now: time || new Date().getTime(),
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date', 'setImmediate', 'clearImmediate', 'hrtime', 'performance', 'queueMicrotask', 'Intl']
+    })
   }
 
   tick (incrementMs) {
