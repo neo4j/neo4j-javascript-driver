@@ -4,7 +4,7 @@ export default class FakeTime {
   constructor (time) {
     this._clock = sinon.useFakeTimers({
       now: time || new Date().getTime(),
-      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date', 'setImmediate', 'clearImmediate', 'hrtime', 'performance', 'queueMicrotask', 'Intl']
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date', 'Intl']
     })
   }
 
