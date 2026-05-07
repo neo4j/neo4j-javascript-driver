@@ -416,13 +416,14 @@ class ResultStreamObserver extends StreamObserver {
   _handleStreaming () {
     if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
       if (!this._paused && (this._discard || this._autoPull)) {
-        this._more()
+        this._waitingToPullMore = false
+        return this._more()
       }
     }
+    this._waitingToPullMore = true
   }
 
   _more () {
-    this._waitingToPullMore = false
     if (this._discard) {
       if (!this._eagerlyDiscarded) {
         this._discardFunction(this._queryId, this)
@@ -736,7 +737,6 @@ const _states = {
   STREAMING: {
     onSuccess: (streamObserver, meta) => {
       if (meta.has_more) {
-        streamObserver._waitingToPullMore = true
         streamObserver._handleHasMore(meta)
       } else {
         streamObserver._waitingToPullMore = false
