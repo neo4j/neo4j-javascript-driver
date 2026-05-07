@@ -115,7 +115,7 @@ class ResultStreamObserver extends StreamObserver {
     this._pulled = !reactive
     this._haveRecordStreamed = false
     this._onDb = onDb
-    this._waitingForMore = false
+    this._waitingToPullMore = false
     this._eagerlyDiscarded = false
   }
 
@@ -175,7 +175,7 @@ class ResultStreamObserver extends StreamObserver {
    */
   onError (error) {
     this._state.onError(this, error)
-    this._waitingForMore = false
+    this._waitingToPullMore = false
   }
 
   /**
@@ -183,9 +183,10 @@ class ResultStreamObserver extends StreamObserver {
    */
   cancel () {
     this._discard = true
-    if (this._waitingForMore) {
+    // if the stream observer is waiting for user input to pull next, such as for an async iterator, we need to send the discard right away.
+    if (this._waitingToPullMore && (!this._autoPull || this._paused)) {
       this._discardFunction(this._queryId, this)
-      this._waitingForMore = false
+      this._waitingToPullMore = false
       this._eagerlyDiscarded = true
       this._setState(_states.STREAMING)
     }
@@ -215,7 +216,7 @@ class ResultStreamObserver extends StreamObserver {
     this._fieldKeys = []
     this._tail = {}
     this._setState(_states.SUCCEEDED)
-    this._waitingForMore = false
+    this._waitingToPullMore = false
   }
 
   /**
@@ -421,6 +422,7 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   _more () {
+    this._waitingToPullMore = false
     if (this._discard) {
       if (!this._eagerlyDiscarded) {
         this._discardFunction(this._queryId, this)
@@ -734,10 +736,10 @@ const _states = {
   STREAMING: {
     onSuccess: (streamObserver, meta) => {
       if (meta.has_more) {
-        streamObserver._waitingForMore = true
+        streamObserver._waitingToPullMore = true
         streamObserver._handleHasMore(meta)
       } else {
-        streamObserver._waitingForMore = false
+        streamObserver._waitingToPullMore = false
         streamObserver._handlePullSuccess(meta)
       }
     },

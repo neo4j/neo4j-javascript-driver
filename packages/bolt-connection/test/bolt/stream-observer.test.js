@@ -889,12 +889,15 @@ describe('#unit ResultStreamObserver', () => {
   describe('eager discard', () => {
     it('should send discard immediately if waiting to pull more', () => {
       const discardFunction = jest.fn()
-      const obs = new ResultStreamObserver({ moreFunction: jest.fn(), discardFunction })
+      const moreFunction = jest.fn()
+      const obs = new ResultStreamObserver({ moreFunction, discardFunction })
       obs.onCompleted({ fields: ['A'] })
       obs.onNext([1])
+      obs.pause()
       obs.onCompleted({ key: 42, has_more: true })
       obs.cancel()
       expect(discardFunction).toHaveBeenCalledTimes(1)
+      expect(moreFunction).toHaveBeenCalledTimes(0)
       expect(obs._state.name()).toBe('STREAMING')
       obs.onCompleted({})
       expect(obs._state.name()).toBe('SUCCEEDED')
