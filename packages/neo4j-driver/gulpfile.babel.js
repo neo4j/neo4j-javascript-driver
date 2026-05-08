@@ -135,11 +135,11 @@ gulp.task('set', function () {
 })
 
 gulp.task('start-neo4j', function (done) {
-  sharedNeo4j.start().then(done).catch(error => done(error))
+  sharedNeo4j.start().then(done).catch(error => done.fail(error))
 })
 
 gulp.task('stop-neo4j', function (done) {
-  sharedNeo4j.stop().then(done).catch(error => done(error))
+  sharedNeo4j.stop().then(done).catch(error => done.fail(error))
 })
 
 gulp.task('run-stress-tests', async function () {
