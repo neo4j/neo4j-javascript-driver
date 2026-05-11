@@ -886,6 +886,67 @@ describe('#unit ResultStreamObserver', () => {
       })
     })
   })
+  describe('idempotent errors', () => {
+    it('should report errors after run as not runError', () => {
+      const streamObserver = new ResultStreamObserver({ reactive: false })
+      const received = []
+      let wasRunError
+      const observer = {
+        onCompleted: metadata => received.push(metadata),
+        onError: (error, runError) => {
+          received.push(error)
+          wasRunError = runError
+        },
+        onNext: record => received.push(record),
+        onKeys: keys => received.push(keys)
+      }
+
+      streamObserver.subscribe(observer)
+      streamObserver.onCompleted({ fields: ['A'] })
+      streamObserver.onError(new Error('test'))
+      expect(received[0]).toEqual(['A'])
+      expect(received[1]).toEqual(
+        new Error('test')
+      )
+      expect(wasRunError).toBe(false)
+    })
+    it('should report errors on run as not runError if overriden', () => {
+      const streamObserver = new ResultStreamObserver({ reactive: false })
+      const received = []
+      let wasRunError
+      const observer = {
+        onError: (error, runError) => {
+          received.push(error)
+          wasRunError = runError
+        }
+      }
+
+      streamObserver.subscribe(observer)
+      streamObserver.onError(new Error('test'), false)
+      expect(received[0]).toEqual(
+        new Error('test')
+      )
+      expect(wasRunError).toBe(false)
+    })
+    it('should report errors on run as runError', () => {
+      const streamObserver = new ResultStreamObserver({ reactive: false })
+      const received = []
+      let wasRunError
+      const observer = {
+        onError: (error, runError) => {
+          received.push(error)
+          wasRunError = runError
+        }
+      }
+
+      streamObserver.subscribe(observer)
+      streamObserver.onError(new Error('test'))
+      expect(received[0]).toEqual(
+        new Error('test')
+      )
+      expect(wasRunError).toBe(true)
+    })
+  })
 })
 
 describe('#unit RouteObserver', () => {

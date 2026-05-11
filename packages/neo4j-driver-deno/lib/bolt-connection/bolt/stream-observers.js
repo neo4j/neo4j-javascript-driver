@@ -90,6 +90,7 @@ class ResultStreamObserver extends StreamObserver {
     this._queuedRecords = []
     this._tail = null
     this._error = null
+    this._runError = false
     this._observers = []
     this._meta = {}
     this._server = server
@@ -235,7 +236,7 @@ class ResultStreamObserver extends StreamObserver {
       observer.onCompleted(this._tail)
     }
     if (this._error) {
-      observer.onError(this._error)
+      observer.onError(this._error, this._runError)
     }
     this._observers.push(observer)
 
@@ -379,6 +380,7 @@ class ResultStreamObserver extends StreamObserver {
   _handleError (error, runError) {
     this._setState(_states.FAILED)
     this._error = error
+    this._runError = runError
 
     let beforeHandlerResult = null
     if (this._beforeError) {

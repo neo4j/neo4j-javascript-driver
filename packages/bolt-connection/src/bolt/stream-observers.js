@@ -90,6 +90,7 @@ class ResultStreamObserver extends StreamObserver {
     this._queuedRecords = []
     this._tail = null
     this._error = null
+    this._runError = false
     this._observers = []
     this._meta = {}
     this._server = server
@@ -170,6 +171,7 @@ class ResultStreamObserver extends StreamObserver {
    * If user-provided observer is present, pass the error
    * to it's onError method, otherwise set instance variable _error.
    * @param {Object} error - An error object
+   * @param {boolean} runError - an override to tell the observer if this error occurred on a run.
    */
   onError (error, runError) {
     this._state.onError(this, error, runError)
@@ -235,7 +237,7 @@ class ResultStreamObserver extends StreamObserver {
       observer.onCompleted(this._tail)
     }
     if (this._error) {
-      observer.onError(this._error)
+      observer.onError(this._error, this._runError)
     }
     this._observers.push(observer)
 
@@ -379,6 +381,7 @@ class ResultStreamObserver extends StreamObserver {
   _handleError (error, runError) {
     this._setState(_states.FAILED)
     this._error = error
+    this._runError = runError
 
     let beforeHandlerResult = null
     if (this._beforeError) {
@@ -731,8 +734,8 @@ const _states = {
         streamObserver._handlePullSuccess(meta)
       }
     },
-    onError: (streamObserver, error) => {
-      streamObserver._handleError(error)
+    onError: (streamObserver, error, runError) => {
+      streamObserver._handleError(error, runError ?? false)
     },
     name: () => {
       return 'STREAMING'

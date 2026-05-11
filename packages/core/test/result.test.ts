@@ -17,6 +17,7 @@
 import { observer, connectionHolder } from '../src/internal'
 import {
   Connection,
+  Neo4jError,
   newError,
   Record,
   ResultSummary
@@ -1653,6 +1654,95 @@ describe('Result', () => {
       it('should return rejected promise with the expected error', async () =>
         await expect(supplier()).rejects.toBe(expectedError))
     }
+  })
+  describe('new Result(Promise.resolve(new ResultStreamObserverMock()), query, undefined, undefined, undefined, () => Promise.resolve(retriedObserverMock))', () => {
+    let streamObserverMock: ResultStreamObserverMock
+    let retriedObserverMock: ResultStreamObserverMock
+    let result: Result
+
+    beforeEach(() => {
+      streamObserverMock = new ResultStreamObserverMock()
+      retriedObserverMock = new ResultStreamObserverMock()
+      result = new Result(Promise.resolve(streamObserverMock), 'query', undefined, undefined, undefined, async () => { return await Promise.resolve(retriedObserverMock) })
+    })
+    describe('.keys()', () => {
+      it('should retry and switch to new observer on idempotent error before keys called', async () => {
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onKeys(['hi', 'hello'])
+        const keys = await result.keys()
+        expect(keys).toEqual(['hi', 'hello'])
+      })
+      it('should retry and switch to new observer on idempotent error after keys called', async () => {
+        const keys = result.keys()
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onKeys(['hi', 'hello'])
+        expect(await keys).toEqual(['hi', 'hello'])
+      })
+      it('should retry and switch to new observer and throw new error', async () => {
+        const keys = result.keys()
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onError(new Neo4jError('idempotent 2', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        await expect(keys).rejects.toEqual(new Neo4jError('idempotent 2', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }))
+      })
+    })
+    describe('.summary()', () => {
+      it('should retry and switch to new observer on idempotent error before summary called', async () => {
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onCompleted({})
+        const summary = await result.summary()
+        expect(summary.query.text).toEqual('query')
+      })
+      it('should retry and switch to new observer on idempotent error after summary called', async () => {
+        const summary = result.summary()
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onCompleted({})
+        expect((await summary).query.text).toEqual('query')
+      })
+      it('should retry and switch to new observer and throw new error', async () => {
+        const summary = result.summary()
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onError(new Neo4jError('idempotent 2', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        await expect(summary).rejects.toEqual(new Neo4jError('idempotent 2', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }))
+      })
+    })
+    describe('asyncIterator', () => {
+      it('should retry and switch to new observer on idempotent error before iterator created', async () => {
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onKeys(['greeting'])
+        retriedObserverMock.onNext(['hello'])
+        retriedObserverMock.onCompleted({})
+        const it = result[Symbol.asyncIterator]()
+        expect((await it.next()).value.get('greeting')).toBe('hello')
+      })
+      it('should retry and switch to new observer on idempotent error after iterator created', async () => {
+        const it = result[Symbol.asyncIterator]()
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onKeys(['greeting'])
+        retriedObserverMock.onNext(['hello'])
+        retriedObserverMock.onCompleted({})
+        expect((await it.next()).value.get('greeting')).toBe('hello')
+      })
+      it('should retry and switch to new observer and throw new error', async () => {
+        const it = result[Symbol.asyncIterator]()
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onError(new Neo4jError('idempotent 2', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        await expect(it.next()).rejects.toEqual(new Neo4jError('idempotent 2', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }))
+      })
+    })
+    describe('Promise', () => {
+      it('should retry and switch to new observer on idempotent error before summary called', async () => {
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onKeys(['greeting'])
+        retriedObserverMock.onNext(['hello'])
+        retriedObserverMock.onCompleted({})
+        expect((await result).records[0].get('greeting')).toEqual('hello')
+      })
+      it('should retry and switch to new observer and throw new error', async () => {
+        streamObserverMock.onError(new Neo4jError('idempotent', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        retriedObserverMock.onError(new Neo4jError('idempotent 2', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }), true)
+        await expect(result).rejects.toEqual(new Neo4jError('idempotent 2', '50N42', '', '', { OPERATION: '', OPERATION_CODE: '', CURRENT_SCHEMA: '', _idempotent: true }))
+      })
+    })
   })
 })
 

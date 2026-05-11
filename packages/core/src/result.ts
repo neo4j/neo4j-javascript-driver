@@ -97,7 +97,7 @@ interface GenericResultObserver<R> {
    * Called when some error occurs during the result processing or query execution
    * @param {Error} error The error ocurred
    */
-  onError?: (error: Error) => void
+  onError?: (error: Error, runError?: boolean) => void
 }
 
 interface ResultObserver<R extends RecordShape = RecordShape> extends GenericResultObserver<Record<R>> {}
@@ -242,12 +242,15 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
-        .then(observer =>
-          observer.subscribe(this._decorateObserver({
+        .then(observer => {
+          const keyObserver = this._decorateObserver({
             onKeys: keys => resolve(keys),
             onError: err => reject(err)
-          }, true))
-        )
+          }, true)
+          // @ts-expect-error
+          this._queuedObservers.push(keyObserver)
+          observer.subscribe(keyObserver)
+        })
         .catch(reject)
     })
   }
@@ -272,13 +275,16 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
         .then(o => {
-          o.cancel()
-          o.subscribe(this._decorateObserver({
+          const summaryObserver = this._decorateObserver({
             // This type casting is needed since we are defining the number type of
             // summary in Result template
             onCompleted: summary => resolve(summary as unknown as ResultSummary<T>),
             onError: err => reject(err)
-          }))
+          })
+          o.cancel()
+          // @ts-expect-error
+          this._queuedObservers.push(summaryObserver)
+          o.subscribe(summaryObserver)
         })
         .catch(reject)
     })
@@ -495,8 +501,8 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    * @param {boolean} paused The flag to indicate if the stream should be started paused
    * @returns {Promise<observer.ResultStreamObserver>} The result stream observer.
    */
-  _subscribe (observer: GenericResultObserver<R>, paused: boolean = false): Promise<observer.ResultStreamObserver> {
-    const _observer = this._decorateObserver(observer)
+  _subscribe (observer: GenericResultObserver<R>, paused: boolean = false, skipOnCompleted: boolean = false): Promise<observer.ResultStreamObserver> {
+    const _observer = this._decorateObserver(observer, skipOnCompleted)
     // @ts-expect-error
     this._queuedObservers.push(_observer)
 
