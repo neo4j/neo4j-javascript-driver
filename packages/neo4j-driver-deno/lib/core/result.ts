@@ -245,7 +245,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
         .then(observer => {
           const keyObserver = this._decorateObserver({
             onKeys: keys => resolve(keys),
-            onError: err => reject(err),
+            onError: err => reject(err)
           }, true)
           // @ts-expect-error
           this._queuedObservers.push(keyObserver)

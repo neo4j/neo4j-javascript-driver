@@ -171,6 +171,7 @@ class ResultStreamObserver extends StreamObserver {
    * If user-provided observer is present, pass the error
    * to it's onError method, otherwise set instance variable _error.
    * @param {Object} error - An error object
+   * @param {boolean} runError - an override to tell the observer if this error occurred on a run.
    */
   onError (error, runError) {
     this._state.onError(this, error, runError)
@@ -733,8 +734,8 @@ const _states = {
         streamObserver._handlePullSuccess(meta)
       }
     },
-    onError: (streamObserver, error) => {
-      streamObserver._handleError(error)
+    onError: (streamObserver, error, runError) => {
+      streamObserver._handleError(error, runError ?? false)
     },
     name: () => {
       return 'STREAMING'
