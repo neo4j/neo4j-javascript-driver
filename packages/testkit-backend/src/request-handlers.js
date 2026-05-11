@@ -298,7 +298,6 @@ export function TransactionRun (_, context, data, wire) {
   const id = context.addResult(result)
 
   wire.writeResponse(responses.Result({ id }))
-  result.catch(error => wire.writeError(error))
 }
 
 export function RetryablePositive (_, context, data, wire) {
