@@ -150,7 +150,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   private readonly _watermarks: { high: number, low: number }
   private _mapper: Function | null
   private readonly _retry: (() => Promise<observer.ResultStreamObserver>) | undefined
-  private readonly _queuedObservers: observer.StreamObserver[]
+  private readonly _ownedObservers: observer.StreamObserver[]
   private _hasRetried: boolean
 
   /**
@@ -182,7 +182,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     this._mapper = null
     this._watermarks = watermarks
     this._retry = retry
-    this._queuedObservers = []
+    this._ownedObservers = []
     this._hasRetried = false
   }
 
@@ -248,7 +248,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
             onError: err => reject(err)
           }, true)
           // @ts-expect-error
-          this._queuedObservers.push(keyObserver)
+          this._ownedObservers.push(keyObserver)
           observer.subscribe(keyObserver)
         })
         .catch(reject)
@@ -283,7 +283,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
           })
           o.cancel()
           // @ts-expect-error
-          this._queuedObservers.push(summaryObserver)
+          this._ownedObservers.push(summaryObserver)
           o.subscribe(summaryObserver)
         })
         .catch(reject)
@@ -504,7 +504,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   _subscribe (observer: GenericResultObserver<R>, paused: boolean = false, skipOnCompleted: boolean = false): Promise<observer.ResultStreamObserver> {
     const _observer = this._decorateObserver(observer, skipOnCompleted)
     // @ts-expect-error
-    this._queuedObservers.push(_observer)
+    this._ownedObservers.push(_observer)
 
     return this._streamObserverPromise
       .then(o => {
@@ -553,7 +553,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
         this._streamObserverPromise.then(obs => { if (obs.unsubscribeAll !== undefined) obs.unsubscribeAll() }, () => {})
         this._streamObserverPromise = this._retry()
         this._streamObserverPromise.then((obs) => {
-          this._queuedObservers.forEach((o) => {
+          this._ownedObservers.forEach((o) => {
             obs.subscribe(o)
           })
         }, () => {})
