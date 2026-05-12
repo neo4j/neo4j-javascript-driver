@@ -18,7 +18,7 @@ import RoutingTable from '../../../bolt-connection/lib/rediscovery/routing-table
 import { READ, WRITE } from '../../src/driver'
 import { RawRoutingTable } from '../../../bolt-connection/lib/bolt'
 import { error, Integer, int, internal } from 'neo4j-driver-core'
-import lolex from 'lolex'
+import lolex from '@sinonjs/fake-timers'
 
 const {
   serverAddress: { ServerAddress }
