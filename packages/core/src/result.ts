@@ -151,7 +151,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   private _mapper: Function | null
   private readonly _retry: (() => Promise<observer.ResultStreamObserver>) | undefined
   private readonly _ownedObservers: observer.StreamObserver[]
-  private _hasRetried: boolean
+  private _retriedError: Error | undefined
 
   /**
    * Inject the observer to be used.
@@ -183,7 +183,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     this._watermarks = watermarks
     this._retry = retry
     this._ownedObservers = []
-    this._hasRetried = false
+    this._retriedError = undefined
   }
 
   as <T extends {} = Object>(rules: Rules): MappedResult<T>
@@ -546,10 +546,10 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
 
     const onErrorWrapper = (error: Error, runError?: boolean): void => {
       if (
-        runError === true && !this._hasRetried && error instanceof Neo4jError &&
+        runError === true && this._retriedError === undefined && error instanceof Neo4jError &&
         error.diagnosticRecord?._idempotent === true && this._retry !== undefined
       ) {
-        this._hasRetried = true
+        this._retriedError = error
         this._streamObserverPromise.then(obs => { if (obs.unsubscribeAll !== undefined) obs.unsubscribeAll() }, () => {})
         this._streamObserverPromise = this._retry()
         this._streamObserverPromise.then((obs) => {
@@ -557,7 +557,9 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
             obs.subscribe(o)
           })
         }, () => {})
-      } else {
+      } else if (
+        this._retriedError !== error
+      ) {
         // notify connection holder that the used connection is not needed any more because error happened
         // and result can't bee consumed any further; call the original onError callback after that
         this._connectionHolder.releaseConnection().then(() => {
