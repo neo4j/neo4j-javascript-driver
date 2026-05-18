@@ -559,8 +559,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
         }, () => {})
       } else if (
         this._retriedError !== error
-      )
-        {
+      ) {
         // notify connection holder that the used connection is not needed any more because error happened
         // and result can't bee consumed any further; call the original onError callback after that
         this._connectionHolder.releaseConnection().then(() => {
