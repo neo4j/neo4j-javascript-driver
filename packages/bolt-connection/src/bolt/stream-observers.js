@@ -406,7 +406,7 @@ class ResultStreamObserver extends StreamObserver {
   _handleStreaming () {
     if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
       if (!this._paused && (this._discard || this._autoPull)) {
-        return this._more()
+        this._more()
       }
     }
   }
