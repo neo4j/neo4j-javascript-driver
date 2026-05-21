@@ -902,6 +902,34 @@ describe('#unit ResultStreamObserver', () => {
       obs.onCompleted({})
       expect(obs._state.name()).toBe('SUCCEEDED')
     })
+    it.each([
+      ['reactive/subscribed', true, true],
+      ['reactive/unsubscribed', true, false],
+      ['not reactive/subscribed', false, true],
+      ['not reactive/unsubscribed', false, false]
+    ])('should handle cancel before run success well: \'%s\'', (_, reactive, shouldSubscribe) => {
+      const discardFunction = jest.fn()
+      const moreFunction = jest.fn()
+      const obs = new ResultStreamObserver({ reactive, moreFunction, discardFunction })
+      if (shouldSubscribe === true) {
+        obs.subscribe(newObserver())
+      }
+      obs.cancel()
+      expect(discardFunction).toHaveBeenCalledTimes(0)
+      expect(moreFunction).toHaveBeenCalledTimes(0)
+      expect(obs._state.name()).toBe(reactive ? 'READY' : 'READY_STREAMING')
+      expect(obs._discard).toBe(true)
+      obs.onCompleted({ fields: ['A'] })
+      if (!reactive) {
+        // unreactive runs always pipeline their pulls, and will not discard until the pull success returns.
+        obs.onCompleted({ key: 42, has_more: true })
+      }
+      expect(discardFunction).toHaveBeenCalledTimes(1)
+      expect(moreFunction).toHaveBeenCalledTimes(0)
+      expect(obs._state.name()).toBe('STREAMING')
+      obs.onCompleted({})
+      expect(obs._state.name()).toBe('SUCCEEDED')
+    })
     it('should not eagerly discard if not waiting to pull more', () => {
       const discardFunction = jest.fn()
       const obs = new ResultStreamObserver({ moreFunction: jest.fn(), discardFunction })
@@ -912,11 +940,9 @@ describe('#unit ResultStreamObserver', () => {
       obs.onNext([2])
       expect(discardFunction).toHaveBeenCalledTimes(0)
       expect(obs._discard).toBe(true)
-      expect(obs._discarded).toBe(false)
       expect(obs._state.name()).toBe('STREAMING')
       obs.onCompleted({ key: 42, has_more: true })
       expect(discardFunction).toHaveBeenCalledTimes(1)
-      expect(obs._discarded).toBe(true)
       obs.onCompleted({})
       expect(obs._state.name()).toBe('SUCCEEDED')
     })
@@ -936,7 +962,6 @@ describe('#unit ResultStreamObserver', () => {
       expect(obs._state.name()).toBe('STREAMING')
       expect(discardFunction).toHaveBeenCalledTimes(0)
       expect(obs._discard).toBe(true)
-      expect(obs._discarded).toBe(false)
       obs.onCompleted({})
       expect(obs._state.name()).toBe('SUCCEEDED')
     })

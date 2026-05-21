@@ -115,7 +115,6 @@ class ResultStreamObserver extends StreamObserver {
     this._pulled = !reactive
     this._haveRecordStreamed = false
     this._onDb = onDb
-    this._discarded = false
   }
 
   /**
@@ -404,7 +403,7 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   _handleStreaming () {
-    if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
+    if (this._head && (this._observers.some(o => o.onNext || o.onCompleted) || this._discard)) {
       if (!this._paused && (this._discard || this._autoPull)) {
         this._more()
       }
@@ -413,10 +412,7 @@ class ResultStreamObserver extends StreamObserver {
 
   _more () {
     if (this._discard) {
-      if (!this._discarded) {
-        this._discardFunction(this._queryId, this)
-        this._discarded = true
-      }
+      this._discardFunction(this._queryId, this)
     } else {
       this._pulled = true
       this._moreFunction(this._queryId, this._fetchSize, this)
@@ -726,7 +722,7 @@ const _states = {
     discard: (obs) => {
       obs._discard = true
       // if the stream observer is waiting for user input to pull next, such as for an async iterator, we need to send the discard right away.
-      if (obs._autoPull !== true || obs._paused) {
+      if (obs._fieldKeys != null) {
         obs._more()
       }
     }
