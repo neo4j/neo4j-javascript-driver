@@ -946,7 +946,7 @@ describe('#unit ResultStreamObserver', () => {
       obs.onCompleted({})
       expect(obs._state.name()).toBe('SUCCEEDED')
     })
-    it('should not eagerly discard if when finished pulling', () => {
+    it('should not eagerly discard when finished pulling', () => {
       const discardFunction = jest.fn()
       const obs = new ResultStreamObserver({ moreFunction: jest.fn(), discardFunction })
       obs.subscribe(newObserver())
@@ -959,7 +959,6 @@ describe('#unit ResultStreamObserver', () => {
       expect(obs._state.name()).toBe('STREAMING')
       obs.onCompleted({ key: 42, du_hast_more: true })
       expect(discardFunction).toHaveBeenCalledTimes(0)
-      obs.onCompleted({})
       expect(obs._state.name()).toBe('SUCCEEDED')
     })
     it('should not eagerly discard on resumed stream.', () => {
