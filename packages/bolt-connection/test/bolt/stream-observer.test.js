@@ -920,7 +920,7 @@ describe('#unit ResultStreamObserver', () => {
       expect(obs._state.name()).toBe(reactive ? 'READY' : 'READY_STREAMING')
       expect(obs._discard).toBe(true)
       obs.onCompleted({ fields: ['A'] })
-      if (!reactive) {
+      if (reactive === false) {
         // unreactive runs always pipeline their pulls, and will not discard until the pull success returns.
         obs.onCompleted({ key: 42, has_more: true })
       }
@@ -943,6 +943,22 @@ describe('#unit ResultStreamObserver', () => {
       expect(obs._state.name()).toBe('STREAMING')
       obs.onCompleted({ key: 42, has_more: true })
       expect(discardFunction).toHaveBeenCalledTimes(1)
+      obs.onCompleted({})
+      expect(obs._state.name()).toBe('SUCCEEDED')
+    })
+    it('should not eagerly discard if when finished pulling', () => {
+      const discardFunction = jest.fn()
+      const obs = new ResultStreamObserver({ moreFunction: jest.fn(), discardFunction })
+      obs.subscribe(newObserver())
+      obs.onCompleted({ fields: ['A'] })
+      obs.onNext([1])
+      obs.cancel()
+      obs.onNext([2])
+      expect(discardFunction).toHaveBeenCalledTimes(0)
+      expect(obs._discard).toBe(true)
+      expect(obs._state.name()).toBe('STREAMING')
+      obs.onCompleted({ key: 42, du_hast_more: true })
+      expect(discardFunction).toHaveBeenCalledTimes(0)
       obs.onCompleted({})
       expect(obs._state.name()).toBe('SUCCEEDED')
     })

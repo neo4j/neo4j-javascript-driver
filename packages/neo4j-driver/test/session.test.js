@@ -1005,7 +1005,7 @@ describe('#integration session', () => {
 
     session = driver.session({ fetchSize: 2 })
 
-    await expect(session.run('RETURN 1 as n')).resolves.not.toThrow()
+    await expect(session.run('RETURN 1 AS n')).resolves.not.toThrow()
   })
 
   function testTransactionRetryUntilSuccess (failureResponseFunction, done) {
