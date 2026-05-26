@@ -74,6 +74,15 @@ export class Config {
   connectionAcquisitionTimeout?: number
   connectionLivenessCheckTimeout?: number
   connectionTimeout?: number
+  /**
+   * Disables retries using `Session.run()`.
+   *
+   * Retries on `Session.run()` are limited to a specific set of errors. Namely those errors marked as *idempotent* by the DBMS, i.e., errors that are guaranteed to not have altered the state of any database. At the time of writing, this set encompasses only admission control errors.
+   *
+   * When set to `true`, calls to `Session.run()` will fail without retrying when receiving an error from the server, even when only idempotent work has occurred. By default, these calls will be rerun with a one-shot retry to avoid friction when encountering rate limiting and other errors that can be safely retried.
+   * Default value: {@link false}
+   */
+  disableAutoCommitRetries?: boolean
   disableLosslessIntegers?: boolean
   notificationFilter?: NotificationFilter
   useBigInt?: boolean
