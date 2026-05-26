@@ -19,7 +19,7 @@ import Record from '../record.ts'
 import { GenericResultObserver } from '../result.ts'
 import ResultSummary from '../result-summary.ts'
 
-interface StreamObserver {
+export interface StreamObserver {
   /**
    * Will be called on every record that comes in and transform a raw record
    * to an Object. If user-provided observer is present, pass transformed record
@@ -117,6 +117,11 @@ export interface ResultStreamObserver extends StreamObserver {
    * @param {function(error: Object)} observer.onError - Handle errors, should always be provided.
    */
   subscribe: (observer: GenericResultObserver<any>) => void
+
+  /**
+   * Removes all subscribers from the result stream, use with extreme caution.
+   */
+  unsubscribeAll?: () => void
 }
 
 export class CompletedObserver implements ResultStreamObserver {

@@ -28,6 +28,7 @@ export default class ResultStreamObserverMock implements observer.ResultStreamOb
   private _meta?: any
   private readonly _beforeError?: (error: Error) => void
   private readonly _afterComplete?: (metadata: any) => void
+  private _runError?: boolean
 
   constructor (observers?: { beforeError?: (error: Error) => void, afterComplete?: (metadata: any) => void }) {
     this._queuedRecords = []
@@ -50,7 +51,7 @@ export default class ResultStreamObserverMock implements observer.ResultStreamOb
     this._observers.push(observer)
 
     if ((observer.onError != null) && (this._error != null)) {
-      observer.onError(this._error)
+      observer.onError(this._error, this._runError)
       return
     }
 
@@ -92,13 +93,14 @@ export default class ResultStreamObserverMock implements observer.ResultStreamOb
     }
   }
 
-  onError (error: Error): void {
+  onError (error: Error, runError?: boolean): void {
     this._error = error
+    this._runError = runError
     if (this._beforeError != null) {
       this._beforeError(error)
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this._observers.filter(o => o.onError).forEach(o => o.onError!(error))
+    this._observers.filter(o => o.onError).forEach(o => o.onError!(error, runError))
   }
 
   onCompleted (meta: any): void {

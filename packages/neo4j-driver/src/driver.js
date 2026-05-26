@@ -58,7 +58,8 @@ class Driver extends CoreDriver {
     impersonatedUser,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    disableAutoCommitRetries
   } = {}) {
     return new RxSession({
       session: this._newSession({
@@ -71,7 +72,8 @@ class Driver extends CoreDriver {
         fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize),
         bookmarkManager,
         notificationFilter,
-        log: this._log
+        log: this._log,
+        disableAutoCommitRetries
       }),
       config: this._config,
       log: this._log

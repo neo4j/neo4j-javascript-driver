@@ -19,8 +19,9 @@ import Result from './result'
 import Transaction from './transaction'
 import { Query } from './types'
 import { RecordShape } from './record'
+import { Rules } from './mapping.highlevel'
 
-type Run<R extends RecordShape = RecordShape> = (query: Query, parameters?: any) => Result<R>
+type Run<R extends RecordShape = RecordShape> = (query: Query, parameters?: any, parameterRules?: Rules) => Result<R>
 
 /**
  * Represents a transaction that is managed by the transaction executor.
@@ -57,10 +58,11 @@ class ManagedTransaction {
    * or with the query and parameters as separate arguments.
    * @param {mixed} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in query
+   * @param {Rules} parameterRules - Rules to typecheck and/or map the parameter object. Must not be provided as a separate argument if an Object is passed as first argument
    * @return {Result} New Result
    */
-  run<R extends RecordShape = RecordShape> (query: Query, parameters?: any): Result<R> {
-    return this._run(query, parameters)
+  run<R extends RecordShape = RecordShape> (query: Query, parameters?: any, parameterRules?: Rules): Result<R> {
+    return this._run(query, parameters, parameterRules)
   }
 }
 

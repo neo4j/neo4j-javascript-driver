@@ -665,7 +665,7 @@ describe('session', () => {
       })
 
       expect(status.functionCalled).toEqual(true)
-      expect(run).toHaveBeenCalledWith(query, params)
+      expect(run).toHaveBeenCalledWith(query, params, undefined)
     })
 
     it('should round up sub milliseconds transaction timeouts', async () => {

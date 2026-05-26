@@ -90,6 +90,7 @@ class ResultStreamObserver extends StreamObserver {
     this._queuedRecords = []
     this._tail = null
     this._error = null
+    this._runError = false
     this._observers = []
     this._meta = {}
     this._server = server
@@ -170,9 +171,10 @@ class ResultStreamObserver extends StreamObserver {
    * If user-provided observer is present, pass the error
    * to it's onError method, otherwise set instance variable _error.
    * @param {Object} error - An error object
+   * @param {boolean} runError - an override to tell the observer if this error occurred on a run.
    */
-  onError (error) {
-    this._state.onError(this, error)
+  onError (error, runError) {
+    this._state.onError(this, error, runError)
   }
 
   /**
@@ -235,13 +237,17 @@ class ResultStreamObserver extends StreamObserver {
       observer.onCompleted(this._tail)
     }
     if (this._error) {
-      observer.onError(this._error)
+      observer.onError(this._error, this._runError)
     }
     this._observers.push(observer)
 
     if (this._state === _states.READY) {
       this._handleStreaming()
     }
+  }
+
+  unsubscribeAll () {
+    this._observers = []
   }
 
   _handleHasMore (meta) {
@@ -372,9 +378,10 @@ class ResultStreamObserver extends StreamObserver {
     }
   }
 
-  _handleError (error) {
+  _handleError (error, runError) {
     this._setState(_states.FAILED)
     this._error = error
+    this._runError = runError
 
     let beforeHandlerResult = null
     if (this._beforeError) {
@@ -385,7 +392,7 @@ class ResultStreamObserver extends StreamObserver {
       if (this._observers.some(o => o.onError)) {
         this._observers.forEach(o => {
           if (o.onError) {
-            o.onError(error)
+            o.onError(error, runError)
           }
         })
       }
@@ -695,8 +702,8 @@ const _states = {
         // state
       )
     },
-    onError: (streamObserver, error) => {
-      streamObserver._handleError(error)
+    onError: (streamObserver, error, runError) => {
+      streamObserver._handleError(error, runError ?? true)
     },
     name: () => {
       return 'READY_STREAMING'
@@ -712,8 +719,8 @@ const _states = {
         () => streamObserver._handleStreaming() // after run succeeded received, reactive shall start pulling
       )
     },
-    onError: (streamObserver, error) => {
-      streamObserver._handleError(error)
+    onError: (streamObserver, error, runError) => {
+      streamObserver._handleError(error, runError ?? true)
     },
     name: () => {
       return 'READY'
@@ -735,8 +742,8 @@ const _states = {
         streamObserver._handlePullSuccess(meta)
       }
     },
-    onError: (streamObserver, error) => {
-      streamObserver._handleError(error)
+    onError: (streamObserver, error, runError) => {
+      streamObserver._handleError(error, runError ?? false)
     },
     name: () => {
       return 'STREAMING'
@@ -745,6 +752,9 @@ const _states = {
     discard: obs => { obs._discard = true }
   },
   FAILED: {
+    onSuccess: _error => {
+      // more successes are ignored
+    },
     onError: _error => {
       // more errors are ignored
     },

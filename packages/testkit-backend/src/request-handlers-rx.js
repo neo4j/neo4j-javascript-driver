@@ -70,6 +70,7 @@ export function NewSession ({ neo4j }, context, data, wire) {
       disabledCategories: data.notificationsDisabledCategories
     }
   }
+  const disableAutoCommitRetries = data.disableAutoCommitRetries
   const auth = data.authorizationToken != null
     ? context.binder.parseAuthToken(data.authorizationToken.data)
     : undefined
@@ -83,7 +84,8 @@ export function NewSession ({ neo4j }, context, data, wire) {
     impersonatedUser,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    disableAutoCommitRetries
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))
