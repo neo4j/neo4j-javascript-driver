@@ -135,7 +135,7 @@ class ResultStreamObserver extends StreamObserver {
    */
   resume () {
     this._paused = false
-    this._setupAutoPull(true)
+    this._setupAutoPull()
     this._state.pull(this)
   }
 
@@ -181,7 +181,7 @@ class ResultStreamObserver extends StreamObserver {
    * Cancel pending record stream
    */
   cancel () {
-    this._discard = true
+    this._state.discard(this)
   }
 
   /**
@@ -410,7 +410,7 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   _handleStreaming () {
-    if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
+    if (this._head && (this._observers.some(o => o.onNext || o.onCompleted) || this._discard)) {
       if (!this._paused && (this._discard || this._autoPull)) {
         this._more()
       }
@@ -708,7 +708,8 @@ const _states = {
     name: () => {
       return 'READY_STREAMING'
     },
-    pull: () => { }
+    pull: () => { },
+    discard: obs => { obs._discard = true }
   },
   READY: {
     // reactive start state
@@ -724,7 +725,14 @@ const _states = {
     name: () => {
       return 'READY'
     },
-    pull: streamObserver => streamObserver._more()
+    pull: streamObserver => streamObserver._more(),
+    discard: (obs) => {
+      obs._discard = true
+      // if the stream observer is waiting for user input to pull next, such as for an async iterator, we need to send the discard right away.
+      if (obs._fieldKeys != null) {
+        obs._more()
+      }
+    }
   },
   STREAMING: {
     onSuccess: (streamObserver, meta) => {
@@ -740,7 +748,8 @@ const _states = {
     name: () => {
       return 'STREAMING'
     },
-    pull: () => { }
+    pull: () => { },
+    discard: obs => { obs._discard = true }
   },
   FAILED: {
     onSuccess: _error => {
@@ -752,13 +761,18 @@ const _states = {
     name: () => {
       return 'FAILED'
     },
-    pull: () => { }
+    pull: () => { },
+    discard: () => { }
   },
   SUCCEEDED: {
+    onError: _error => {
+      // more errors are ignored
+    },
     name: () => {
       return 'SUCCEEDED'
     },
-    pull: () => { }
+    pull: () => { },
+    discard: () => { }
   }
 }
 
