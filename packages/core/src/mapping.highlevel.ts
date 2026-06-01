@@ -132,7 +132,7 @@ export const RecordObjectMapping = Object.freeze({
  *  resultTransformer: neo4j.resultTransformers.hydrated(Person)
  * })
  *
- * @param {GenericConstructor} constructor The constructor function of the class to set rules for
+ * @param {GenericConstructor} constructor The constructor function of the class to set rules for. The constructor must be callable with all arguments undefined.
  * @param {Rules} rules The rules to set for the provided class
  */
   register,
@@ -154,7 +154,7 @@ export const RecordObjectMapping = Object.freeze({
  * //if a type has one odd mapping you can override the translation with the rule
  * const personRules = {
  *  firstName: neo4j.rule.asString(),
- *  bornAt: neo4j.rule.asNumber({ acceptBigInt: true, optional: true })
+ *  bornAt: neo4j.rule.asNumber({ optional: true })
  *  weird_name-property: neo4j.rule.asString({from: 'homeTown'})
  * }
  * //These rules can then be used by providing them to a hydratedResultsMapper
@@ -253,7 +253,7 @@ export function validateAndCleanParameters (params: Record<string, any>, supplie
   }
 }
 
-function getRules<T extends {} = Object> (constructorOrRules: Rules | GenericConstructor<T>, rules: Rules | undefined): Rules | undefined {
+export function getRules<T extends {} = Object> (constructorOrRules: Rules | GenericConstructor<T>, rules: Rules | undefined): Rules | undefined {
   const rulesDefined = typeof constructorOrRules === 'object' ? constructorOrRules : rules
   if (rulesDefined != null) {
     return rulesDefined

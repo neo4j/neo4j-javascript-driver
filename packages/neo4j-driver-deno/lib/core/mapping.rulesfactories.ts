@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import { Rule, valueAs, optionalParameterConversion, Rules, defaultNameMapping } from './mapping.highlevel.ts'
+import { Rule, valueAs, optionalParameterConversion, Rules, defaultNameMapping, GenericConstructor, getRules } from './mapping.highlevel.ts'
 import { StandardDate, isNode, isPath, isRelationship } from './graph-types.ts'
 import { isPoint } from './spatial-types.ts'
 import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from './temporal-types.ts'
-import Vector, { isVector, vector } from './vector.ts'
+import Vector, { isVector, vector, VectorType } from './vector.ts'
 import { newError } from './error.ts'
 import Integer, { isInt } from './integer.ts'
 
@@ -58,7 +58,7 @@ import Integer, { isInt } from './integer.ts'
  *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
  *
- * @property {function(rule: ?Rule & { asTypedList?: boolean, dimension?: number, type?: "INT8" | "INT16" | "INT32" | "INT64" | "FLOAT32" | "FLOAT64" })} asVector Create a {@link Rule} that validates the value is a Vector.
+ * @property {function(rule: ?Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType })} asVector Create a {@link Rule} that validates the value is a Vector.
  *
  * @property {function(rules: Rules)} asObject Create a {@link Rule} for an object, allowing complex mapping of even nested results.
  */
@@ -115,8 +115,11 @@ export const rule = Object.freeze({
         if (rule?.isInteger !== true && typeof value === 'bigint') {
           throw new TypeError('Number returned as BigInt. To use asNumber mapping with integer values, set "isInteger" in rule configuration.')
         }
-        if (typeof value !== 'number') {
+        if (typeof value !== 'number' && !(isInt(value) && rule?.isInteger === true)) {
           throw new TypeError(`${field} should be a number but received ${typeof value}`)
+        }
+        if(rule?.isInteger === true && typeof value === 'number' && !Number.isInteger(value)) {
+          throw new TypeError(`${field} should be an integer value but received decimal number.`)
         }
       },
       convert: (value: number | bigint | Integer) => {
@@ -486,10 +489,10 @@ export const rule = Object.freeze({
   /**
    * Create a {@link Rule} that validates the value is a Vector.
    *
-   * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' } | undefined} rule Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
+   * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType } | undefined} rule Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
    * @returns {Rule} A new rule for the value
    */
-  asVector (rule?: Rule & { asTypedList?: boolean, dimension?: number, type?: 'INT8' | 'INT16' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' }): Rule {
+  asVector (rule?: Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType }): Rule {
     if (rule?.asTypedList != null && (rule?.convert != null || rule.parameterConversion != null)) {
       throw newError('Provided rule already has convert and/or parameterConversion function, asTypedList can not be used in combination with custom conversion functions.')
     }
@@ -521,35 +524,39 @@ export const rule = Object.freeze({
    * NOTE: When using this rule, object identifiers will be mapped according to any name mapping set with neo4j.RecordObjectMapping.translateIdentifiers.
    *
    * @param {Rules} rules rules for the fields of the object.
+   * @param {GenericConstructor} constructor The constructor function of the class to map to. The constructor must be callable with all arguments undefined.
    * @returns {Rule} A new rule for the value
    */
-  asObject (rules: Rules): Rule {
+  asObject (constructorOrRules: GenericConstructor<Object> | Rules, rules?: Rules): Rule {
+    const GenericConstructor = typeof constructorOrRules === 'function' ? constructorOrRules : Object
+    const theRules = getRules(constructorOrRules, rules)
     return {
       validate: (value: Record<string, Object>, field: string) => {
-        for (const key in rules) {
-          const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
+        for (const key in theRules) {
+          const mappedKey = theRules[key].from != null ? theRules[key].from : defaultNameMapping(key)
           if (value[mappedKey] == null) {
-            if (rules[key].optional === true) {
+            if (theRules[key].optional === true) {
               continue
             } else {
               throw newError(
-                `Mapped Parameter object did not include required field ${field} with key ${mappedKey}, 
-                check provided parameters and parameter rules.`
+                `Mapped object did not include required field ${field} with key ${mappedKey}.`
               )
             }
           }
-          if (rules[key].validate != null) {
-            rules[key].validate(value[mappedKey], `${field}[${key}]`)
+          if (theRules[key].validate != null) {
+            theRules[key].validate(value[mappedKey], `${field}[${key}]`)
           }
         }
       },
       convert: (value: Record<string, Object>, field: string) => {
-        const convertedValue: Record<string, Object> = {}
-        for (const key in rules) {
-          const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
-          if (value[mappedKey] != null && rules[key].convert != null) {
-            convertedValue[key] = rules[key].convert(value[mappedKey], `${field}[${mappedKey}]`)
+        const convertedValue = new GenericConstructor()
+        for (const key in theRules) {
+          const mappedKey = theRules[key].from != null ? theRules[key].from : defaultNameMapping(key)
+          if (value[mappedKey] != null && theRules[key].convert != null) {
+            // @ts-expect-error
+            convertedValue[key] = theRules[key].convert(value[mappedKey], `${field}[${mappedKey}]`)
           } else {
+            // @ts-expect-error
             convertedValue[key] = value[mappedKey]
           }
         }
@@ -557,10 +564,10 @@ export const rule = Object.freeze({
       },
       parameterConversion: (value: Record<string, Object>) => {
         const convertedValue: Record<string, Object> = {}
-        for (const key in rules) {
-          const mappedKey = rules[key].from != null ? rules[key].from : defaultNameMapping(key)
-          if (value[key] != null && rules[key].parameterConversion != null) {
-            convertedValue[mappedKey] = rules[key].parameterConversion(value[key])
+        for (const key in theRules) {
+          const mappedKey = theRules[key].from != null ? theRules[key].from : defaultNameMapping(key)
+          if (value[key] != null && theRules[key].parameterConversion != null) {
+            convertedValue[mappedKey] = theRules[key].parameterConversion(value[key])
           } else {
             convertedValue[mappedKey] = value[key]
           }

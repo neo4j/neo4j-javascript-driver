@@ -196,7 +196,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    *
    * const personRules: Rules = {
    *  name: rule.asString(),
-   *  born: rule.asNumber({ acceptBigInt: true, optional: true })
+   *  born: rule.asNumber({ optional: true })
    * }
    *
    * await session.executeRead(async (tx: Transaction) => {
@@ -204,7 +204,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
    * WHERE id(p) <> id(c)
    * RETURN p.name as name, p.born as born`).as<Person>(personRules)
    *
-   * @param {GenericConstructor<T> | Rules} constructorOrRules
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type which must be callable with all arguments undefined or {@link Rules} for the hydration
    * @param {Rules} rules
    * @returns {MappedResult<T>}
    */
