@@ -230,7 +230,7 @@ function listProperty (config?: Rule & { apply?: Rule }) {
  * @returns {Function} Property Decorator
  * @experimental Object Mapping Decorators are in preview and may change in minor releases.
  */
-function vectorProperty (config?: Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType}) {
+function vectorProperty (config?: Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType }) {
   return (_: any, context: any) => {
     context.metadata[context.name] = rule.asVector(config)
   }

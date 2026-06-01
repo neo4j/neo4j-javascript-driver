@@ -132,7 +132,7 @@ export const RecordObjectMapping = Object.freeze({
  *  resultTransformer: neo4j.resultTransformers.hydrated(Person)
  * })
  *
- * @param {GenericConstructor} constructor The constructor function of the class to set rules for. The constructor must be callable with all arguments undefined. 
+ * @param {GenericConstructor} constructor The constructor function of the class to set rules for. The constructor must be callable with all arguments undefined.
  * @param {Rules} rules The rules to set for the provided class
  */
   register,

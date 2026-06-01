@@ -118,7 +118,7 @@ export const rule = Object.freeze({
         if (typeof value !== 'number' && !(isInt(value) && rule?.isInteger === true)) {
           throw new TypeError(`${field} should be a number but received ${typeof value}`)
         }
-        if(rule?.isInteger === true && typeof value === 'number' && !Number.isInteger(value)) {
+        if (rule?.isInteger === true && typeof value === 'number' && !Number.isInteger(value)) {
           throw new TypeError(`${field} should be an integer value but received decimal number.`)
         }
       },
