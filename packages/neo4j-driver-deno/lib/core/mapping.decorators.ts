@@ -1,4 +1,4 @@
-import { Rule, rulesRegistry } from './mapping.highlevel.ts'
+import { GenericConstructor, Rule, Rules, rulesRegistry } from './mapping.highlevel.ts'
 import { rule } from './mapping.rulesfactories.ts'
 import { VectorType } from './vector.ts'
 
@@ -237,6 +237,23 @@ function vectorProperty (config?: Rule & { asTypedList?: boolean, dimension?: nu
 }
 
 /**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to an Object, allowing complex mapping of even nested results
+ *
+ * NOTE: When using this rule, object identifiers will be mapped according to any name mapping set with neo4j.RecordObjectMapping.translateIdentifiers.
+ *
+ * @param {Rules} rules rules for the fields of the object.
+ * @param {GenericConstructor} constructor The constructor function of the class to map to. The constructor must be callable with all arguments undefined.
+ * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType }} config Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
+ * @returns {Function} Property Decorator
+ * @experimental Object Mapping Decorators are in preview and may change in minor releases.
+ */
+function objectProperty (constructorOrRules: GenericConstructor<Object> | Rules, rules?: Rules) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asObject(constructorOrRules, rules)
+  }
+}
+
+/**
  * Property Decorator Factory that sets this property to optional.
  * NOTE: Should be put above a type decorator.
  *
@@ -295,6 +312,7 @@ const forExport = {
   dateTimeProperty,
   listProperty,
   vectorProperty,
+  objectProperty,
   optionalProperty,
   mapPropertyFromName,
   convertPropertyToType,
