@@ -184,7 +184,7 @@ export default function CypherNativeBinders (neo4j) {
     }
 
     if (neo4j.isUUID(x)) {
-      return valueResponse('CypherUUID', x.toHexString())
+      return valueResponse('CypherUUID', x.toString())
     }
 
     if (neo4j.isUnsupportedType(x)) {
@@ -323,7 +323,7 @@ export default function CypherNativeBinders (neo4j) {
         }
       }
       case 'CypherUUID': {
-        return neo4j.uuid(toByteArray(data.value.replaceAll('-', ''), true))
+        return neo4j.UUID.fromString(data.value)
       }
     }
     console.log(`Type ${name} is not handle by cypherToNative`, c)
@@ -363,12 +363,10 @@ export default function CypherNativeBinders (neo4j) {
     return string.slice(0, -1)
   }
 
-  function toByteArray (hexString, withoutSpace) {
+  function toByteArray (hexString) {
     const result = []
-    const increment = withoutSpace === true ? 2 : 3
-    console.log(hexString)
-    for (let i = 0; i < hexString.length; i += increment) {
-      result.push(parseInt(hexString.substr(i, 2), 16))
+    for (let i = 0; i < hexString.length; i += 3) {
+      result.push(parseInt(hexString.substring(i, i + 2), 16))
     }
     return Uint8Array.from(result)
   }

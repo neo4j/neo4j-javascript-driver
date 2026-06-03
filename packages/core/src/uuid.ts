@@ -21,14 +21,11 @@ const UUID_IDENTIFIER_PROPERTY = '__isUUID__'
 const uuidV4DashLocations = [3, 5, 7, 9]
 
 /**
- * A wrapper class for JavaScript TypedArrays that makes the driver send them as a Vector type to the database.
+ * Represents a Neo4j
  * @access public
- * @exports Vector
- * @class A Vector class that wraps a JavaScript TypedArray to enable writing/reading the Neo4j Vector type.
- * @param {Float32Array | Float64Array | Int8Array | Int16Array | Int32Array | BigInt64Array} typedArray The TypedArray to convert to a vector
- *
- * @constructor
- *
+ * @exports UUID
+ * @class A class writing/reading the Neo4j UUID type as a Uint8Array.
+ * @param { Uint8Array } typedArray A Uint8Array of length 16 representing the UUID
  */
 export default class UUID {
   _typedArray: Uint8Array
@@ -39,12 +36,19 @@ export default class UUID {
     this._typedArray = typedArray
   }
 
+  /**
+   * Returns the internal Uint8Array, note that modifying this will modify the UUID.
+   *
+   * @returns {Uint8Array} a Uint8Array of 16 bytes, representing the UUID.
+   */
   getTypedArray (): Uint8Array {
     return this._typedArray
   }
 
-  toHexString (): string {
-    console.log(this._typedArray)
+  /**
+   * @returns {string} The UUID encoded in base16 in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   */
+  toString (): string {
     let string = ''
     for (let i = 0; i < this._typedArray.length; i++) {
       string += (('0' + this._typedArray[i].toString(16)).slice(-2))
@@ -52,12 +56,25 @@ export default class UUID {
         string += '-'
       }
     }
-    console.log(string)
     return string
   }
 
-  toString (): string {
-    return this._typedArray.toString()
+  /**
+   * Parses a string representation of a uuid and creates a {@link UUID} from it.
+   *
+   * @param {string} uuidString a base-16 encoded uuid string of the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   * @returns {UUID}
+   */
+  static fromString (uuidString: string): UUID {
+    if (uuidString.match(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/) === null) {
+      throw newError(`UUID string should be of format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx, got: ${uuidString}`)
+    }
+    uuidString = uuidString.replace(/-/g, '')
+    const result = []
+    for (let i = 0; i < uuidString.length; i += 2) {
+      result.push(parseInt(uuidString.substring(i, i + 2), 16))
+    }
+    return new UUID(Uint8Array.from(result))
   }
 }
 
