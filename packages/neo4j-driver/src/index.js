@@ -90,7 +90,10 @@ import {
   mappingDecorators,
   RecordObjectMapping,
   StandardCase,
-  ProtocolVersion
+  ProtocolVersion,
+  UUID,
+  uuid,
+  isUUID
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -428,7 +431,10 @@ const forExport = {
   mappingDecorators,
   RecordObjectMapping,
   StandardCase,
-  ProtocolVersion
+  ProtocolVersion,
+  UUID,
+  uuid,
+  isUUID
 }
 
 export {
@@ -512,6 +518,9 @@ export {
   mappingDecorators,
   RecordObjectMapping,
   StandardCase,
-  ProtocolVersion
+  ProtocolVersion,
+  UUID,
+  uuid,
+  isUUID
 }
 export default forExport

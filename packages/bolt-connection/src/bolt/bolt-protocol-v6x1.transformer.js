@@ -15,21 +15,8 @@
  * limitations under the License.
  */
 
-import * as v1 from './packstream-v1'
+import v6x0 from './bolt-protocol-v6x0.transformer'
 
-export class Packer extends v1.Packer {
-  disableByteArrays () {
-    throw new Error('Bolt V2 should always support byte arrays')
-  }
-}
-
-export class Unpacker extends v1.Unpacker {
-  /**
-   * @constructor
-   * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
-   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
-   */
-  constructor (disableLosslessIntegers = false, useBigInt = false, allowUUID = false) {
-    super(disableLosslessIntegers, useBigInt, allowUUID)
-  }
+export default {
+  ...v6x0
 }

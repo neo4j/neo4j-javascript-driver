@@ -109,6 +109,7 @@ import { Rule, Rules, RecordObjectMapping } from './mapping.highlevel'
 import { rule } from './mapping.rulesfactories'
 import mappingDecorators from './mapping.decorators'
 import UnsupportedType, { isUnsupportedType } from './unsupported-type'
+import UUID, { uuid, isUUID } from './uuid'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -204,7 +205,9 @@ const forExport = {
   UnsupportedType,
   isUnsupportedType,
   isVector,
-  vector
+  vector,
+  isUUID,
+  uuid
 }
 
 export {
@@ -292,7 +295,10 @@ export {
   RecordObjectMapping,
   StandardCase,
   UnsupportedType,
-  isUnsupportedType
+  isUnsupportedType,
+  UUID,
+  isUUID,
+  uuid
 }
 
 export type {

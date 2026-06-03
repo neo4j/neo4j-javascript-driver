@@ -43,6 +43,7 @@ const BOLT_PROTOCOL_V5_6: ProtocolVersion = new ProtocolVersion(5, 6)
 const BOLT_PROTOCOL_V5_7: ProtocolVersion = new ProtocolVersion(5, 7)
 const BOLT_PROTOCOL_V5_8: ProtocolVersion = new ProtocolVersion(5, 8)
 const BOLT_PROTOCOL_V6_0: ProtocolVersion = new ProtocolVersion(6, 0)
+const BOLT_PROTOCOL_V6_1: ProtocolVersion = new ProtocolVersion(6, 1)
 
 const TELEMETRY_APIS = {
   MANAGED_TRANSACTION: 0,
@@ -80,5 +81,6 @@ export {
   BOLT_PROTOCOL_V5_7,
   BOLT_PROTOCOL_V5_8,
   BOLT_PROTOCOL_V6_0,
+  BOLT_PROTOCOL_V6_1,
   TELEMETRY_APIS
 }
