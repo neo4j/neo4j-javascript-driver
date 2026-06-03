@@ -109,7 +109,10 @@ import {
   isVector,
   vector,
   Vector,
-  VectorType
+  VectorType,
+  uuid,
+  UUID,
+  isUUID
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -317,6 +320,9 @@ declare const forExport: {
   Vector: typeof Vector
   RecordObjectMapping: typeof RecordObjectMapping
   rule: typeof rule
+  isUUID: typeof isUUID
+  uuid: typeof uuid
+  UUID: typeof UUID
 }
 
 export {
@@ -403,7 +409,10 @@ export {
   vector,
   Vector,
   RecordObjectMapping,
-  rule
+  rule,
+  uuid,
+  UUID,
+  isUUID
 }
 
 export type {

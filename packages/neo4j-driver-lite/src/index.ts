@@ -120,7 +120,10 @@ import {
   RecordObjectMapping,
   StandardCase,
   MappedQueryResult,
-  ProtocolVersion
+  ProtocolVersion,
+  uuid,
+  UUID,
+  isUUID
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
 
@@ -460,7 +463,10 @@ const forExport = {
   rule,
   RecordObjectMapping,
   StandardCase,
-  ProtocolVersion
+  ProtocolVersion,
+  uuid,
+  UUID,
+  isUUID
 }
 
 export {
@@ -538,7 +544,10 @@ export {
   Vector,
   rule,
   RecordObjectMapping,
-  StandardCase
+  StandardCase,
+  uuid,
+  UUID,
+  isUUID
 }
 export type {
   QueryResult,
