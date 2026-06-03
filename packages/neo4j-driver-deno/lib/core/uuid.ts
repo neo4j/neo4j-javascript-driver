@@ -38,7 +38,7 @@ export default class UUID {
 
   /**
    * Returns the internal Uint8Array, note that modifying this will modify the UUID.
-   * 
+   *
    * @returns {Uint8Array} a Uint8Array of 16 bytes, representing the UUID.
    */
   getTypedArray (): Uint8Array {
@@ -61,18 +61,18 @@ export default class UUID {
 
   /**
    * Parses a string representation of a uuid and creates a {@link UUID} from it.
-   * 
+   *
    * @param {string} uuidString a base-16 encoded uuid string of the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    * @returns {UUID}
    */
-  static fromString(uuidString: string): UUID {
-    if (uuidString.match(new RegExp(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/)) === null) {
+  static fromString (uuidString: string): UUID {
+    if (uuidString.match(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/) === null) {
       throw newError(`UUID string should be of format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx, got: ${uuidString}`)
     }
     uuidString = uuidString.replace(/-/g, '')
     const result = []
     for (let i = 0; i < uuidString.length; i += 2) {
-      result.push(parseInt(uuidString.substring(i, i+2), 16))
+      result.push(parseInt(uuidString.substring(i, i + 2), 16))
     }
     return new UUID(Uint8Array.from(result))
   }
