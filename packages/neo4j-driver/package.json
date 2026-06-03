@@ -80,7 +80,7 @@
     "tmp": "0.2.1",
     "ts-jest": "29.4.9",
     "ts-node": "10.9.2",
-    "typescript": "5.9.3",
+    "typescript": "6.0.3",
     "vinyl-buffer": "1.0.1",
     "webpack": "5.106.2",
     "ws": "8.20.0"
