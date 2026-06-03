@@ -60,7 +60,7 @@
     "esdoc-importpath-plugin": "1.0.2",
     "esdoc-standard-plugin": "1.0.0",
     "fancy-log": "2.0.0",
-    "gulp": "4.0.2",
+    "gulp": "5.0.1",
     "gulp-batch": "1.0.5",
     "gulp-decompress": "3.0.0",
     "gulp-replace": "1.1.4",
