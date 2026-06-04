@@ -6,7 +6,7 @@
     "@types/node": "^24.12.2",
     "husky": "8.0.3",
     "lerna": "9.0.7",
-    "lint-staged": "16.4.0",
+    "lint-staged": "17.0.7",
     "standard": "17.1.2",
     "ts-standard": "12.0.2",
     "typescript": "5.9.3"
