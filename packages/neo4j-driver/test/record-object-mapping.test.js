@@ -329,6 +329,7 @@ describe('#integration record object mapping', () => {
       bool: neo4j.rule.asBoolean(),
       string: neo4j.rule.asString(),
       number: neo4j.rule.asNumber(),
+      integerMappedNumber: neo4j.rule.asNumber({ isInteger: true }),
       bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
       point: neo4j.rule.asPoint(),
       duration: neo4j.rule.asDuration({ stringify: true }),
@@ -350,6 +351,7 @@ describe('#integration record object mapping', () => {
       bool: true,
       string: 'hi',
       number: 1,
+      integerMappedNumber: 2,
       bigint: BigInt(1),
       point: new neo4j.Point(4326, 1, 1),
       duration: (new neo4j.Duration(1, 1, 1, 1)).toString(),
@@ -363,11 +365,12 @@ describe('#integration record object mapping', () => {
       dateList: [(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]
     }
 
-    const res = await session.run('MERGE (n {bool: $bool, string: $string, number: $number, bigint: $bigint, point: $point, duration: $duration, localTime: $localTime, timeToWakeup: $timeToWakeup, date: $date, localDateTime: $localDateTime, dateTime: $dateTime, standardDateTime: $standardDateTime, list: $list, dateList: $dateList}) RETURN n', obj, {}, rules).as(nodeRule)
+    const res = await session.run('MERGE (n {bool: $bool, string: $string, number: $number, integerMappedNumber: $integerMappedNumber, bigint: $bigint, point: $point, duration: $duration, localTime: $localTime, timeToWakeup: $timeToWakeup, date: $date, localDateTime: $localDateTime, dateTime: $dateTime, standardDateTime: $standardDateTime, list: $list, dateList: $dateList}) RETURN n', obj, {}, rules).as(nodeRule)
     const node = res.records[0].n
     expect(node.bool).toEqual(true)
     expect(node.string).toEqual('hi')
     expect(node.number).toEqual(1)
+    expect(node.integerMappedNumber).toEqual(2)
     expect(node.bigint).toEqual(BigInt(1))
     expect(node.point).toEqual(new neo4j.Point(4326, 1, 1))
     expect(node.duration).toEqual((new neo4j.Duration(1, 1, 1, 1)).toString())

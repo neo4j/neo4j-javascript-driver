@@ -139,7 +139,7 @@ class Record<
   /**
    * Maps the record to a provided type and/or according to provided Rules.
    *
-   * @param {GenericConstructor<T> | Rules} constructorOrRules
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type which must be callable with all arguments undefined or {@link Rules} for the hydration
    * @param {Rules} rules
    * @returns {T}
    */
