@@ -44,7 +44,7 @@
   "scripts": {
     "clean": "pnpm -r run clean",
     "build": "pnpm install --frozen-lockfile",
-    "set_version::deno": "pnpm run set_version --scope neo4j-driver-deno -- ",
+    "set_version::deno": "pnpm -C packages/neo4j-driver-deno run set_version ",
     "build::deno": "pnpm -C packages/neo4j-driver-deno run build ",
     "build::notci": "pnpm install",
     "docs": "pnpm -r run docs --concurrency 1",
