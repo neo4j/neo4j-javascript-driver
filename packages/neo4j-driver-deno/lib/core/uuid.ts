@@ -89,10 +89,10 @@ Object.defineProperty(UUID.prototype, UUID_IDENTIFIER_PROPERTY, {
 })
 
 export function uuid (rawUUID: Uint8Array | string): UUID {
-  if (typeof rawUUID === "string" ) {
+  if (typeof rawUUID === 'string') {
     return UUID.fromString(rawUUID)
   }
-  if ( rawUUID instanceof Uint8Array ) {
+  if (rawUUID instanceof Uint8Array) {
     return new UUID(rawUUID)
   }
   // @ts-expect-error
