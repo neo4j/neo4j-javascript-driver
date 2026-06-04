@@ -62,12 +62,15 @@ export default class UUID {
   /**
    * Parses a string representation of a uuid and creates a {@link UUID} from it.
    *
-   * @param {string} uuidString a base-16 encoded uuid string of the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   * @param {string} uuidString a base-16 encoded uuid string of the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx or without any dashes
    * @returns {UUID}
    */
   static fromString (uuidString: string): UUID {
-    if (uuidString.match(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/) === null) {
-      throw newError(`UUID string should be of format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx, got: ${uuidString}`)
+    if (
+      uuidString.match(/^[\da-fA-F]{32}$/) === null &&
+      uuidString.match(/^[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}$/) === null
+    ) {
+      throw newError(`UUID string base16 encoded should be of format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx or without any dashes, got: ${uuidString}`)
     }
     uuidString = uuidString.replace(/-/g, '')
     const result = []
@@ -85,8 +88,15 @@ Object.defineProperty(UUID.prototype, UUID_IDENTIFIER_PROPERTY, {
   writable: false
 })
 
-export function uuid (typedArray: Uint8Array): UUID {
-  return new UUID(typedArray)
+export function uuid (rawUUID: Uint8Array | string): UUID {
+  if (typeof rawUUID === "string" ) {
+    return UUID.fromString(rawUUID)
+  }
+  if ( rawUUID instanceof Uint8Array ) {
+    return new UUID(rawUUID)
+  }
+  // @ts-expect-error
+  throw newError(`Invalid argument type passed to UUID constructor function: expected Uint8Array or uuid string, got: ${rawUUID?.constructor?.name as string ?? 'undefined or type without constructor name'}`)
 }
 
 /**
