@@ -83,7 +83,7 @@
     "typescript": "5.9.3",
     "vinyl-buffer": "1.0.1",
     "webpack": "5.106.2",
-    "ws": "8.20.0"
+    "ws": "8.20.1"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "workspace:*",
