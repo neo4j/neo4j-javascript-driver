@@ -72,7 +72,7 @@
     "jest-environment-jsdom": "29.7.0",
     "@sinonjs/fake-timers": "15.3.2",
     "minimist": "1.2.8",
-    "rollup": "2.80.0",
+    "rollup": "4.61.1",
     "rollup-plugin-polyfill-node": "0.13.0",
     "semver": "7.7.4",
     "source-map": "0.7.4",
