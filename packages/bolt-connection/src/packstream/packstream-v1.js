@@ -111,7 +111,7 @@ class Packer {
       if (this.allowUUID) {
         return () => this.packUUID(x)
       } else {
-        throw newError('Cannot pack UUID, negotiated bolt version uses older packstream')
+        throw this._nonPackableValue('Cannot pack UUID, negotiated bolt version uses older packstream')
       }
     } else if (isIterable(x)) {
       return this.packableIterable(x, dehydrateStruct)
@@ -506,7 +506,7 @@ class Unpacker {
   }
 
   _unpackUUID (marker, buffer) {
-    if (marker === UUID_MARKER) {
+    if (marker === UUID_MARKER && this.allowUUID === true) {
       const value = new Uint8Array(16)
       for (let i = 0; i < 16; i++) {
         value[i] = buffer.readUInt8()
