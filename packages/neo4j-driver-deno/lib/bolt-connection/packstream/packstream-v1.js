@@ -111,7 +111,7 @@ class Packer {
       if (this.allowUUID) {
         return () => this.packUUID(x)
       } else {
-        throw this._nonPackableValue('Cannot pack UUID, negotiated bolt version uses older packstream')
+        return this._nonPackableValue('Cannot pack UUID, negotiated bolt version uses older packstream')
       }
     } else if (isIterable(x)) {
       return this.packableIterable(x, dehydrateStruct)
