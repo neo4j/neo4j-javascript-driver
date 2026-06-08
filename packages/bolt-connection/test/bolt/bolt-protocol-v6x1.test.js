@@ -605,6 +605,8 @@ describe('#unit BoltProtocolV6x1', () => {
     })
 
     it.each([
+      ['0s', uuid(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))],
+      ['max UUID', uuid(Uint8Array.from([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]))],
       ['1 to 16', uuid(Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]))]
     ])('should pack uuids (%s)', (_, object) => {
       const buffer = alloc(256)
@@ -1262,6 +1264,16 @@ describe('#unit BoltProtocolV6x1', () => {
     })
 
     it.each([
+      [
+        '0s',
+        uuid(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])),
+        uuid(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+      ],
+      [
+        'max UUID',
+        uuid(Uint8Array.from([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255])),
+        uuid(Uint8Array.from([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]))
+      ],
       [
         '1 to 16',
         uuid(Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])),

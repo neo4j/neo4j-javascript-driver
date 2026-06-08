@@ -14,6 +14,11 @@ describe('UUID', () => {
         Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
       ],
       [
+        '0 string without dashes',
+        '00000000000000000000000000000000',
+        Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+      ],
+      [
         'varied byteArray',
         Uint8Array.from([127, 255, 128, 16, 15, 8, 0, 11, 10, 56, 42, 19, 55, 103, 176, 23]),
         Uint8Array.from([127, 255, 128, 16, 15, 8, 0, 11, 10, 56, 42, 19, 55, 103, 176, 23])
@@ -22,6 +27,11 @@ describe('UUID', () => {
         'varied string',
         '7fFF8010-0f08-000b-0a38-2a133767B017',
         Uint8Array.from([127, 255, 128, 16, 15, 8, 0, 11, 10, 56, 42, 19, 55, 103, 176, 23])
+      ],
+      [
+        'varied string witout dashes',
+        '7fFF80100f08000b0a382a133767B017',
+        Uint8Array.from([127, 255, 128, 16, 15, 8, 0, 11, 10, 56, 42, 19, 55, 103, 176, 23])
       ]
     ])('should create UUID from (%s)', (_: any, rawUUID: Uint8Array | string, expectedByteArray: Uint8Array) => {
       const id = uuid(rawUUID)
@@ -29,8 +39,8 @@ describe('UUID', () => {
     })
 
     it.each([
-      ['array', [], 'Invalid argument type passed to UUID constructor function: expected Uint8Array or uuid string, got: Array'],
-      ['Unsigned TypedArray', Uint16Array.from([]), 'Invalid argument type passed to UUID constructor function: expected Uint8Array or uuid string, got: Uint16Array'],
+      ['array', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'Invalid argument type passed to UUID constructor function: expected Uint8Array or uuid string, got: Array'],
+      ['Wrong TypedArray', Int8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 'Invalid argument type passed to UUID constructor function: expected Uint8Array or uuid string, got: Int8Array'],
       ['undefined', undefined, 'Invalid argument type passed to UUID constructor function: expected Uint8Array or uuid string, got: undefined or type without constructor name'],
       ['incorrect string', 'ABBB1CA-AAAAA-AAAA-AAAA-AAAAAAAAAAAA', 'UUID string base16 encoded should be of format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx or without any dashes, got: ABBB1CA-AAAAA-AAAA-AAAA-AAAAAAAAAAAA'],
       ['wrong length Uint8Array', Uint8Array.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), 'Uint8Array representation of UUID must be of length 16, got 0,1,2,3,4,5,6,7,8,9,10']
