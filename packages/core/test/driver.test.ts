@@ -405,7 +405,7 @@ describe('Driver', () => {
           routing: routing.WRITE,
           database: undefined,
           impersonatedUser: undefined
-        }, query, params)
+        }, query, params, undefined)
       })
 
       it('should be able to destruct the result in records, keys and summary', async () => {
@@ -431,7 +431,7 @@ describe('Driver', () => {
           routing: routing.WRITE,
           database: undefined,
           impersonatedUser: undefined
-        }, query, params)
+        }, query, params, undefined)
       })
 
       it('should be able get type-safe Records', async () => {
@@ -505,7 +505,7 @@ describe('Driver', () => {
 
         await driver?.executeQuery(query, params, config)
 
-        expect(spiedExecute).toBeCalledWith(buildExpectedConfig(), query, params)
+        expect(spiedExecute).toBeCalledWith(buildExpectedConfig(), query, params, undefined)
       })
 
       it('should handle correct type mapping for a custom result transformer', async () => {

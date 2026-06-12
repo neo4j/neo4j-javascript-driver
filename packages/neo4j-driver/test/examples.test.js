@@ -1558,7 +1558,7 @@ describe('#integration examples', () => {
 
   describe('Record Object Mapping', () => {
     it('Record mapping', async () => {
-      const driver = neo4j.driver(uri, sharedNeo4j.authToken, { disableLosslessIntegers: true })
+      const driver = neo4j.driver(uri, sharedNeo4j.authToken)
 
       // Setting up the contents of the database for the test.
       await driver.executeQuery(
@@ -1625,12 +1625,12 @@ describe('#integration examples', () => {
       // Create rules for the hydration of the created types
       const personRules = {
         Name: neo4j.rule.asString(),
-        Born: neo4j.rule.asNumber({ acceptBigInt: true, optional: true })
+        Born: neo4j.rule.asNumber({ optional: true })
       }
 
       const movieRules = {
         Title: neo4j.rule.asString(),
-        Released: neo4j.rule.asNumber({ acceptBigInt: true, optional: true, from: 'release' }),
+        Released: neo4j.rule.asNumber({ isInteger: true, optional: true, from: 'release' }),
         Tagline: neo4j.rule.asString({ optional: true })
       }
 

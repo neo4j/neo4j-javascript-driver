@@ -49,6 +49,7 @@ import NotificationFilter from './notification-filter'
 import HomeDatabaseCache from './internal/homedb-cache'
 import { cacheKey } from './internal/auth-util'
 import { ProtocolVersion } from './protocol-version'
+import { Rules } from './mapping.highlevel'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -106,6 +107,7 @@ type CreateSession = (args: {
   auth?: AuthToken
   log: Logger
   homeDatabaseCallback?: (user: string, database: any) => void
+  disableAutoCommitRetries?: boolean
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -117,6 +119,7 @@ interface DriverConfig {
   logging?: LoggingConfig
   notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
+  disableAutoCommitRetries?: boolean
 }
 
 /**
@@ -133,6 +136,7 @@ class SessionConfig {
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
   auth?: AuthToken
+  disableAutoCommitRetries?: boolean
 
   /**
    * @constructor
@@ -333,6 +337,14 @@ class SessionConfig {
      * @since 5.7
      */
     this.notificationFilter = undefined
+    /**
+     * Allows session level override of the driver config `disableAutoCommitRetries`.
+     * Retries on `Session.run()` are limited to a specific set of errors. Namely those errors marked as *idempotent* by the DBMS, i.e., errors that are guaranteed to not have altered the state of any database. At the time of writing, this set encompasses only admission control errors.
+     * When set to `true`, calls to `Session.run()` will fail without retrying when receiving an error from the server, even when only idempotent work has occurred. By default, these calls will be rerun with a one-shot retry to avoid friction when encountering rate limiting and other errors that can be safely retried.
+     * Default value: driver configured value, which is {@link false} if not provided.
+     * @type {boolean|undefined}
+     */
+    this.disableAutoCommitRetries = undefined
   }
 }
 
@@ -605,14 +617,15 @@ class Driver {
    * }
    *
    * @public
-   * @param {string | {text: string, parameters?: object}} query - Cypher query to execute
+   * @param {string | {text: string, parameters?: object, parameterRules?: Rules}} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in the query
    * @param {QueryConfig<T>} config - The query configuration
+   * @param {Rules} parameterRules - Rules to typecheck and/or map the parameter object. Must not be provided as a separate argument if an Object is passed as first argument
    * @returns {Promise<T>}
    *
    * @see {@link resultTransformers} for provided result transformers.
    */
-  async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
+  async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}, parameterRules?: Rules): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.executeQueryBookmarkManager)
     const resultTransformer = (config.resultTransformer ?? resultTransformers.eager()) as ResultTransformer<T>
     const routingConfig: string = config.routing ?? routing.WRITE
@@ -630,7 +643,7 @@ class Driver {
       transactionConfig: config.transactionConfig,
       auth: config.auth,
       signal: config.signal
-    }, query, parameters)
+    }, query, parameters, parameterRules)
   }
 
   /**
@@ -805,7 +818,8 @@ class Driver {
     fetchSize,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    disableAutoCommitRetries
   }: SessionConfig = {}): Session {
     return this._newSession({
       defaultAccessMode,
@@ -817,7 +831,8 @@ class Driver {
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!),
       bookmarkManager,
       notificationFilter,
-      auth
+      auth,
+      disableAutoCommitRetries
     })
   }
 
@@ -873,7 +888,8 @@ class Driver {
     fetchSize,
     bookmarkManager,
     notificationFilter,
-    auth
+    auth,
+    disableAutoCommitRetries
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
@@ -884,6 +900,7 @@ class Driver {
     bookmarkManager?: BookmarkManager
     notificationFilter?: NotificationFilter
     auth?: AuthToken
+    disableAutoCommitRetries?: boolean
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -911,7 +928,8 @@ class Driver {
       notificationFilter,
       auth,
       log: this._log,
-      homeDatabaseCallback
+      homeDatabaseCallback,
+      disableAutoCommitRetries
     })
   }
 

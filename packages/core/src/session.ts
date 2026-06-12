@@ -38,8 +38,9 @@ import { RecordShape } from './record'
 import NotificationFilter from './notification-filter'
 import { Logger } from './internal/logger'
 import { cacheKey } from './internal/auth-util'
+import { Rules } from './mapping.highlevel'
 
-type ConnectionConsumer<T> = (connection: Connection) => Promise<T> | T
+type ConnectionConsumer<T> = (connection: Connection, noTelemetry?: boolean) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
 interface TransactionConfig {
@@ -78,6 +79,7 @@ class Session {
   private readonly _auth: AuthToken | undefined
   private _databaseGuess: string | undefined
   private readonly _isRoutingSession: boolean
+  private readonly _disableAutoCommitRetries: boolean
   /**
    * @constructor
    * @protected
@@ -95,6 +97,7 @@ class Session {
    * @param {AuthToken} args.auth - the target auth for the to-be-acquired connection
    * @param {Logger} args.log - the logger used for logs in this session.
    * @param {(user:string, database:string) => void} args.homeDatabaseCallback - callback used to update the home database cache
+   * @param {boolean} args.disableAutoCommitRetries - if retries on auto commit transactions should be disabled
    */
   constructor ({
     mode,
@@ -109,7 +112,8 @@ class Session {
     notificationFilter,
     auth,
     log,
-    homeDatabaseCallback
+    homeDatabaseCallback,
+    disableAutoCommitRetries
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -124,6 +128,7 @@ class Session {
     auth?: AuthToken
     log: Logger
     homeDatabaseCallback?: (user: string, database: string) => void
+    disableAutoCommitRetries?: boolean
   }) {
     this._mode = mode
     this._database = database
@@ -170,6 +175,7 @@ class Session {
     this._log = log
     this._databaseGuess = config?.cachedHomeDatabase
     this._isRoutingSession = config?.routingDriver ?? false
+    this._disableAutoCommitRetries = disableAutoCommitRetries ?? config?.disableAutoCommitRetries ?? false
   }
 
   /**
@@ -192,22 +198,25 @@ class Session {
    * @param {mixed} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in query
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
+   * @param {Rules} [parameterRules] - Rules to typecheck and/or map the parameter object. Must not be provided as a separate argument if an Object is passed as first argument
    * @return {Result} New Result.
    */
   run<R extends RecordShape = RecordShape> (
     query: Query,
     parameters?: any,
-    transactionConfig?: TransactionConfig
+    transactionConfig?: TransactionConfig,
+    parameterRules?: Rules
   ): Result<R> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
-      parameters
+      parameters,
+      { parameterRules }
     )
     const autoCommitTxConfig = (transactionConfig != null)
       ? new TxConfig(transactionConfig, this._log)
       : TxConfig.empty()
 
-    const result = this._run(validatedQuery, params, async connection => {
+    const result = this._run(validatedQuery, params, async (connection, noTelemetry?: boolean) => {
       const bookmarks = await this._bookmarks()
       this._assertSessionIsOpen()
       return connection.run(validatedQuery, params, {
@@ -215,9 +224,11 @@ class Session {
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
-        apiTelemetryConfig: {
-          api: TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION
-        },
+        apiTelemetryConfig: noTelemetry === true
+          ? undefined
+          : {
+              api: TELEMETRY_APIS.AUTO_COMMIT_TRANSACTION
+            },
         impersonatedUser: this._impersonatedUser,
         afterComplete: (meta: any) => this._onCompleteCallback(meta, bookmarks),
         reactive: this._reactive,
@@ -240,7 +251,13 @@ class Session {
     const { connectionHolder, resultPromise } = this._acquireAndConsumeConnection(customRunner)
     const observerPromise = resultPromise.catch(error => Promise.resolve(new FailedObserver({ error })))
     const watermarks = { high: this._highRecordWatermark, low: this._lowRecordWatermark }
-    return new Result(observerPromise, query, parameters, connectionHolder, watermarks)
+    const retryFunction = this._disableAutoCommitRetries
+      ? undefined
+      : () => {
+          const { resultPromise } = this._acquireAndConsumeConnection(customRunner, true)
+          return resultPromise.catch(error => Promise.resolve(new FailedObserver({ error })))
+        }
+    return new Result(observerPromise, query, parameters, connectionHolder, watermarks, retryFunction)
   }
 
   /**
@@ -268,7 +285,7 @@ class Session {
    * @returns {object} The connection holder and connection promise.
    */
 
-  private _acquireAndConsumeConnection<T>(connectionConsumer: ConnectionConsumer<T>): {
+  private _acquireAndConsumeConnection<T>(connectionConsumer: ConnectionConsumer<T>, isAutoCommitRetry?: boolean): {
     connectionHolder: ConnectionHolder
     resultPromise: Promise<T>
   } {
@@ -278,13 +295,13 @@ class Session {
       resultPromise = Promise.reject(
         newError('Cannot run query in a closed session.')
       )
-    } else if (!this._hasTx && connectionHolder.initializeConnection(this._databaseGuess)) {
+    } else if (!this._hasTx && (isAutoCommitRetry === true || connectionHolder.initializeConnection(this._databaseGuess))) {
       resultPromise = connectionHolder
         .getConnection()
         // Connection won't be null at this point since the initialize method
         // return
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        .then(connection => connectionConsumer(connection!))
+        .then(connection => connectionConsumer(connection!, isAutoCommitRetry))
     } else {
       resultPromise = Promise.reject(
         newError(

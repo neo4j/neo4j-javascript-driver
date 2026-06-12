@@ -15,6 +15,7 @@ export interface DiagnosticRecord {
     column: NumberOrInteger
   }
   _status_parameters?: Record<string, unknown>
+  _idempotent?: boolean
   [key: string]: unknown
 }
 

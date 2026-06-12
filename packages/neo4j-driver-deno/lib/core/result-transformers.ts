@@ -294,7 +294,6 @@ class ResultTransformers {
    *
    * @returns {ResultTransformer<ResultSummary<T>>} The result transformer
    * @see {@link Driver#executeQuery}
-   * @experimental Part of the Record Object Mapping preview feature
    */
   hydrated <T extends {} = Object>(constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): ResultTransformer<{ records: T[], summary: ResultSummary }> {
     return async result => await result.as(constructorOrRules as unknown as GenericConstructor<T>, rules).then()

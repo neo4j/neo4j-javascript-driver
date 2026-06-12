@@ -983,6 +983,31 @@ describe('#integration session', () => {
     )
   }, 70000)
 
+  it('should discard when closing a session halfway through iteration', async () => {
+    let session = driver.session({ fetchSize: 2 })
+
+    const res = session.run('UNWIND range(1, 7) AS n RETURN n')
+
+    const iter = res[Symbol.asyncIterator]()
+    await res.keys()
+
+    while (true) {
+      const { value, done } = await iter.next()
+      await new Promise(resolve => setTimeout(resolve, 250))
+      if (done || value.get(0).toNumber() === 5) {
+        break
+      }
+    }
+
+    const conn = await session._writeConnectionHolder.getConnection()
+    await session.close()
+    expect(conn._delegate._protocol._lastMessageSignature).toBe(0x0f)
+
+    session = driver.session({ fetchSize: 2 })
+
+    await expect(session.run('RETURN 1 AS n')).resolves.not.toThrow()
+  })
+
   function testTransactionRetryUntilSuccess (failureResponseFunction, done) {
     const session = driver.session()
 

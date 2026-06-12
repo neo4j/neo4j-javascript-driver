@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import neo4j, { Date, Duration, Time, Point, DateTime, LocalDateTime, LocalTime } from '../src'
+import neo4j, { Date, Duration, Time, Point, DateTime, LocalDateTime, LocalTime, Integer } from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 
 const itNotBrowser = process.env.TEST_JSDOM_ENVIRONMENT ? xit : it
@@ -45,12 +45,12 @@ describe('#integration record object mapping', () => {
   // Create rules for the hydration of the created types
   const personRules = {
     name: neo4j.rule.asString(),
-    born: neo4j.rule.asNumber({ acceptBigInt: true, optional: true })
+    born: neo4j.rule.asNumber({ optional: true })
   }
 
   const movieRules = {
     title: neo4j.rule.asString(),
-    released: neo4j.rule.asNumber({ acceptBigInt: true, optional: true, from: 'release' }),
+    released: neo4j.rule.asNumber({ isInteger: true, optional: true, from: 'release' }),
     tagline: neo4j.rule.asString({ optional: true })
   }
 
@@ -92,9 +92,13 @@ describe('#integration record object mapping', () => {
     })
   }
   const uri = `bolt://${sharedNeo4j.hostnameWithBoltPort}`
+  let protocolVersion
+  let edition
 
-  beforeAll(() => {
+  beforeAll(async () => {
     driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken, { disableLosslessIntegers: true })
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driverGlobal)
+    edition = await sharedNeo4j.getEdition(driverGlobal)
   })
 
   afterAll(async () => {
@@ -298,5 +302,208 @@ describe('#integration record object mapping', () => {
     expect(res.records[0].obj.srid).toBe(4326)
 
     session.close()
+  })
+  it('should be able to map result with missing optional key', async () => {
+    const session = driverGlobal.session()
+
+    const res = await session.executeRead(async (tx) => {
+      const txres = tx.run(
+        'RETURN $obj as obj',
+        {
+          obj: new Point(4326, 32.812493, 42.983216)
+        }
+      )
+      return txres.as({ obj: neo4j.rule.asPoint(), notHere: neo4j.rule.asPoint({ optional: true }) })
+    })
+    expect(res.records[0].obj.x).toBe(32.812493)
+    expect(res.records[0].obj.srid).toBe(4326)
+    expect(res.records[0].notHere).toBe(undefined)
+
+    session.close()
+  })
+
+  it('map simple input', async () => {
+    const session = driverGlobal.session()
+
+    const rules = {
+      bool: neo4j.rule.asBoolean(),
+      string: neo4j.rule.asString(),
+      number: neo4j.rule.asNumber(),
+      integerMappedNumber: neo4j.rule.asNumber({ isInteger: true }),
+      bigint: neo4j.rule.asBigInt({ acceptNumber: true }),
+      point: neo4j.rule.asPoint(),
+      duration: neo4j.rule.asDuration({ stringify: true }),
+      localTime: neo4j.rule.asLocalTime(),
+      time: neo4j.rule.asTime({ from: 'timeToWakeup' }),
+      date: neo4j.rule.asDate({ stringify: true }),
+      localDateTime: neo4j.rule.asLocalDateTime(),
+      dateTime: neo4j.rule.asDateTime({ stringify: true }),
+      standardDateTime: neo4j.rule.asDateTime({ jsNativeDate: true }),
+      list: neo4j.rule.asList({ apply: neo4j.rule.asString() }),
+      dateList: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ jsNativeDate: true }) })
+    }
+
+    const nodeRule = {
+      n: neo4j.rule.asNode({ convert: (node) => node.as(rules) })
+    }
+
+    const obj = {
+      bool: true,
+      string: 'hi',
+      number: 1,
+      integerMappedNumber: 2,
+      bigint: BigInt(1),
+      point: new neo4j.Point(4326, 1, 1),
+      duration: (new neo4j.Duration(1, 1, 1, 1)).toString(),
+      localTime: new neo4j.LocalTime(1, 1, 1, 1),
+      time: new neo4j.Time(1, 1, 1, 1, 1),
+      date: (new neo4j.Date(1, 1, 1)).toString(),
+      localDateTime: new neo4j.LocalDateTime(1, 1, 1, 1, 1, 1, 1),
+      dateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString(),
+      standardDateTime: (new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate(),
+      list: ['hi'],
+      dateList: [(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]
+    }
+
+    const res = await session.run('MERGE (n {bool: $bool, string: $string, number: $number, integerMappedNumber: $integerMappedNumber, bigint: $bigint, point: $point, duration: $duration, localTime: $localTime, timeToWakeup: $timeToWakeup, date: $date, localDateTime: $localDateTime, dateTime: $dateTime, standardDateTime: $standardDateTime, list: $list, dateList: $dateList}) RETURN n', obj, {}, rules).as(nodeRule)
+    const node = res.records[0].n
+    expect(node.bool).toEqual(true)
+    expect(node.string).toEqual('hi')
+    expect(node.number).toEqual(1)
+    expect(node.integerMappedNumber).toEqual(2)
+    expect(node.bigint).toEqual(BigInt(1))
+    expect(node.point).toEqual(new neo4j.Point(4326, 1, 1))
+    expect(node.duration).toEqual((new neo4j.Duration(1, 1, 1, 1)).toString())
+    expect(node.localTime).toEqual(new neo4j.LocalTime(1, 1, 1, 1))
+    expect(node.time).toEqual(new neo4j.Time(1, 1, 1, 1, 1))
+    expect(node.date).toEqual((new neo4j.Date(1, 1, 1)).toString())
+    expect(node.localDateTime).toEqual(new neo4j.LocalDateTime(1, 1, 1, 1, 1, 1, 1))
+    expect(node.dateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toString())
+    expect(node.standardDateTime).toEqual((new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate())
+    expect(node.list).toEqual(['hi'])
+    expect(node.dateList).toEqual([(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()])
+  })
+
+  it('map nestedList as mapped parameter', async () => {
+    const session = driverGlobal.session()
+
+    const rules = {
+      nestedList: neo4j.rule.asList({ apply: neo4j.rule.asList({ apply: neo4j.rule.asDateTime({ jsNativeDate: true }) }) })
+    }
+
+    const obj = {
+      nestedList: [[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]]
+    }
+
+    const res = await session.run('return $nestedList as nestedList', obj, {}, rules).as(rules)
+    expect(res.records[0].nestedList).toEqual([[(new neo4j.DateTime(1, 1, 1, 1, 1, 1, 1, 1)).toStandardDate()]])
+  })
+
+  it('map integer with rule', async () => {
+    const integerDriver = neo4j.driver(uri, sharedNeo4j.authToken)
+
+    const session = integerDriver.session()
+
+    const rules = {
+      integer: neo4j.rule.asInteger()
+    }
+
+    const nodeRule = {
+      n: neo4j.rule.asNode({ convert: (node) => node.as(rules) })
+    }
+
+    const obj = {
+      integer: Integer.fromValue(1)
+    }
+
+    const res = await session.run('MERGE (n {integer: $integer}) RETURN n', obj, {}, rules).as(nodeRule)
+    const node = res.records[0].n
+    expect(node.integer).toEqual(Integer.fromValue(1))
+    await session.close()
+    await integerDriver.close()
+  })
+
+  it('map vector as input and output', async () => {
+    if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 }) && edition === 'enterprise') {
+      const session = driverGlobal.session()
+
+      const rules = { vec: neo4j.rule.asVector({ from: 'vector' }), typedListVector: neo4j.rule.asVector({ asTypedList: true }) }
+      const parameters = { vec: neo4j.vector(Int16Array.from([4, 8])), typedListVector: Int16Array.from([4, 8]) }
+
+      const res = await session.run('return $vector as vector, $typedListVector as typedListVector', parameters, {}, rules).as(rules)
+      expect(res.records[0].vec).toEqual(parameters.vec)
+      expect(res.records[0].typedListVector).toEqual(parameters.typedListVector)
+    }
+  })
+
+  it('map object with internal rules', async () => {
+    if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 }) && edition === 'enterprise') {
+      const session = driverGlobal.session()
+
+      const rules = { obj: neo4j.rule.asObject({ date: neo4j.rule.asDate({ stringify: true }), vec: neo4j.rule.asVector({ asTypedList: true, from: 'vector' }) }) }
+      const parameters = { obj: { date: '2024-01-12', vec: Int16Array.from([4, 8]) } }
+
+      const res = await session.run('return $obj as obj', parameters, {}, rules).as(rules)
+      expect(res.records[0].obj.date).toEqual(parameters.obj.date)
+      expect(res.records[0].obj.vec).toEqual(parameters.obj.vec)
+    }
+  })
+
+  it('should fail parameterMapping non-optional parameter is missing', async () => {
+    const session = driverGlobal.session()
+
+    const rules = {
+      number: neo4j.rule.asNumber(),
+      string: neo4j.rule.asString()
+    }
+
+    const obj = {
+      string: 'hi'
+    }
+
+    expect(() => session.run('RETURN $string', obj, {}, rules).then()).toThrow()
+  })
+
+  it('map integer as input and output', async () => {
+    const driver = neo4j.driver(uri, sharedNeo4j.authToken)
+    const session = driver.session()
+
+    const rules = { int: neo4j.rule.asInteger() }
+    const parameters = { int: neo4j.int(1) }
+
+    const res = await session.run('return $int as int', parameters, {}, rules).as(rules)
+    expect(res.records[0].int).toEqual(parameters.int)
+    await session.close()
+    await driver.close()
+  })
+
+  it('should not alter undefined or null in optional fields', async () => {
+    const session = driverGlobal.session()
+
+    const rules = {
+      undefined: neo4j.rule.asString({ optional: true }),
+      null: neo4j.rule.asString({ optional: true })
+    }
+
+    const obj = {
+      undefined,
+      null: null
+    }
+
+    try {
+      await session.run('RETURN $undefined', obj, {}, rules)
+      expect(true).toBe(false)
+    } catch (e) {
+      if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 })) {
+        expect(e.gqlStatus).toBe('42001')
+      } else {
+        expect(e.code).toBe('Neo.ClientError.Statement.ParameterMissing')
+      }
+    }
+    let result = await session.run('RETURN $null as null', obj, {}, rules)
+    expect(result.records[0].get('null')).toEqual(null)
+    result = await session.run('RETURN NULL as null').as(rules)
+    expect(result.records[0].undefined).toEqual(undefined)
+    expect(result.records[0].null).toEqual(null)
   })
 })

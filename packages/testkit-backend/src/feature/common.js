@@ -46,6 +46,7 @@ const features = [
   'Feature:API:Liveness.Check',
   'Feature:API:Type.UnsupportedType',
   'Feature:API:Type.Vector',
+  'Feature:IdempotentRetries',
   'Optimization:AuthPipelining',
   'Optimization:EagerTransactionBegin',
   'Optimization:ExecuteQueryPipelining',

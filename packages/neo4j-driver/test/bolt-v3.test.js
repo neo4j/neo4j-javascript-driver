@@ -209,8 +209,7 @@ describe('#integration Bolt V3 API', () => {
     try {
       await tx.run(
         'MATCH (n:Node) SET n.prop = $newValue',
-        { newValue: 2 },
-        { timeout: 1 }
+        { newValue: 2 }
       )
     } catch (e) {
       // ClientError on 4.1 and later

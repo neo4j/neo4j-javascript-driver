@@ -17,7 +17,7 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import lolex from 'lolex'
+import lolex from '@sinonjs/fake-timers'
 import testUtils from './internal/test-utils'
 import { json, internal, bookmarkManager } from 'neo4j-driver-core'
 

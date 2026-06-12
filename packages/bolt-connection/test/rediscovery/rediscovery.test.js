@@ -19,7 +19,7 @@ import { RawRoutingTable } from '../../src/bolt'
 import Rediscovery from '../../src/rediscovery'
 import RoutingTable from '../../src/rediscovery/routing-table'
 import FakeConnection from '../fake-connection'
-import lolex from 'lolex'
+import lolex from '@sinonjs/fake-timers'
 import { newError, error, int, internal } from 'neo4j-driver-core'
 
 const {

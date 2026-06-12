@@ -86,11 +86,9 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
   /**
    * Hydrates an object of a given type with the properties of the node
    *
-   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type or {@link Rules} for the hydration
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type which must be callable with all arguments undefined or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}
-   *
-   * @experimental Part of the Record Object Mapping preview feature
    */
   as <T extends {} = Object>(rules: Rules): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
@@ -221,11 +219,9 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
   /**
    * Hydrates an object of a given type with the properties of the relationship
    *
-   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type or {@link Rules} for the hydration
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type which must be callable with all arguments undefined or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}
-   *
-   * @experimental Part of the Record Object Mapping preview feature
    */
   as <T extends {} = Object>(rules: Rules): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
@@ -360,11 +356,9 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
   /**
    * Hydrates an object of a given type with the properties of the relationship
    *
-   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type or {@link Rules} for the hydration
+   * @param {GenericConstructor<T> | Rules} constructorOrRules Constructor for the desired type which must be callable with all arguments undefined or {@link Rules} for the hydration
    * @param {Rules} [rules] {@link Rules} for the hydration
    * @returns {T}
-   *
-   * @experimental Part of the Record Object Mapping preview feature
    */
   as <T extends {} = Object>(rules: Rules): T
   as <T extends {} = Object>(genericConstructor: GenericConstructor<T>): T
