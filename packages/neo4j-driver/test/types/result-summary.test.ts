@@ -22,7 +22,7 @@ import {
   Notification,
   NotificationPosition,
   Plan,
-  Profile,
+  QueryProfile,
   ProfiledPlan,
   ServerInfo,
   QueryStatistics
@@ -82,31 +82,31 @@ const profileChildren: ProfiledPlan[] | false = profile !== false
   ? profile.children
   : false
 
-const queryProfile: Profile | false = sum1.queryProfile
+const queryProfile: QueryProfile | false = sum1.queryProfile
 const queryProfileOperatorType: string | false = queryProfile !== false
-    ? queryProfile.operatorType
-    : false
+  ? queryProfile.operatorType
+  : false
 const queryProfileIdentifiers: string[] | false = queryProfile !== false
-    ? queryProfile.identifiers
-    : false
+  ? queryProfile.identifiers
+  : false
 const queryProfileArguments: { [key: string]: string } | false = queryProfile !== false
-    ? queryProfile.arguments
-    : false
+  ? queryProfile.arguments
+  : false
 const queryProfileDbHits: number | null | false = queryProfile !== false ? queryProfile.dbHits : false
 const queryProfileRows: number | null | false = queryProfile !== false ? queryProfile.rows : false
 const queryProfilePageCacheMisses: number | null | false = queryProfile !== false
-    ? queryProfile.pageCacheMisses
-    : false
+  ? queryProfile.pageCacheMisses
+  : false
 const queryProfilePageCacheHits: number | null | false = queryProfile !== false
-    ? queryProfile.pageCacheHits
-    : false
+  ? queryProfile.pageCacheHits
+  : false
 const queryProfilePageCacheHitRatio: number | null | false = queryProfile !== false
-    ? queryProfile.pageCacheHitRatio
-    : false
+  ? queryProfile.pageCacheHitRatio
+  : false
 const queryProfileTime: number | null | false = queryProfile !== false ? queryProfile.time : false
-const queryProfileChildren: Profile[] | false = queryProfile !== false
-    ? queryProfile.children
-    : false
+const queryProfileChildren: QueryProfile[] | false = queryProfile !== false
+  ? queryProfile.children
+  : false
 
 const notifications: Notification[] = sum1.notifications
 const notification: Notification = notifications[0]
