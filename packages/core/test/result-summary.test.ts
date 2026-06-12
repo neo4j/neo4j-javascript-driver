@@ -19,7 +19,7 @@ import { int } from '../src'
 import { ProtocolVersion } from '../src/protocol-version'
 import {
   ServerInfo,
-  Profile,
+  QueryProfile,
   ProfiledPlan,
   QueryStatistics,
   Stats
@@ -57,7 +57,7 @@ describe('ServerInfo', () => {
   )
 })
 
-function testPlanNumberFields (PlanClass: typeof ProfiledPlan | typeof Profile): void {
+function testPlanNumberFields (PlanClass: typeof ProfiledPlan | typeof QueryProfile): void {
   describe.each([
     'dbHits',
     'rows',
@@ -65,7 +65,7 @@ function testPlanNumberFields (PlanClass: typeof ProfiledPlan | typeof Profile):
     'pageCacheHits',
     'pageCacheHitRatio',
     'time'
-  ])('.%s', (field: keyof ProfiledPlan & keyof Profile) => {
+  ])('.%s', (field: keyof ProfiledPlan & keyof QueryProfile) => {
     it('should handle return arbitrary integer as it is', () => {
       return fc.assert(
         fc.property(
@@ -175,7 +175,7 @@ describe('ProfiledPlan', () => {
 })
 
 describe('Profile', () => {
-  testPlanNumberFields(Profile)
+  testPlanNumberFields(QueryProfile)
 
   describe.each([
     'dbHits',
@@ -184,11 +184,11 @@ describe('Profile', () => {
     'pageCacheHits',
     'pageCacheHitRatio',
     'time'
-  ])('.%s', (field: keyof Profile) => {
+  ])('.%s', (field: keyof QueryProfile) => {
     it('should handle missing key in raw data', () => {
       const rawPlan = {}
 
-      const parsedPlan = new Profile(rawPlan)
+      const parsedPlan = new QueryProfile(rawPlan)
 
       expect(parsedPlan[field]).toBeNull()
     })

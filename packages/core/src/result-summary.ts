@@ -30,7 +30,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   counters: QueryStatistics
   plan: Plan | false
   profile: ProfiledPlan | false
-  queryProfile: Profile | false
+  queryProfile: QueryProfile | false
   notifications: Notification[]
   gqlStatusObjects: [GqlStatusObject, ...GqlStatusObject[]]
   server: ServerInfo
@@ -100,10 +100,10 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * This describes how the database did execute your query. This will contain detailed information about what
      * each step of the plan did. Profiled query plan for the executed query if available, otherwise undefined.
      * Will only be populated for queries that start with "PROFILE".
-     * @type {Profile}
+     * @type {QueryProfile}
      * @public
      */
-    this.queryProfile = metadata.profile != null ? new Profile(metadata.profile) : false
+    this.queryProfile = metadata.profile != null ? new QueryProfile(metadata.profile) : false
 
     /**
      * An array of notifications that might arise when executing the query. Notifications can be warnings about
@@ -180,7 +180,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
    * @return {boolean}
    */
   hasProfile (): boolean {
-    return this.queryProfile instanceof Profile
+    return this.queryProfile instanceof QueryProfile
   }
 }
 
@@ -212,7 +212,7 @@ class Plan {
 /**
  * Class for execution plan received by prepending Cypher with PROFILE.
  * @access public
- * @deprecated has been superseded by {@link Profile}
+ * @deprecated has been superseded by {@link QueryProfile}
  */
 class ProfiledPlan {
   operatorType: string
@@ -259,7 +259,7 @@ class ProfiledPlan {
  * Class for execution plan received by prepending Cypher with PROFILE.
  * @access public
  */
-class Profile {
+class QueryProfile {
   operatorType: string
   identifiers: string[]
   arguments: { [key: string]: string }
@@ -269,7 +269,7 @@ class Profile {
   pageCacheHits: number | null
   pageCacheHitRatio: number | null
   time: number | null
-  children: Profile[]
+  children: QueryProfile[]
 
   /**
    * Create a Profile instance
@@ -287,7 +287,7 @@ class Profile {
     this.pageCacheHitRatio = numberOrDefault('pageCacheHitRatio', profile, null)
     this.time = numberOrDefault('time', profile, null)
     this.children = profile.children != null
-      ? profile.children.map((child: any) => new Profile(child))
+      ? profile.children.map((child: any) => new QueryProfile(child))
       : []
   }
 }
@@ -549,7 +549,7 @@ export {
   ServerInfo,
   Plan,
   ProfiledPlan,
-  Profile,
+  QueryProfile,
   QueryStatistics,
   Stats
 }
