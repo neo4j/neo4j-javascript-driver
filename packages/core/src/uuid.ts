@@ -28,7 +28,7 @@ const uuidV4DashLocations = [3, 5, 7, 9]
  * @param { Uint8Array } typedArray A Uint8Array of length 16 representing the UUID
  */
 export default class UUID {
-  _typedArray: Uint8Array
+  public readonly _typedArray: Uint8Array
   constructor (typedArray: Uint8Array) {
     if (typedArray.length !== 16) {
       throw newError(`Uint8Array representation of UUID must be of length 16, got ${typedArray.toString()}`)
