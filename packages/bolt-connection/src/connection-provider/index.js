@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { default as SingleConnectionProvider } from './connection-provider-single'
 export { default as PooledConnectionProvider } from './connection-provider-pooled'
 export { default as DirectConnectionProvider } from './connection-provider-direct'
 export { default as RoutingConnectionProvider } from './connection-provider-routing'
