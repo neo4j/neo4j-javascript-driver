@@ -65,6 +65,7 @@ class Packer {
   /**
    * @constructor
    * @param {Chunker} channel the chunker backed by a network channel.
+   * @param {boolean} allowUUID whether the packer should allow packing UUIDs.
    */
   constructor (channel, allowUUID = false) {
     this._ch = channel
@@ -340,7 +341,8 @@ class Unpacker {
   /**
    * @constructor
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
-   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
+   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint.
+   * @param {boolean} allowUUID whether the unpacker should allow unpacking UUIDs.
    */
   constructor (disableLosslessIntegers = false, useBigInt = false, allowUUID = false) {
     this._disableLosslessIntegers = disableLosslessIntegers
