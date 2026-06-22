@@ -89,7 +89,7 @@ Object.defineProperty(UUID.prototype, UUID_IDENTIFIER_PROPERTY, {
 })
 
 /**
- * Created a {@link UUID} from a uuid string or length 16 Uint8Array, allowing it to be sent as a parameter of a Neo4j query. 
+ * Created a {@link UUID} from a uuid string or length 16 Uint8Array, allowing it to be sent as a parameter of a Neo4j query.
  * @access public
  * @param {Uint8Array | string} rawUUID - a uuid string or length 16 Uint8Array with the values of the UUID.
  * @return {Vector} - The Neo4j UUID ready to be used as a query parameter
