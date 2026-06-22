@@ -21,10 +21,10 @@ const UUID_IDENTIFIER_PROPERTY = '__isUUID__'
 const uuidV4DashLocations = [3, 5, 7, 9]
 
 /**
- * Represents a Neo4j
+ * Represents a Neo4j UUID value, stored as a Uint8Array of length 16, which can be gotten as a uuid string.
  * @access public
  * @exports UUID
- * @class A class writing/reading the Neo4j UUID type as a Uint8Array.
+ * @class A class for writing/reading the Neo4j UUID type as a Uint8Array.
  * @param { Uint8Array } typedArray A Uint8Array of length 16 representing the UUID
  */
 export default class UUID {
@@ -88,6 +88,12 @@ Object.defineProperty(UUID.prototype, UUID_IDENTIFIER_PROPERTY, {
   writable: false
 })
 
+/**
+ * Created a {@link UUID} from a uuid string or length 16 Uint8Array, allowing it to be sent as a parameter of a Neo4j query.
+ * @access public
+ * @param {Uint8Array | string} rawUUID - a uuid string or length 16 Uint8Array with the values of the UUID.
+ * @return {Vector} - The Neo4j UUID ready to be used as a query parameter
+ */
 export function uuid (rawUUID: Uint8Array | string): UUID {
   if (typeof rawUUID === 'string') {
     return UUID.fromString(rawUUID)
@@ -100,9 +106,9 @@ export function uuid (rawUUID: Uint8Array | string): UUID {
 }
 
 /**
- * Test if given object is an instance of the {@link Vector} class.
+ * Test if given object is an instance of the {@link UUID} class.
  * @param {Object} obj the object to test.
- * @return {boolean} `true` if given object is a {@link Vector}, `false` otherwise.
+ * @return {boolean} `true` if given object is a {@link UUID}, `false` otherwise.
  */
 export function isUUID (obj: any): obj is UUID {
   return obj != null && obj[UUID_IDENTIFIER_PROPERTY] === true
