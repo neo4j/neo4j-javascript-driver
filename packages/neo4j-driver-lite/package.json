@@ -54,7 +54,7 @@
     "esdoc-standard-plugin": "1.0.0",
     "isomorphic-ws": "4.0.1",
     "jest": "29.7.0",
-    "rollup": "2.80.0",
+    "rollup": "4.62.2",
     "rollup-plugin-polyfill-node": "0.13.0",
     "testcontainers": "8.16.0",
     "ts-jest": "29.4.9",
