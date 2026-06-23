@@ -44,11 +44,11 @@
   "jsdelivr": "lib/browser/neo4j-web.js",
   "types": "types/index.d.ts",
   "devDependencies": {
-    "@babel/core": "7.29.0",
-    "@babel/plugin-transform-runtime": "7.29.0",
-    "@babel/preset-env": "7.29.2",
-    "@babel/register": "7.28.6",
-    "@babel/runtime": "7.29.2",
+    "@babel/core": "7.29.7",
+    "@babel/plugin-transform-runtime": "7.29.7",
+    "@babel/preset-env": "7.29.7",
+    "@babel/register": "7.29.7",
+    "@babel/runtime": "7.29.7",
     "@rollup/plugin-commonjs": "^21.1.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@types/jest": "^29.5.14",
@@ -77,13 +77,12 @@
     "semver": "7.7.4",
     "source-map": "0.7.4",
     "testcontainers": "8.16.0",
-    "tmp": "0.2.1",
+    "tmp": "0.2.7",
     "ts-jest": "29.4.9",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
     "vinyl-buffer": "1.0.1",
-    "webpack": "5.106.2",
-    "ws": "8.20.0"
+    "webpack": "5.106.2"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "workspace:*",

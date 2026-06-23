@@ -35,7 +35,7 @@
   "dependencies": {
     "neo4j-driver": "workspace:*",
     "neo4j-driver-lite": "workspace:*",
-    "ws": "8.20.0",
+    "ws": "8.21.0",
     "rxjs": "7.8.2"
   },
   "devDependencies": {

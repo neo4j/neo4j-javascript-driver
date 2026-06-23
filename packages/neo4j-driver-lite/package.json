@@ -60,8 +60,7 @@
     "ts-jest": "29.4.9",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "uglify-js": "3.19.3",
-    "ws": "8.20.0"
+    "uglify-js": "3.19.3"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "workspace:*",
