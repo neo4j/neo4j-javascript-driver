@@ -37,7 +37,7 @@
     "fast-check": "3.23.2",
     "jest": "29.7.0",
     "@sinonjs/fake-timers": "15.3.2",
-    "ts-jest": "29.4.9",
+    "ts-jest": "29.4.11",
     "typescript": "5.9.3"
   },
   "dependencies": {
