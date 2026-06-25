@@ -22,6 +22,8 @@ const uuidV4DashLocations = [3, 5, 7, 9]
 
 /**
  * Represents a Neo4j UUID value, stored as a Uint8Array of length 16, which can be gotten as a uuid string.
+ * Created {@link UUID} objects are frozen with `Object.freeze()` in constructor and thus immutable.
+ *
  * @access public
  * @exports UUID
  * @class A class for writing/reading the Neo4j UUID type as a Uint8Array.
@@ -34,6 +36,7 @@ export default class UUID {
       throw newError(`Uint8Array representation of UUID must be of length 16, got ${typedArray.toString()}`)
     }
     this._typedArray = typedArray
+    Object.freeze(this)
   }
 
   /**
@@ -61,6 +64,7 @@ export default class UUID {
 
   /**
    * Parses a string representation of a uuid and creates a {@link UUID} from it.
+   * Created {@link UUID} objects are frozen with `Object.freeze()` in constructor and thus immutable.
    *
    * @param {string} uuidString a base-16 encoded uuid string of the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx or without any dashes
    * @returns {UUID}
@@ -89,10 +93,12 @@ Object.defineProperty(UUID.prototype, UUID_IDENTIFIER_PROPERTY, {
 })
 
 /**
- * Created a {@link UUID} from a uuid string or length 16 Uint8Array, allowing it to be sent as a parameter of a Neo4j query.
+ * Creates a {@link UUID} from a uuid string or length 16 Uint8Array, allowing it to be sent as a parameter of a Neo4j query.
+ * Created {@link UUID} objects are frozen with `Object.freeze()` in constructor and thus immutable.
+ *
  * @access public
  * @param {Uint8Array | string} rawUUID - a uuid string or length 16 Uint8Array with the values of the UUID.
- * @return {Vector} - The Neo4j UUID ready to be used as a query parameter
+ * @return {UUID} - The Neo4j UUID ready to be used as a query parameter
  */
 export function uuid (rawUUID: Uint8Array | string): UUID {
   if (typeof rawUUID === 'string') {
