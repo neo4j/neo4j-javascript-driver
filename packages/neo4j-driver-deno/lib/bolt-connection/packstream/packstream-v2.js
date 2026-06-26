@@ -27,9 +27,10 @@ export class Unpacker extends v1.Unpacker {
   /**
    * @constructor
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
-   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
+   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint.
+   * @param {boolean} allowUUID whether the unpacker should allow unpacking UUIDs.
    */
-  constructor (disableLosslessIntegers = false, useBigInt = false) {
-    super(disableLosslessIntegers, useBigInt)
+  constructor (disableLosslessIntegers = false, useBigInt = false, allowUUID = false) {
+    super(disableLosslessIntegers, useBigInt, allowUUID)
   }
 }

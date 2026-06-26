@@ -22,7 +22,9 @@ import {
   error,
   int,
   isInt,
-  Integer
+  Integer,
+  isUUID,
+  UUID
 } from '../../core/index.ts'
 
 const { PROTOCOL_ERROR } = error
@@ -53,6 +55,7 @@ const MAP_16 = 0xd9
 const MAP_32 = 0xda
 const STRUCT_8 = 0xdc
 const STRUCT_16 = 0xdd
+const UUID_MARKER = 0xe0
 
 /**
  * Class to pack
@@ -62,10 +65,12 @@ class Packer {
   /**
    * @constructor
    * @param {Chunker} channel the chunker backed by a network channel.
+   * @param {boolean} allowUUID whether the packer should allow packing UUIDs.
    */
-  constructor (channel) {
+  constructor (channel, allowUUID = false) {
     this._ch = channel
     this._byteArraysSupported = true
+    this.allowUUID = allowUUID
   }
 
   /**
@@ -102,6 +107,12 @@ class Packer {
         for (let i = 0; i < x.length; i++) {
           this.packable(x[i] === undefined ? null : x[i], dehydrateStruct)()
         }
+      }
+    } else if (isUUID(x)) {
+      if (this.allowUUID) {
+        return () => this.packUUID(x)
+      } else {
+        return this._nonPackableValue('Cannot pack UUID, negotiated bolt version uses older packstream')
       }
     } else if (isIterable(x)) {
       return this.packableIterable(x, dehydrateStruct)
@@ -303,6 +314,14 @@ class Packer {
     }
   }
 
+  packUUID (x) {
+    this._ch.writeUInt8(UUID_MARKER)
+    const array = x.getTypedArray()
+    for (let i = 0; i < array.length; i++) {
+      this._ch.writeUInt8(array[i])
+    }
+  }
+
   disableByteArrays () {
     this._byteArraysSupported = false
   }
@@ -322,11 +341,13 @@ class Unpacker {
   /**
    * @constructor
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
-   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
+   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint.
+   * @param {boolean} allowUUID whether the unpacker should allow unpacking UUIDs.
    */
-  constructor (disableLosslessIntegers = false, useBigInt = false) {
+  constructor (disableLosslessIntegers = false, useBigInt = false, allowUUID = false) {
     this._disableLosslessIntegers = disableLosslessIntegers
     this._useBigInt = useBigInt
+    this.allowUUID = allowUUID
   }
 
   unpack (buffer, hydrateStructure = functional.identity) {
@@ -368,6 +389,11 @@ class Unpacker {
     const byteArray = this._unpackByteArray(marker, buffer)
     if (byteArray !== null) {
       return byteArray
+    }
+
+    const uuid = this._unpackUUID(marker, buffer)
+    if (uuid !== null) {
+      return uuid
     }
 
     const map = this._unpackMap(marker, markerHigh, markerLow, buffer, hydrateStructure)
@@ -479,6 +505,17 @@ class Unpacker {
     } else {
       return null
     }
+  }
+
+  _unpackUUID (marker, buffer) {
+    if (marker === UUID_MARKER && this.allowUUID === true) {
+      const value = new Uint8Array(16)
+      for (let i = 0; i < 16; i++) {
+        value[i] = buffer.readUInt8()
+      }
+      return new UUID(value)
+    }
+    return null
   }
 
   _unpackByteArrayWithSize (size, buffer) {

@@ -183,6 +183,10 @@ export default function CypherNativeBinders (neo4j) {
       return structResponse('CypherVector', { dtype, data })
     }
 
+    if (neo4j.isUUID(x)) {
+      return valueResponse('CypherUUID', x.toString())
+    }
+
     if (neo4j.isUnsupportedType(x)) {
       const name = x.name
       const minimumProtocol = x.minimumProtocolVersion
@@ -318,6 +322,9 @@ export default function CypherNativeBinders (neo4j) {
             throw new Error('Unknown Inner Vector type ' + data.dtype)
         }
       }
+      case 'CypherUUID': {
+        return neo4j.UUID.fromString(data.value)
+      }
     }
     console.log(`Type ${name} is not handle by cypherToNative`, c)
     const err = 'Unable to convert ' + c + ' to native type'
@@ -359,7 +366,7 @@ export default function CypherNativeBinders (neo4j) {
   function toByteArray (hexString) {
     const result = []
     for (let i = 0; i < hexString.length; i += 3) {
-      result.push(parseInt(hexString.substr(i, i + 2), 16))
+      result.push(parseInt(hexString.substring(i, i + 2), 16))
     }
     return Uint8Array.from(result)
   }
