@@ -237,6 +237,19 @@ function vectorProperty (config?: Rule & { asTypedList?: boolean, dimension?: nu
 }
 
 /**
+ * Property Decorator Factory that enables the Neo4j Driver to map this property to a UUID
+ *
+ * @param {Rule & { stringify?: boolean } | undefined} config Configurations for the rule. Setting stringify will automatically convert between Strings in user code and UUIDs in the database.
+ * @returns {Function} Property Decorator
+ * @experimental Object Mapping Decorators are in preview and may change in minor releases.
+ */
+function uuidProperty (config?: Rule & { stringify?: boolean }) {
+  return (_: any, context: any) => {
+    context.metadata[context.name] = rule.asUUID(config)
+  }
+}
+
+/**
  * Property Decorator Factory that enables the Neo4j Driver to map this property to an Object, allowing complex mapping of even nested results
  *
  * NOTE: When using this rule, object identifiers will be mapped according to any name mapping set with neo4j.RecordObjectMapping.translateIdentifiers.
@@ -312,6 +325,7 @@ const forExport = {
   dateTimeProperty,
   listProperty,
   vectorProperty,
+  uuidProperty,
   objectProperty,
   optionalProperty,
   mapPropertyFromName,
