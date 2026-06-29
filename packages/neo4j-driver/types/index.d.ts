@@ -192,6 +192,7 @@ declare const types: {
   RxManagedTransaction: typeof RxManagedTransaction
   RxResult: typeof RxResult
   Vector: typeof Vector
+  UUID: typeof UUID
 }
 
 declare const session: {

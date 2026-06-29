@@ -334,7 +334,8 @@ const types = {
   LocalTime,
   Time,
   Integer,
-  Vector
+  Vector,
+  UUID
 }
 
 /**
