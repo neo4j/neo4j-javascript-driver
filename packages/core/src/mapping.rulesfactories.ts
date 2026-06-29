@@ -505,7 +505,7 @@ export const rule = Object.freeze({
           throw new TypeError(`${field} should be a vector but received ${typeof value}`)
         }
         if (rule?.dimension != null && value.asTypedArray().length !== rule.dimension) {
-          throw new TypeError(`${field} should be a vector of length ${rule.dimension} but received length ${value.asTypedArray().length as string}`)
+          throw new TypeError(`${field} should be a vector of length ${rule.dimension} but received length ${value.asTypedArray().length as number}`)
         }
         if (rule?.type != null && value.getType() !== rule.type) {
           throw new TypeError(`${field} should be a vector of type ${rule.type} but received type ${value.getType()}`)
