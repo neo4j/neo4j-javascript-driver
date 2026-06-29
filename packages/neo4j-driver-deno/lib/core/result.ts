@@ -152,6 +152,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
   private readonly _retry: (() => Promise<observer.ResultStreamObserver>) | undefined
   private readonly _ownedObservers: observer.StreamObserver[]
   private _retriedError: Error | undefined
+  private _consumed: boolean
 
   /**
    * Inject the observer to be used.
@@ -184,6 +185,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     this._retry = retry
     this._ownedObservers = []
     this._retriedError = undefined
+    this._consumed = false
   }
 
   as <T extends {} = Object>(rules: Rules): MappedResult<T>
@@ -275,6 +277,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
         .then(o => {
+          this._consumed = true
           const summaryObserver = this._decorateObserver({
             // This type casting is needed since we are defining the number type of
             // summary in Result template
@@ -388,6 +391,9 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
           if (assertSummary(state.summary)) {
             return { done: true, value: state.summary }
           }
+        }
+        if (this._consumed === true) {
+          throw newError("The transaction backing this result stream has already been committed or rolled back, thereby discarding results. Ensure you finish processing results before committing or rolling back.")
         }
         const queuedObserver = await initializeObserver()
         const next = await queuedObserver.dequeue()
