@@ -392,8 +392,8 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
             return { done: true, value: state.summary }
           }
         }
-        if (this._consumed === true) {
-          throw newError("The transaction backing this result stream has already been committed or rolled back, thereby discarding results. Ensure you finish processing results before committing or rolling back.")
+        if (this._consumed) {
+          throw newError('The transaction backing this result stream has already been committed or rolled back, thereby discarding results. Ensure you finish processing results before committing or rolling back.')
         }
         const queuedObserver = await initializeObserver()
         const next = await queuedObserver.dequeue()
