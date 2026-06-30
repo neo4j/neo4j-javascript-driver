@@ -24,6 +24,7 @@ import { Date, DateTime, Duration, LocalDateTime, LocalTime, Time, isDate, isDat
 import Vector, { isVector, vector, VectorType } from './vector.ts'
 import { newError } from './error.ts'
 import Integer, { isInt } from './integer.ts'
+import UUID, { isUUID, uuid } from './uuid.ts'
 
 /**
  * @property {function(rule: ?Rule)} asBoolean Create a {@link Rule} that validates the value is a Boolean.
@@ -58,7 +59,9 @@ import Integer, { isInt } from './integer.ts'
  *
  * @property {function(rule: ?Rule & { apply?: Rule })} asList Create a {@link Rule} that validates the value is a List.
  *
- * @property {function(rule: ?Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType })} asVector Create a {@link Rule} that validates the value is a Vector.
+ * @property {function(rule: ?Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType })} asVector Create a {@link Rule} that validates the value is a {@link Vector}.
+ *
+ * @property {function(rule: ?Rule & { stringify?: boolean })} asUUID Create a {@link Rule} that validates the value is a {@link UUID}.
  *
  * @property {function(rules: Rules)} asObject Create a {@link Rule} for an object, allowing complex mapping of even nested results.
  */
@@ -487,7 +490,7 @@ export const rule = Object.freeze({
     }
   },
   /**
-   * Create a {@link Rule} that validates the value is a Vector.
+   * Create a {@link Rule} that validates the value is a {@link Vector}.
    *
    * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType } | undefined} rule Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
    * @returns {Rule} A new rule for the value
@@ -502,7 +505,7 @@ export const rule = Object.freeze({
           throw new TypeError(`${field} should be a vector but received ${typeof value}`)
         }
         if (rule?.dimension != null && value.asTypedArray().length !== rule.dimension) {
-          throw new TypeError(`${field} should be a vector of length ${rule.dimension} but received length ${value.asTypedArray().length}`)
+          throw new TypeError(`${field} should be a vector of length ${rule.dimension} but received length ${value.asTypedArray().length as number}`)
         }
         if (rule?.type != null && value.getType() !== rule.type) {
           throw new TypeError(`${field} should be a vector of type ${rule.type} but received type ${value.getType()}`)
@@ -515,6 +518,32 @@ export const rule = Object.freeze({
         return value
       },
       parameterConversion: rule?.asTypedList === true ? (typedArray: Int16Array | Int32Array | BigInt64Array | Float32Array | Float64Array) => vector(typedArray) : undefined,
+      ...rule
+    }
+  },
+  /**
+   * Create a {@link Rule} that validates the value is a {@link UUID}.
+   *
+   * @param {Rule & { stringify?: boolean } | undefined} rule Configurations for the rule. Setting stringify will automatically convert between Strings in user code and UUIDs in the database.
+   * @returns {Rule} A new rule for the value
+   */
+  asUUID (rule?: Rule & { stringify?: boolean }): Rule {
+    if (rule?.stringify != null && (rule?.convert != null || rule.parameterConversion != null)) {
+      throw newError('Provided rule already has convert and/or parameterConversion function, stringify can not be used in combination with custom conversion functions.')
+    }
+    return {
+      validate: (value: any, field: string) => {
+        if (!isUUID(value)) {
+          throw new TypeError(`${field} should be a UUID but received ${typeof value}`)
+        }
+      },
+      convert: (value: UUID) => {
+        if (rule?.stringify === true) {
+          return value.toString()
+        }
+        return value
+      },
+      parameterConversion: rule?.stringify === true ? (string: string) => uuid(string) : undefined,
       ...rule
     }
   },

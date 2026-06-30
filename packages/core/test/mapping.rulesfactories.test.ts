@@ -1,4 +1,4 @@
-import { Date, DateTime, Duration, int, Integer, LocalDateTime, LocalTime, Point, Time, Vector } from '../src'
+import { Date, DateTime, Duration, int, Integer, LocalDateTime, LocalTime, Point, Time, uuid, Vector } from '../src'
 import { rule } from '../src/mapping.rulesfactories'
 
 describe('Rulesfactories', () => {
@@ -44,7 +44,9 @@ describe('Rulesfactories', () => {
         date: new Date(int(2024), int(1), int(12)),
         vector: new Vector(Int16Array.from([4, 8]))
       }
-    ]
+    ],
+    ['UUID', rule.asUUID(), uuid('12345678-1234-1234-1234-123456789abc'), uuid('12345678-1234-1234-1234-123456789abc')],
+    ['Stringified UUID', rule.asUUID({ stringify: true }), '12345678-1234-1234-1234-123456789abc', uuid('12345678-1234-1234-1234-123456789abc')]
   ])('should be able to map %s as property', (_, rule, param, expected) => {
     if (rule.parameterConversion != null) {
       param = rule.parameterConversion(param)
@@ -82,7 +84,8 @@ describe('Rulesfactories', () => {
       'Integer-mapped Number',
       rule.asNumber({ isInteger: true }),
       1
-    ]
+    ],
+    ['Stringified UUID', rule.asUUID({ stringify: true }), '12345678-1234-1234-1234-123456789abc']
   ])('mapping %s as property and back should be lossless', (_, rule, param) => {
     if (rule.parameterConversion != null && rule.convert != null) {
       expect(rule.convert(rule.parameterConversion(param), 'test conversion')).toEqual(param)

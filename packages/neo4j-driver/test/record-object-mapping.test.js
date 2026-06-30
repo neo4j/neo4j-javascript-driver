@@ -436,6 +436,19 @@ describe('#integration record object mapping', () => {
     }
   })
 
+  it('map uuid as input and output', async () => {
+    if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 1 }) && edition === 'enterprise') {
+      const session = driverGlobal.session()
+
+      const rules = { uuid: neo4j.rule.asUUID(), stringedUuid: neo4j.rule.asUUID({ stringify: true }) }
+      const parameters = { uuid: neo4j.uuid('12345678-1234-1234-1234-123456789abc'), stringedUuid: '12345678-1234-1234-1234-123456789abc' }
+
+      const res = await session.run('return $uuid as uuid, $stringedUuid as stringedUuid', parameters, {}, rules).as(rules)
+      expect(res.records[0].uuid).toEqual(parameters.uuid)
+      expect(res.records[0].stringedUuid).toEqual(parameters.stringedUuid)
+    }
+  })
+
   it('map object with internal rules', async () => {
     if (protocolVersion.isGreaterOrEqualTo({ major: 6, minor: 0 }) && edition === 'enterprise') {
       const session = driverGlobal.session()
