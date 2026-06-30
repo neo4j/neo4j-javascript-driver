@@ -490,7 +490,7 @@ export const rule = Object.freeze({
     }
   },
   /**
-   * Create a {@link Rule} that validates the value is a Vector.
+   * Create a {@link Rule} that validates the value is a {@link Vector}.
    *
    * @param {Rule & { asTypedList?: boolean, dimension?: number, type?: VectorType } | undefined} rule Configurations for the rule. Setting asTypedList will automatically convert between TypedList in user code and Vectors in the database.
    * @returns {Rule} A new rule for the value
@@ -522,7 +522,7 @@ export const rule = Object.freeze({
     }
   },
   /**
-   * Create a {@link Rule} that validates the value is a UUID.
+   * Create a {@link Rule} that validates the value is a {@link UUID}.
    *
    * @param {Rule & { stringify?: boolean } | undefined} rule Configurations for the rule. Setting stringify will automatically convert between Strings in user code and UUIDs in the database.
    * @returns {Rule} A new rule for the value

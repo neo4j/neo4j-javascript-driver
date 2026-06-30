@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector, newError, Integer, LocalDateTime, LocalTime, Point } from '../src'
+import { Date, DateTime, Duration, RecordObjectMapping, Node, Relationship, Rules, rule, Time, Vector, newError, Integer, LocalDateTime, LocalTime, Point, UUID, uuid } from '../src'
 import { as } from '../src/mapping.highlevel'
 
 describe('Record Object Mapping', () => {
@@ -103,7 +103,9 @@ describe('Record Object Mapping', () => {
         node: rule.asNode({ convert: (node) => node.as(Person, personRules) }),
         rel: rule.asRelationship({ convert: (rel) => rel.as(Person, personRules) }),
         vec: rule.asVector(),
-        convertedVec: rule.asVector({ asTypedList: true, from: 'vec' })
+        convertedVec: rule.asVector({ asTypedList: true, from: 'vec' }),
+        uuid: rule.asUUID(),
+        stringifiedUuid: rule.asUUID({ stringify: true, from: 'uuid' })
       }
 
       class mapped {
@@ -124,6 +126,8 @@ describe('Record Object Mapping', () => {
         rel: Person
         vec: Vector<Int32Array>
         convertedVec: Int32Array
+        uuid: UUID
+        stringifiedUuid: string
       }
 
       const gettable = {
@@ -161,6 +165,8 @@ describe('Record Object Mapping', () => {
               return new Relationship(2, 1, 1, 'test', { firstname: 'bye' })
             case 'vec':
               return new Vector(Int32Array.from([0, 1, 2]))
+            case 'uuid':
+              return uuid('12345678-1234-1234-1234-123456789abc')
             default:
               return undefined
           }
@@ -203,6 +209,10 @@ describe('Record Object Mapping', () => {
       expect(result.vec._typedArray[0]).toBe(0)
 
       expect(result.convertedVec[2]).toBe(2)
+
+      expect(result.uuid).toEqual(uuid('12345678-1234-1234-1234-123456789abc'))
+
+      expect(result.stringifiedUuid).toEqual('12345678-1234-1234-1234-123456789abc')
     })
 
     it('should allow records with missing optional results', () => {
