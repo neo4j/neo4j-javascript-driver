@@ -17,27 +17,20 @@ function mapCounters (stats) {
   }
 }
 
-function mapProfile (profile, child = false, binder) {
-  const mapChild = (child) => mapProfile(child, true, binder)
-  const obj = {
+function mapProfile (profile, binder) {
+  const mapChild = (child) => mapProfile(child, binder)
+  return {
     args: binder.objectMemberBitIntToNumber(profile.arguments, true),
-    dbHits: Number(profile.dbHits),
+    dbHits: profile.dbHits != null ? Number(profile.dbHits) : undefined,
     identifiers: profile.identifiers,
     operatorType: profile.operatorType,
-    rows: Number(profile.rows),
-    children: profile.children ? profile.children.map(mapChild) : undefined
+    rows: profile.rows != null ? Number(profile.rows) : undefined,
+    pageCacheHitRatio: profile.pageCacheHitRatio != null ? Number(profile.pageCacheHitRatio) : undefined,
+    pageCacheHits: profile.pageCacheHits != null ? Number(profile.pageCacheHits) : undefined,
+    pageCacheMisses: profile.pageCacheMisses != null ? Number(profile.pageCacheMisses) : undefined,
+    time: profile.time != null ? Number(profile.time) : undefined,
+    children: profile.children ? profile.children.map(mapChild) : undefined,
   }
-
-  if (child) {
-    return {
-      ...obj,
-      pageCacheHitRatio: profile.pageCacheHitRatio !== undefined ? Number(profile.pageCacheHitRatio) : undefined,
-      pageCacheHits: profile.pageCacheHits !== undefined ? Number(profile.pageCacheHits) : undefined,
-      pageCacheMisses: profile.pageCacheMisses !== undefined ? Number(profile.pageCacheMisses) : undefined,
-      time: profile.time !== undefined ? Number(profile.time) : undefined
-    }
-  }
-  return obj
 }
 
 function mapNotification (notification) {
@@ -73,8 +66,8 @@ export function nativeToTestkitSummary (summary, binder) {
       protocolVersion: summary.server.protocolVersion.toString()
     },
     counters: mapCounters(summary.counters),
-    plan: mapPlan(summary.plan, binder),
-    profile: mapProfile(summary.profile, false, binder),
+    plan: summary.plan ? mapPlan(summary.plan, binder) : null,
+    profile: summary.profile ? mapProfile(summary.queryProfile, binder) : null,
     notifications: summary.notifications.map(mapNotification),
     gqlStatusObjects: summary.gqlStatusObjects.map(mapGqlStatusObject(binder))
   }

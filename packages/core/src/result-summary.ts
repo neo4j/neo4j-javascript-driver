@@ -30,6 +30,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   counters: QueryStatistics
   plan: Plan | false
   profile: ProfiledPlan | false
+  queryProfile: QueryProfile | false
   notifications: Notification[]
   gqlStatusObjects: [GqlStatusObject, ...GqlStatusObject[]]
   server: ServerInfo
@@ -91,8 +92,18 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * Will only be populated for queries that start with "PROFILE".
      * @type {ProfiledPlan}
      * @public
+     * @deprecated has been superseded by {@link ResultSummary.queryProfile}
      */
     this.profile = metadata.profile != null ? new ProfiledPlan(metadata.profile) : false
+
+    /**
+     * This describes how the database did execute your query. This will contain detailed information about what
+     * each step of the plan did. Profiled query plan for the executed query if available, otherwise undefined.
+     * Will only be populated for queries that start with "PROFILE".
+     * @type {QueryProfile}
+     * @public
+     */
+    this.queryProfile = metadata.profile != null ? new QueryProfile(metadata.profile) : false
 
     /**
      * An array of notifications that might arise when executing the query. Notifications can be warnings about
@@ -100,7 +111,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * or errors, notifications do not affect the execution of a query.
      * @type {Array<Notification>}
      * @public
-     * @deprecated has been superceded by {@link ResultSummary.gqlStatusObjects}
+     * @deprecated has been superseded by {@link ResultSummary.gqlStatusObjects}
      */
     this.notifications = buildNotificationsFromMetadata(metadata)
 
@@ -156,7 +167,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   }
 
   /**
-   * Check if the result summary has a plan
+   * Check if the result summary has a plan (i.e., {@link ResultSummary.plan} is not false).
    * @return {boolean}
    */
   hasPlan (): boolean {
@@ -165,10 +176,11 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
 
   /**
    * Check if the result summary has a profile
+   * (i.e., {@link ResultSummary.queryProfile} and {@link ResultSummary.profile} are not false).
    * @return {boolean}
    */
   hasProfile (): boolean {
-    return this.profile instanceof ProfiledPlan
+    return this.queryProfile instanceof QueryProfile
   }
 }
 
@@ -200,6 +212,7 @@ class Plan {
 /**
  * Class for execution plan received by prepending Cypher with PROFILE.
  * @access public
+ * @deprecated has been superseded by {@link QueryProfile}
  */
 class ProfiledPlan {
   operatorType: string
@@ -222,12 +235,12 @@ class ProfiledPlan {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
-    this.dbHits = valueOrDefault('dbHits', profile)
-    this.rows = valueOrDefault('rows', profile)
-    this.pageCacheMisses = valueOrDefault('pageCacheMisses', profile)
-    this.pageCacheHits = valueOrDefault('pageCacheHits', profile)
-    this.pageCacheHitRatio = valueOrDefault('pageCacheHitRatio', profile)
-    this.time = valueOrDefault('time', profile)
+    this.dbHits = numberOrDefault('dbHits', profile)
+    this.rows = numberOrDefault('rows', profile)
+    this.pageCacheMisses = numberOrDefault('pageCacheMisses', profile)
+    this.pageCacheHits = numberOrDefault('pageCacheHits', profile)
+    this.pageCacheHitRatio = numberOrDefault('pageCacheHitRatio', profile)
+    this.time = numberOrDefault('time', profile)
     this.children = profile.children != null
       ? profile.children.map((child: any) => new ProfiledPlan(child))
       : []
@@ -239,6 +252,43 @@ class ProfiledPlan {
       this.pageCacheHits > 0 ||
       this.pageCacheHitRatio > 0
     )
+  }
+}
+
+/**
+ * Class for execution plan received by prepending Cypher with PROFILE.
+ * @access public
+ */
+class QueryProfile {
+  operatorType: string
+  identifiers: string[]
+  arguments: { [key: string]: string }
+  dbHits: number | null
+  rows: number | null
+  pageCacheMisses: number | null
+  pageCacheHits: number | null
+  pageCacheHitRatio: number | null
+  time: number | null
+  children: QueryProfile[]
+
+  /**
+   * Create a Profile instance
+   * @constructor
+   * @param {Object} profile - Object with profile data
+   */
+  constructor (profile: any) {
+    this.operatorType = profile.operatorType
+    this.identifiers = profile.identifiers
+    this.arguments = profile.args
+    this.dbHits = numberOrDefault('dbHits', profile, null)
+    this.rows = numberOrDefault('rows', profile, null)
+    this.pageCacheMisses = numberOrDefault('pageCacheMisses', profile, null)
+    this.pageCacheHits = numberOrDefault('pageCacheHits', profile, null)
+    this.pageCacheHitRatio = numberOrDefault('pageCacheHitRatio', profile, null)
+    this.time = numberOrDefault('time', profile, null)
+    this.children = profile.children != null
+      ? profile.children.map((child: any) => new QueryProfile(child))
+      : []
   }
 }
 
@@ -463,17 +513,24 @@ class ServerInfo {
   }
 }
 
-function valueOrDefault (
+function numberOrDefault<T = number> (
   key: string,
   values: { [key: string]: NumberOrInteger } | false,
-  defaultValue: number = 0
-): number {
-  if (values !== false && key in values) {
+  defaultValue?: T
+): number | T {
+  if (hasValue(key, values)) {
     const value = values[key]
     return toNumber(value)
   } else {
-    return defaultValue
+    return defaultValue !== undefined ? defaultValue : 0
   }
+}
+
+function hasValue (
+  key: string,
+  values: { [key: string]: NumberOrInteger } | false
+): values is { [key: string]: NumberOrInteger } {
+  return values !== false && key in values
 }
 
 /**
@@ -492,6 +549,7 @@ export {
   ServerInfo,
   Plan,
   ProfiledPlan,
+  QueryProfile,
   QueryStatistics,
   Stats
 }

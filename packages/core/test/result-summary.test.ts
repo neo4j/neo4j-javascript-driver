@@ -19,6 +19,7 @@ import { int } from '../src'
 import { ProtocolVersion } from '../src/protocol-version'
 import {
   ServerInfo,
+  QueryProfile,
   ProfiledPlan,
   QueryStatistics,
   Stats
@@ -56,7 +57,7 @@ describe('ServerInfo', () => {
   )
 })
 
-describe('ProfilePlan', () => {
+function testPlanNumberFields (PlanClass: typeof ProfiledPlan | typeof QueryProfile): void {
   describe.each([
     'dbHits',
     'rows',
@@ -64,19 +65,19 @@ describe('ProfilePlan', () => {
     'pageCacheHits',
     'pageCacheHitRatio',
     'time'
-  ])('.%s', (field: keyof ProfiledPlan) => {
+  ])('.%s', (field: keyof ProfiledPlan & keyof QueryProfile) => {
     it('should handle return arbitrary integer as it is', () => {
       return fc.assert(
         fc.property(
           fc.integer(),
           value => {
-            const rawProfilePlan = {
+            const rawPlan = {
               [field]: value
             }
 
-            const profilePlan = new ProfiledPlan(rawProfilePlan)
+            const parsedPlan = new PlanClass(rawPlan)
 
-            return profilePlan[field] === value
+            return parsedPlan[field] === value
           }
         )
       )
@@ -87,13 +88,13 @@ describe('ProfilePlan', () => {
         fc.property(
           fc.maxSafeInteger().map(value => [int(value), value]),
           ([value, expectedValue]) => {
-            const rawProfilePlan = {
+            const rawPlan = {
               [field]: value
             }
 
-            const profilePlan = new ProfiledPlan(rawProfilePlan)
+            const parsedPlan = new PlanClass(rawPlan)
 
-            return profilePlan[field] === expectedValue
+            return parsedPlan[field] === expectedValue
           }
         )
       )
@@ -104,13 +105,13 @@ describe('ProfilePlan', () => {
         fc.property(
           fc.integer().map(value => [int(value), value]),
           ([value, expectedValue]) => {
-            const rawProfilePlan = {
+            const rawPlan = {
               [field]: value
             }
 
-            const profilePlan = new ProfiledPlan(rawProfilePlan)
+            const parsedPlan = new PlanClass(rawPlan)
 
-            return profilePlan[field] === expectedValue
+            return parsedPlan[field] === expectedValue
           }
         )
       )
@@ -121,13 +122,13 @@ describe('ProfilePlan', () => {
         fc.property(
           fc.maxSafeInteger().map(value => [BigInt(value), value]),
           ([value, expectedValue]) => {
-            const rawProfilePlan = {
+            const rawPlan = {
               [field]: value
             }
 
-            const profilePlan = new ProfiledPlan(rawProfilePlan)
+            const parsedPlan = new PlanClass(rawPlan)
 
-            return profilePlan[field] === expectedValue
+            return parsedPlan[field] === expectedValue
           }
         )
       )
@@ -138,16 +139,58 @@ describe('ProfilePlan', () => {
         fc.property(
           fc.integer().map(value => [BigInt(value), value]),
           ([value, expectedValue]) => {
-            const rawProfilePlan = {
+            const rawPlan = {
               [field]: value
             }
 
-            const profilePlan = new ProfiledPlan(rawProfilePlan)
+            const parsedPlan = new PlanClass(rawPlan)
 
-            return profilePlan[field] === expectedValue
+            return parsedPlan[field] === expectedValue
           }
         )
       )
+    })
+  })
+}
+
+describe('ProfiledPlan', () => {
+  testPlanNumberFields(ProfiledPlan)
+
+  describe.each([
+    'dbHits',
+    'rows',
+    'pageCacheMisses',
+    'pageCacheHits',
+    'pageCacheHitRatio',
+    'time'
+  ])('.%s', (field: keyof ProfiledPlan) => {
+    it('should handle missing key in raw data', () => {
+      const rawPlan = {}
+
+      const parsedPlan = new ProfiledPlan(rawPlan)
+
+      expect(parsedPlan[field]).toEqual(0)
+    })
+  })
+})
+
+describe('Profile', () => {
+  testPlanNumberFields(QueryProfile)
+
+  describe.each([
+    'dbHits',
+    'rows',
+    'pageCacheMisses',
+    'pageCacheHits',
+    'pageCacheHitRatio',
+    'time'
+  ])('.%s', (field: keyof QueryProfile) => {
+    it('should handle missing key in raw data', () => {
+      const rawPlan = {}
+
+      const parsedPlan = new QueryProfile(rawPlan)
+
+      expect(parsedPlan[field]).toBeNull()
     })
   })
 })

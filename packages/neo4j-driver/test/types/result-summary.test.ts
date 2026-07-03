@@ -22,6 +22,7 @@ import {
   Notification,
   NotificationPosition,
   Plan,
+  QueryProfile,
   ProfiledPlan,
   ServerInfo,
   QueryStatistics
@@ -76,9 +77,35 @@ const profilePageCacheHits: number | false = profile !== false
 const profilePageCacheHitRatio: number | false = profile !== false
   ? profile.pageCacheHitRatio
   : false
-const time: number | false = profile !== false ? profile.time : false
+const profileTime: number | false = profile !== false ? profile.time : false
 const profileChildren: ProfiledPlan[] | false = profile !== false
   ? profile.children
+  : false
+
+const queryProfile: QueryProfile | false = sum1.queryProfile
+const queryProfileOperatorType: string | false = queryProfile !== false
+  ? queryProfile.operatorType
+  : false
+const queryProfileIdentifiers: string[] | false = queryProfile !== false
+  ? queryProfile.identifiers
+  : false
+const queryProfileArguments: { [key: string]: string } | false = queryProfile !== false
+  ? queryProfile.arguments
+  : false
+const queryProfileDbHits: number | null | false = queryProfile !== false ? queryProfile.dbHits : false
+const queryProfileRows: number | null | false = queryProfile !== false ? queryProfile.rows : false
+const queryProfilePageCacheMisses: number | null | false = queryProfile !== false
+  ? queryProfile.pageCacheMisses
+  : false
+const queryProfilePageCacheHits: number | null | false = queryProfile !== false
+  ? queryProfile.pageCacheHits
+  : false
+const queryProfilePageCacheHitRatio: number | null | false = queryProfile !== false
+  ? queryProfile.pageCacheHitRatio
+  : false
+const queryProfileTime: number | null | false = queryProfile !== false ? queryProfile.time : false
+const queryProfileChildren: QueryProfile[] | false = queryProfile !== false
+  ? queryProfile.children
   : false
 
 const notifications: Notification[] = sum1.notifications
