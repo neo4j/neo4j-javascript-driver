@@ -78,7 +78,7 @@
     "source-map": "0.7.4",
     "testcontainers": "8.16.0",
     "tmp": "0.2.1",
-    "ts-jest": "29.4.9",
+    "ts-jest": "29.4.11",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
     "vinyl-buffer": "1.0.1",
