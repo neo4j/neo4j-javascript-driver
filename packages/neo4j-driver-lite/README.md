@@ -119,7 +119,6 @@ is not the same as the lifetime of the web page:
 ```javascript
 driver.close() // returns a Promise
 ```
-
 ## Usage examples
 
 ### Constructing a Driver
@@ -170,57 +169,6 @@ var session = driver.session({
 })
 ```
 
-### Executing Queries
-
-#### Consuming Records with Streaming API
-
-```javascript
-// Run a Cypher statement, reading the result in a streaming manner as records arrive:
-session
-  .run('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
-    nameParam: 'Alice'
-  })
-  .subscribe({
-    onKeys: keys => {
-      console.log(keys)
-    },
-    onNext: record => {
-      console.log(record.get('name'))
-    },
-    onCompleted: () => {
-      session.close() // returns a Promise
-    },
-    onError: error => {
-      console.log(error)
-    }
-  })
-```
-
-Subscriber API allows following combinations of `onKeys`, `onNext`, `onCompleted` and `onError` callback invocations:
-
-- zero or one `onKeys`,
-- zero or more `onNext` followed by `onCompleted` when operation was successful. `onError` will not be invoked in this case
-- zero or more `onNext` followed by `onError` when operation failed. Callback `onError` might be invoked after couple `onNext` invocations because records are streamed lazily by the database. `onCompleted` will not be invoked in this case.
-
-#### Consuming Records with Promise API
-
-```javascript
-// the Promise way, where the complete result is collected before we act on it:
-session
-  .run('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
-    nameParam: 'James'
-  })
-  .then(result => {
-    result.records.forEach(record => {
-      console.log(record.get('name'))
-    })
-  })
-  .catch(error => {
-    console.log(error)
-  })
-  .then(() => session.close())
-```
-
 ### Transaction functions
 
 ```javascript
@@ -233,13 +181,13 @@ neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'password'), {
 })
 ```
 
-#### Reading with Async Session
+#### Reading with transaction functions
 
 ```javascript
 // It is possible to execute read transactions that will benefit from automatic
 // retries on both single instance ('bolt' URI scheme) and Causal Cluster
 // ('neo4j' URI scheme) and will get automatic load balancing in cluster deployments
-var readTxResultPromise = session.readTransaction(txc => {
+var readTxResultPromise = session.executeRead(txc => {
   // used transaction will be committed automatically, no need for explicit commit/rollback
 
   var result = txc.run('MATCH (person:Person) RETURN person.name AS name')
@@ -256,10 +204,10 @@ readTxResultPromise
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
+  .finally(() => session.close())
 ```
 
-#### Writing with Async Session
+#### Writing with transaction functions
 
 ```javascript
 // It is possible to execute write transactions that will benefit from automatic retries
@@ -283,12 +231,68 @@ writeTxResultPromise
   .catch(error => {
     console.log(error)
   })
-  .then(() => session.close())
+  .finally(() => session.close())
+```
+
+### ExecuteQuery Function
+
+```javascript
+// Since 5.8.0, the driver has offered a way to run a single query transaction with minimal boilerplate.
+// The driver.executeQuery() function features the same automatic retries as transaction functions.
+// 
+var executeQueryResultPromise = driver
+  .executeQuery(
+    "MATCH (alice:Person {name: $nameParam}) RETURN alice.DOB AS DateOfBirth", 
+    {
+      nameParam: 'Alice'
+    }, 
+    {
+      routing: 'READ', 
+      database: 'neo4j'
+    }
+  )
+
+// returned Promise can be later consumed like this:
+executeQueryResultPromise
+  .then(result => {
+    console.log(result.records)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+```
+
+### Auto-Commit/Implicit Transaction
+
+```javascript
+// This is the most basic and limited form with which to run a Cypher query. 
+// The driver will not automatically retry implicit transactions.
+// This function should only be used when the other driver query interfaces do not fit the purpose.
+// Implicit transactions are the only ones that can be used for CALL { …​ } IN TRANSACTIONS queries. 
+
+var implicitTxResultPromise = session
+  .run(
+    "CALL { …​ } IN TRANSACTIONS", 
+    {
+      param1: 'param'
+    }, 
+    {
+      database: 'neo4j'
+    }
+  )
+
+// returned Promise can be later consumed like this:
+implicitTxResultPromise
+  .then(result => {
+    console.log(result.records)
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .finally(() => session.close())
 ```
 
 ### Explicit Transactions
-
-#### With Async Session
 
 ```javascript
 // run statement in a transaction
@@ -323,6 +327,57 @@ try {
 }
 ```
 
+### Consuming Records
+
+#### Consuming Records with Streaming API
+
+```javascript
+// Run a Cypher statement, reading the result in a streaming manner as records arrive:
+session
+  .executeWrite(tx => tx.run('MERGE (alice:Person {name : $nameParam}) RETURN alice.name AS name', {
+    nameParam: 'Alice'
+  }).subscribe({
+        onKeys: keys => {
+          console.log(keys)
+        },
+        onNext: record => {
+          console.log(record.get('name'))
+        },
+        onCompleted: () => {
+          session.close() // returns a Promise
+        },
+        onError: error => {
+          console.log(error)
+        }
+    })
+)
+```
+
+Subscriber API allows following combinations of `onKeys`, `onNext`, `onCompleted` and `onError` callback invocations:
+
+- zero or one `onKeys`,
+- zero or more `onNext` followed by `onCompleted` when operation was successful. `onError` will not be invoked in this case
+- zero or more `onNext` followed by `onError` when operation failed. Callback `onError` might be invoked after couple `onNext` invocations because records are streamed lazily by the database. `onCompleted` will not be invoked in this case.
+
+#### Consuming Records with Promise API
+
+```javascript
+// the Promise way, where the complete result is collected before we act on it:
+driver
+  .executeQuery('MERGE (james:Person {name : $nameParam}) RETURN james.name AS name', {
+    nameParam: 'James'
+  })
+  .then(result => {
+    result.records.forEach(record => {
+      console.log(record.get('name'))
+    })
+  })
+  .catch(error => {
+    console.log(error)
+  })
+  .then(() => driver.close())
+```
+
 ### Numbers and the Integer type
 
 The Neo4j type system uses 64-bit signed integer values. The range of values is between `-(2`<sup>`64`</sup>`- 1)` and `(2`<sup>`63`</sup>`- 1)`.
@@ -336,20 +391,18 @@ _**Any javascript number value passed as a parameter will be recognized as `Floa
 
 #### Writing integers
 
-Numbers written directly e.g. `session.run("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
+Numbers written directly e.g. `driver.executeQuery("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
 
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
-var neo4j = require('neo4j-driver-lite')
-
-session.run('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
+driver.executeQuery('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
 ```
 
 To write an integer value that are not within the range of `Number.MIN_SAFE_INTEGER` `-(2`<sup>`53`</sup>`- 1)` and `Number.MAX_SAFE_INTEGER` `(2`<sup>`53`</sup>`- 1)`, use a string argument to `neo4j.int`:
 
 ```javascript
-session.run('CREATE (n {age: $myIntParam})', {
+driver.executeQuery('CREATE (n {age: $myIntParam})', {
   myIntParam: neo4j.int('9223372036854775807')
 })
 ```
@@ -402,8 +455,6 @@ The Vector type supports signed integers of 8, 16, 32 and 64 bits, and floats of
 To create a neo4j Vector in your code, do the following:
 
 ```javascript
-var neo4j = require('neo4j-driver')
-
 var typedArray = Float32Array.from([1, 2, 3]) //this is how to convert a regular array of numbers into a TypedArray, useful if you handle vectors as regular arrays in your code
 
 var neo4jVector = neo4j.vector(typedArray) //this creates a neo4j Vector of type Float32, containing the values [1, 2, 3]
