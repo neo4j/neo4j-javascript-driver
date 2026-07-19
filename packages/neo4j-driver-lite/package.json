@@ -57,11 +57,10 @@
     "rollup": "2.80.0",
     "rollup-plugin-polyfill-node": "0.13.0",
     "testcontainers": "8.16.0",
-    "ts-jest": "29.4.9",
+    "ts-jest": "29.4.11",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "uglify-js": "3.19.3",
-    "ws": "8.20.0"
+    "uglify-js": "3.19.3"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "workspace:*",
