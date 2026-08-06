@@ -16,9 +16,9 @@
  */
 
 export * as loadBalancing from './load-balancing/index.js'
-export * as bolt from './bolt/index.js'
 export * as buf from './buf/index.js'
 export * as channel from './channel/index.js'
 export * as packstream from './packstream/index.js'
 
 export * from './connection-provider/index.js'
+export * from './bolt/index.js'

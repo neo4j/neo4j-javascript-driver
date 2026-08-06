@@ -123,10 +123,11 @@ import {
   ProtocolVersion,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  BoltProvider
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
-import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
+import { DirectConnectionProvider, RoutingConnectionProvider, bolt, channel } from './bolt-connection/index.js'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -193,6 +194,14 @@ function driver (
   // enabling set boltAgent
   const _config = config as unknown as InternalConfig
 
+
+  //TODO: FIX IGNORES
+  const boltMap = new Map()
+  // @ts-ignore
+  boltMap.set("1.0", bolt.BoltProtocol)
+  // @ts-ignore
+  const boltProvider = new BoltProvider(boltMap, "1.0", channel.alloc)
+
   // Determine entryption/trust options from the URL.
   let routing = false
   let encrypted = false
@@ -252,7 +261,12 @@ function driver (
     routing
   }
 
-  return new Driver(meta, _config, createConnectionProviderFunction())
+  return new Driver(
+    meta,
+    _config,
+    createConnectionProviderFunction(),
+    boltProvider
+  )
 
   function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
     if (routing) {

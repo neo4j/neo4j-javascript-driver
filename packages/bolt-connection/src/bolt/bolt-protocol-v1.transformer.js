@@ -24,7 +24,9 @@ import {
   Path,
   toNumber,
   PathSegment,
-  Vector
+  Vector,
+  isEnc,
+  EncryptedValue
 } from 'neo4j-driver-core'
 
 import { structure } from '../packstream'
@@ -45,6 +47,8 @@ const PATH = 0x50
 const PATH_STRUCT_SIZE = 3
 
 const VECTOR = 0x56
+
+const ENCRYPTED = 0x65
 
 /**
  * Creates the Node Transformer
@@ -197,10 +201,40 @@ function createVectorTransformer () {
   })
 }
 
+function createEncryptedValueTransformer () {
+  return new TypeTransformer({
+    signature: ENCRYPTED,
+    isTypeInstance: object => isEnc(object),
+    toStructure: encrypted => {
+      const version = encrypted.version
+      const profileName = encrypted.profileName
+      const cipherOutput = encrypted.cipherOutput
+      const typeName = encrypted.typeName
+      const typeProtocolMajor = encrypted.typeProtocolMajor
+      const typeProtocolMinor = encrypted.typeProtocolMinor
+      const metadata = encrypted.metadata
+
+      const struct = new structure.Structure(ENCRYPTED, [version, profileName, cipherOutput, typeName, typeProtocolMajor, typeProtocolMinor, metadata])
+      return struct
+    },
+    fromStructure: structure => {
+      const version = structure.fields[0]
+      const profileName = structure.fields[1]
+      const cipherOutput = structure.fields[2]
+      const typeName = structure.fields[3]
+      const typeProtocolMajor = structure.fields[4]
+      const typeProtocolMinor = structure.fields[5]
+      const metadata = structure.fields[6]
+      return new EncryptedValue(version, cipherOutput, profileName, typeName, typeProtocolMajor, typeProtocolMinor, metadata)
+    }
+  })
+}
+
 export default {
   createNodeTransformer,
   createRelationshipTransformer,
   createUnboundRelationshipTransformer,
   createPathTransformer,
-  createVectorTransformer
+  createVectorTransformer,
+  createEncryptedValueTransformer
 }

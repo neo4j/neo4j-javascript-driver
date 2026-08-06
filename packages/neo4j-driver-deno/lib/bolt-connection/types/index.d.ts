@@ -26,7 +26,17 @@ declare class RoutingConnectionProvider extends ConnectionProvider {
   constructor (config: any)
 }
 
+declare class bolt {
+  public BoltProtocol: any
+}
+
+declare class channel {
+  public alloc: any
+}
+
 export {
   DirectConnectionProvider,
-  RoutingConnectionProvider
+  RoutingConnectionProvider,
+  bolt,
+  channel
 }

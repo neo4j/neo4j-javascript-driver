@@ -123,9 +123,10 @@ import {
   ProtocolVersion,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  BoltProvider
 } from 'neo4j-driver-core'
-import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
+import { DirectConnectionProvider, RoutingConnectionProvider, bolt, channel } from 'neo4j-driver-bolt-connection'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -192,6 +193,13 @@ function driver (
   // enabling set boltAgent
   const _config = config as unknown as InternalConfig
 
+  // TODO: FIX IGNORES
+  const boltMap = new Map()
+  // @ts-expect-error
+  boltMap.set('1.0', bolt.BoltProtocol)
+  // @ts-expect-error
+  const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
+
   // Determine entryption/trust options from the URL.
   let routing = false
   let encrypted = false
@@ -251,7 +259,12 @@ function driver (
     routing
   }
 
-  return new Driver(meta, _config, createConnectionProviderFunction())
+  return new Driver(
+    meta,
+    _config,
+    createConnectionProviderFunction(),
+    boltProvider
+  )
 
   function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
     if (routing) {
@@ -273,7 +286,7 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
-      if (isEmptyObjectOrNull(parsedUrl.query) !== true) {
+      if (!isEmptyObjectOrNull(parsedUrl.query)) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )

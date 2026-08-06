@@ -50,6 +50,9 @@ import HomeDatabaseCache from './internal/homedb-cache.ts'
 import { cacheKey } from './internal/auth-util.ts'
 import { ProtocolVersion } from './protocol-version.ts'
 import { Rules } from './mapping.highlevel.ts'
+import { EncryptionProfile } from './encryption/encyption-profile.ts'
+import EncryptionService from './encryption/encryption.ts'
+import { BoltProvider } from './internal/bolt-provider.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -120,6 +123,7 @@ interface DriverConfig {
   notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
   disableAutoCommitRetries?: boolean
+  encryptionProfiles?: EncryptionProfile[] 
 }
 
 /**
@@ -492,6 +496,7 @@ class Driver {
   private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
   private readonly homeDatabaseCache: HomeDatabaseCache
+  public encryption: EncryptionService
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -506,6 +511,7 @@ class Driver {
     meta: MetaInfo,
     config: DriverConfig = {},
     createConnectionProvider: CreateConnectionProvider,
+    boltProvider: BoltProvider,
     createSession: CreateSession = args => new Session(args),
     createQueryExecutor: CreateQueryExecutor = createSession => new QueryExecutor(createSession)
   ) {
@@ -523,6 +529,7 @@ class Driver {
     this._createSession = createSession
     this._defaultExecuteQueryBookmarkManager = bookmarkManager()
     this._queryExecutor = createQueryExecutor(this.session.bind(this))
+    this.encryption = new EncryptionService(boltProvider, config.encryptionProfiles ?? [])
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
