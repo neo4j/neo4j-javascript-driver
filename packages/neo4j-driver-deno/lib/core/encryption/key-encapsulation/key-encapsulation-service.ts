@@ -3,15 +3,15 @@ type KeyEncapsulationOptions = Record<string, string>
 type SecretKey = Uint8Array
 
 export interface EncapsulationResult {
-    encapsulation(): Uint8Array;
+  encapsulation: () => Uint8Array
 
-    options(): KeyEncapsulationOptions;
+  options: () => KeyEncapsulationOptions
 
-    key(): SecretKey;
+  key: () => SecretKey
 }
 
 export interface KeyEncapsulationService {
-    encapsulate(options: KeyEncapsulationOptions): Promise<EncapsulationResult>
+  encapsulate: (options: KeyEncapsulationOptions) => Promise<EncapsulationResult>
 
-    decapsulate(encapsulation: Uint8Array, options: Record<string, string>): Promise<Uint8Array>;
+  decapsulate: (encapsulation: Uint8Array, options: Record<string, string>) => Promise<Uint8Array>
 }

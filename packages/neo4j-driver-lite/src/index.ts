@@ -126,7 +126,7 @@ import {
   isUUID,
   BoltProvider
 } from 'neo4j-driver-core'
-import { DirectConnectionProvider, RoutingConnectionProvider, bolt, channel } from 'neo4j-driver-bolt-connection'
+import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from 'neo4j-driver-bolt-connection'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -195,8 +195,7 @@ function driver (
 
   // TODO: FIX IGNORES
   const boltMap = new Map()
-  // @ts-expect-error
-  boltMap.set('1.0', bolt.BoltProtocol)
+  boltMap.set('1.0', BoltProtocol)
   // @ts-expect-error
   const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
 

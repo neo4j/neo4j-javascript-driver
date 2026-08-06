@@ -127,7 +127,7 @@ import {
   BoltProvider
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
-import { DirectConnectionProvider, RoutingConnectionProvider, bolt, channel } from './bolt-connection/index.js'
+import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from './bolt-connection/index.js'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -194,13 +194,11 @@ function driver (
   // enabling set boltAgent
   const _config = config as unknown as InternalConfig
 
-
-  //TODO: FIX IGNORES
+  // TODO: FIX IGNORES
   const boltMap = new Map()
-  // @ts-ignore
-  boltMap.set("1.0", bolt.BoltProtocol)
-  // @ts-ignore
-  const boltProvider = new BoltProvider(boltMap, "1.0", channel.alloc)
+  boltMap.set('1.0', BoltProtocol)
+  // @ts-expect-error
+  const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
 
   // Determine entryption/trust options from the URL.
   let routing = false
@@ -288,7 +286,7 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
-      if (isEmptyObjectOrNull(parsedUrl.query) !== true) {
+      if (!isEmptyObjectOrNull(parsedUrl.query)) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )

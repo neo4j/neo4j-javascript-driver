@@ -10,7 +10,7 @@ export class LocalKeyEncapsulationService implements KeyEncapsulationService {
   async encapsulate (options: Record<string, string>): Promise<EncapsulationResult> {
     const DEK = getRandomValues(32)
     // this is not correct key derivation, but it works for now
-    const encapulatedDEK = await encrypt(this._kek, DEK.buffer, undefined)
+    const encapulatedDEK = await encrypt(this._kek, DEK.buffer as ArrayBuffer, undefined)
     return new LocalEncapsulationResult(DEK, new Uint8Array(encapulatedDEK.cyphertext), { iv: ivToString(encapulatedDEK.iv) })
   }
 

@@ -26,8 +26,14 @@ declare class RoutingConnectionProvider extends ConnectionProvider {
   constructor (config: any)
 }
 
-declare class bolt {
-  public BoltProtocol: any
+declare class BoltProtocol {
+  get version (): any
+
+  _createPacker (chunker: any): any
+
+  _createUnpacker (disableLosslessIntegers: any, useBigInt: any): any
+
+  get transformer (): any
 }
 
 declare class channel {
@@ -37,6 +43,6 @@ declare class channel {
 export {
   DirectConnectionProvider,
   RoutingConnectionProvider,
-  bolt,
+  BoltProtocol,
   channel
 }

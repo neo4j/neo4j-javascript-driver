@@ -123,7 +123,7 @@ interface DriverConfig {
   notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
   disableAutoCommitRetries?: boolean
-  encryptionProfiles?: EncryptionProfile[] 
+  encryptionProfiles?: EncryptionProfile[]
 }
 
 /**
