@@ -1,6 +1,7 @@
 import * as responses from './responses.js'
 import configurableConsole from './console.configurable.js'
 import stringify from './stringify.js'
+import KeyRepo from './keyrepo.js'
 
 export function throwFrontendError () {
   throw new Error('TestKit FrontendError')
@@ -44,6 +45,21 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     useBigInt: true,
     logging: neo4j.logging.console(context.logLevel || context.environmentLogLevel)
   }
+  if ('propertyEncryptionProfiles' in data) {
+    let profiles = []
+    data.propertyEncryptionProfiles.forEach(profile => {
+      profiles = profiles.concat([
+        new neo4j.EnvelopeEncryptionProfile({
+          name: profile.name,
+          defaultKeyReference: 'main',
+          encapsulationService: new neo4j.LocalKeyEncapsulationService(profile.fixedKek ? context.binder.cypherToNative(profile.fixedKek) : crypto.getRandomValues(new Uint8Array(32))),
+          keyRepository: new KeyRepo()
+        })]
+      )
+    })
+    config.encryptionProfiles = profiles
+  }
+
   if ('encrypted' in data) {
     config.encrypted = data.encrypted ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF'
   }

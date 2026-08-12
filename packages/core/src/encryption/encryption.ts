@@ -43,8 +43,7 @@ export default class EncryptionService {
     }
     const struct = this._boltProvider.decodeObject(value)
     const key = await this._getKey(profile.profile, keyOptions)
-    // @ts-expect-error
-    return this._boltProvider.decodeValue(await decrypt(key, struct.metadata.iv, struct.cipherOutput, encodedAAD ?? struct.metadata.aad), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
+    return this._boltProvider.decodeValue(await decrypt(key, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD ?? struct.metadata.aad), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
   }
 
   keyManager (name: string | undefined): EncapsulatedKeyManager {
