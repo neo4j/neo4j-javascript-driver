@@ -124,7 +124,10 @@ import {
   uuid,
   UUID,
   isUUID,
-  BoltProvider
+  BoltProvider,
+  LocalKeyEncapsulationService,
+  EncapsulatedKeyRepository,
+  EnvelopeEncryptionProfile
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from './bolt-connection/index.js'
@@ -479,7 +482,9 @@ const forExport = {
   ProtocolVersion,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  EnvelopeEncryptionProfile
 }
 
 export {
@@ -560,7 +565,9 @@ export {
   StandardCase,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  EnvelopeEncryptionProfile
 }
 export type {
   QueryResult,
@@ -596,6 +603,7 @@ export type {
   Rule,
   Rules,
   MappedQueryResult,
-  ProtocolVersion
+  ProtocolVersion,
+  EncapsulatedKeyRepository
 }
 export default forExport
