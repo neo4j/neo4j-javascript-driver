@@ -1,4 +1,4 @@
-import { EncapsulatedKeyRepository } from './encapsulated-key.ts'
+import { EncapsulatedKey, EncapsulatedKeyRepository } from './encapsulated-key.ts'
 import { KeyEncapsulationService } from './key-encapsulation-service.ts'
 
 export class EncapsulatedKeyManager {
@@ -9,9 +9,9 @@ export class EncapsulatedKeyManager {
     this._keyEncapsulationService = keyEncapsulationService
   }
 
-  async create (name: string): Promise<Uint8Array> {
-    const result = await this._keyEncapsulationService.encapsulate({})
-    await this._keyRepository.save([name], result.encapsulation(), result.options())
-    return result.encapsulation()
+  async create (name: string): Promise<EncapsulatedKey> {
+    const encapulated = await this._keyEncapsulationService.encapsulate({})
+    const result = await this._keyRepository.save([name], encapulated.encapsulation(), encapulated.options())
+    return result
   }
 }

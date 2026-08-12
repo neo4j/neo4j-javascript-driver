@@ -1,7 +1,6 @@
 import Integer from '../integer'
 
 export class EncryptedValue {
-  public version: Integer
   public profileName: string
   public cipherOutput: Int8Array
   public typeName: string
@@ -9,7 +8,6 @@ export class EncryptedValue {
   public typeProtocolMinor: Integer
   public metadata: Record<string, any>
   constructor (
-    version: Integer,
     cipherOutput: Int8Array,
     profileName: string,
     typeName: string,
@@ -19,7 +17,6 @@ export class EncryptedValue {
 
   ) {
     this.cipherOutput = cipherOutput
-    this.version = version
     this.profileName = profileName
     this.typeName = typeName
     this.typeProtocolMajor = typeProtocolMajor

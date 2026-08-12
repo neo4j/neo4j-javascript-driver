@@ -1,4 +1,5 @@
 import { EncryptedValue } from '../encryption/encrypted-value.ts'
+import { newError } from '../error.ts'
 
 export class BoltProvider {
   private readonly _boltVersions: Map<string, any>
@@ -29,16 +30,21 @@ export class BoltProvider {
     const transformer = version.transformer
     const struct = transformer.toStructure(object)
     const buf = new EncodingBuffer()
+    buf.writeInt8(1)
     const packer = version._createPacker(buf)
     packer.packable(struct, version.transformer.toStructure)()
     return new Int8Array(buf.buffer())
   }
 
   decodeObject (buffer: Int8Array): EncryptedValue {
-    const version = this._boltVersions.get(this._defaultVersion)
-    const transformer = version.transformer
-    const struct = version.unpack(this._alloc(buffer.buffer as ArrayBuffer))
-    return transformer.fromStructure(struct)
+    if (buffer[0] === 1) {
+      const version = this._boltVersions.get(this._defaultVersion)
+      const transformer = version.transformer
+      const struct = version.unpack(this._alloc(buffer.buffer.slice(1) as ArrayBuffer))
+      return transformer.fromStructure(struct)
+    } else {
+      throw newError(`Object is encoded with version ${buffer[0]}, this driver only supports version 1.`)
+    }
   }
 }
 

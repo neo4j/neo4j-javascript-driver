@@ -206,7 +206,6 @@ function createEncryptedValueTransformer () {
     signature: ENCRYPTED,
     isTypeInstance: object => isEnc(object),
     toStructure: encrypted => {
-      const version = encrypted.version
       const profileName = encrypted.profileName
       const cipherOutput = encrypted.cipherOutput
       const typeName = encrypted.typeName
@@ -214,18 +213,17 @@ function createEncryptedValueTransformer () {
       const typeProtocolMinor = encrypted.typeProtocolMinor
       const metadata = encrypted.metadata
 
-      const struct = new structure.Structure(ENCRYPTED, [version, profileName, cipherOutput, typeName, typeProtocolMajor, typeProtocolMinor, metadata])
+      const struct = new structure.Structure(ENCRYPTED, [profileName, cipherOutput, typeName, typeProtocolMajor, typeProtocolMinor, metadata])
       return struct
     },
     fromStructure: structure => {
-      const version = structure.fields[0]
-      const profileName = structure.fields[1]
-      const cipherOutput = structure.fields[2]
-      const typeName = structure.fields[3]
-      const typeProtocolMajor = structure.fields[4]
-      const typeProtocolMinor = structure.fields[5]
-      const metadata = structure.fields[6]
-      return new EncryptedValue(version, cipherOutput, profileName, typeName, typeProtocolMajor, typeProtocolMinor, metadata)
+      const profileName = structure.fields[0]
+      const cipherOutput = structure.fields[1]
+      const typeName = structure.fields[2]
+      const typeProtocolMajor = structure.fields[3]
+      const typeProtocolMinor = structure.fields[4]
+      const metadata = structure.fields[5]
+      return new EncryptedValue(cipherOutput, profileName, typeName, typeProtocolMajor, typeProtocolMinor, metadata)
     }
   })
 }

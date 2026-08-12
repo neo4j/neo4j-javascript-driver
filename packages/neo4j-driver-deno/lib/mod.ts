@@ -194,9 +194,8 @@ function driver (
   // enabling set boltAgent
   const _config = config as unknown as InternalConfig
 
-  // TODO: FIX IGNORES
   const boltMap = new Map()
-  boltMap.set('1.0', BoltProtocol)
+  boltMap.set('1.0', new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }))
   // @ts-expect-error
   const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
 

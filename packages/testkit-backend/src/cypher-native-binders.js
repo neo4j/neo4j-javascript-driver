@@ -67,6 +67,9 @@ export default function CypherNativeBinders (neo4j) {
       // TODO: Broken!!!
       return valueResponse('CypherInt', x.toInt())
     }
+    if (x instanceof Int8Array) {
+      return { name: 'CypherBytes', data: { value: toHexString(x) } }
+    }
     if (Array.isArray(x)) {
       const values = x.map(nativeToCypher)
       return valueResponse('CypherList', values)
@@ -325,6 +328,9 @@ export default function CypherNativeBinders (neo4j) {
       case 'CypherUUID': {
         return neo4j.UUID.fromString(data.value)
       }
+      case 'CypherBytes': {
+        return new Int8Array(toByteArray(data.value).buffer)
+      }
     }
     console.log(`Type ${name} is not handle by cypherToNative`, c)
     const err = 'Unable to convert ' + c + ' to native type'
@@ -356,6 +362,9 @@ export default function CypherNativeBinders (neo4j) {
   }
 
   function toHexString (byteArray) {
+    if (byteArray instanceof Int8Array) {
+      byteArray = new Uint8Array(byteArray.buffer)
+    }
     let string = ''
     for (let i = 0; i < byteArray.length; i++) {
       string += (('0' + byteArray[i].toString(16) + ' ').slice(-3))

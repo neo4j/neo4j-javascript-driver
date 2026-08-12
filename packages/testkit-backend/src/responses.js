@@ -168,6 +168,18 @@ export function FakeTimeAck () {
   return response('FakeTimeAck', {})
 }
 
+export function EncryptedValue ({ encryptedBytes }) {
+  return response('EncryptedValue', { encryptedBytes })
+}
+
+export function DecryptedValue ({ decryptedValue }) {
+  return response('DecryptedValue', { decryptedValue })
+}
+
+export function EncapsulatedKey ({ id, alias, encapsulatedBytes, metadata }) {
+  return response('EncapsulatedKey', { id, alias, encapsulatedBytes, metadata })
+}
+
 export function response (name, data) {
   return { name, data }
 }

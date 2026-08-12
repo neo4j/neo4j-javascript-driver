@@ -9,6 +9,8 @@ import { isPoint } from '../spatial-types.ts'
 import { isUUID } from '../uuid.ts'
 import { EncryptionProfile } from './encyption-profile.ts'
 import { newError } from '../error.ts'
+import { EncapsulatedKey } from './key-encapsulation/encapsulated-key.ts'
+import { json } from '../index.ts'
 
 export default class EncryptionService {
   private readonly _boltProvider: BoltProvider
@@ -25,26 +27,30 @@ export default class EncryptionService {
     const profile = this._getProfile(profileName)
     const { typeName, typeProtocolMajor, typeProtocolMinor } = this._identifyType(value)
     const encodedValue = this._boltProvider.encodeValue(value)
-    const encodedAAD = aad !== undefined ? this._boltProvider.encodeValue(aad) : undefined
-    const key = await this._getKey(profile.profile, keyOptions)
-    const { cyphertext, iv } = await encrypt(key, encodedValue, encodedAAD)
-    const metadata = {
-      iv: new Int8Array(iv.buffer),
-      aad: encodedAAD
-    }
-    return this._boltProvider.encodeObject(new EncryptedValue(int(1), new Int8Array(cyphertext), profileName ?? '', typeName, typeProtocolMajor, typeProtocolMinor, metadata))
-  }
-
-  async decrypt<T>(value: Int8Array, keyOptions: string | Record<string, any>, profileName?: string, aad?: Record<string, any>): Promise<T> {
-    const profile = this._getProfile(profileName)
     let encodedAAD
-    if (aad != null) {
+    if (aad != null && !this.isEmpty(aad)) {
       encodedAAD = this._boltProvider.encodeValue(aad)
     }
-    const struct = this._boltProvider.decodeObject(value)
     const key = await this._getKey(profile.profile, keyOptions)
-    // @ts-expect-error
-    return this._boltProvider.decodeValue(await decrypt(key, struct.metadata.iv, struct.cipherOutput, encodedAAD ?? struct.metadata.aad), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
+    const decapsulatedKey = await this.decapsulateKey(profile.profile, key)
+    const { cyphertext, iv } = await encrypt(decapsulatedKey, encodedValue, encodedAAD)
+    const metadata = {
+      iv: new Int8Array(iv.buffer),
+      aad: encodedAAD,
+      key_id: key.id()
+    }
+    return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
+  }
+
+  async decrypt<T>(value: Int8Array, aad?: Record<string, any>, usePersistedAad?: boolean): Promise<T> {
+    let encodedAAD
+    const struct = this._boltProvider.decodeObject(value)
+    if (aad != null && !this.isEmpty(aad)) {
+      encodedAAD = this._boltProvider.encodeValue(usePersistedAad ? struct.metadata.aad : aad)
+    }
+    const profile = this._getProfile(struct.profileName)
+    const key = await this.decapsulateKey(profile.profile, await this._getKey(profile.profile, struct.metadata.key_id))
+    return this._boltProvider.decodeValue(await decrypt(key, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
   }
 
   keyManager (name: string | undefined): EncapsulatedKeyManager {
@@ -74,7 +80,7 @@ export default class EncryptionService {
     if (isVector(value)) {
       return { typeName: 'VECTOR', typeProtocolMajor: int(6), typeProtocolMinor: int(0) }
     }
-    if (value instanceof Uint8Array) {
+    if (value instanceof Int8Array) {
       return { typeName: 'BYTES', typeProtocolMajor: int(1), typeProtocolMinor: int(0) }
     }
     if (isLocalDateTime(value)) {
@@ -95,12 +101,21 @@ export default class EncryptionService {
     if (isUUID(value)) {
       return { typeName: 'UUID', typeProtocolMajor: int(6), typeProtocolMinor: int(1) }
     }
-    // TODO: Implement list
-    throw new Error()
+    if (Array.isArray(value)) {
+      const type = this._identifyType(value[0])
+      let major = int(1)
+      let minor = int(0)
+      if (type.typeProtocolMajor.low > 1 || (type.typeProtocolMajor.low === 1 && type.typeProtocolMinor.low > 0)) {
+        major = type.typeProtocolMajor
+        minor = type.typeProtocolMinor
+      }
+      return { typeName: `LIST<${type.typeName}>`, typeProtocolMajor: major, typeProtocolMinor: minor }
+    }
+    throw newError(`could not identify type of: ${json.stringify(value)}`)
   }
 
   private _getProfile (name?: string): { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager } {
-    if (name === undefined) {
+    if (name == null) {
       if (this._profiles.size === 1) {
         // @ts-expect-error
         return this._profiles.get(this._profiles.keys().next().value)
@@ -116,17 +131,33 @@ export default class EncryptionService {
     }
   }
 
-  private async _getKey (profile: EncryptionProfile, options: string | Record<string, any>): Promise<Uint8Array> {
+  private async _getKey (profile: EncryptionProfile, options: string | Record<string, any>): Promise<EncapsulatedKey> {
+    let key
     if (typeof options === 'string') {
-      const input = await profile.keyRepository.findByAlias(options)
-      return await profile.encapsulationService.decapsulate(input.encapsulation(), input.metadata())
+      key = await profile.keyRepository.findById(options)
+    } else if (options.id != null) {
+      key = await profile.keyRepository.findById(options.name)
     } else if (options.alias != null) {
-      const input = await profile.keyRepository.findByAlias(options.alias)
-      return await profile.encapsulationService.decapsulate(input.encapsulation(), input.metadata())
-    } else if (options.name != null) {
-      const input = await profile.keyRepository.findById(options.name)
-      return await profile.encapsulationService.decapsulate(input.encapsulation(), input.metadata())
+      key = await profile.keyRepository.findByAlias(options.alias)
+    } else {
+      throw newError(`invalid key options: ${json.stringify(options)}`)
     }
-    throw newError('PLACEHOLDER MESSAGE')
+    if (key == null) {
+      throw newError(`Could not find key with key options: ${json.stringify(options)}`)
+    }
+    return key
+  }
+
+  private async decapsulateKey (profile: EncryptionProfile, key: EncapsulatedKey): Promise<Uint8Array> {
+    return await profile.encapsulationService.decapsulate(key.encapsulation(), key.metadata())
+  }
+
+  private isEmpty (obj: Record<string, any>): boolean {
+    for (const prop in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, prop) != null) {
+        return false
+      }
+    }
+    return true
   }
 }

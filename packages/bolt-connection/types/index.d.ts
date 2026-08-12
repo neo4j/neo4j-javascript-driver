@@ -27,6 +27,8 @@ declare class RoutingConnectionProvider extends ConnectionProvider {
 }
 
 declare class BoltProtocol {
+  constructor (_: any, __: any, config: any)
+
   get version (): any
 
   _createPacker (chunker: any): any
@@ -37,7 +39,7 @@ declare class BoltProtocol {
 }
 
 declare class channel {
-  public alloc: any
+  alloc (): any
 }
 
 export {
