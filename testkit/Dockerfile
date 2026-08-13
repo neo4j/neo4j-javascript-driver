@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 
-ARG NODE_VERSION=18
+ARG NODE_VERSION=20
 ARG DENO_VERSION=2.5.1
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -13,7 +13,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y curl
 
-RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:-18}.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:-20}.x | bash -
 
 RUN apt-get update && \
     apt-get upgrade -y && \
