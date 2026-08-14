@@ -27,7 +27,7 @@ declare class RoutingConnectionProvider extends ConnectionProvider {
 }
 
 declare class BoltProtocol {
-  constructor (_: any, __: any, config: any)
+  constructor (_?: any, __?: any, config?: any)
 
   get version (): any
 

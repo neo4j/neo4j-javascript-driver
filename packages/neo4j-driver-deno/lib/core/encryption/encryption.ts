@@ -19,11 +19,11 @@ export default class EncryptionService {
     this._boltProvider = boltProvider
     this._profiles = new Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>()
     profiles.forEach((profile) => {
-      this._profiles.set(profile.name, { profile, keyManager: new EncapsulatedKeyManager(profile.keyRepository, profile.encapsulationService) })
+      this._profiles.set(profile.name, { profile, keyManager: new EncapsulatedKeyManager(profile, profile.encapsulationService) })
     })
   }
 
-  async encrypt (value: any, keyOptions: string | Record<string, any>, profileName?: string, aad?: Record<string, any>): Promise<Int8Array> {
+  async encrypt (value: any, keyOptions:  string | {alias?: string, id?: string}, profileName?: string, aad?: Record<string, any>): Promise<Int8Array> {
     const profile = this._getProfile(profileName)
     const { typeName, typeProtocolMajor, typeProtocolMinor } = this._identifyType(value)
     const encodedValue = this._boltProvider.encodeValue(value)
@@ -42,7 +42,7 @@ export default class EncryptionService {
     return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
   }
 
-  async decrypt<T>(value: Int8Array, aad?: Record<string, any>, usePersistedAad?: boolean): Promise<T> {
+  async decrypt<T>(value: Int8Array, usePersistedAad?: boolean, aad?: Record<string, any>): Promise<T> {
     let encodedAAD
     const struct = this._boltProvider.decodeObject(value)
     if (aad != null && !this.isEmpty(aad)) {
@@ -131,17 +131,8 @@ export default class EncryptionService {
     }
   }
 
-  private async _getKey (profile: EncryptionProfile, options: string | Record<string, any>): Promise<EncapsulatedKey> {
-    let key
-    if (typeof options === 'string') {
-      key = await profile.keyRepository.findById(options)
-    } else if (options.id != null) {
-      key = await profile.keyRepository.findById(options.name)
-    } else if (options.alias != null) {
-      key = await profile.keyRepository.findByAlias(options.alias)
-    } else {
-      throw newError(`invalid key options: ${json.stringify(options)}`)
-    }
+  private async _getKey (profile: EncryptionProfile, options:  string | {alias?: string, id?: string}): Promise<EncapsulatedKey> {
+    let key  = await profile.findKey(options)
     if (key == null) {
       throw newError(`Could not find key with key options: ${json.stringify(options)}`)
     }
