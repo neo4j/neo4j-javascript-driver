@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "noImplicitOverride": false,
-    "nodeModulesDir": "auto"
-  }
+    "noImplicitOverride": false
+  },
+  "nodeModulesDir": "auto"
 }
