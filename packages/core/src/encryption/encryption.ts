@@ -46,7 +46,7 @@ export default class EncryptionService {
     let encodedAAD
     const struct = this._boltProvider.decodeObject(value)
     if (aad != null && !this.isEmpty(aad)) {
-      encodedAAD = this._boltProvider.encodeValue(usePersistedAad ? struct.metadata.aad : aad)
+      encodedAAD = this._boltProvider.encodeValue(usePersistedAad === true ? struct.metadata.aad : aad)
     }
     const profile = this._getProfile(struct.profileName)
     const key = await this.decapsulateKey(profile.profile, await this._getKey(profile.profile, struct.metadata.key_id))

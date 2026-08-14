@@ -3,7 +3,7 @@ import { newError } from '../../error.ts'
 
 export async function encrypt (key: Uint8Array, message: ArrayBuffer, aad: ArrayBuffer | undefined): Promise<{ cyphertext: ArrayBuffer, iv: Uint8Array }> {
   if (crypto === undefined) {
-    throw newError("Your node environment was build without the crypto module, and client side encrytion can therefore not be used")
+    throw newError('Your node environment was build without the crypto module, and client side encrytion can therefore not be used')
   }
   const iv = crypto.getRandomValues(new Uint8Array(12))
   return {
@@ -22,7 +22,7 @@ export async function encrypt (key: Uint8Array, message: ArrayBuffer, aad: Array
 
 export async function decrypt (key: Uint8Array, iv: Uint8Array, message: ArrayBuffer, aad: ArrayBuffer | undefined): Promise<ArrayBuffer> {
   if (crypto === undefined) {
-    throw newError("Your node environment was build without the crypto module, and client side encrytion can therefore not be used")
+    throw newError('Your node environment was build without the crypto module, and client side encrytion can therefore not be used')
   }
   return await crypto.subtle.decrypt(
     {
