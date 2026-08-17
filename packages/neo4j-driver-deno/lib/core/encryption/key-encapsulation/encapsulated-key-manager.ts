@@ -1,5 +1,5 @@
 import { EncryptionProfile } from '../encyption-profile.ts'
-import { EncapsulatedKey, EncapsulatedKeyRepository } from './encapsulated-key.ts'
+import { EncapsulatedKey } from './encapsulated-key.ts'
 import { KeyEncapsulationService } from './key-encapsulation-service.ts'
 
 export class EncapsulatedKeyManager {

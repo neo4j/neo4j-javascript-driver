@@ -23,7 +23,7 @@ export default class EncryptionService {
     })
   }
 
-  async encrypt (value: any, keyOptions:  string | {alias?: string, id?: string}, profileName?: string, aad?: Record<string, any>): Promise<Int8Array> {
+  async encrypt (value: any, keyOptions: string | { alias?: string, id?: string }, profileName?: string, aad?: Record<string, any>): Promise<Int8Array> {
     const profile = this._getProfile(profileName)
     const { typeName, typeProtocolMajor, typeProtocolMinor } = this._identifyType(value)
     const encodedValue = this._boltProvider.encodeValue(value)
@@ -131,8 +131,8 @@ export default class EncryptionService {
     }
   }
 
-  private async _getKey (profile: EncryptionProfile, options:  string | {alias?: string, id?: string}): Promise<EncapsulatedKey> {
-    let key  = await profile.findKey(options)
+  private async _getKey (profile: EncryptionProfile, options: string | { alias?: string, id?: string }): Promise<EncapsulatedKey> {
+    const key = await profile.findKey(options)
     if (key == null) {
       throw newError(`Could not find key with key options: ${json.stringify(options)}`)
     }
