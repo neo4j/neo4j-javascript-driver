@@ -1,48 +1,47 @@
 export default class KeyRepo {
-    aliasToId;
-    idToKey;
-    num;
-    constructor() {
-        this.num = 0
-        this.aliasToId = new Map();
-        this.idToKey = new Map();
-    }
-    findById(id) {
-        return this.idToKey.get(id)
-    }
+  aliasToId
+  idToKey
+  num
+  constructor () {
+    this.num = 0
+    this.aliasToId = new Map()
+    this.idToKey = new Map()
+  }
 
-    findByAlias(alias) {
-        return this.idToKey.get(this.aliasToId.get(alias) ?? "")
-    }
+  findById (id) {
+    return this.idToKey.get(id)
+  }
 
-    save(aliases, encapsulation, metadata) {
-        const id = this.num.toString()
-        this.num += 1
-        aliases.forEach((val) => {
-            this.aliasToId.set(val, id)
-        })
-        const key = {
-            aliases: () => aliases,
-            encapsulation: () => encapsulation,
-            metadata: () => metadata,
-            id: () => id
-        }
-        this.idToKey.set(id, key)
-        return Promise.resolve(key)
-    }
+  findByAlias (alias) {
+    return this.idToKey.get(this.aliasToId.get(alias) ?? '')
+  }
 
-    addAliasById(id, alias) {
-        this.aliasToId.set(alias, id)
-        return Promise.resolve()
+  save (alias, encapsulation, metadata) {
+    const id = this.num.toString()
+    this.num += 1
+    this.aliasToId.set(alias, id)
+    const key = {
+      alias: () => alias,
+      encapsulation: () => encapsulation,
+      metadata: () => metadata,
+      id: () => id
     }
+    this.idToKey.set(id, key)
+    return Promise.resolve(key)
+  }
 
-    deleteAliasById(id, alias) {
-        this.aliasToId.delete(alias)
-        return Promise.resolve()
-    }
+  addAliasById (id, alias) {
+    this.aliasToId.set(alias, id)
+    return Promise.resolve()
+  }
 
-    deleteById(id) {
-        this.idToKey.delete(id)
-        return Promise.resolve()
-    }
+  deleteAliasById (id, alias) {
+    this.aliasToId.delete(alias)
+    return Promise.resolve()
+  }
+
+  deleteById (id) {
+    this.idToKey.delete(id)
+    return Promise.resolve()
+  }
 }
