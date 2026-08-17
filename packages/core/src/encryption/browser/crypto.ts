@@ -1,3 +1,5 @@
+const KEY_DERIVATION_INFO = new TextEncoder().encode('neo4j/property-encryption/v1')
+
 export async function encrypt (key: Uint8Array, message: ArrayBuffer, aad: ArrayBuffer | undefined): Promise<{ cyphertext: ArrayBuffer, iv: Uint8Array }> {
   // @ts-expect-error
   const iv = window.crypto.getRandomValues(new Uint8Array(12))
@@ -36,4 +38,16 @@ export async function decrypt (key: Uint8Array, iv: Uint8Array, message: ArrayBu
 export function getRandomValues (length: number): Uint8Array {
   // @ts-expect-error
   return window.crypto.getRandomValues(new Uint8Array(length))
+}
+
+export async function deriveKey (ikm: Uint8Array): Promise<Uint8Array> {
+  // @ts-expect-error
+  const baseKey = await window.crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits'])
+  // @ts-expect-error
+  const bits = await window.crypto.subtle.deriveBits(
+    { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: KEY_DERIVATION_INFO },
+    baseKey,
+    256
+  )
+  return new Uint8Array(bits)
 }

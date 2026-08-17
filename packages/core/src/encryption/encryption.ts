@@ -2,7 +2,7 @@ import Integer, { int, isInt } from '../integer'
 import { BoltProvider } from '../internal/bolt-provider'
 import { EncryptedValue } from './encrypted-value'
 import { EncapsulatedKeyManager } from './key-encapsulation/encapsulated-key-manager'
-import { encrypt, decrypt } from './node/crypto'
+import { encrypt, decrypt, deriveKey } from './node/crypto'
 import { isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from '../temporal-types'
 import { isVector } from '../vector'
 import { isPoint } from '../spatial-types'
@@ -33,7 +33,8 @@ export default class EncryptionService {
     }
     const key = await this._getKey(profile.profile, keyOptions)
     const decapsulatedKey = await this.decapsulateKey(profile.profile, key)
-    const { cyphertext, iv } = await encrypt(decapsulatedKey, encodedValue, encodedAAD)
+    const derivedKey = await deriveKey(decapsulatedKey)
+    const { cyphertext, iv } = await encrypt(derivedKey, encodedValue, encodedAAD)
     const metadata = {
       iv: new Int8Array(iv.buffer),
       aad: encodedAAD,
@@ -49,8 +50,9 @@ export default class EncryptionService {
       encodedAAD = this._boltProvider.encodeValue(usePersistedAad === true ? struct.metadata.aad : aad)
     }
     const profile = this._getProfile(struct.profileName)
-    const key = await this.decapsulateKey(profile.profile, await this._getKey(profile.profile, struct.metadata.key_id))
-    return this._boltProvider.decodeValue(await decrypt(key, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
+    const decapsulatedKey = await this.decapsulateKey(profile.profile, await this._getKey(profile.profile, struct.metadata.key_id))
+    const derivedKey = await deriveKey(decapsulatedKey)
+    return this._boltProvider.decodeValue(await decrypt(derivedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
   }
 
   keyManager (name: string | undefined): EncapsulatedKeyManager {
