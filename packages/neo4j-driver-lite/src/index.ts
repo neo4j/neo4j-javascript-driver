@@ -273,7 +273,7 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
-      if (isEmptyObjectOrNull(parsedUrl.query) !== true) {
+      if (!isEmptyObjectOrNull(parsedUrl.query)) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )
