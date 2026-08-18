@@ -321,7 +321,7 @@ describe('Driver', () => {
 
     const driver = new Driver(META_INFO, { ...config, logging }, mockCreateConnectonProvider(new ConnectionProvider()), createSession)
 
-    if (valid) {
+    if (valid === true) {
       expect(logging.logger).not.toHaveBeenCalled()
     } else {
       expect(logging.logger).toHaveBeenCalledWith(
@@ -350,7 +350,7 @@ describe('Driver', () => {
 
     const promise: Promise<void> | undefined = driver?.verifyConnectivity(input)
 
-    if (shouldBeVoid) {
+    if (shouldBeVoid === true) {
       const expectedVoid = Promise.resolve()
       expect(promise).toEqual(expectedVoid)
     } else {
@@ -680,7 +680,7 @@ describe('Driver', () => {
             { connectionLivenessCheckTimeout: configured },
             createConnectionProviderMock,
             createSession
-          )).toThrow(new Error(`The connectionLivenessCheckTimeout can only be a positive value or 0 for always. However connectionLivenessCheckTimeout = ${expected}`))
+          )).toThrow(new Error(`The connectionLivenessCheckTimeout can only be a positive value or 0 for always. However connectionLivenessCheckTimeout = ${expected as string}`))
 
           expect(createConnectionProviderMock).not.toHaveBeenCalled()
         })

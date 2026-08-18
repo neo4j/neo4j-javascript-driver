@@ -40,7 +40,6 @@ export function getRandomValues (length: number): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(length))
 }
 
-
 export async function deriveKey (ikm: Uint8Array): Promise<Uint8Array> {
   const baseKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits'])
   const bits = await crypto.subtle.deriveBits(
