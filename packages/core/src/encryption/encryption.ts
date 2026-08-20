@@ -119,7 +119,7 @@ export default class EncryptionService {
         major = type.typeProtocolMajor
         minor = type.typeProtocolMinor
       }
-      return { typeName: `LIST<${type.typeName}>`, typeProtocolMajor: major, typeProtocolMinor: minor }
+      return { typeName: 'LIST', typeProtocolMajor: major, typeProtocolMinor: minor }
     }
     throw newError(`could not identify type of: ${json.stringify(value)}`)
   }

@@ -455,4 +455,6 @@ export default function CypherNativeBinders (neo4j) {
   this.nativeToCypher = nativeToCypher
   this.cypherToNative = cypherToNative
   this.parseAuthToken = parseAuthToken
+  this.toHexString = toHexString
+  this.toByteArray = toByteArray
 }

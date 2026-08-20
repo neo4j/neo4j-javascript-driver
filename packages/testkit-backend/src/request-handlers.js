@@ -52,7 +52,7 @@ export function NewDriver ({ neo4j }, context, data, wire) {
         new neo4j.EnvelopeEncryptionProfile({
           name: profile.name,
           defaultKeyReference: 'main',
-          encapsulationService: new neo4j.LocalKeyEncapsulationService(profile.fixedKek ? context.binder.cypherToNative(profile.fixedKek) : crypto.getRandomValues(new Uint8Array(32))),
+          encapsulationService: new neo4j.LocalKeyEncapsulationService(profile.kek ? context.binder.toByteArray(profile.kek) : crypto.getRandomValues(new Uint8Array(32))),
           keyRepository: new KeyRepo()
         })]
       )
@@ -828,11 +828,11 @@ export function FakeTimeUninstall (_, context, _data, wire) {
   wire.writeResponse(responses.FakeTimeAck())
 }
 
-export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, profileName, keyAlias, keyId, fixedIv }, wire) {
+export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, profileName, keyAlias, keyId, iv }, wire) {
   const driver = context.getDriver(driverId)
   const temp = driver.encryption._cryptoProvider.getRandomValues
-  if (fixedIv != null) {
-    driver.encryption._cryptoProvider.getRandomValues = (val) => Uint8Array.from(context.binder.cypherToNative(fixedIv))
+  if (iv != null) {
+    driver.encryption._cryptoProvider.getRandomValues = (val) => context.binder.toByteArray(iv)
   }
   let boundAad
   if (aad != null) {
@@ -840,7 +840,7 @@ export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, prof
   }
   driver.encryption.encrypt(context.binder.cypherToNative(value), { alias: keyAlias, id: keyId }, profileName, boundAad).then(bytes => {
     driver.encryption._cryptoProvider.getRandomValues = temp
-    wire.writeResponse(responses.EncryptedValue({ encryptedBytes: context.binder.nativeToCypher(bytes) }))
+    wire.writeResponse(responses.EncryptedValue({ encryptedBytes: context.binder.toHexString(bytes) }))
   })
     .catch(e => {
       driver.encryption._cryptoProvider.getRandomValues = temp
@@ -850,7 +850,7 @@ export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, prof
 
 export function Decrypt ({ neo4j }, context, { driverId, value, aad, usePersistedAad }, wire) {
   const driver = context.getDriver(driverId)
-  driver.encryption.decrypt(context.binder.cypherToNative(value), usePersistedAad, aad).then(decryptedValue => {
+  driver.encryption.decrypt(context.binder.toByteArray(value), usePersistedAad, aad).then(decryptedValue => {
     wire.writeResponse(responses.DecryptedValue({ decryptedValue: context.binder.nativeToCypher(decryptedValue) }))
   })
     .catch(e => wire.writeError(e))
@@ -861,7 +861,7 @@ export function CreateEncapsulatedKey ({ neo4j }, context, { driverId, alias, pr
   try {
     const keyManager = driver.encryption.keyManager(profileName)
     keyManager.create(alias).then(key => {
-      wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias(), encapsulatedBytes: context.binder.nativeToCypher(key.encapsulation()), metadata: key.metadata() }))
+      wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias(), encapsulatedBytes: context.binder.toHexString(key.encapsulation()), metadata: key.metadata() }))
     })
       .catch(e => wire.writeError(e))
   } catch (error) {
@@ -871,8 +871,8 @@ export function CreateEncapsulatedKey ({ neo4j }, context, { driverId, alias, pr
 
 export function ImportEncapsulatedKey ({ neo4j }, context, { driverId, alias, profileName, encapsulation, metadata }, wire) {
   const driver = context.getDriver(driverId)
-  driver.encryption.keyManager(profileName)._profile._keyRepository.save(alias, context.binder.cypherToNative(encapsulation), metadata).then(key => {
-    wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias(), encapsulatedBytes: context.binder.nativeToCypher(key.encapsulation()), metadata: key.metadata() }))
+  driver.encryption.keyManager(profileName)._profile._keyRepository.save(alias, context.binder.toByteArray(encapsulation), metadata).then(key => {
+    wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias(), encapsulatedBytes: context.binder.toHexString(key.encapsulation()), metadata: key.metadata() }))
   })
     .catch(e => wire.writeError(e))
 }
