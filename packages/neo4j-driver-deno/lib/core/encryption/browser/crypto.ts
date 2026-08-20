@@ -11,7 +11,7 @@ export default class CryptoProvider {
           iv,
           additionalData: aad
         },
-        
+
         // @ts-expect-error
         // eslint-disable-next-line
         await window.crypto.subtle.importKey('raw', key, { name: 'AES-GCM', length: 256 }, false, ['encrypt']),
@@ -20,7 +20,7 @@ export default class CryptoProvider {
       iv
     }
   }
-  
+
   async decrypt (key: Uint8Array, iv: Uint8Array, message: ArrayBuffer, aad: ArrayBuffer | undefined): Promise<ArrayBuffer> {
     // @ts-expect-error
     // eslint-disable-next-line
@@ -35,11 +35,12 @@ export default class CryptoProvider {
       message
     )
   }
+
   getRandomValues (length: number): Uint8Array {
     // @ts-expect-error
     return window.crypto.getRandomValues(new Uint8Array(length))
   }
-  
+
   async deriveKey (ikm: Uint8Array): Promise<Uint8Array> {
     // @ts-expect-error
     const baseKey = await window.crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits'])
@@ -50,5 +51,5 @@ export default class CryptoProvider {
       256
     )
     return new Uint8Array(bits)
-  } 
+  }
 }

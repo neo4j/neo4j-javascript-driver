@@ -13,9 +13,9 @@ import { EncapsulatedKey } from './key-encapsulation/encapsulated-key.ts'
 import { json } from '../index.ts'
 
 export default class EncryptionService {
-  private _boltProvider: BoltProvider
-  private _profiles: Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>
-  private _cryptoProvider: CryptoProvider
+  private readonly _boltProvider: BoltProvider
+  private readonly _profiles: Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>
+  private readonly _cryptoProvider: CryptoProvider
   constructor (boltProvider: BoltProvider, profiles: EncryptionProfile[]) {
     this._boltProvider = boltProvider
     this._profiles = new Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>()
@@ -44,7 +44,7 @@ export default class EncryptionService {
       iv: new Int8Array(iv.buffer),
       aad: encodedAAD !== undefined ? new Int8Array(encodedAAD) : undefined,
       aad_encoding_scheme_major: aadType?.typeProtocolMajor,
-      aad_encoding_scheme_minor: aadType?.typeProtocolMinor,
+      aad_encoding_scheme_minor: aadType?.typeProtocolMinor
     }
     return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
   }
@@ -52,7 +52,7 @@ export default class EncryptionService {
   async decrypt<T>(value: Int8Array, usePersistedAad?: boolean, aad?: Record<string, any>): Promise<T> {
     let encodedAAD
     const struct = this._boltProvider.decodeObject(value)
-    if(usePersistedAad === true) {
+    if (usePersistedAad === true) {
       encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
     } else if (aad != null && !this.isEmpty(aad)) {
       encodedAAD = this._boltProvider.encodeValue(aad)

@@ -46,7 +46,7 @@ export class EnvelopeEncryptionProfile {
 
   async findKey (options?: string | { alias?: string, id?: string }): Promise<EncapsulatedKey | undefined> {
     let key
-    if (options == null){
+    if (options == null) {
       key = await this._checkAliasCache(this.defaultKeyReference)
     } else if (typeof options === 'string') {
       key = await this._checkKeyCache(options)

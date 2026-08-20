@@ -11,7 +11,7 @@ function b64Tou8 (b: string): Uint8Array {
 
 export class LocalKeyEncapsulationService implements KeyEncapsulationService {
   private readonly _kek: Uint8Array
-  private _cryptoProvider: CryptoProvider
+  private readonly _cryptoProvider: CryptoProvider
   constructor (kek: Uint8Array) {
     this._kek = kek
     this._cryptoProvider = new CryptoProvider()

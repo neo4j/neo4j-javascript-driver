@@ -23,7 +23,7 @@ export default class CryptoProvider {
       iv
     }
   }
-  
+
   async decrypt (key: Uint8Array, iv: Uint8Array, message: ArrayBuffer, aad: ArrayBuffer | undefined): Promise<ArrayBuffer> {
     if (crypto === undefined) {
       throw newError('Your node environment was build without the crypto module, and client side encrytion can therefore not be used')
@@ -38,10 +38,11 @@ export default class CryptoProvider {
       message
     )
   }
+
   getRandomValues (length: number): Uint8Array {
     return crypto.getRandomValues(new Uint8Array(length))
   }
-  
+
   async deriveKey (ikm: Uint8Array): Promise<Uint8Array> {
     const baseKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits'])
     const bits = await crypto.subtle.deriveBits(
