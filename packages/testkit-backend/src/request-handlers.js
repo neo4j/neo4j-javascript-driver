@@ -831,9 +831,7 @@ export function FakeTimeUninstall (_, context, _data, wire) {
 export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, profileName, keyAlias, keyId, fixedIv }, wire) {
   const driver = context.getDriver(driverId)
   const temp = driver.encryption._cryptoProvider.getRandomValues
-  console.log(value)
   if (fixedIv != null) {
-    console.log(fixedIv)
     driver.encryption._cryptoProvider.getRandomValues = (val) => Uint8Array.from(context.binder.cypherToNative(fixedIv))
   }
   let boundAad
@@ -842,7 +840,6 @@ export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, prof
   }
   driver.encryption.encrypt(context.binder.cypherToNative(value), { alias: keyAlias, id: keyId }, profileName, boundAad).then(bytes => {
     driver.encryption._cryptoProvider.getRandomValues = temp
-    console.log(context.binder.nativeToCypher(bytes))
     wire.writeResponse(responses.EncryptedValue({ encryptedBytes: context.binder.nativeToCypher(bytes) }))
   })
     .catch(e => {

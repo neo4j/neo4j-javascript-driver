@@ -9,7 +9,6 @@ export default class CryptoProvider {
       throw newError('Your node environment was build without the crypto module, and client side encrytion can therefore not be used')
     }
     const iv = this.getRandomValues(12)
-    console.log(iv)
     return {
       cyphertext: await crypto.subtle.encrypt(
         {

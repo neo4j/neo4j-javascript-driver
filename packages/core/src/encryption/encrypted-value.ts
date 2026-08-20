@@ -21,7 +21,8 @@ export class EncryptedValue {
     this.typeName = typeName
     this.typeProtocolMajor = typeProtocolMajor
     this.typeProtocolMinor = typeProtocolMinor
-    this.metadata = metadata
+    this.metadata = {}
+    Object.keys(metadata).sort().forEach((val) => { this.metadata[val] = metadata[val] })
   }
 
   /**
