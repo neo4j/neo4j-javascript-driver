@@ -2,7 +2,7 @@ import Integer, { int, isInt } from '../integer.ts'
 import { BoltProvider } from '../internal/bolt-provider.ts'
 import { EncryptedValue } from './encrypted-value.ts'
 import { EncapsulatedKeyManager } from './key-encapsulation/encapsulated-key-manager.ts'
-import { encrypt, decrypt, deriveKey } from './node/crypto.ts'
+import CryptoProvider from './node/crypto.ts'
 import { isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from '../temporal-types.ts'
 import { isVector } from '../vector.ts'
 import { isPoint } from '../spatial-types.ts'
@@ -13,14 +13,16 @@ import { EncapsulatedKey } from './key-encapsulation/encapsulated-key.ts'
 import { json } from '../index.ts'
 
 export default class EncryptionService {
-  private readonly _boltProvider: BoltProvider
-  private readonly _profiles: Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>
+  private _boltProvider: BoltProvider
+  private _profiles: Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>
+  private _cryptoProvider: CryptoProvider
   constructor (boltProvider: BoltProvider, profiles: EncryptionProfile[]) {
     this._boltProvider = boltProvider
     this._profiles = new Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>()
     profiles.forEach((profile) => {
       this._profiles.set(profile.name, { profile, keyManager: new EncapsulatedKeyManager(profile, profile.encapsulationService) })
     })
+    this._cryptoProvider = new CryptoProvider()
   }
 
   async encrypt (value: any, keyOptions: string | { alias?: string, id?: string }, profileName?: string, aad?: Record<string, any>): Promise<Int8Array> {
@@ -28,17 +30,21 @@ export default class EncryptionService {
     const { typeName, typeProtocolMajor, typeProtocolMinor } = this._identifyType(value)
     const encodedValue = this._boltProvider.encodeValue(value)
     let encodedAAD
+    let aadType
     if (aad != null && !this.isEmpty(aad)) {
+      aadType = this._identifyType(aad)
       encodedAAD = this._boltProvider.encodeValue(aad)
     }
     const key = await this._getKey(profile.profile, keyOptions)
     const decapsulatedKey = await this.decapsulateKey(profile.profile, key)
-    const derivedKey = await deriveKey(decapsulatedKey)
-    const { cyphertext, iv } = await encrypt(derivedKey, encodedValue, encodedAAD)
+    const derivedKey = await this._cryptoProvider.deriveKey(decapsulatedKey)
+    const { cyphertext, iv } = await this._cryptoProvider.encrypt(derivedKey, encodedValue, encodedAAD)
     const metadata = {
+      key_id: key.id(),
       iv: new Int8Array(iv.buffer),
-      aad: encodedAAD,
-      key_id: key.id()
+      aad: encodedAAD !== undefined ? new Int8Array(encodedAAD) : undefined,
+      aad_encoding_scheme_major: aadType?.typeProtocolMajor,
+      aad_encoding_scheme_minor: aadType?.typeProtocolMinor,
     }
     return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
   }
@@ -46,13 +52,15 @@ export default class EncryptionService {
   async decrypt<T>(value: Int8Array, usePersistedAad?: boolean, aad?: Record<string, any>): Promise<T> {
     let encodedAAD
     const struct = this._boltProvider.decodeObject(value)
-    if (aad != null && !this.isEmpty(aad)) {
-      encodedAAD = this._boltProvider.encodeValue(usePersistedAad === true ? struct.metadata.aad : aad)
+    if(usePersistedAad === true) {
+      encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
+    } else if (aad != null && !this.isEmpty(aad)) {
+      encodedAAD = this._boltProvider.encodeValue(aad)
     }
     const profile = this._getProfile(struct.profileName)
     const decapsulatedKey = await this.decapsulateKey(profile.profile, await this._getKey(profile.profile, struct.metadata.key_id))
-    const derivedKey = await deriveKey(decapsulatedKey)
-    return this._boltProvider.decodeValue(await decrypt(derivedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
+    const derivedKey = await this._cryptoProvider.deriveKey(decapsulatedKey)
+    return this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(derivedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
   }
 
   keyManager (name: string | undefined): EncapsulatedKeyManager {

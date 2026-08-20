@@ -1,7 +1,4 @@
 export default class KeyRepo {
-  aliasToId
-  idToKey
-  num
   constructor () {
     this.num = 0
     this.aliasToId = new Map()

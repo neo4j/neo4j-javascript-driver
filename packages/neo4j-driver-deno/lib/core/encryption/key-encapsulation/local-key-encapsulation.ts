@@ -1,4 +1,4 @@
-import { decrypt, encrypt, getRandomValues } from '../node/crypto.ts'
+import CryptoProvider from '../node/crypto.ts'
 import { EncapsulationResult, KeyEncapsulationService } from './key-encapsulation-service.ts'
 
 function u8ToB64 (u: Uint8Array): string {
@@ -11,19 +11,21 @@ function b64Tou8 (b: string): Uint8Array {
 
 export class LocalKeyEncapsulationService implements KeyEncapsulationService {
   private readonly _kek: Uint8Array
+  private _cryptoProvider: CryptoProvider
   constructor (kek: Uint8Array) {
     this._kek = kek
+    this._cryptoProvider = new CryptoProvider()
   }
 
   async encapsulate (options: Record<string, string>): Promise<EncapsulationResult> {
-    const DEK = getRandomValues(32)
+    const DEK = this._cryptoProvider.getRandomValues(32)
     // this is not correct key derivation, but it works for now
-    const encapulatedDEK = await encrypt(this._kek, DEK.buffer as ArrayBuffer, undefined)
+    const encapulatedDEK = await this._cryptoProvider.encrypt(this._kek, DEK.buffer as ArrayBuffer, undefined)
     return new LocalEncapsulationResult(DEK, new Int8Array(encapulatedDEK.cyphertext), { iv: u8ToB64(encapulatedDEK.iv) })
   }
 
   async decapsulate (encapsulation: Int8Array, options: Record<string, string>): Promise<Uint8Array> {
-    return new Uint8Array(await decrypt(this._kek, b64Tou8(options.iv), encapsulation.buffer as ArrayBuffer, undefined))
+    return new Uint8Array(await this._cryptoProvider.decrypt(this._kek, b64Tou8(options.iv), encapsulation.buffer as ArrayBuffer, undefined))
   }
 }
 
