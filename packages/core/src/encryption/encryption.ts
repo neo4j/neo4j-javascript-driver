@@ -35,10 +35,14 @@ export default class EncryptionService {
     const decapsulatedKey = await this.decapsulateKey(profile.profile, key)
     const derivedKey = await deriveKey(decapsulatedKey)
     const { cyphertext, iv } = await encrypt(derivedKey, encodedValue, encodedAAD)
-    const metadata = {
+    const metadata: Record<string, any> = {
       iv: new Int8Array(iv.buffer),
       aad: encodedAAD,
       key_id: key.id()
+    }
+    if (encodedAAD != null) {
+      metadata.aad_encoding_scheme_major = int(1)
+      metadata.aad_encoding_scheme_minor = int(0)
     }
     return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
   }
