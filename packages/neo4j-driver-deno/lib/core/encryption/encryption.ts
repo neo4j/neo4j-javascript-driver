@@ -39,7 +39,7 @@ export default class EncryptionService {
     let aadType
     if (aad != null && !this.isEmpty(aad)) {
       aadType = this._identifyType(aad)
-      if(!supportedAADTypes.includes(aadType.typeName)) {
+      if (!supportedAADTypes.includes(aadType.typeName)) {
         throw newError(`Unsupported AAD propety type ${aadType.typeName}, supported values are ${supportedAADTypes.toString()}`)
       }
       encodedAAD = this._boltProvider.encodeValue(aad)
@@ -77,67 +77,67 @@ export default class EncryptionService {
     return profile.keyManager
   }
 
-  private _identifyType (value: any): { typeName: string, typeProtocolMajor: Integer, typeProtocolMinor: Integer, verification: (_: any) => boolean  } {
+  private _identifyType (value: any): { typeName: string, typeProtocolMajor: Integer, typeProtocolMinor: Integer, verification: (_: any) => boolean } {
     if (typeof value === 'string') {
-      const verification: (value: any) => value is string = (value:any ) => typeof value === 'string'
+      const verification: (value: any) => value is string = (value: any) => typeof value === 'string'
       return { typeName: 'STRING', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (typeof value === 'boolean') {
-      const verification: (value: any) => value is boolean = (value:any ) => typeof value === 'boolean'
+      const verification: (value: any) => value is boolean = (value: any) => typeof value === 'boolean'
       return { typeName: 'BOOLEAN', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (typeof value === 'number') {
-      const verification: (value: any) => value is number = (value:any ) => typeof value === 'number'
+      const verification: (value: any) => value is number = (value: any) => typeof value === 'number'
       return { typeName: 'FLOAT', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (typeof value === 'bigint' || isInt(value)) {
-      const verification: (value: any) => value is BigInt = (value:any ) => typeof value === 'bigint'
+      const verification: (value: any) => value is BigInt = (value: any) => typeof value === 'bigint'
       return { typeName: 'INTEGER', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isDate(value)) {
-      const verification: (value: any) => value is Date = (value:any ) => isDate(value)
+      const verification: (value: any) => value is Date = (value: any) => isDate(value)
       return { typeName: 'DATE', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isDuration(value)) {
-      const verification: (value: any) => value is Duration = (value:any ) => isDuration(value)
+      const verification: (value: any) => value is Duration = (value: any) => isDuration(value)
       return { typeName: 'DURATION', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isVector(value)) {
-      const verification: (value: any) => value is Vector<any> = (value:any ) => isVector(value)
+      const verification: (value: any) => value is Vector<any> = (value: any) => isVector(value)
       return { typeName: 'VECTOR', typeProtocolMajor: int(6), typeProtocolMinor: int(0), verification }
     }
     if (value instanceof Int8Array) {
-      const verification: (value: any) => value is Int8Array = (value:any ) => value instanceof Int8Array
+      const verification: (value: any) => value is Int8Array = (value: any) => value instanceof Int8Array
       return { typeName: 'BYTES', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isLocalDateTime(value)) {
-      const verification: (value: any) => value is LocalDateTime = (value:any ) => isLocalDateTime(value)
+      const verification: (value: any) => value is LocalDateTime = (value: any) => isLocalDateTime(value)
       return { typeName: 'LOCAL DATETIME', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isLocalTime(value)) {
-      const verification: (value: any) => value is LocalTime = (value:any ) => isLocalTime(value)
+      const verification: (value: any) => value is LocalTime = (value: any) => isLocalTime(value)
       return { typeName: 'LOCAL TIME', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isDateTime(value)) {
-      const verification: (value: any) => value is DateTime = (value:any ) => isDateTime(value)
+      const verification: (value: any) => value is DateTime = (value: any) => isDateTime(value)
       return { typeName: 'ZONED DATETIME', typeProtocolMajor: int(5), typeProtocolMinor: int(0), verification }
     }
     if (isTime(value)) {
-      const verification: (value: any) => value is Time = (value:any ) => isTime(value)
+      const verification: (value: any) => value is Time = (value: any) => isTime(value)
       return { typeName: 'ZONED TIME', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isPoint(value)) {
-      const verification: (value: any) => value is Point = (value:any ) => isPoint(value)
+      const verification: (value: any) => value is Point = (value: any) => isPoint(value)
       return { typeName: 'POINT', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isUUID(value)) {
-      const verification: (value: any) => value is UUID = (value:any ) => isUUID(value)
+      const verification: (value: any) => value is UUID = (value: any) => isUUID(value)
       return { typeName: 'UUID', typeProtocolMajor: int(6), typeProtocolMinor: int(1), verification }
     }
     if (Array.isArray(value)) {
       const type = this._identifyType(value[0])
-      if(!value.map(element => type.verification(element)).every(element => element === true)) {
-        throw newError(`Every element of an encrypted array must be of the same property type`)
+      if (!value.map(element => type.verification(element)).every(element => element)) {
+        throw newError('Every element of an encrypted array must be of the same property type')
       }
       let major = int(1)
       let minor = int(0)
@@ -146,7 +146,7 @@ export default class EncryptionService {
         minor = type.typeProtocolMinor
       }
       const verification: (value: any) => boolean = (_: any) => false
-      return { typeName: 'LIST', typeProtocolMajor: major, typeProtocolMinor: minor, verification}
+      return { typeName: 'LIST', typeProtocolMajor: major, typeProtocolMinor: minor, verification }
     }
     throw newError(`could not identify type of: ${json.stringify(value)}`)
   }
