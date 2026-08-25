@@ -216,6 +216,12 @@ describe('#integration encryption tests', () => {
       [1, 2, 3, '4'],
       undefined,
       'Every element of an encrypted array must be of the same property type'
+    ],
+    [
+      'with float as AAD',
+      [1, 2, 3],
+      1,
+      'Unsupported AAD propety type FLOAT, supported values are'
     ]
   ])('should fail to encrypt (%s)', async (_, val, aad, expectedMessage) => {
     await expect(driver.encryption.encrypt(val, { alias: 'key1' }, undefined, aad)).rejects.toThrow(expectedMessage)

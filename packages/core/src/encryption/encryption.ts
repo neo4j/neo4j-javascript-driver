@@ -37,7 +37,7 @@ export default class EncryptionService {
     const encodedValue = this._boltProvider.encodeValue(value)
     let encodedAAD
     let aadType
-    if (aad != null && !this.isEmpty(aad)) {
+    if (aad != null) {
       aadType = this._identifyType(aad)
       if (!supportedAADTypes.includes(aadType.typeName)) {
         throw newError(`Unsupported AAD propety type ${aadType.typeName}, supported values are ${supportedAADTypes.toString()}`)
