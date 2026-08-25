@@ -41,10 +41,8 @@ function newWire(
       const msg = e.message;
       return reply({ name: "BackendError", data: { msg } });
     },
-    writeBackendError: (msg: string) => {
-      console.log(JSON.stringify("msg"), msg)
-      return reply({ name: "BackendError", data: { msg } }),
-    }
+    writeBackendError: (msg: string) =>
+      reply({ name: "BackendError", data: { msg } }),
   };
 }
 
