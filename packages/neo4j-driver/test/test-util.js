@@ -1,5 +1,6 @@
 export default class KeyRepo {
   constructor () {
+    this.num = 0
     this.aliasToId = new Map()
     this.idToKey = new Map()
   }
@@ -13,7 +14,8 @@ export default class KeyRepo {
   }
 
   save (alias, encapsulation, metadata) {
-    const id = 'testkit-key'
+    const id = this.num.toString()
+    this.num += 1
     this.aliasToId.set(alias, id)
     const key = {
       alias: () => alias,

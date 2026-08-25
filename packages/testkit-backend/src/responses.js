@@ -176,8 +176,8 @@ export function DecryptedValue ({ decryptedValue }) {
   return response('DecryptedValue', { decryptedValue })
 }
 
-export function EncapsulatedKey ({ id, alias, encapsulatedBytes, metadata }) {
-  return response('EncapsulatedKey', { id, alias, encapsulatedBytes, metadata })
+export function EncapsulatedKey ({ id, alias }) {
+  return response('EncapsulatedKey', { id, alias })
 }
 
 export function response (name, data) {
