@@ -16,7 +16,7 @@
  */
 import handshake from './handshake'
 import create from './create'
-import _BoltProtocol from './bolt-protocol-v4x3'
+import _BoltProtocol from './bolt-protocol-v6x1'
 import _RawRoutingTable from './routing-table-raw'
 
 export * from './stream-observers'
@@ -26,5 +26,6 @@ export const RawRoutingTable = _RawRoutingTable
 
 export default {
   handshake,
-  create
+  create,
+  BoltProtocol
 }

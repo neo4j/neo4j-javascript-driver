@@ -321,7 +321,7 @@ describe('#integration driver', () => {
   }, 30000)
 
   xit('should fail with correct error message when connecting to port 80', done => {
-    if (testUtils.isClient()) {
+    if (testUtils.isClient() === true) {
       // good error message is not available in browser
       done()
       return
@@ -344,9 +344,9 @@ describe('#integration driver', () => {
         const doesNotContainAddress = error.message.indexOf(':80') < 0
         const doesNotContainBetterErrorMessage =
           error.message.indexOf('Failed to connect to server') < 0
-        if (doesNotContainAddress) {
+        if (doesNotContainAddress === true) {
           throw new Error(`Expected to contain ':80' but was: ${error.message}`)
-        } else if (doesNotContainBetterErrorMessage) {
+        } else if (doesNotContainBetterErrorMessage === true) {
           throw new Error(
             `Expected to contain 'Failed to connect to server' but was: ${error.message}`
           )
