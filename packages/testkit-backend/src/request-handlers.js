@@ -838,7 +838,7 @@ export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, prof
   if (aad != null) {
     boundAad = context.binder.cypherToNative(aad)
   }
-  driver.encryption.encrypt(context.binder.cypherToNative(value), { alias: keyAlias, id: keyId }, profileName, boundAad).then(bytes => {
+  driver.encryption.encrypt({ value: context.binder.cypherToNative(value), keyOptions: { alias: keyAlias, id: keyId }, encryptionProfile: profileName, aad: boundAad }).then(bytes => {
     driver.encryption._cryptoProvider.getRandomValues = temp
     wire.writeResponse(responses.EncryptedValue({ encryptedBytes: context.binder.toHexString(bytes) }))
   })
@@ -850,7 +850,7 @@ export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, prof
 
 export function Decrypt ({ neo4j }, context, { driverId, value, aad, usePersistedAad }, wire) {
   const driver = context.getDriver(driverId)
-  driver.encryption.decrypt(context.binder.toByteArray(value), usePersistedAad, aad).then(decryptedValue => {
+  driver.encryption.decrypt({ ciphertext: context.binder.toByteArray(value), usePersistedAad, aad }).then(decryptedValue => {
     wire.writeResponse(responses.DecryptedValue({ decryptedValue: context.binder.nativeToCypher(decryptedValue) }))
   })
     .catch(e => wire.writeError(e))
@@ -860,7 +860,8 @@ export function CreateEncapsulatedKey ({ neo4j }, context, { driverId, alias, pr
   const driver = context.getDriver(driverId)
   try {
     const keyManager = driver.encryption.keyManager(profileName)
-    keyManager.create(alias).then(key => {
+    keyManager.create(alias).then(() => {
+      const key = keyManager._profile.keyRepository.findByAlias(alias)
       wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias() }))
     })
       .catch(e => wire.writeError(e))
@@ -871,7 +872,7 @@ export function CreateEncapsulatedKey ({ neo4j }, context, { driverId, alias, pr
 
 export function ImportEncapsulatedKey ({ neo4j }, context, { driverId, alias, profileName, encapsulation, metadata }, wire) {
   const driver = context.getDriver(driverId)
-  driver.encryption.keyManager(profileName)._profile._keyRepository.save(alias, context.binder.toByteArray(encapsulation), metadata).then(key => {
+  driver.encryption.keyManager(profileName)._profile.keyRepository.save(alias, context.binder.toByteArray(encapsulation), metadata).then(key => {
     wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias() }))
   })
     .catch(e => wire.writeError(e))

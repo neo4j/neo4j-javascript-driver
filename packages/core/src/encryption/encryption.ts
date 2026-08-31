@@ -26,25 +26,39 @@ export default class EncryptionService {
     this._boltProvider = boltProvider
     this._profiles = new Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>()
     profiles.forEach((profile) => {
+      if (this._profiles.has(profile.name)) {
+        throw newError(`Multiple profiles with name ${profile.name} configured, each profile must have a unique name.`)
+      }
       this._profiles.set(profile.name, { profile, keyManager: new EncapsulatedKeyManager(profile, profile.encapsulationService) })
     })
     this._cryptoProvider = new CryptoProvider()
   }
 
-  async encrypt (value: any, keyOptions: string | { alias?: string, id?: string }, profileName?: string, aad?: Record<string, any>): Promise<Int8Array> {
-    const profile = this._getProfile(profileName)
-    const { typeName, typeProtocolMajor, typeProtocolMinor } = this._identifyType(value)
-    const encodedValue = this._boltProvider.encodeValue(value)
+  /**
+   * Encrypts data with AES-GCM 256 into a byte array ready to be saved an a property in a Neo4j database.
+   * The byte array includes metadata required to allow another Neo4j Driver configured with the same {@link EncapsulatedKeyRepository} to decrypt the data.
+   *
+   * @param {Object} encryptRequest - The value to encrypt and associated metadata for the encryption
+   * @param {any} encryptRequest.value - The value to encrypt, must be a value able to be saved as a Neo4j Property.
+   * @param {string | {alias?: string, id?: string} | undefined} encryptRequest.keyOptions - Used to determine the key to be used, a plain string is assumed to be the id, if omitted the encryption profile's default key reference will be used
+   * @param {string} encryptRequest.encryptionProfile - Name of the {@link EncryptionProfile} to use, must be provided unless the driver is configured with only 1 profile.
+   * @param {any | undefined} encryptRequest.aad - Additional Authenticated Data for the encryption.
+   * @returns
+   */
+  async encrypt (encryptRequest: { value: any, keyOptions: string | { alias?: string, id?: string }, encryptionProfile?: string, aad?: any }): Promise<Int8Array> {
+    const profile = this._getProfile(encryptRequest.encryptionProfile)
+    const { typeName, typeProtocolMajor, typeProtocolMinor } = this._identifyType(encryptRequest.value)
+    const encodedValue = this._boltProvider.encodeValue(encryptRequest.value)
     let encodedAAD
     let aadType
-    if (aad != null) {
-      aadType = this._identifyType(aad)
+    if (encryptRequest.aad != null) {
+      aadType = this._identifyType(encryptRequest.aad)
       if (!supportedAADTypes.includes(aadType.typeName)) {
         throw newError(`Unsupported AAD propety type ${aadType.typeName}, supported values are ${supportedAADTypes.toString()}`)
       }
-      encodedAAD = this._boltProvider.encodeValue(aad)
+      encodedAAD = this._boltProvider.encodeValue(encryptRequest.aad)
     }
-    const key = await this._getKey(profile.profile, keyOptions)
+    const key = await this._getKey(profile.profile, encryptRequest.keyOptions)
     const decapsulatedKey = await this.decapsulateKey(profile.profile, key)
     const derivedKey = await this._cryptoProvider.deriveKey(decapsulatedKey)
     const { cyphertext, iv } = await this._cryptoProvider.encrypt(derivedKey, encodedValue, encodedAAD)
@@ -58,13 +72,23 @@ export default class EncryptionService {
     return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
   }
 
-  async decrypt<T>(value: Int8Array, usePersistedAad?: boolean, aad?: Record<string, any>): Promise<T> {
+  /**
+   * Decrypts data encrypted with this or another Neo4j Driver's {@link EncryptionService#encrypt} function.
+   *
+   * @param {Object} decryptRequest - Object containing encrypted ciphertext and required metadata.
+   * @param {Int8Array} decryptRequest.ciphertext - The encrypted ciphertext
+   * @param {any | undefined} decryptRequest.aad - The Additional Authenticated Data to verify when decrypting
+   * @param {boolean | undefined} decryptRequest.usePersistedAad - Wether to use the persisted aad data stored with the ciphertext, mutually exclusive with decryptRequest.aad
+   *
+   * @returns
+   */
+  async decrypt<T>(decryptRequest: { ciphertext: Int8Array, usePersistedAad?: boolean, aad?: any }): Promise<T> {
     let encodedAAD
-    const struct = this._boltProvider.decodeObject(value)
-    if (usePersistedAad === true) {
+    const struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
+    if (decryptRequest.usePersistedAad === true) {
       encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
-    } else if (aad != null && !this.isEmpty(aad)) {
-      encodedAAD = this._boltProvider.encodeValue(aad)
+    } else if (decryptRequest.aad != null && !this.isEmpty(decryptRequest.aad)) {
+      encodedAAD = this._boltProvider.encodeValue(decryptRequest.aad)
     }
     const profile = this._getProfile(struct.profileName)
     const decapsulatedKey = await this.decapsulateKey(profile.profile, await this._getKey(profile.profile, struct.metadata.key_id))
@@ -72,8 +96,14 @@ export default class EncryptionService {
     return this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(derivedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
   }
 
-  keyManager (name: string | undefined): EncapsulatedKeyManager {
-    const profile = this._getProfile(name)
+  /**
+   * Returns the key manager for the specified profile
+   *
+   * @param {string | undefined} profileName name of the profile to get the key manager of, can be omitted if driver is configured with only one encryption profile
+   * @returns {EncapsulatedKeyManager} The key manager of the specified profile.
+   */
+  keyManager (profileName: string | undefined): EncapsulatedKeyManager {
+    const profile = this._getProfile(profileName)
     return profile.keyManager
   }
 

@@ -24,7 +24,7 @@ describe('#unit EncryptionService', () => {
     const profiles = [profile]
     const enc = new EncryptionService(boltProvider, profiles)
     await enc.keyManager('main').create('test')
-    const value = await enc.encrypt(input, { alias: 'test' })
+    const value = await enc.encrypt({ value: input, keyOptions: { alias: 'test' } })
     expect(value instanceof Int8Array).toBe(true)
   })
   it.each([
@@ -37,8 +37,8 @@ describe('#unit EncryptionService', () => {
     const profiles = [profile]
     const enc = new EncryptionService(boltProvider, profiles)
     await enc.keyManager('main').create('test')
-    const encValue = await enc.encrypt(input, { alias: 'test' })
-    const decValue = await enc.decrypt(encValue, true)
+    const encValue = await enc.encrypt({ value: input, keyOptions: { alias: 'test' } })
+    const decValue = await enc.decrypt({ ciphertext: encValue, usePersistedAad: true })
     expect(decValue).toEqual(input)
   })
 })

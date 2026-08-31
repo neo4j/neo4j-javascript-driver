@@ -15,7 +15,7 @@ export interface EncapsulatedKeyRepository {
 export interface EncapsulatedKey {
   id: () => string
 
-  alias: () => string
+  alias: () => string | undefined
 
   encapsulation: () => Int8Array
 

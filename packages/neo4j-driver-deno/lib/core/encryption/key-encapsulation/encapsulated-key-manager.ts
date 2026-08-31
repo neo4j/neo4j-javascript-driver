@@ -1,5 +1,4 @@
 import { EncryptionProfile } from '../encyption-profile.ts'
-import { EncapsulatedKey } from './encapsulated-key.ts'
 import { KeyEncapsulationService } from './key-encapsulation-service.ts'
 
 export class EncapsulatedKeyManager {
@@ -10,9 +9,14 @@ export class EncapsulatedKeyManager {
     this._keyEncapsulationService = keyEncapsulationService
   }
 
-  async create (name: string): Promise<EncapsulatedKey> {
+  /**
+   * Creates a new key via the {@link KeyEncapsulationService} and saves it in the profile's configured {@link EncapsulatedKeyRepository}
+   * 
+   * @param {string} name - The alias the new key should be saved under in the {@link EncapsulatedKeyRepository}
+   * @returns {Promise<void>} Promise that resolves when the key is created, saved and ready to use.
+   */
+  async create (name: string): Promise<void> {
     const encapulated = await this._keyEncapsulationService.encapsulate({})
-    const result = await this._profile.saveKey(name, encapulated.encapsulation(), encapulated.options())
-    return result
+    await this._profile.saveKey(name, encapulated.encapsulation(), encapulated.options())
   }
 }

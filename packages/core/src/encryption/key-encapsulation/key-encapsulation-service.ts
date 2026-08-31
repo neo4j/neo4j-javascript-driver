@@ -13,5 +13,5 @@ export interface EncapsulationResult {
 export interface KeyEncapsulationService {
   encapsulate: (options: KeyEncapsulationOptions) => Promise<EncapsulationResult>
 
-  decapsulate: (encapsulation: Int8Array, options: Record<string, string>) => Promise<Uint8Array>
+  decapsulate: (encapsulation: Int8Array, options: KeyEncapsulationOptions) => Promise<Uint8Array>
 }
