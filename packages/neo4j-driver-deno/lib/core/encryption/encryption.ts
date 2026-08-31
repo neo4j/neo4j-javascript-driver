@@ -35,17 +35,17 @@ export default class EncryptionService {
   }
 
   /**
-   * Encrypts data with AES-GCM 256 into a byte array ready to be saved an a property in a Neo4j database. 
+   * Encrypts data with AES-GCM 256 into a byte array ready to be saved an a property in a Neo4j database.
    * The byte array includes metadata required to allow another Neo4j Driver configured with the same {@link EncapsulatedKeyRepository} to decrypt the data.
-   * 
+   *
    * @param {Object} encryptRequest - The value to encrypt and associated metadata for the encryption
    * @param {any} encryptRequest.value - The value to encrypt, must be a value able to be saved as a Neo4j Property.
    * @param {string | {alias?: string, id?: string} | undefined} encryptRequest.keyOptions - Used to determine the key to be used, a plain string is assumed to be the id, if omitted the encryption profile's default key reference will be used
    * @param {string} encryptRequest.encryptionProfile - Name of the {@link EncryptionProfile} to use, must be provided unless the driver is configured with only 1 profile.
    * @param {any | undefined} encryptRequest.aad - Additional Authenticated Data for the encryption.
-   * @returns 
+   * @returns
    */
-  async encrypt (encryptRequest: {value: any, keyOptions: string | { alias?: string, id?: string }, encryptionProfile?: string, aad?: any}): Promise<Int8Array> {
+  async encrypt (encryptRequest: { value: any, keyOptions: string | { alias?: string, id?: string }, encryptionProfile?: string, aad?: any }): Promise<Int8Array> {
     const profile = this._getProfile(encryptRequest.encryptionProfile)
     const { typeName, typeProtocolMajor, typeProtocolMinor } = this._identifyType(encryptRequest.value)
     const encodedValue = this._boltProvider.encodeValue(encryptRequest.value)
@@ -74,15 +74,15 @@ export default class EncryptionService {
 
   /**
    * Decrypts data encrypted with this or another Neo4j Driver's {@link EncryptionService#encrypt} function.
-   * 
+   *
    * @param {Object} decryptRequest - Object containing encrypted ciphertext and required metadata.
    * @param {Int8Array} decryptRequest.ciphertext - The encrypted ciphertext
    * @param {any | undefined} decryptRequest.aad - The Additional Authenticated Data to verify when decrypting
    * @param {boolean | undefined} decryptRequest.usePersistedAad - Wether to use the persisted aad data stored with the ciphertext, mutually exclusive with decryptRequest.aad
-   * 
-   * @returns 
+   *
+   * @returns
    */
-  async decrypt<T>(decryptRequest: {ciphertext: Int8Array, usePersistedAad?: boolean, aad?: any}): Promise<T> {
+  async decrypt<T>(decryptRequest: { ciphertext: Int8Array, usePersistedAad?: boolean, aad?: any }): Promise<T> {
     let encodedAAD
     const struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
     if (decryptRequest.usePersistedAad === true) {
@@ -98,7 +98,7 @@ export default class EncryptionService {
 
   /**
    * Returns the key manager for the specified profile
-   * 
+   *
    * @param {string | undefined} profileName name of the profile to get the key manager of, can be omitted if driver is configured with only one encryption profile
    * @returns {EncapsulatedKeyManager} The key manager of the specified profile.
    */

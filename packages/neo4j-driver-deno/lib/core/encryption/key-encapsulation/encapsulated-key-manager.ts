@@ -11,7 +11,7 @@ export class EncapsulatedKeyManager {
 
   /**
    * Creates a new key via the {@link KeyEncapsulationService} and saves it in the profile's configured {@link EncapsulatedKeyRepository}
-   * 
+   *
    * @param {string} name - The alias the new key should be saved under in the {@link EncapsulatedKeyRepository}
    * @returns {Promise<void>} Promise that resolves when the key is created, saved and ready to use.
    */

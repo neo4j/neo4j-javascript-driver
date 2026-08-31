@@ -12,7 +12,7 @@ interface CacheEntry<T> {
 
 /**
  * Configuration for an encryption profile, which combines a {@link KeyEncapsulationService} and {@link keyRepository} to allow the driver to access encapsulated keys and use them.
- * 
+ *
  * @experimental Part of the Client-Side Encryption preview feature.
  */
 export class EnvelopeEncryptionProfile {
@@ -27,7 +27,7 @@ export class EnvelopeEncryptionProfile {
   private readonly _aliasCache: Map<string, CacheEntry<string>>
 
   /**
-   * 
+   *
    * @param {Object} config - Configurations
    * @param {string} config.name - Name of the profile, must be the same on all drivers used to access the encrypted data.
    * @param {KeyEncapsulationService} config.encapsulationService - Encapsulation service used to encapsulate and dencapsulate keys. The driver ships with {@link LocalKeyEncapsulationService}, other implementations can be found as separate packages.
