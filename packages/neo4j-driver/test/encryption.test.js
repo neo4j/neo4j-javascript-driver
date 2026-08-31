@@ -205,8 +205,8 @@ describe('#integration encryption tests', () => {
         95, 105, 100, -127, 48
       ])
     ]
-  ])('should encrypt (%s) to exact expected bytes', async (_, val, expected) => {
-    const enc = await driver.encryption.encrypt(val, { alias: 'key1' })
+  ])('should encrypt (%s) to exact expected bytes', async (_, value, expected) => {
+    const enc = await driver.encryption.encrypt({ value, keyOptions: { alias: 'key1' } })
     expect(enc).toEqual(expected)
   })
 
@@ -223,7 +223,7 @@ describe('#integration encryption tests', () => {
       1,
       'Unsupported AAD propety type FLOAT, supported values are'
     ]
-  ])('should fail to encrypt (%s)', async (_, val, aad, expectedMessage) => {
-    await expect(driver.encryption.encrypt(val, { alias: 'key1' }, undefined, aad)).rejects.toThrow(expectedMessage)
+  ])('should fail to encrypt (%s)', async (_, value, aad, expectedMessage) => {
+    await expect(driver.encryption.encrypt({ value, keyOptions: { alias: 'key1' }, aad })).rejects.toThrow(expectedMessage)
   })
 })
