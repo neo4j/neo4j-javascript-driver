@@ -38,7 +38,7 @@ function generateFieldLookup<
   Key extends keyof Entries = keyof Entries,
   FieldLookup extends RecordShape<string, number> = RecordShape<string, number>
 > (keys: Key[]): FieldLookup {
-  const lookup: RecordShape<string, number> = {}
+  const lookup: RecordShape<string, number> = Object.create(null)
   keys.forEach((name, idx) => {
     lookup[name as string] = idx
   })
