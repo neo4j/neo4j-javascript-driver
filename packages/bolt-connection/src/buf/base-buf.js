@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError } from 'neo4j-driver-core'
 
 /**
  * Common base with default implementation for most buffer methods.
@@ -312,9 +311,6 @@ export default class BaseBuffer {
   }
 
   _updatePos (length) {
-    if (this.position + length > this.length) {
-      throw newError('Unexpected end of buffer')
-    }
     const p = this.position
     this.position += length
     return p
