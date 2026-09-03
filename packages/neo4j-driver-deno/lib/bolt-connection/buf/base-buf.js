@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { newError } from '../../core/index.ts'
 
 /**
  * Common base with default implementation for most buffer methods.
@@ -94,26 +95,10 @@ export default class BaseBuffer {
    */
   getUInt32 (p) {
     return (
-      (this.getUInt8(p) << 24) |
+      ((this.getUInt8(p) << 24) |
       (this.getUInt8(p + 1) << 16) |
       (this.getUInt8(p + 2) << 8) |
-      this.getUInt8(p + 3)
-    )
-  }
-
-  /**
-   * @param p
-   */
-  getInt64 (p) {
-    return (
-      (this.getInt8(p) << 56) |
-      (this.getUInt8(p + 1) << 48) |
-      (this.getUInt8(p + 2) << 40) |
-      (this.getUInt8(p + 3) << 32) |
-      (this.getUInt8(p + 4) << 24) |
-      (this.getUInt8(p + 5) << 16) |
-      (this.getUInt8(p + 6) << 8) |
-      this.getUInt8(p + 7)
+      this.getUInt8(p + 3)) >>> 3
     )
   }
 
@@ -165,21 +150,6 @@ export default class BaseBuffer {
     this.putUInt8(p + 1, (val >> 16) & 0xff)
     this.putUInt8(p + 2, (val >> 8) & 0xff)
     this.putUInt8(p + 3, val & 0xff)
-  }
-
-  /**
-   * @param p
-   * @param val
-   */
-  putInt64 (p, val) {
-    this.putInt8(p, val >> 48)
-    this.putUInt8(p + 1, (val >> 42) & 0xff)
-    this.putUInt8(p + 2, (val >> 36) & 0xff)
-    this.putUInt8(p + 3, (val >> 30) & 0xff)
-    this.putUInt8(p + 4, (val >> 24) & 0xff)
-    this.putUInt8(p + 5, (val >> 16) & 0xff)
-    this.putUInt8(p + 6, (val >> 8) & 0xff)
-    this.putUInt8(p + 7, val & 0xff)
   }
 
   putVarInt (p, val) {
@@ -315,14 +285,6 @@ export default class BaseBuffer {
    * Write to state position.
    * @param val
    */
-  writeInt64 (val) {
-    this.putInt64(this._updatePos(8), val)
-  }
-
-  /**
-   * Write to state position.
-   * @param val
-   */
   writeFloat64 (val) {
     this.putFloat64(this._updatePos(8), val)
   }
@@ -350,6 +312,9 @@ export default class BaseBuffer {
   }
 
   _updatePos (length) {
+    if (this.position + length > this.length) {
+      throw newError('Unexpected end of buffer')
+    }
     const p = this.position
     this.position += length
     return p
