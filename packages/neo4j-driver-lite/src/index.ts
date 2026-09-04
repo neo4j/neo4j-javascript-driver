@@ -57,6 +57,7 @@ import {
   LocalTime,
   ManagedTransaction,
   Neo4jError,
+  newError,
   Node,
   Notification,
   GqlStatusObject,
@@ -165,10 +166,17 @@ function createAuthManager (authTokenOrProvider: AuthToken | AuthTokenManager): 
     return authTokenOrProvider
   }
 
-  let authToken: AuthToken = authTokenOrProvider
+  const authToken: AuthToken = { ...authTokenOrProvider }
   // Sanitize authority token. Nicer error from server when a scheme is set.
-  authToken = authToken ?? {}
-  authToken.scheme = authToken.scheme ?? 'none'
+  if (authToken.scheme == null) {
+    if (authToken.principal != null || authToken.credentials != null || authToken.realm != null || authToken.parameters != null) {
+      throw newError(
+        "Auth token is missing 'scheme'. Use neo4j.auth.basic/bearer/kerberos/custom, " +
+        'or set scheme explicitly.'
+      )
+    }
+    authToken.scheme = 'none'
+  }
   return staticAuthTokenManager({ authToken })
 }
 
@@ -273,7 +281,7 @@ function driver (
           routingContext: parsedUrl.query
         })
     } else {
-      if (isEmptyObjectOrNull(parsedUrl.query) !== true) {
+      if (!isEmptyObjectOrNull(parsedUrl.query)) {
         throw new Error(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )

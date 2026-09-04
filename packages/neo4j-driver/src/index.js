@@ -72,6 +72,7 @@ import {
   bookmarkManager,
   routing,
   resultTransformers,
+  newError,
   notificationCategory,
   notificationClassification,
   notificationSeverityLevel,
@@ -127,10 +128,17 @@ function createAuthManager (authTokenOrManager) {
     return authTokenOrManager
   }
 
-  let authToken = authTokenOrManager
+  const authToken = { ...authTokenOrManager }
   // Sanitize authority token. Nicer error from server when a scheme is set.
-  authToken = authToken || {}
-  authToken.scheme = authToken.scheme || 'none'
+  if (authToken.scheme == null) {
+    if (authToken.principal != null || authToken.credentials != null || authToken.realm != null || authToken.parameters != null) {
+      throw newError(
+        "Auth token is missing 'scheme'. Use neo4j.auth.basic/bearer/kerberos/custom, " +
+        'or set scheme explicitly.'
+      )
+    }
+    authToken.scheme = 'none'
+  }
   return staticAuthTokenManager({ authToken })
 }
 
