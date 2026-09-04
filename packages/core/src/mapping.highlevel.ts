@@ -172,18 +172,16 @@ interface Gettable { get: <V>(key: string) => V }
 export function as <T extends {} = Object> (gettable: Gettable, constructorOrRules: GenericConstructor<T> | Rules, rules?: Rules): T {
   const GenericConstructor = typeof constructorOrRules === 'function' ? constructorOrRules : Object
   const theRules = getRules(constructorOrRules, rules)
-  const visitedKeys: string[] = []
 
   const obj = new GenericConstructor()
 
-  for (const [key, rule] of Object.entries(theRules ?? {})) {
-    visitedKeys.push(key)
-    _apply(gettable, obj, key, rule)
-  }
-
-  for (const key of Object.getOwnPropertyNames(obj)) {
-    if (!visitedKeys.includes(key)) {
+  if (theRules == null) {
+    for (const key of Object.getOwnPropertyNames(obj)) {
       _apply(gettable, obj, key, theRules?.[key])
+    }
+  } else {
+    for (const [key, rule] of Object.entries(theRules ?? {})) {
+      _apply(gettable, obj, key, rule)
     }
   }
 
