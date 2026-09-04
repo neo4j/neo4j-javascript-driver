@@ -179,8 +179,7 @@ export function as <T extends {} = Object> (gettable: Gettable, constructorOrRul
     for (const key of Object.getOwnPropertyNames(obj)) {
       _apply(gettable, obj, key, theRules?.[key])
     }
-  }
-  else {
+  } else {
     for (const [key, rule] of Object.entries(theRules ?? {})) {
       _apply(gettable, obj, key, rule)
     }
