@@ -93,28 +93,12 @@ export default class BaseBuffer {
    * @param p
    */
   getUInt32 (p) {
-    return (
-      (this.getUInt8(p) << 24) |
-      (this.getUInt8(p + 1) << 16) |
-      (this.getUInt8(p + 2) << 8) |
-      this.getUInt8(p + 3)
-    )
-  }
-
-  /**
-   * @param p
-   */
-  getInt64 (p) {
-    return (
-      (this.getInt8(p) << 56) |
-      (this.getUInt8(p + 1) << 48) |
-      (this.getUInt8(p + 2) << 40) |
-      (this.getUInt8(p + 3) << 32) |
-      (this.getUInt8(p + 4) << 24) |
-      (this.getUInt8(p + 5) << 16) |
-      (this.getUInt8(p + 6) << 8) |
-      this.getUInt8(p + 7)
-    )
+    const signed = this.getInt32(p)
+    if (signed >= 0) {
+      return signed
+    } else {
+      return 2 ** 32 + signed
+    }
   }
 
   /**
@@ -165,21 +149,6 @@ export default class BaseBuffer {
     this.putUInt8(p + 1, (val >> 16) & 0xff)
     this.putUInt8(p + 2, (val >> 8) & 0xff)
     this.putUInt8(p + 3, val & 0xff)
-  }
-
-  /**
-   * @param p
-   * @param val
-   */
-  putInt64 (p, val) {
-    this.putInt8(p, val >> 48)
-    this.putUInt8(p + 1, (val >> 42) & 0xff)
-    this.putUInt8(p + 2, (val >> 36) & 0xff)
-    this.putUInt8(p + 3, (val >> 30) & 0xff)
-    this.putUInt8(p + 4, (val >> 24) & 0xff)
-    this.putUInt8(p + 5, (val >> 16) & 0xff)
-    this.putUInt8(p + 6, (val >> 8) & 0xff)
-    this.putUInt8(p + 7, val & 0xff)
   }
 
   putVarInt (p, val) {
@@ -309,14 +278,6 @@ export default class BaseBuffer {
    */
   writeUInt32 (val) {
     this.putUInt32(this._updatePos(4), val)
-  }
-
-  /**
-   * Write to state position.
-   * @param val
-   */
-  writeInt64 (val) {
-    this.putInt64(this._updatePos(8), val)
   }
 
   /**
