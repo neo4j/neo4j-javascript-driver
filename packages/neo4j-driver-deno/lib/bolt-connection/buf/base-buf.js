@@ -93,12 +93,12 @@ export default class BaseBuffer {
    * @param p
    */
   getUInt32 (p) {
-    return (
-      ((this.getUInt8(p) << 24) |
-      (this.getUInt8(p + 1) << 16) |
-      (this.getUInt8(p + 2) << 8) |
-      this.getUInt8(p + 3)) >>> 3
-    )
+    const signed = this.getInt32(p)
+    if (signed >= 0) {
+      return signed
+    } else {
+      return 2 ** 32 + signed
+    }
   }
 
   /**
