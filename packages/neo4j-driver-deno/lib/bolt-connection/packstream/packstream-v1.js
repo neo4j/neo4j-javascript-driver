@@ -544,7 +544,11 @@ class Unpacker {
     const value = {}
     for (let i = 0; i < size; i++) {
       const key = this.unpack(buffer, hydrateStructure)
-      value[key] = this.unpack(buffer, hydrateStructure)
+      const unpacked = this.unpack(buffer, hydrateStructure)
+      // We use defineProperty to not allow maps with a property called '__proto__' to alter the objects prototype.
+      Object.defineProperty(value, key, {
+        value: unpacked, writable: true, enumerable: true, configurable: true
+      })
     }
     return value
   }
