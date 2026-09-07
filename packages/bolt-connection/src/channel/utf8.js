@@ -20,8 +20,6 @@ import { newError } from 'neo4j-driver-core'
 import buffer from 'buffer'
 import { StringDecoder } from 'string_decoder'
 
-const decoder = new StringDecoder('utf8')
-
 function encode (str) {
   return new ChannelBuffer(newBuffer(str))
 }
@@ -44,12 +42,17 @@ function decodeChannelBuffer (buffer, length) {
 }
 
 function decodeCombinedBuffer (buffer, length) {
-  return streamDecodeCombinedBuffer(
-    buffer,
-    length,
-    partBuffer => decoder.write(partBuffer._buffer),
-    () => decoder.end()
-  )
+  const decoder = new StringDecoder('utf8')
+  try {
+    return streamDecodeCombinedBuffer(
+      buffer,
+      length,
+      partBuffer => decoder.write(partBuffer._buffer),
+      () => decoder.end()
+    )
+  } finally {
+    decoder.end()
+  }
 }
 
 function streamDecodeCombinedBuffer (combinedBuffers, length, decodeFn, endFn) {
