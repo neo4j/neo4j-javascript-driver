@@ -120,6 +120,7 @@ interface DriverConfig {
   notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
   disableAutoCommitRetries?: boolean
+  redactParametersLogging?: boolean
 }
 
 /**
@@ -929,7 +930,7 @@ class Driver {
       auth,
       log: this._log,
       homeDatabaseCallback,
-      disableAutoCommitRetries
+      disableAutoCommitRetries,
     })
   }
 

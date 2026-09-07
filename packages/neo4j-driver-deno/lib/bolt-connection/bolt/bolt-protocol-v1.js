@@ -413,7 +413,8 @@ export default class BoltProtocol {
       afterComplete,
       flush = true,
       highRecordWatermark = Number.MAX_VALUE,
-      lowRecordWatermark = Number.MAX_VALUE
+      lowRecordWatermark = Number.MAX_VALUE,
+      redactParametersLogging
     } = {}
   ) {
     const observer = new ResultStreamObserver({

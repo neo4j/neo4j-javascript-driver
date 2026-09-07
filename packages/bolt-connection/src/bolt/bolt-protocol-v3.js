@@ -180,7 +180,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
       afterComplete,
       flush = true,
       highRecordWatermark = Number.MAX_VALUE,
-      lowRecordWatermark = Number.MAX_VALUE
+      lowRecordWatermark = Number.MAX_VALUE,
+      redactParametersLogging
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -207,7 +208,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
         bookmarks,
         txConfig,
         mode
-      }),
+      },
+      redactParametersLogging),
       observer,
       false
     )

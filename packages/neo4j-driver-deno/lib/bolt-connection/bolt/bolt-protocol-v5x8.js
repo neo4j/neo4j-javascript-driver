@@ -60,7 +60,8 @@ export default class BoltProtocol extends BoltProtocolV5x7 {
       fetchSize = FETCH_ALL,
       highRecordWatermark = Number.MAX_VALUE,
       lowRecordWatermark = Number.MAX_VALUE,
-      onDb
+      onDb,
+      redactParametersLogging
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -90,7 +91,8 @@ export default class BoltProtocol extends BoltProtocolV5x7 {
         mode,
         impersonatedUser,
         notificationFilter
-      }),
+      },
+      redactParametersLogging),
       observer,
       flushRun && flush
     )
