@@ -105,7 +105,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
       fetchSize = FETCH_ALL,
       highRecordWatermark = Number.MAX_VALUE,
       lowRecordWatermark = Number.MAX_VALUE,
-      redactParametersLogging
+      hideQueryParametersFromLogs
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -137,7 +137,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
         database,
         mode
       },
-      redactParametersLogging),
+      hideQueryParametersFromLogs),
       observer,
       flushRun && flush
     )

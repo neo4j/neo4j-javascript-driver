@@ -414,7 +414,7 @@ export default class BoltProtocol {
       flush = true,
       highRecordWatermark = Number.MAX_VALUE,
       lowRecordWatermark = Number.MAX_VALUE,
-      redactParametersLogging
+      hideQueryParametersFromLogs
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -438,7 +438,7 @@ export default class BoltProtocol {
     // passing notification filter on this protocol version throws an error
     assertNotificationFilterIsEmpty(notificationFilter, this._onProtocolError, observer)
 
-    this.write(RequestMessage.run(query, parameters), observer, false)
+    this.write(RequestMessage.run(query, parameters, hideQueryParametersFromLogs), observer, false)
     this.write(RequestMessage.pullAll(), observer, flush)
 
     return observer
