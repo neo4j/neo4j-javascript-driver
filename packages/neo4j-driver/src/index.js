@@ -131,9 +131,9 @@ function createAuthManager (authTokenOrManager) {
   const authToken = { ...authTokenOrManager }
   // Sanitize authority token. Nicer error from server when a scheme is set.
   if (authToken.scheme == null) {
-    if (authToken.principal != null || authToken.credentials != null || authToken.realm != null || authToken.parameters != null) {
+    if (Object.entries(authToken).length !== 0) {
       throw newError(
-        "Auth token is missing 'scheme'. Use neo4j.auth.basic/bearer/kerberos/custom, " +
+        "Auth token is missing 'scheme'. Use neo4j.auth.basic/bearer/kerberos, " +
         'or set scheme explicitly.'
       )
     }
