@@ -180,6 +180,16 @@ describe('#unit PackStreamV1', () => {
     expect(unpacked[0]).toBe(list[0])
     expect(unpacked[1]).toBe(list[1])
   })
+
+  it('should not overwrite prototype when unpacking map with __proto__ field', () => {
+    const buffer2 = Uint8Array.from([0xa2, 0x82, 0x68, 0x69, 0x84, 0x77, 0x6f, 0x61, 0x68, 0x89, 0x5f, 0x5f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x5f, 0x5f,
+      0xa1, 0x85, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x87, 0x67, 0x6f, 0x6f, 0x64, 0x62, 0x79, 0x65]).buffer
+    const roundtripped = new Unpacker(false, false).unpack(alloc(buffer2))
+    // eslint-disable-next-line no-proto
+    expect(roundtripped.__proto__.hello).toBe('goodbye')
+    expect(roundtripped.hello).toBe(undefined)
+    expect(Object.getPrototypeOf(roundtripped)).toEqual({})
+  })
 })
 
 function packAndUnpack (
