@@ -319,7 +319,7 @@ class ResultStreamObserver extends StreamObserver {
       // faster to look up fields in a record by name, rather than by index.
       // Since the records we get back via Bolt are just arrays of values.
       this._fieldKeys = []
-      this._fieldLookup = {}
+      this._fieldLookup = Object.create(null)
       if (meta.fields && meta.fields.length > 0) {
         this._fieldKeys = meta.fields
         for (let i = 0; i < meta.fields.length; i++) {
