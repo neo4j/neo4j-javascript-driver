@@ -20,8 +20,6 @@ import { newError } from '../../core/index.ts'
 import buffer from 'https://deno.land/std@0.119.0/node/buffer.ts'
 import { StringDecoder } from 'https://deno.land/std@0.119.0/node/string_decoder.ts'
 
-const decoder = new StringDecoder('utf8')
-
 function encode (str) {
   return new ChannelBuffer(newBuffer(str))
 }
@@ -44,12 +42,17 @@ function decodeChannelBuffer (buffer, length) {
 }
 
 function decodeCombinedBuffer (buffer, length) {
-  return streamDecodeCombinedBuffer(
-    buffer,
-    length,
-    partBuffer => decoder.write(partBuffer._buffer),
-    () => decoder.end()
-  )
+  const decoder = new StringDecoder('utf8')
+  try {
+    return streamDecodeCombinedBuffer(
+      buffer,
+      length,
+      partBuffer => decoder.write(partBuffer._buffer),
+      () => decoder.end()
+    )
+  } finally {
+    decoder.end()
+  }
 }
 
 function streamDecodeCombinedBuffer (combinedBuffers, length, decodeFn, endFn) {
