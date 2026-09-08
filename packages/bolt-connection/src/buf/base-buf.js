@@ -220,13 +220,6 @@ export default class BaseBuffer {
   /**
    * Read from state position.
    */
-  readInt64 () {
-    return this.getInt32(this._updatePos(8))
-  }
-
-  /**
-   * Read from state position.
-   */
   readFloat64 () {
     return this.getFloat64(this._updatePos(8))
   }
