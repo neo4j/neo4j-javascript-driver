@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { newError } from 'neo4j-driver-core'
 import { BaseBuffer } from '../buf'
 import { alloc } from './channel-buf'
 
@@ -42,6 +43,7 @@ export default class CombinedBuffer extends BaseBuffer {
         return buffer.getUInt8(position)
       }
     }
+    throw newError('Read beyond end of CombinedBuffer')
   }
 
   getInt8 (position) {
@@ -55,6 +57,7 @@ export default class CombinedBuffer extends BaseBuffer {
         return buffer.getInt8(position)
       }
     }
+    throw newError('Read beyond end of CombinedBuffer')
   }
 
   getFloat64 (position) {

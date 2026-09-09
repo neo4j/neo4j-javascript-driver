@@ -39,12 +39,13 @@ export default class ChannelBuffer extends BaseBuffer {
 
   getVarInt (position) {
     let i = 0
-    let currentValue = this._buffer.readInt8(position + i)
+    let currentValue = this._buffer.readUint8(position + i)
     let total = currentValue % 128
-    while (currentValue / 128 >= 1) {
+    // TODO: Broken for 4+ byte VarInts, do not wish to throw errors on it as it is only likely to impact capabilities, none of which are currently implemented either way.
+    while (currentValue >= 128 && i <= 3) {
       i += 1
-      currentValue = this._buffer.readInt8(position + i)
-      total += currentValue % 128
+      currentValue = this._buffer.readUint8(position + i)
+      total += (currentValue & 0x7f) << (7 * i)
     }
     return { length: i + 1, value: total }
   }
