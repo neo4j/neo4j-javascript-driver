@@ -67,7 +67,7 @@ class Transaction {
   private _acceptActive: () => void
   private readonly _notificationFilter?: NotificationFilter
   private readonly _apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig
-  private readonly _hideQueryParametersFromLogs?: boolean
+  private readonly _noQueryParameterLogging?: boolean
 
   /**
    * @constructor
@@ -97,7 +97,7 @@ class Transaction {
     lowRecordWatermark,
     notificationFilter,
     apiTelemetryConfig,
-    hideQueryParametersFromLogs
+    noQueryParameterLogging
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -110,7 +110,7 @@ class Transaction {
     lowRecordWatermark: number
     notificationFilter?: NotificationFilter
     apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig
-    hideQueryParametersFromLogs?: boolean
+    noQueryParameterLogging?: boolean
   }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
@@ -128,7 +128,7 @@ class Transaction {
     this._bookmarks = Bookmarks.empty()
     this._notificationFilter = notificationFilter
     this._apiTelemetryConfig = apiTelemetryConfig
-    this._hideQueryParametersFromLogs = hideQueryParametersFromLogs
+    this._noQueryParameterLogging = noQueryParameterLogging
     this._acceptActive = () => { } // satisfy DenoJS
     this._activePromise = new Promise((resolve, reject) => {
       this._acceptActive = resolve
@@ -219,7 +219,7 @@ class Transaction {
       highRecordWatermark: this._highRecordWatermark,
       lowRecordWatermark: this._lowRecordWatermark,
       preparationJob: this._activePromise,
-      hideQueryParametersFromLogs: this._hideQueryParametersFromLogs
+      noQueryParameterLogging: this._noQueryParameterLogging
     })
     this._results.push(result)
     return result
@@ -359,7 +359,7 @@ interface StateTransitionParams {
   highRecordWatermark: number
   lowRecordWatermark: number
   preparationJob?: Promise<any>
-  hideQueryParametersFromLogs?: boolean
+  noQueryParameterLogging?: boolean
 }
 
 const _states = {
@@ -420,7 +420,7 @@ const _states = {
         highRecordWatermark,
         lowRecordWatermark,
         preparationJob,
-        hideQueryParametersFromLogs
+        noQueryParameterLogging
       }: StateTransitionParams
     ): any => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
@@ -442,7 +442,7 @@ const _states = {
                 fetchSize,
                 highRecordWatermark,
                 lowRecordWatermark,
-                hideQueryParametersFromLogs
+                noQueryParameterLogging
               })
             } else {
               throw newError('No connection available')

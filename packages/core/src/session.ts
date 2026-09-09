@@ -80,7 +80,7 @@ class Session {
   private _databaseGuess: string | undefined
   private readonly _isRoutingSession: boolean
   private readonly _disableAutoCommitRetries: boolean
-  private readonly _hideQueryParametersFromLogs: boolean
+  private readonly _noQueryParameterLogging: boolean
   /**
    * @constructor
    * @protected
@@ -177,7 +177,7 @@ class Session {
     this._databaseGuess = config?.cachedHomeDatabase
     this._isRoutingSession = config?.routingDriver ?? false
     this._disableAutoCommitRetries = disableAutoCommitRetries ?? config?.disableAutoCommitRetries ?? false
-    this._hideQueryParametersFromLogs = config?.hideQueryParametersFromLogs
+    this._noQueryParameterLogging = config?.noQueryParameterLogging
   }
 
   /**
@@ -239,7 +239,7 @@ class Session {
         highRecordWatermark: this._highRecordWatermark,
         notificationFilter: this._notificationFilter,
         onDb: this._onDatabaseNameResolved.bind(this),
-        hideQueryParametersFromLogs: this._hideQueryParametersFromLogs
+        noQueryParameterLogging: this._noQueryParameterLogging
       })
     })
     this._results.push(result)
