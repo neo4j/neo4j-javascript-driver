@@ -91,7 +91,7 @@ export class Config {
   userAgent?: string
   telemetryDisabled?: boolean
   clientCertificate?: ClientCertificate | ClientCertificateProvider
-
+  noQueryParameterLogging?: boolean
   /**
    * @constructor
    * @private
@@ -360,6 +360,14 @@ export class Config {
      * @since 5.27
      */
     this.clientCertificate = undefined
+
+    /**
+     * Redact query parameters from debug logging, reducing noise from large parameters and keeping sensitive data in parameters from being visible in logs.
+     *
+     * @type {boolean|undefined}
+     * @since 6.3.0
+     */
+    this.noQueryParameterLogging = undefined
   }
 }
 

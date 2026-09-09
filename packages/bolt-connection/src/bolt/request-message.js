@@ -97,11 +97,11 @@ export default class RequestMessage {
    * @param {Object} parameters the query parameters.
    * @return {RequestMessage} new RUN message.
    */
-  static run (query, parameters) {
+  static run (query, parameters, redactParameters) {
     return new RequestMessage(
       RUN,
       [query, parameters],
-      () => `RUN ${query} ${json.stringify(parameters)}`
+      redactParameters === true ? () => `RUN ${query} { ... }` : () => `RUN ${query} ${json.stringify(parameters)}`
     )
   }
 
@@ -358,13 +358,17 @@ export default class RequestMessage {
   static runWithMetadata (
     query,
     parameters,
-    { bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter } = {}
+    { bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter } = {},
+    redactParameters
   ) {
     const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter)
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
-      () =>
+      redactParameters === true
+        ? () =>
+        `RUN ${query} { ... } ${json.stringify(metadata)}`
+        : () =>
         `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}`
     )
   }
@@ -385,7 +389,8 @@ export default class RequestMessage {
   static runWithMetadata5x5 (
     query,
     parameters,
-    { bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter } = {}
+    { bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter } = {},
+    redactParameters
   ) {
     const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser, notificationFilter, {
       appendNotificationFilter: appendGqlNotificationFilterToMetadata
@@ -393,7 +398,10 @@ export default class RequestMessage {
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
-      () =>
+      redactParameters === true
+        ? () =>
+        `RUN ${query} { ... } ${json.stringify(metadata)}`
+        : () =>
         `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}`
     )
   }

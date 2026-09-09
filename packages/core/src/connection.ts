@@ -60,6 +60,7 @@ interface RunQueryConfig extends BeginTransactionConfig {
   lowRecordWatermark: number
   reactive: boolean
   onDb?: (database: string) => void
+  noQueryParameterLogging?: boolean
 }
 
 /**
