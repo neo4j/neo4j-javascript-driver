@@ -561,7 +561,7 @@ describe('Integer', () => {
         ({ a, b }) => a.isPositive() || a.isZero() ? a.greaterThanOrEqual(b) : !a.greaterThanOrEqual(b)))
     })
 
-    test('Integer.lessThanOrEqual should return true if a is negative', () => {
+    test('Integer.lessThanOrEqual should return true if a is negative or both a and b are ZERO', () => {
       fc.assert(fc.property(
         arbitraryDiffSignIntegers(),
         ({ a, b }) => a.isNegative() || (a.isZero() && b.isZero()) ? a.lessThanOrEqual(b) : !a.lessThanOrEqual(b)))
