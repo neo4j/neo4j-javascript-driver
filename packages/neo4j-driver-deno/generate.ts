@@ -63,8 +63,8 @@ async function copyAndTransform(inDir: string, outDir: string) {
 
   const relativeRoot = relative(outDir, rootOutDir).replaceAll("\\", "/") || "."; // relative path to rootOutDir
   const packageImportsMap = {
-    'neo4j-driver-core': `${relativeRoot.replaceAll("\\", "/")}/core/index.ts`,
-    'neo4j-driver-bolt-connection': `${relativeRoot.replaceAll("\\", "/")}/bolt-connection/index.js`,
+    'neo4j-driver-core': `${relativeRoot}/core/index.ts`,
+    'neo4j-driver-bolt-connection': `${relativeRoot}/bolt-connection/index.js`,
     // Replace the 'buffer' npm package with the compatible implementation from the deno standard library
     'buffer': 'https://deno.land/std@0.119.0/node/buffer.ts',  // or can use 'https://esm.sh/buffer@6.0.3'
     // Replace the 'string_decoder' npm package with the compatible implementation from the deno standard library
@@ -74,7 +74,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
   // Recursively copy files from inDir to outDir
   for await (const existingFile of Deno.readDir(inDir)) {
     const inPath = join(inDir, existingFile.name).replaceAll("\\", "/");
-    const outPath = join(outDir, existingFile.name).replaceAll("\\", "/");
+    const outPath = join(outDir, existingFile.name);
     // If this is a directory, handle it recursively:
     if (existingFile.isDirectory) {
       await copyAndTransform(inPath, outPath);
@@ -139,7 +139,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
 
       // Special fix for core/internal/bolt-agent/index.js
       // Replace the "node boltAgent" with the "deno boltAgent", since Deno supports different APIs
-      if(inPath.replaceAll("\\", "/").endsWith("bolt-agent/index.ts")){
+      if(inPath.endsWith("bolt-agent/index.ts")){
         contents = contents.replace(
             `export * from './node/index.ts'`,
             `export * from './deno/index.ts'`,
@@ -148,10 +148,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
 
       // Special fix for bolt-connection/channel/index.js and core/internal/bolt-agent/index.js
       // Replace the "node channel" with the "deno channel", since Deno supports different APIs
-      log.info(inPath)
-      log.info(inPath.replaceAll("\\", "/"))
-      log.info(inPath.replaceAll("\\", "/").endsWith("channel/index.js"))
-      if (inPath.replaceAll("\\", "/").endsWith("channel/index.js")) {
+      if (inPath.endsWith("channel/index.js")) {
         contents = contents.replace(
           `export * from './node/index.js'`,
           `export * from './deno/index.js'`,
@@ -166,23 +163,23 @@ async function copyAndTransform(inDir: string, outDir: string) {
 ////////////////////////////////////////////////////////////////////////////////
 // Now generate the Deno driver
 
-await copyAndTransform("../core/src", join(rootOutDir, "core").replaceAll("\\", "/"));
+await copyAndTransform("../core/src", join(rootOutDir, "core"));
 await copyAndTransform(
   "../bolt-connection/src",
-  join(rootOutDir, "bolt-connection").replaceAll("\\", "/"),
+  join(rootOutDir, "bolt-connection"),
 );
 await copyAndTransform(
   "../bolt-connection/types",
-  join(rootOutDir, "bolt-connection", "types").replaceAll("\\", "/"),
+  join(rootOutDir, "bolt-connection", "types"),
 );
 await copyAndTransform("../neo4j-driver-lite/src", rootOutDir);
 // Deno convention is to use "mod.ts" not "index.ts", so let's do that at least for the main/root import:
-await Deno.rename(join(rootOutDir, "index.ts").replaceAll("\\", "/"), join(rootOutDir, "mod.ts").replaceAll("\\", "/"))
+await Deno.rename(join(rootOutDir, "index.ts"), join(rootOutDir, "mod.ts"))
 await setVersion(rootOutDir, version)
 
 // Copy README.md
 const readmeFileName = "README.md"
-await Deno.copyFile(join(`./`, readmeFileName).replaceAll("\\", "/"), join(rootOutDir, readmeFileName).replaceAll("\\", "/"))
+await Deno.copyFile(join(`./`, readmeFileName), join(rootOutDir, readmeFileName))
 
 ////////////////////////////////////////////////////////////////////////////////
 // Warnings show up at the end
@@ -193,6 +190,6 @@ if (!doTransform) {
 ////////////////////////////////////////////////////////////////////////////////
 // Now test the driver
 log.info("Testing the new driver (type checks only)");
-const importPath = "./" + relative(".", join(rootOutDir, "mod.ts")).replaceAll("\\", "/");  // This is just ${rootOutDir}/index.ts but forced to start with "./"
+const importPath = "./" + relative(".", join(rootOutDir, "mod.ts"));  // This is just ${rootOutDir}/index.ts but forced to start with "./"
 await import(importPath);
 log.info('Driver created and validated!');
