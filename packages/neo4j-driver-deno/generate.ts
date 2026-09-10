@@ -61,7 +61,7 @@ for await (const existingFile of Deno.readDir(rootOutDir)) {
 async function copyAndTransform(inDir: string, outDir: string) {
   await ensureDir(outDir); // Make sure the target directory exists
 
-  const relativeRoot = relative(outDir, rootOutDir) || "."; // relative path to rootOutDir
+  const relativeRoot = relative(outDir, rootOutDir).replaceAll("\\", "/") || "."; // relative path to rootOutDir
   const packageImportsMap = {
     'neo4j-driver-core': `${relativeRoot}/core/index.ts`,
     'neo4j-driver-bolt-connection': `${relativeRoot}/bolt-connection/index.js`,
@@ -73,7 +73,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
 
   // Recursively copy files from inDir to outDir
   for await (const existingFile of Deno.readDir(inDir)) {
-    const inPath = join(inDir, existingFile.name);
+    const inPath = join(inDir, existingFile.name).replaceAll("\\", "/");
     const outPath = join(outDir, existingFile.name);
     // If this is a directory, handle it recursively:
     if (existingFile.isDirectory) {
