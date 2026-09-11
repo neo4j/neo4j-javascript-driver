@@ -124,9 +124,13 @@ import {
   ProtocolVersion,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  BoltProvider,
+  LocalKeyEncapsulationService,
+  EncapsulatedKeyRepository,
+  EnvelopeEncryptionProfile
 } from 'neo4j-driver-core'
-import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
+import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from 'neo4j-driver-bolt-connection'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -200,6 +204,11 @@ function driver (
   // enabling set boltAgent
   const _config = config as unknown as InternalConfig
 
+  const boltMap = new Map()
+  boltMap.set('1.0', new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }))
+  // @ts-expect-error
+  const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
+
   // Determine entryption/trust options from the URL.
   let routing = false
   let encrypted = false
@@ -259,7 +268,12 @@ function driver (
     routing
   }
 
-  return new Driver(meta, _config, createConnectionProviderFunction())
+  return new Driver(
+    meta,
+    _config,
+    createConnectionProviderFunction(),
+    boltProvider
+  )
 
   function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
     if (routing) {
@@ -475,7 +489,9 @@ const forExport = {
   ProtocolVersion,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  EnvelopeEncryptionProfile
 }
 
 export {
@@ -556,7 +572,9 @@ export {
   StandardCase,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  EnvelopeEncryptionProfile
 }
 export type {
   QueryResult,
@@ -592,6 +610,7 @@ export type {
   Rule,
   Rules,
   MappedQueryResult,
-  ProtocolVersion
+  ProtocolVersion,
+  EncapsulatedKeyRepository
 }
 export default forExport

@@ -111,6 +111,11 @@ import { rule } from './mapping.rulesfactories.ts'
 import mappingDecorators from './mapping.decorators.ts'
 import UnsupportedType, { isUnsupportedType } from './unsupported-type.ts'
 import UUID, { uuid, isUUID } from './uuid.ts'
+import { EncryptedValue, isEnc } from './encryption/encrypted-value.ts'
+import { BoltProvider } from './internal/bolt-provider.ts'
+import { LocalKeyEncapsulationService } from './encryption/key-encapsulation/local-key-encapsulation.ts'
+import type { EncapsulatedKeyRepository } from './encryption/key-encapsulation/encapsulated-key.ts'
+import { EnvelopeEncryptionProfile } from './encryption/encyption-profile.ts'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -209,7 +214,12 @@ const forExport = {
   isVector,
   vector,
   isUUID,
-  uuid
+  uuid,
+  EncryptedValue,
+  isEnc,
+  BoltProvider,
+  LocalKeyEncapsulationService,
+  EnvelopeEncryptionProfile
 }
 
 export {
@@ -301,7 +311,12 @@ export {
   isUnsupportedType,
   UUID,
   isUUID,
-  uuid
+  uuid,
+  EncryptedValue,
+  isEnc,
+  BoltProvider,
+  LocalKeyEncapsulationService,
+  EnvelopeEncryptionProfile
 }
 
 export type {
@@ -336,7 +351,8 @@ export type {
   RotatingClientCertificateProvider,
   VectorType,
   Rule,
-  Rules
+  Rules,
+  EncapsulatedKeyRepository
 }
 
 export default forExport

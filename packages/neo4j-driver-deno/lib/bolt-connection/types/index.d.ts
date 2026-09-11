@@ -26,7 +26,25 @@ declare class RoutingConnectionProvider extends ConnectionProvider {
   constructor (config: any)
 }
 
+declare class BoltProtocol {
+  constructor (_?: any, __?: any, config?: any)
+
+  get version (): any
+
+  _createPacker (chunker: any): any
+
+  _createUnpacker (disableLosslessIntegers: any, useBigInt: any): any
+
+  get transformer (): any
+}
+
+declare class channel {
+  alloc (): any
+}
+
 export {
   DirectConnectionProvider,
-  RoutingConnectionProvider
+  RoutingConnectionProvider,
+  BoltProtocol,
+  channel
 }
