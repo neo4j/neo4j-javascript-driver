@@ -27,7 +27,7 @@ import Integer, { isInt } from './integer.ts'
 import UUID, { isUUID, uuid } from './uuid.ts'
 
 /**
- * An object containing rule factories for use with the Object Mapping feature. 
+ * An object containing rule factories for use with the Object Mapping feature.
  * Each factory produces an instance of the {@link Rule} type that validates and handles the type
  * All factories except {@link rule.asObject} can take an optional instance of a {@link Rule} to override those fields of the produced rule.
  * The fields of Rule are:
@@ -36,7 +36,7 @@ import UUID, { isUUID, uuid } from './uuid.ts'
  * - convert: A function to convert the value from a result after it has been validated.
  * - parameterConversion: A function to convert a parameter before validation and transmission to the database.
  * - validate: A function to validate the value, should throw an error if it is invalid.
- * 
+ *
  * @property {function(rule: ?Rule)} asBoolean Create a {@link Rule} that validates the value is a Boolean.
  *
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.
@@ -515,7 +515,7 @@ export const rule = Object.freeze({
           throw new TypeError(`${field} should be a vector but received ${typeof value}`)
         }
         if (rule?.dimension != null && value.asTypedArray().length !== rule.dimension) {
-          throw new TypeError(`${field} should be a vector of length ${rule.dimension} but received length ${value.asTypedArray().length as number}`)
+          throw new TypeError(`${field} should be a vector of length ${rule.dimension} but received length ${value.asTypedArray().length}`)
         }
         if (rule?.type != null && value.getType() !== rule.type) {
           throw new TypeError(`${field} should be a vector of type ${rule.type} but received type ${value.getType()}`)

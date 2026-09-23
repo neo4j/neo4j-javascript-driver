@@ -93,8 +93,8 @@ function translateIdentifiers (translationFunction: (name: string) => string): v
 }
 
 function getCaseTranslator (
-  databaseConvention: "snake_case" | "kebab-case" | "PascalCase" | "camelCase" | "SCREAMING_SNAKE_CASE", 
-  codeConvention: "snake_case" | "kebab-case" | "PascalCase" | "camelCase" | "SCREAMING_SNAKE_CASE"
+  databaseConvention: 'snake_case' | 'kebab-case' | 'PascalCase' | 'camelCase' | 'SCREAMING_SNAKE_CASE',
+  codeConvention: 'snake_case' | 'kebab-case' | 'PascalCase' | 'camelCase' | 'SCREAMING_SNAKE_CASE'
 ): ((name: string) => string) {
   const keys = Object.keys(nameConventions)
   if (!keys.includes(databaseConvention)) {
@@ -112,16 +112,15 @@ function getCaseTranslator (
   return (name: string) => nameConventions[databaseConvention].encode(nameConventions[codeConvention].tokenize(name))
 }
 
-
 /**
  * An object containing functions to use the Object Mapping feature
- * 
+ *
  * @property {function()} clearMappingRegistry Clears the mapping registry from Rule/Class pairs set with {@link RecordObjectMapping.register}
- * 
+ *
  * @property {function(databaseConvention: string, codeConvention: string)} getCaseTranslator Creates a translation function from record key names to object property names, for use with the {@link RecordObjectMapping.translateIdentifiers} function
- * 
+ *
  * @property {function(constructor: GenericConstructor, rules: Rules)} register Registers a set of {@link Rules} to be used by {@link hydrated} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
- * 
+ *
  * @property {function(translationFunction: any)} translateIdentifiers Sets a default name translation from record keys to object properties. Provide a function that maps FROM your object properties names TO record key names.
  */
 export const RecordObjectMapping = Object.freeze({
