@@ -27,6 +27,16 @@ import Integer, { isInt } from './integer.ts'
 import UUID, { isUUID, uuid } from './uuid.ts'
 
 /**
+ * An object containing rule factories for use with the Object Mapping feature. 
+ * Each factory produces an instance of the {@link Rule} type that validates and handles the type
+ * All factories except {@link rule.asObject} can take an optional instance of a {@link Rule} to override those fields of the produced rule.
+ * The fields of Rule are:
+ * - optional: marks a field as optional, and the driver will not throw if it is missing during mapping
+ * - from: The string used to identify this value in the database. For when parameters or returned fields do not match the name of your domain objects fields.
+ * - convert: A function to convert the value from a result after it has been validated.
+ * - parameterConversion: A function to convert a parameter before validation and transmission to the database.
+ * - validate: A function to validate the value, should throw an error if it is invalid.
+ * 
  * @property {function(rule: ?Rule)} asBoolean Create a {@link Rule} that validates the value is a Boolean.
  *
  * @property {function(rule: ?Rule)} asString Create a {@link Rule} that validates the value is a String.

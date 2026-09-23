@@ -67,14 +67,23 @@ export interface Rule {
 
 export type Rules = Record<string, Rule>
 
+/**
+ * @private
+ */
 export let rulesRegistry: Record<string, Rules> = {}
 
+/**
+ * @private
+ */
 export let defaultNameMapping: (name: string) => string = (name) => name
 
 function register <T extends {} = Object> (constructor: GenericConstructor<T>, rules: Rules): void {
   rulesRegistry[constructor.name] = rules
 }
 
+/**
+ * Clears the mapping registry from Rule/Class pairs set with {@link RecordObjectMapping.register}
+ */
 function clearMappingRegistry (): void {
   rulesRegistry = {}
 }
@@ -83,7 +92,10 @@ function translateIdentifiers (translationFunction: (name: string) => string): v
   defaultNameMapping = translationFunction
 }
 
-function getCaseTranslator (databaseConvention: string, codeConvention: string): ((name: string) => string) {
+function getCaseTranslator (
+  databaseConvention: "snake_case" | "kebab-case" | "PascalCase" | "camelCase" | "SCREAMING_SNAKE_CASE", 
+  codeConvention: "snake_case" | "kebab-case" | "PascalCase" | "camelCase" | "SCREAMING_SNAKE_CASE"
+): ((name: string) => string) {
   const keys = Object.keys(nameConventions)
   if (!keys.includes(databaseConvention)) {
     throw newError(
@@ -97,10 +109,21 @@ function getCaseTranslator (databaseConvention: string, codeConvention: string):
       please provide a recognized name convention or manually provide a translation function.`
     )
   }
-  // @ts-expect-error
   return (name: string) => nameConventions[databaseConvention].encode(nameConventions[codeConvention].tokenize(name))
 }
 
+
+/**
+ * An object containing functions to use the Object Mapping feature
+ * 
+ * @property {function()} clearMappingRegistry Clears the mapping registry from Rule/Class pairs set with {@link RecordObjectMapping.register}
+ * 
+ * @property {function(databaseConvention: string, codeConvention: string)} getCaseTranslator Creates a translation function from record key names to object property names, for use with the {@link RecordObjectMapping.translateIdentifiers} function
+ * 
+ * @property {function(constructor: GenericConstructor, rules: Rules)} register Registers a set of {@link Rules} to be used by {@link hydrated} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
+ * 
+ * @property {function(translationFunction: any)} translateIdentifiers Sets a default name translation from record keys to object properties. Provide a function that maps FROM your object properties names TO record key names.
+ */
 export const RecordObjectMapping = Object.freeze({
   /**
  * Clears all registered type mappings from the record object mapping registry.
@@ -138,7 +161,7 @@ export const RecordObjectMapping = Object.freeze({
   register,
   /**
  * Sets a default name translation from record keys to object properties.
- * If providing a function, provide a function that maps FROM your object properties names TO record key names.
+ * Provide a function that maps FROM your object properties names TO record key names.
  *
  * NOTE: The keys of objects inside a record will only be translated if using the asObject rule with it, not by default.
  *
@@ -206,6 +229,9 @@ function _apply<T extends {}> (gettable: Gettable, obj: T, key: string, rule?: R
   obj[key] = valueAs(value, field, rule)
 }
 
+/**
+ * @private
+ */
 export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
   if (rule?.optional === true && value == null) {
     return value
@@ -218,6 +244,9 @@ export function valueAs (value: unknown, field: string, rule?: Rule): unknown {
   return ((rule?.convert) != null) ? rule.convert(value, field) : value
 }
 
+/**
+ * @private
+ */
 export function optionalParameterConversion (value: unknown, rule: Rule): unknown {
   if (rule.optional === true && value == null) {
     return value
@@ -225,6 +254,9 @@ export function optionalParameterConversion (value: unknown, rule: Rule): unknow
   return (value != null && rule.parameterConversion != null) ? rule.parameterConversion(value) : value
 }
 
+/**
+ * @private
+ */
 export function validateAndCleanParameters (params: Record<string, any>, suppliedRules?: Rules): Record<string, any> {
   const cleanedParams: Record<string, any> = {}
   const parameterRules = getRules(Object.getPrototypeOf(params).constructor, suppliedRules)
@@ -253,6 +285,9 @@ export function validateAndCleanParameters (params: Record<string, any>, supplie
   }
 }
 
+/**
+ * @private
+ */
 export function getRules<T extends {} = Object> (constructorOrRules: Rules | GenericConstructor<T>, rules: Rules | undefined): Rules | undefined {
   const rulesDefined = typeof constructorOrRules === 'object' ? constructorOrRules : rules
   if (rulesDefined != null) {

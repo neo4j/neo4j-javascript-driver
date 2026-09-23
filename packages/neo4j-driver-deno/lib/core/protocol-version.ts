@@ -17,8 +17,9 @@
 
 /**
  *
+ * A class representing a protocol version the driver is using to communicate with the server.
+ * 
  * @access public
- * @class A class representing a protocol version the driver is using to communicate with the server.
  * @param {number} major the major version of the protocol.
  * @param {number} minor the minor version of the protocol.
  */
