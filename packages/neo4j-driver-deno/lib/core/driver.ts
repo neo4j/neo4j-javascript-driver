@@ -120,6 +120,7 @@ interface DriverConfig {
   notificationFilter?: NotificationFilter
   connectionLivenessCheckTimeout?: number
   disableAutoCommitRetries?: boolean
+  noQueryParameterLogging?: boolean
 }
 
 /**
