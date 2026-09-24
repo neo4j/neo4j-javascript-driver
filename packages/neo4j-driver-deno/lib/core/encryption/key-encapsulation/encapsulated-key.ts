@@ -31,7 +31,7 @@ export interface EncapsulatedKeyRecordRepository {
    */
   findById: (id: string) => Promise<EncapsulatedKeyRecord>
 
-   /**
+  /**
    * Finds and returns an {@link EncapsulatedKeyRecord} by its alias.
    *
    * @param {string} alias the key alias
@@ -70,7 +70,6 @@ export interface EncapsulatedKeyRecordRepository {
    */
   deleteById: (id: string) => Promise<void>
 }
-
 
 /**
  * A reference to an encapsulated key.

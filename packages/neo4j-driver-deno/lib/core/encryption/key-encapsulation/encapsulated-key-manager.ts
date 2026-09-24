@@ -38,19 +38,19 @@ export class EncapsulatedKeyManager {
     return await this._profile.saveKey(name, encapulated.encapsulation(), encapulated.options())
   }
 
-  async findById () {
-    //TODO
+  async findById (): Promise<EncapsulatedKey> {
+    throw new Error('Not Implemented')
   }
 
-  async findByAlias () {
-    //TODO
+  async findByAlias (): Promise<EncapsulatedKey> {
+    throw new Error('Not Implemented')
   }
 
-  async setAliasById () {
-    //TODO
+  async setAliasById (): Promise<EncapsulatedKey> {
+    throw new Error('Not Implemented')
   }
 
-  async deleteById () {
-    //
+  async deleteById (): Promise<void> {
+    throw new Error('Not Implemented')
   }
 }

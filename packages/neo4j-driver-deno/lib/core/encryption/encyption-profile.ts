@@ -44,7 +44,6 @@ export class EnvelopeEncryptionProfile {
   private readonly _keyAliasIndexMaxSize: number
   private readonly _keyCache: Map<string, CacheEntry<EncapsulatedKeyRecord>>
   private readonly _aliasCache: Map<string, CacheEntry<string>>
-  
 
   /**
    *
@@ -75,7 +74,7 @@ export class EnvelopeEncryptionProfile {
     this._keyAliasIndexTTL = config.keyAliasIndexTTL ?? 15 * 1000
     this._keyAliasIndexMaxSize = config.keyAliasIndexMaxSize ?? 100
     this._aliasCache = new Map<string, CacheEntry<string>>()
-    this.type = "ENVELOPE"
+    this.type = 'ENVELOPE'
     this.version = int(1)
   }
 

@@ -34,7 +34,7 @@ export class LocalKeyEncapsulationService implements KeyEncapsulationService {
   private readonly _kek: Uint8Array
   private readonly _cryptoProvider: CryptoProvider
   constructor (kek: Uint8Array) {
-    if(kek.byteLength !== 32) {
+    if (kek.byteLength !== 32) {
       throw newError(`LocalKeyEncapsualationService master key must be of byteLength 32 (256 bits), got ${kek.byteLength} (${kek.byteLength * 8} bits)`)
     }
     this._kek = kek
@@ -95,6 +95,6 @@ export class LocalEncapsulationResult implements EncapsulationResult {
  * @param {Uint8Array} masterKey the AES-256 master key
  * @return {KeyEncapsulationService} the new key encapsulation service
  */
-export function localKeyEncapsulationService(masterKey: Uint8Array): LocalKeyEncapsulationService {
+export function localKeyEncapsulationService (masterKey: Uint8Array): LocalKeyEncapsulationService {
   return new LocalKeyEncapsulationService(masterKey)
 }

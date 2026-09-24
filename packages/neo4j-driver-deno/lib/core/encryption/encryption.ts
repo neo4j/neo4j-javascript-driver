@@ -86,7 +86,7 @@ export default class EncryptionService {
       }
       return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, profile.profile.type, profile.profile.version, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
     } catch (e) {
-      throw newError("Propety decryption failed due to internal error, see cause.", "50N42", e as Error)
+      throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
     }
   }
 
@@ -113,7 +113,7 @@ export default class EncryptionService {
       const decapsulatedKey = await this._decapsulateKey(profile.profile, await this._getKeyRecord(profile.profile, struct.metadata.key_id))
       return this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
     } catch (e) {
-      throw newError("Propety decryption failed due to internal error, see cause.", "50N42", e as Error)
+      throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
     }
   }
 
@@ -130,8 +130,8 @@ export default class EncryptionService {
 
   // This function will need to be dynamic based on which version of the encoding is being used, currently only 1.0 (based on bolt 6.1) exists.
   private _identifyType (value: any): { typeName: string, typeProtocolMajor: Integer, typeProtocolMinor: Integer, verification: (_: any) => boolean } {
-    if(value === null) {
-      const verification = (_: any) => {throw newError("Encrypted arrays cannot contain null values")}
+    if (value === null) {
+      const verification: (_: any) => boolean = (_: any) => { throw newError('Encrypted arrays cannot contain null values') }
       return { typeName: 'NULL', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (typeof value === 'string') {
@@ -159,7 +159,7 @@ export default class EncryptionService {
       return { typeName: 'DURATION', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isVector(value)) {
-      const verification = (_: any) => {throw newError("Encrypted arrays cannot contain vector values")}
+      const verification: (_: any) => boolean = (_: any) => { throw newError('Encrypted arrays cannot contain vector values') }
       return { typeName: 'VECTOR', typeProtocolMajor: int(6), typeProtocolMinor: int(0), verification }
     }
     if (value instanceof Int8Array) {
@@ -185,11 +185,11 @@ export default class EncryptionService {
     if (isPoint(value)) {
       const verification: (point: any) => boolean = (point: any) => {
         if (isPoint(point)) {
-          if(point.srid !== value.srid) {
-            throw newError("Encrypted arrays of Points must only contain Points with identical srids")
+          if (point.srid !== value.srid) {
+            throw newError('Encrypted arrays of Points must only contain Points with identical srids')
           }
-          if((point.z == null && value.z != null) || (point.z != null && value.z == null)) {
-            throw newError("Encrypted arrays of Points must only contain Points of the same dimensionality.")
+          if ((point.z == null && value.z != null) || (point.z != null && value.z == null)) {
+            throw newError('Encrypted arrays of Points must only contain Points of the same dimensionality.')
           }
           return true
         }

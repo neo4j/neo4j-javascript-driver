@@ -17,7 +17,7 @@
 
 /**
  * Options used by a {@link KeyEncapsulationService} to encapsulate a key.
- * 
+ *
  * Implementations of {@link KeyEncapsulationService} are expected to define a dedicated subtype of this interface
  * containing the options required by the particular key encapsulation mechanism.
  *
@@ -29,7 +29,6 @@
 type KeyEncapsulationOptions = Record<string, string>
 
 type SecretKey = Uint8Array
-
 
 /**
  * The result of a key encapsulation operation.

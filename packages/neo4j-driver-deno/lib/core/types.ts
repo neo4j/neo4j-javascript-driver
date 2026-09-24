@@ -95,7 +95,7 @@ export class Config {
   /**
    * A list of {@link EnvelopeEncryptionProfile}s used by the driver to encrypt and decrypt data when using the Client-Side Encryption feature.
    * See {@link Driver#encryption}
-   * 
+   *
    * @experimental Part of the Client-Side Encrytion preview feature
    */
   encryptionProfiles?: EnvelopeEncryptionProfile[]
