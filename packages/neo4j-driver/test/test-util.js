@@ -13,7 +13,7 @@ export default class KeyRepo {
     return this.idToKey.get(this.aliasToId.get(alias) ?? '')
   }
 
-  save (alias, encapsulation, metadata) {
+  create (alias, encapsulation, metadata) {
     const id = this.num.toString()
     this.num += 1
     this.aliasToId.set(alias, id)

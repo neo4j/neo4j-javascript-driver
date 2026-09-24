@@ -872,7 +872,7 @@ export function CreateEncapsulatedKey ({ neo4j }, context, { driverId, alias, pr
 
 export function ImportEncapsulatedKey ({ neo4j }, context, { driverId, alias, profileName, encapsulation, metadata }, wire) {
   const driver = context.getDriver(driverId)
-  driver.encryption.keyManager(profileName)._profile.keyRepository.save(alias, context.binder.toByteArray(encapsulation), metadata).then(key => {
+  driver.encryption.keyManager(profileName)._profile.keyRepository.create(alias, context.binder.toByteArray(encapsulation), metadata).then(key => {
     wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias() }))
   })
     .catch(e => wire.writeError(e))

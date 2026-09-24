@@ -12,7 +12,7 @@ export default class KeyRepo {
     return this.idToKey.get(this.aliasToId.get(alias) ?? '')
   }
 
-  save (alias, encapsulation, metadata) {
+  create (alias, encapsulation, metadata) {
     const id = 'testkit-key'
     this.aliasToId.set(alias, id)
     const key = {
@@ -25,7 +25,7 @@ export default class KeyRepo {
     return Promise.resolve(key)
   }
 
-  addAliasById (id, alias) {
+  setAliasById (id, alias) {
     this.aliasToId.set(alias, id)
     return Promise.resolve()
   }
