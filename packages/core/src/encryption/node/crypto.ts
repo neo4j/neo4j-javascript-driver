@@ -1,8 +1,26 @@
+/**
+ * Copyright (c) "Neo4j"
+ * Neo4j Sweden AB [https://neo4j.com]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as crypto from 'node:crypto'
 import { newError } from '../../error'
 
-const KEY_DERIVATION_INFO = new TextEncoder().encode('neo4j/property-encryption/v1')
-
+/**
+ * @private
+ */
 export default class CryptoProvider {
   async encrypt (key: Uint8Array, message: ArrayBuffer, aad: ArrayBuffer | undefined): Promise<{ cyphertext: ArrayBuffer, iv: Uint8Array }> {
     if (crypto === undefined) {
@@ -40,15 +58,5 @@ export default class CryptoProvider {
 
   getRandomValues (length: number): Uint8Array {
     return crypto.getRandomValues(new Uint8Array(length))
-  }
-
-  async deriveKey (ikm: Uint8Array): Promise<Uint8Array> {
-    const baseKey = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits'])
-    const bits = await crypto.subtle.deriveBits(
-      { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: KEY_DERIVATION_INFO },
-      baseKey,
-      256
-    )
-    return new Uint8Array(bits)
   }
 }

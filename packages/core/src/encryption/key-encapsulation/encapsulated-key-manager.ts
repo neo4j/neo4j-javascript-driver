@@ -1,4 +1,22 @@
+/**
+ * Copyright (c) "Neo4j"
+ * Neo4j Sweden AB [https://neo4j.com]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { EncryptionProfile } from '../encyption-profile'
+import { EncapsulatedKey } from './encapsulated-key'
 import { KeyEncapsulationService } from './key-encapsulation-service'
 
 export class EncapsulatedKeyManager {
@@ -10,13 +28,29 @@ export class EncapsulatedKeyManager {
   }
 
   /**
-   * Creates a new key via the {@link KeyEncapsulationService} and saves it in the profile's configured {@link EncapsulatedKeyRepository}
+   * Creates a new key via the {@link KeyEncapsulationService} and saves it in the profile's configured {@link EncapsulatedKeyRecordRepository}
    *
-   * @param {string} name - The alias the new key should be saved under in the {@link EncapsulatedKeyRepository}
+   * @param {string} name - The alias the new key should be saved under in the {@link EncapsulatedKeyRecordRepository}
    * @returns {Promise<void>} Promise that resolves when the key is created, saved and ready to use.
    */
-  async create (name: string): Promise<void> {
+  async create (name: string): Promise<EncapsulatedKey> {
     const encapulated = await this._keyEncapsulationService.encapsulate({})
-    await this._profile.saveKey(name, encapulated.encapsulation(), encapulated.options())
+    return await this._profile.saveKey(name, encapulated.encapsulation(), encapulated.options())
+  }
+
+  async findById (): Promise<EncapsulatedKey> {
+    throw new Error('Not Implemented')
+  }
+
+  async findByAlias (): Promise<EncapsulatedKey> {
+    throw new Error('Not Implemented')
+  }
+
+  async setAliasById (): Promise<EncapsulatedKey> {
+    throw new Error('Not Implemented')
+  }
+
+  async deleteById (): Promise<void> {
+    throw new Error('Not Implemented')
   }
 }

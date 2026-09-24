@@ -96,7 +96,8 @@ import {
   isUUID,
   BoltProvider,
   LocalKeyEncapsulationService,
-  EncapsulatedKeyRepository,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
   EnvelopeEncryptionProfile
 } from 'neo4j-driver-core'
 import {
@@ -317,7 +318,7 @@ const types = {
   Rule,
   Rules,
   ProtocolVersion,
-  EncapsulatedKeyRepository,
+  EncapsulatedKeyRecordRepository,
   EnvelopeEncryptionProfile
 }
 
@@ -453,7 +454,8 @@ const forExport = {
   uuid,
   isUUID,
   LocalKeyEncapsulationService,
-  EncapsulatedKeyRepository,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
   EnvelopeEncryptionProfile
 }
 
@@ -543,7 +545,8 @@ export {
   uuid,
   isUUID,
   LocalKeyEncapsulationService,
-  EncapsulatedKeyRepository,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
   EnvelopeEncryptionProfile
 }
 export default forExport

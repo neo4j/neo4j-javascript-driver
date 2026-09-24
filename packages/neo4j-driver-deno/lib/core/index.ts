@@ -112,8 +112,8 @@ import UnsupportedType, { isUnsupportedType } from './unsupported-type.ts'
 import UUID, { uuid, isUUID } from './uuid.ts'
 import { EncryptedValue, isEnc } from './encryption/encrypted-value.ts'
 import { BoltProvider } from './internal/bolt-provider.ts'
-import { LocalKeyEncapsulationService } from './encryption/key-encapsulation/local-key-encapsulation.ts'
-import type { EncapsulatedKeyRepository } from './encryption/key-encapsulation/encapsulated-key.ts'
+import { localKeyEncapsulationService, LocalKeyEncapsulationService } from './encryption/key-encapsulation/local-key-encapsulation.ts'
+import type { EncapsulatedKeyRecordRepository } from './encryption/key-encapsulation/encapsulated-key.ts'
 import { EnvelopeEncryptionProfile } from './encryption/encyption-profile.ts'
 
 /**
@@ -217,6 +217,7 @@ const forExport = {
   isEnc,
   BoltProvider,
   LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
   EnvelopeEncryptionProfile
 }
 
@@ -313,6 +314,7 @@ export {
   isEnc,
   BoltProvider,
   LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
   EnvelopeEncryptionProfile
 }
 
@@ -349,7 +351,7 @@ export type {
   VectorType,
   Rule,
   Rules,
-  EncapsulatedKeyRepository
+  EncapsulatedKeyRecordRepository
 }
 
 export default forExport

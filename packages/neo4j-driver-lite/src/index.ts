@@ -126,7 +126,8 @@ import {
   isUUID,
   BoltProvider,
   LocalKeyEncapsulationService,
-  EncapsulatedKeyRepository,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
   EnvelopeEncryptionProfile
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from 'neo4j-driver-bolt-connection'
@@ -483,6 +484,7 @@ const forExport = {
   UUID,
   isUUID,
   LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
   EnvelopeEncryptionProfile
 }
 
@@ -566,6 +568,7 @@ export {
   UUID,
   isUUID,
   LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
   EnvelopeEncryptionProfile
 }
 export type {
@@ -603,6 +606,6 @@ export type {
   Rules,
   MappedQueryResult,
   ProtocolVersion,
-  EncapsulatedKeyRepository
+  EncapsulatedKeyRecordRepository
 }
 export default forExport

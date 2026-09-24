@@ -1,3 +1,20 @@
+/**
+ * Copyright (c) "Neo4j"
+ * Neo4j Sweden AB [https://neo4j.com]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import Integer, { int, isInt } from '../integer'
 import { BoltProvider } from '../internal/bolt-provider'
 import { EncryptedValue } from './encrypted-value'
@@ -7,14 +24,12 @@ import { isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } 
 import type { Duration, Date, Time, LocalDateTime, LocalTime, DateTime } from '../temporal-types'
 import { isVector } from '../vector'
 import { isPoint } from '../spatial-types'
-import type { Point } from '../spatial-types'
 import { isUUID } from '../uuid'
 import type UUID from '../uuid'
 import { EncryptionProfile } from './encyption-profile'
 import { newError } from '../error'
-import { EncapsulatedKey } from './key-encapsulation/encapsulated-key'
+import { EncapsulatedKeyRecord } from './key-encapsulation/encapsulated-key'
 import { json } from '..'
-import type Vector from '../vector'
 
 const supportedAADTypes: string[] = ['BOOLEAN', 'DATE', 'INTEGER', 'LOCAL TIME', 'POINT', 'STRING', 'ZONED TIME', 'UUID', 'BYTES']
 
@@ -36,7 +51,7 @@ export default class EncryptionService {
 
   /**
    * Encrypts data with AES-GCM 256 into a byte array ready to be saved an a property in a Neo4j database.
-   * The byte array includes metadata required to allow another Neo4j Driver configured with the same {@link EncapsulatedKeyRepository} to decrypt the data.
+   * The byte array includes metadata required to allow another Neo4j Driver configured with the same {@link EncapsulatedKeyRecordRepository} to decrypt the data.
    *
    * @param {Object} encryptRequest - The value to encrypt and associated metadata for the encryption
    * @param {any} encryptRequest.value - The value to encrypt, must be a value able to be saved as a Neo4j Property.
@@ -58,18 +73,21 @@ export default class EncryptionService {
       }
       encodedAAD = this._boltProvider.encodeValue(encryptRequest.aad)
     }
-    const key = await this._getKey(profile.profile, encryptRequest.keyOptions)
-    const decapsulatedKey = await this.decapsulateKey(profile.profile, key)
-    const derivedKey = await this._cryptoProvider.deriveKey(decapsulatedKey)
-    const { cyphertext, iv } = await this._cryptoProvider.encrypt(derivedKey, encodedValue, encodedAAD)
-    const metadata = {
-      key_id: key.id(),
-      iv: new Int8Array(iv.buffer),
-      aad: encodedAAD !== undefined ? new Int8Array(encodedAAD) : undefined,
-      aad_encoding_scheme_major: aadType?.typeProtocolMajor,
-      aad_encoding_scheme_minor: aadType?.typeProtocolMinor
+    const key = await this._getKeyRecord(profile.profile, encryptRequest.keyOptions)
+    try {
+      const decapsulatedKey = await this._decapsulateKey(profile.profile, key)
+      const { cyphertext, iv } = await this._cryptoProvider.encrypt(decapsulatedKey, encodedValue, encodedAAD)
+      const metadata = {
+        key_id: key.id(),
+        iv: new Int8Array(iv.buffer),
+        aad: encodedAAD !== undefined ? new Int8Array(encodedAAD) : undefined,
+        aad_encoding_scheme_major: aadType?.typeProtocolMajor,
+        aad_encoding_scheme_minor: aadType?.typeProtocolMinor
+      }
+      return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, profile.profile.type, profile.profile.version, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
+    } catch (e) {
+      throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
     }
-    return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
   }
 
   /**
@@ -87,13 +105,16 @@ export default class EncryptionService {
     const struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
     if (decryptRequest.usePersistedAad === true) {
       encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
-    } else if (decryptRequest.aad != null && !this.isEmpty(decryptRequest.aad)) {
+    } else if (decryptRequest.aad != null && !this._isEmpty(decryptRequest.aad)) {
       encodedAAD = this._boltProvider.encodeValue(decryptRequest.aad)
     }
     const profile = this._getProfile(struct.profileName)
-    const decapsulatedKey = await this.decapsulateKey(profile.profile, await this._getKey(profile.profile, struct.metadata.key_id))
-    const derivedKey = await this._cryptoProvider.deriveKey(decapsulatedKey)
-    return this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(derivedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
+    try {
+      const decapsulatedKey = await this._decapsulateKey(profile.profile, await this._getKeyRecord(profile.profile, struct.metadata.key_id))
+      return this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
+    } catch (e) {
+      throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
+    }
   }
 
   /**
@@ -107,7 +128,12 @@ export default class EncryptionService {
     return profile.keyManager
   }
 
+  // This function will need to be dynamic based on which version of the encoding is being used, currently only 1.0 (based on bolt 6.1) exists.
   private _identifyType (value: any): { typeName: string, typeProtocolMajor: Integer, typeProtocolMinor: Integer, verification: (_: any) => boolean } {
+    if (value === null) {
+      const verification: (_: any) => boolean = (_: any) => { throw newError('Encrypted arrays cannot contain null values') }
+      return { typeName: 'NULL', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
+    }
     if (typeof value === 'string') {
       const verification: (value: any) => value is string = (value: any) => typeof value === 'string'
       return { typeName: 'STRING', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
@@ -133,7 +159,7 @@ export default class EncryptionService {
       return { typeName: 'DURATION', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isVector(value)) {
-      const verification: (value: any) => value is Vector<any> = (value: any) => isVector(value)
+      const verification: (_: any) => boolean = (_: any) => { throw newError('Encrypted arrays cannot contain vector values') }
       return { typeName: 'VECTOR', typeProtocolMajor: int(6), typeProtocolMinor: int(0), verification }
     }
     if (value instanceof Int8Array) {
@@ -157,7 +183,18 @@ export default class EncryptionService {
       return { typeName: 'ZONED TIME', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isPoint(value)) {
-      const verification: (value: any) => value is Point = (value: any) => isPoint(value)
+      const verification: (point: any) => boolean = (point: any) => {
+        if (isPoint(point)) {
+          if (point.srid !== value.srid) {
+            throw newError('Encrypted arrays of Points must only contain Points with identical srids')
+          }
+          if ((point.z == null && value.z != null) || (point.z != null && value.z == null)) {
+            throw newError('Encrypted arrays of Points must only contain Points of the same dimensionality.')
+          }
+          return true
+        }
+        return false
+      }
       return { typeName: 'POINT', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isUUID(value)) {
@@ -171,7 +208,7 @@ export default class EncryptionService {
       }
       let major = int(1)
       let minor = int(0)
-      if (type.typeProtocolMajor.low > 1 || (type.typeProtocolMajor.low === 1 && type.typeProtocolMinor.low > 0)) {
+      if (type.typeProtocolMajor.greaterThan(major) || (type.typeProtocolMajor.equals(major) && type.typeProtocolMinor.greaterThan(minor))) {
         major = type.typeProtocolMajor
         minor = type.typeProtocolMinor
       }
@@ -198,7 +235,7 @@ export default class EncryptionService {
     }
   }
 
-  private async _getKey (profile: EncryptionProfile, options: string | { alias?: string, id?: string }): Promise<EncapsulatedKey> {
+  private async _getKeyRecord (profile: EncryptionProfile, options: string | { alias?: string, id?: string }): Promise<EncapsulatedKeyRecord> {
     const key = await profile.findKey(options)
     if (key == null) {
       throw newError(`Could not find key with key options: ${json.stringify(options)}`)
@@ -206,11 +243,11 @@ export default class EncryptionService {
     return key
   }
 
-  private async decapsulateKey (profile: EncryptionProfile, key: EncapsulatedKey): Promise<Uint8Array> {
+  private async _decapsulateKey (profile: EncryptionProfile, key: EncapsulatedKeyRecord): Promise<Uint8Array> {
     return await profile.encapsulationService.decapsulate(key.encapsulation(), key.metadata())
   }
 
-  private isEmpty (obj: Record<string, any>): boolean {
+  private _isEmpty (obj: Record<string, any>): boolean {
     for (const prop in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, prop) != null) {
         return false

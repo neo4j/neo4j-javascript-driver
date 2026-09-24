@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { EnvelopeEncryptionProfile } from './encryption/encyption-profile.ts'
 import ClientCertificate, { ClientCertificateProvider } from './client-certificate.ts'
 import { Rules } from './mapping.highlevel.ts'
 import NotificationFilter from './notification-filter.ts'
@@ -91,6 +92,13 @@ export class Config {
   userAgent?: string
   telemetryDisabled?: boolean
   clientCertificate?: ClientCertificate | ClientCertificateProvider
+  /**
+   * A list of {@link EnvelopeEncryptionProfile}s used by the driver to encrypt and decrypt data when using the Client-Side Encryption feature.
+   * See {@link Driver#encryption}
+   * 
+   * @experimental Part of the Client-Side Encrytion preview feature
+   */
+  encryptionProfiles?: EnvelopeEncryptionProfile[]
 
   /**
    * @constructor
@@ -360,6 +368,14 @@ export class Config {
      * @since 5.27
      */
     this.clientCertificate = undefined
+
+    /**
+     * A list of {@link EnvelopeEncryptionProfile}s to be used with client-side property encryption. At least one of these must be set to use client-side encryption.
+     *
+     * @type {EnvelopeEncryptionProfile|undefined}
+     * @since 6.3
+     */
+    this.encryptionProfiles = undefined
   }
 }
 

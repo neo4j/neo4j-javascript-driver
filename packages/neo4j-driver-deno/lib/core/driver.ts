@@ -529,6 +529,19 @@ class Driver {
     this._createSession = createSession
     this._defaultExecuteQueryBookmarkManager = bookmarkManager()
     this._queryExecutor = createQueryExecutor(this.session.bind(this))
+
+    /**
+     * The driver's instance of {@link EncryptionService}, which can be used to encrypt and decrypt Neo4j properties to be stored in a Neo4j database.
+     * Other official Neo4j drivers offer matching implementations which allow interoperability when correctly configured with matching {@link EncryptionProfile}s.
+     * 
+     * @property {function(encryptRequest: { value: any, keyOptions: any, encryptionProfile?: string, aad?: any })} encrypt Encrypts data with AES-GCM 256 into a byte array ready to be saved an a property in a Neo4j database.
+     * 
+     * @property {function(decryptRequest: { ciphertext: Int8Array, usePersistedAad?: boolean, aad?: any })} decrypt Decrypts data encrypted with this or another Neo4j Driver's {@link encrypt} function.
+     * 
+     * @property {function(profileName: string?)} keyManager Returns the key manager for the specified profile or the default profile if no name is provided
+     *  
+     * @experimental Part of the Client-Side Encrytion preview feature
+     */
     this.encryption = new EncryptionService(boltProvider, config.encryptionProfiles ?? [])
 
     /**

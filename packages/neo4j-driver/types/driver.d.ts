@@ -20,7 +20,7 @@ import {
   Driver as CoreDriver,
   types,
   SessionConfig,
-  EncapsulatedKeyRepository
+  EncapsulatedKeyRecordRepository
 } from 'neo4j-driver-core'
 
 declare type AuthToken = types.AuthToken
@@ -46,7 +46,7 @@ export {
   EncryptionLevel,
   TrustStrategy,
   SessionMode,
-  EncapsulatedKeyRepository
+  EncapsulatedKeyRecordRepository
 }
 
 export default Driver
