@@ -39,30 +39,28 @@ export class EncapsulatedKeyManager {
   }
 
   async findById (id: string): Promise<EncapsulatedKey | undefined> {
-    const record = await this._profile.findKey({id})
-    if(record != null) {
-      return {id: record.id, alias: record.alias}
-    }
-    else {
+    const record = await this._profile.findKey({ id })
+    if (record != null) {
+      return { id: record.id, alias: record.alias }
+    } else {
       return undefined
     }
   }
 
   async findByAlias (alias: string): Promise<EncapsulatedKey | undefined> {
-    const record = await this._profile.findKey({id})
-    if(record != null) {
-      return {id: record.id, alias: record.alias}
-    }
-    else {
+    const record = await this._profile.findKey({ id })
+    if (record != null) {
+      return { id: record.id, alias: record.alias }
+    } else {
       return undefined
     }
   }
 
   async setAliasById (id: string, alias: string): Promise<void> {
-    return this._profile.keyRepository.setAliasById(id, alias)
+    return await this._profile.keyRepository.setAliasById(id, alias)
   }
 
   async deleteById (id: string): Promise<void> {
-    return this._profile.keyRepository.deleteById(id)
+    return await this._profile.keyRepository.deleteById(id)
   }
 }
