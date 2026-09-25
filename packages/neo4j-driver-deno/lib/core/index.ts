@@ -114,7 +114,7 @@ import { EncryptedValue, isEnc } from './encryption/encrypted-value.ts'
 import { BoltProvider } from './internal/bolt-provider.ts'
 import { localKeyEncapsulationService, LocalKeyEncapsulationService } from './encryption/key-encapsulation/local-key-encapsulation.ts'
 import type { EncapsulatedKeyRecordRepository } from './encryption/key-encapsulation/encapsulated-key.ts'
-import { EnvelopeEncryptionProfile } from './encryption/encyption-profile.ts'
+import { EnvelopeEncryptionProfile, EncryptionProfile } from './encryption/encyption-profile.ts'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -351,7 +351,8 @@ export type {
   VectorType,
   Rule,
   Rules,
-  EncapsulatedKeyRecordRepository
+  EncapsulatedKeyRecordRepository,
+  EncryptionProfile
 }
 
 export default forExport

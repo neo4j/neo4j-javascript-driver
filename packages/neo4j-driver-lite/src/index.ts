@@ -128,7 +128,8 @@ import {
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
   EncapsulatedKeyRecordRepository,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncryptionProfile
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from 'neo4j-driver-bolt-connection'
 
@@ -606,6 +607,7 @@ export type {
   Rules,
   MappedQueryResult,
   ProtocolVersion,
-  EncapsulatedKeyRecordRepository
+  EncapsulatedKeyRecordRepository,
+  EncryptionProfile
 }
 export default forExport

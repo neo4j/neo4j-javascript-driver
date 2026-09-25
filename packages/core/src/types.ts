@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { EnvelopeEncryptionProfile } from './encryption/encyption-profile'
+import { EncryptionProfile } from './encryption/encyption-profile'
 import ClientCertificate, { ClientCertificateProvider } from './client-certificate'
 import { Rules } from './mapping.highlevel'
 import NotificationFilter from './notification-filter'
@@ -93,12 +93,18 @@ export class Config {
   telemetryDisabled?: boolean
   clientCertificate?: ClientCertificate | ClientCertificateProvider
   /**
-   * A list of {@link EnvelopeEncryptionProfile}s used by the driver to encrypt and decrypt data when using the Client-Side Encryption feature.
-   * See {@link Driver#encryption}
-   *
-   * @experimental Part of the Client-Side Encrytion preview feature
-   */
-  encryptionProfiles?: EnvelopeEncryptionProfile[]
+       * Configures the property encryption profiles that the driver should use.
+       *
+       * Each profile must have a unique name. The profiles are identified by
+       * name when selecting a property encryption profile for encryption.
+       *
+       * If undefined, no property encryption profiles are configured.
+       *
+       * @since 6.3.0
+       * @experimental Part of the Client-Side Encrytion preview feature
+       * Default value: {@link undefined}
+       */
+  encryptionProfiles?: EncryptionProfile[]
 
   /**
    * @constructor
@@ -370,9 +376,9 @@ export class Config {
     this.clientCertificate = undefined
 
     /**
-     * A list of {@link EnvelopeEncryptionProfile}s to be used with client-side property encryption. At least one of these must be set to use client-side encryption.
+     * A list of {@link EncryptionProfile}s to be used with client-side property encryption. At least one of these must be set to use client-side encryption.
      *
-     * @type {EnvelopeEncryptionProfile|undefined}
+     * @type {EncryptionProfile|undefined}
      * @since 6.3
      */
     this.encryptionProfiles = undefined

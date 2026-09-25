@@ -33,7 +33,7 @@ export class KeyRepo implements EncapsulatedKeyRecordRepository {
     return this.idToKey.get(this.aliasToId.get(alias) ?? '')
   }
 
-  async save (alias: string, encapsulation: Int8Array, metadata: Record<string, string>): Promise<any> {
+  async create (alias: string, encapsulation: Int8Array, metadata: Record<string, string>): Promise<any> {
     const id = '1'
     this.aliasToId.set(alias, id)
     const key = {
@@ -46,7 +46,7 @@ export class KeyRepo implements EncapsulatedKeyRecordRepository {
     return await Promise.resolve(key)
   }
 
-  async addAliasById (id: string, alias: string): Promise<void> {
+  async setAliasById (id: string, alias: string): Promise<void> {
     this.aliasToId.set(alias, id)
     return await Promise.resolve()
   }

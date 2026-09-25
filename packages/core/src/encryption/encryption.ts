@@ -29,7 +29,7 @@ import type UUID from '../uuid'
 import { EncryptionProfile } from './encyption-profile'
 import { newError } from '../error'
 import { EncapsulatedKeyRecord } from './key-encapsulation/encapsulated-key'
-import { json } from '..'
+import { stringify } from '../json'
 
 const supportedAADTypes: string[] = ['BOOLEAN', 'DATE', 'INTEGER', 'LOCAL TIME', 'POINT', 'STRING', 'ZONED TIME', 'UUID', 'BYTES']
 
@@ -215,7 +215,7 @@ export default class EncryptionService {
       const verification: (value: any) => boolean = (_: any) => false
       return { typeName: 'LIST', typeProtocolMajor: major, typeProtocolMinor: minor, verification }
     }
-    throw newError(`could not identify type of: ${json.stringify(value)}`)
+    throw newError(`could not identify type of: ${stringify(value)}`)
   }
 
   private _getProfile (name?: string): { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager } {
@@ -238,7 +238,7 @@ export default class EncryptionService {
   private async _getKeyRecord (profile: EncryptionProfile, options: string | { alias?: string, id?: string }): Promise<EncapsulatedKeyRecord> {
     const key = await profile.findKey(options)
     if (key == null) {
-      throw newError(`Could not find key with key options: ${json.stringify(options)}`)
+      throw newError(`Could not find key with key options: ${stringify(options)}`)
     }
     return key
   }

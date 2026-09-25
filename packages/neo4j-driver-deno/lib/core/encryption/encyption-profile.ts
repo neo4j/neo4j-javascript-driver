@@ -15,12 +15,22 @@
  * limitations under the License.
  */
 
-import { int, Integer, json } from '../index.ts'
 import { newError } from '../error.ts'
+import Integer, { int } from '../integer.ts'
+import { stringify } from '../json.ts'
 import { EncapsulatedKey, EncapsulatedKeyRecord, EncapsulatedKeyRecordRepository } from './key-encapsulation/encapsulated-key.ts'
 import { KeyEncapsulationService } from './key-encapsulation/key-encapsulation-service.ts'
 
-export type EncryptionProfile = EnvelopeEncryptionProfile
+export interface EncryptionProfile {
+  name: string
+  encapsulationService: KeyEncapsulationService
+  keyRepository: EncapsulatedKeyRecordRepository
+  type: string
+  version: Integer
+
+  findKey: (options: string | { alias?: string, id?: string }) => Promise<EncapsulatedKeyRecord | undefined>,
+  saveKey: (alias: string, encapsulation: Int8Array, metadata: Record<string, string>) => Promise<EncapsulatedKey>
+}
 
 interface CacheEntry<T> {
   entry: T
@@ -28,11 +38,12 @@ interface CacheEntry<T> {
 }
 
 /**
- * Configuration for an encryption profile, which combines a {@link KeyEncapsulationService} and {@link keyRepository} to allow the driver to access encapsulated keys and use them.
+ * An encryption profile that enables Envelope Encryption for Neo4j Property Encryption.
  *
- * @experimental Part of the Client-Side Encryption preview feature.
+ * @since 6.3.0
+ * @experimental Part of the Client-Side Encrytion preview feature
  */
-export class EnvelopeEncryptionProfile {
+export class EnvelopeEncryptionProfile implements EncryptionProfile {
   public name: string
   public encapsulationService: KeyEncapsulationService
   public keyRepository: EncapsulatedKeyRecordRepository
@@ -87,7 +98,7 @@ export class EnvelopeEncryptionProfile {
     } else if (options.alias != null) {
       key = await this._checkAliasCache(options.alias)
     } else {
-      throw newError(`invalid key options: ${json.stringify(options)}`)
+      throw newError(`invalid key options: ${stringify(options)}`)
     }
     return key
   }

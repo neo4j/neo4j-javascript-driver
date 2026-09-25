@@ -1,6 +1,7 @@
-export default class KeyRepo {
+export default class keyRepo {
+  aliasToId
+  idToKey
   constructor () {
-    this.num = 0
     this.aliasToId = new Map()
     this.idToKey = new Map()
   }
@@ -14,8 +15,7 @@ export default class KeyRepo {
   }
 
   create (alias, encapsulation, metadata) {
-    const id = this.num.toString()
-    this.num += 1
+    const id = '0'
     this.aliasToId.set(alias, id)
     const key = {
       alias: () => alias,
@@ -27,7 +27,7 @@ export default class KeyRepo {
     return Promise.resolve(key)
   }
 
-  addAliasById (id, alias) {
+  setAliasById (id, alias) {
     this.aliasToId.set(alias, id)
     return Promise.resolve()
   }
