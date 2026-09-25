@@ -28,7 +28,7 @@ export interface EncryptionProfile {
   type: string
   version: Integer
 
-  findKey: (options: string | { alias?: string, id?: string }) => Promise<EncapsulatedKeyRecord | undefined>,
+  findKey: (options: string | { alias?: string, id?: string }) => Promise<EncapsulatedKeyRecord | undefined>
   saveKey: (alias: string, encapsulation: Int8Array, metadata: Record<string, string>) => Promise<EncapsulatedKey>
 }
 

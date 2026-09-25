@@ -33,7 +33,6 @@ import { stringify } from '../json.ts'
 
 const supportedAADTypes: string[] = ['BOOLEAN', 'DATE', 'INTEGER', 'LOCAL TIME', 'POINT', 'STRING', 'ZONED TIME', 'UUID', 'BYTES']
 
-
 export default class EncryptionService {
   private readonly _boltProvider: BoltProvider
   private readonly _profiles: Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>
