@@ -48,7 +48,7 @@ export class EncapsulatedKeyManager {
   }
 
   async findByAlias (alias: string): Promise<EncapsulatedKey | undefined> {
-    const record = await this._profile.findKey({ id })
+    const record = await this._profile.findKey({ alias })
     if (record != null) {
       return { id: record.id, alias: record.alias }
     } else {
