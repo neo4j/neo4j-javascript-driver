@@ -191,6 +191,7 @@ function runJestTests (filterString, isBrowser) {
     options.resolver = '<rootDir>/test/browser.resolver.js'
     options.testEnvironment = '<rootDir>/test/browser.environment.js'
     options.testPathIgnorePatterns = ['<rootDir>/test/examples.test.js', '<rootDir>/test/bolt-v3.test.js', '<rootDir>/test/stress.test.js']
+    options.setupFilesAfterEnv = ['<rootDir>/test/browser.setup.js']
   }
   return new Promise((resolve, reject) => {
     jest.runCLI(options, ['.']).then(testResults => {

@@ -124,10 +124,16 @@ import {
   ProtocolVersion,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  BoltProvider,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
+  EnvelopeEncryptionProfile,
+  EncryptionProfile
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
-import { DirectConnectionProvider, RoutingConnectionProvider } from './bolt-connection/index.js'
+import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from './bolt-connection/index.js'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -201,6 +207,11 @@ function driver (
   // enabling set boltAgent
   const _config = config as unknown as InternalConfig
 
+  const boltMap = new Map()
+  boltMap.set('1.0', new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }))
+  // @ts-expect-error
+  const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
+
   // Determine entryption/trust options from the URL.
   let routing = false
   let encrypted = false
@@ -260,7 +271,12 @@ function driver (
     routing
   }
 
-  return new Driver(meta, _config, createConnectionProviderFunction())
+  return new Driver(
+    meta,
+    _config,
+    createConnectionProviderFunction(),
+    boltProvider
+  )
 
   function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
     if (routing) {
@@ -476,7 +492,10 @@ const forExport = {
   ProtocolVersion,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EnvelopeEncryptionProfile
 }
 
 export {
@@ -557,7 +576,10 @@ export {
   StandardCase,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EnvelopeEncryptionProfile
 }
 export type {
   QueryResult,
@@ -593,6 +615,8 @@ export type {
   Rule,
   Rules,
   MappedQueryResult,
-  ProtocolVersion
+  ProtocolVersion,
+  EncapsulatedKeyRecordRepository,
+  EncryptionProfile
 }
 export default forExport

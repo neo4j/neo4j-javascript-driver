@@ -94,11 +94,18 @@ import {
   ProtocolVersion,
   UUID,
   uuid,
-  isUUID
+  isUUID,
+  BoltProvider,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
+  EnvelopeEncryptionProfile
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
-  RoutingConnectionProvider
+  RoutingConnectionProvider,
+  BoltProtocol,
+  channel
 } from 'neo4j-driver-bolt-connection'
 
 import RxSession from './session-rx'
@@ -154,6 +161,10 @@ function createAuthManager (authTokenOrManager) {
 function driver (url, authToken, config = {}) {
   assertString(url, 'Bolt URL')
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
+
+  const boltMap = new Map()
+  boltMap.set('1.0', new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }))
+  const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
 
   // Determine encryption/trust options from the URL.
   let routing = false
@@ -213,7 +224,12 @@ function driver (url, authToken, config = {}) {
     routing
   }
 
-  return new Driver(meta, config, createConnectionProviderFunction())
+  return new Driver(
+    meta,
+    config,
+    createConnectionProviderFunction(),
+    boltProvider
+  )
 
   function createConnectionProviderFunction () {
     if (routing) {
@@ -309,7 +325,9 @@ const types = {
   Vector,
   Rule,
   Rules,
-  ProtocolVersion
+  ProtocolVersion,
+  EncapsulatedKeyRecordRepository,
+  EnvelopeEncryptionProfile
 }
 
 /**
@@ -442,7 +460,11 @@ const forExport = {
   ProtocolVersion,
   UUID,
   uuid,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
+  EnvelopeEncryptionProfile
 }
 
 export {
@@ -529,6 +551,10 @@ export {
   ProtocolVersion,
   UUID,
   uuid,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
+  EnvelopeEncryptionProfile
 }
 export default forExport

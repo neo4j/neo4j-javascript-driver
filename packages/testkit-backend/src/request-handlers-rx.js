@@ -39,7 +39,11 @@ export {
   ClientCertificateProviderCompleted,
   FakeTimeInstall,
   FakeTimeTick,
-  FakeTimeUninstall
+  FakeTimeUninstall,
+  EncryptToBytes,
+  Decrypt,
+  CreateEncapsulatedKey,
+  ImportEncapsulatedKey
 } from './request-handlers.js'
 
 export function NewSession ({ neo4j }, context, data, wire) {

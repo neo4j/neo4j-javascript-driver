@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { bookmarkManager, ConnectionProvider, EagerResult, int, newError, NotificationFilter, Result, ResultSummary, ServerInfo, Session, TransactionConfig } from '../src'
+import { BoltProvider, bookmarkManager, ConnectionProvider, EagerResult, int, newError, NotificationFilter, Result, ResultSummary, ServerInfo, Session, TransactionConfig } from '../src'
 import Driver, { QueryConfig, READ, routing } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
@@ -33,6 +33,7 @@ describe('Driver', () => {
   let createSession: any
   let createQueryExecutor: any
   let queryExecutor: QueryExecutor
+  let emptyBoltProvider: BoltProvider
   const META_INFO = {
     routing: false,
     typename: '',
@@ -44,6 +45,7 @@ describe('Driver', () => {
     connectionProvider = new ConnectionProvider()
     connectionProvider.close = jest.fn(() => Promise.resolve())
     createSession = jest.fn(args => new Session(args))
+    emptyBoltProvider = new BoltProvider(new Map(), 'N/A', () => undefined)
     createQueryExecutor = jest.fn((createSession) => {
       queryExecutor = new QueryExecutor(createSession)
       return queryExecutor
@@ -52,6 +54,7 @@ describe('Driver', () => {
       META_INFO,
       CONFIG,
       mockCreateConnectonProvider(connectionProvider),
+      emptyBoltProvider,
       createSession,
       createQueryExecutor
     )
@@ -121,6 +124,7 @@ describe('Driver', () => {
           META_INFO,
           { ...CONFIG },
           mockCreateConnectonProvider(connectionProvider),
+          emptyBoltProvider,
           createSession
         )
 
@@ -148,6 +152,7 @@ describe('Driver', () => {
           META_INFO,
           { ...CONFIG },
           mockCreateConnectonProvider(connectionProvider),
+          emptyBoltProvider,
           createSession
         )
 
@@ -169,6 +174,7 @@ describe('Driver', () => {
           META_INFO,
           { ...CONFIG },
           mockCreateConnectonProvider(connectionProvider),
+          emptyBoltProvider,
           createSession
         )
 
@@ -194,6 +200,7 @@ describe('Driver', () => {
           META_INFO,
           { ...CONFIG },
           mockCreateConnectonProvider(connectionProvider),
+          emptyBoltProvider,
           createSession
         )
 
@@ -319,9 +326,9 @@ describe('Driver', () => {
       logger: jest.fn()
     }
 
-    const driver = new Driver(META_INFO, { ...config, logging }, mockCreateConnectonProvider(new ConnectionProvider()), createSession)
+    const driver = new Driver(META_INFO, { ...config, logging }, mockCreateConnectonProvider(new ConnectionProvider()), emptyBoltProvider, createSession)
 
-    if (valid) {
+    if (valid === true) {
       expect(logging.logger).not.toHaveBeenCalled()
     } else {
       expect(logging.logger).toHaveBeenCalledWith(
@@ -350,7 +357,7 @@ describe('Driver', () => {
 
     const promise: Promise<void> | undefined = driver?.verifyConnectivity(input)
 
-    if (shouldBeVoid) {
+    if (shouldBeVoid === true) {
       const expectedVoid = Promise.resolve()
       expect(promise).toEqual(expectedVoid)
     } else {
@@ -598,6 +605,7 @@ describe('Driver', () => {
           META_INFO,
           { notificationFilter },
           createConnectionProviderMock,
+          emptyBoltProvider,
           createSession
         )
 
@@ -622,6 +630,7 @@ describe('Driver', () => {
           META_INFO,
           { notificationFilter },
           createConnectionProviderMock,
+          emptyBoltProvider,
           createSession
         )).toThrow(new Error('The notificationFilter can\'t have both "disabledCategories" and  "disabledClassifications" configured at the same time.'))
 
@@ -649,6 +658,7 @@ describe('Driver', () => {
             // @ts-expect-error
             { connectionLivenessCheckTimeout: configured },
             createConnectionProviderMock,
+            emptyBoltProvider,
             createSession
           )
 
@@ -679,8 +689,9 @@ describe('Driver', () => {
             // @ts-expect-error
             { connectionLivenessCheckTimeout: configured },
             createConnectionProviderMock,
+            emptyBoltProvider,
             createSession
-          )).toThrow(new Error(`The connectionLivenessCheckTimeout can only be a positive value or 0 for always. However connectionLivenessCheckTimeout = ${expected}`))
+          )).toThrow(new Error(`The connectionLivenessCheckTimeout can only be a positive value or 0 for always. However connectionLivenessCheckTimeout = ${expected as string}`))
 
           expect(createConnectionProviderMock).not.toHaveBeenCalled()
         })

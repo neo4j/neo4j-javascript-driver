@@ -1652,6 +1652,7 @@ describe('Result', () => {
       supplier: () => Promise<T>
     ): void {
       it('should return rejected promise with the expected error', async () =>
+        // eslint-disable-next-line @typescript-eslint/return-await
         await expect(supplier()).rejects.toBe(expectedError))
     }
   })
