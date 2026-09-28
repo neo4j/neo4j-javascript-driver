@@ -56,11 +56,11 @@ export interface EncapsulatedKeyRecordRepository {
    * Sets the alias of an encapsulated key by id. The alias must not be used by another key. To assign an alias
    * currently used by another key, it must first be deleted from that key.
    *
-   * @param id the key id
-   * @param alias the key alias, may be null or undefined to remove the alias
+   * @param {string} id the key id
+   * @param {string | undefined} alias the key alias, may be null or undefined to remove the alias
    * @return {Promise<void>} promise that resolves when the alias has been set
    */
-  setAliasById: (id: string, alias: string) => Promise<void>
+  setAliasById: (id: string, alias: string | undefined) => Promise<void>
 
   /**
    * Deletes a key by id.

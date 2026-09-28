@@ -21,6 +21,12 @@ import { stringify } from '../json.ts'
 import { EncapsulatedKey, EncapsulatedKeyRecord, EncapsulatedKeyRecordRepository } from './key-encapsulation/encapsulated-key.ts'
 import { KeyEncapsulationService } from './key-encapsulation/key-encapsulation-service.ts'
 
+/**
+ * An interface for encryption profiles used for Neo4j Property Encryption.
+ *
+ * @since 6.3.0
+ * @experimental Part of the Client-Side Encrytion preview feature
+ */
 export interface EncryptionProfile {
   name: string
   encapsulationService: KeyEncapsulationService
@@ -28,7 +34,14 @@ export interface EncryptionProfile {
   type: string
   version: Integer
 
+  /**
+   * @private
+   */
   findKey: (options: string | { alias?: string, id?: string }) => Promise<EncapsulatedKeyRecord | undefined>
+
+  /**
+   * @private
+   */
   saveKey: (alias: string, encapsulation: Int8Array, metadata: Record<string, string>) => Promise<EncapsulatedKey>
 }
 
@@ -89,6 +102,9 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     this.version = int(1)
   }
 
+  /**
+   * @private
+   */
   async findKey (options: string | { alias?: string, id?: string }): Promise<EncapsulatedKeyRecord | undefined> {
     let key
     if (typeof options === 'string') {
@@ -103,10 +119,16 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     return key
   }
 
+  /**
+   * @private
+   */
   async saveKey (alias: string, encapsulation: Int8Array, metadata: Record<string, string>): Promise<EncapsulatedKey> {
     return await this.keyRepository.create(alias, encapsulation, metadata)
   }
 
+  /**
+   * @private
+   */
   async _checkKeyCache (id: string): Promise<EncapsulatedKeyRecord | undefined> {
     if (this._keyCache.has(id)) {
       const entry = this._keyCache.get(id)
@@ -120,6 +142,9 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     return key
   }
 
+  /**
+   * @private
+   */
   async _checkAliasCache (alias: string): Promise<EncapsulatedKeyRecord | undefined> {
     if (this._aliasCache.has(alias)) {
       const entry = this._aliasCache.get(alias)
@@ -136,6 +161,9 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     return key
   }
 
+  /**
+   * @private
+   */
   private _pruneCache (cache: Map<string, { entry: any, retrieved: Date }>, maxSize: number): void {
     if (cache.size > maxSize) {
       const entries = Array.from(cache.entries())

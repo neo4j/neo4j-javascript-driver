@@ -17,6 +17,9 @@
 
 import Integer from '../integer'
 
+/**
+ * @private
+ */
 export class EncryptedValue {
   public cipherOutput: Int8Array
   public profileName: string
@@ -77,7 +80,7 @@ Object.defineProperty(EncryptedValue.prototype, '__isEncryptedValue__', {
 
 /**
  * Check if a variable is of EncryptedValue type.
- * @access public
+ * @private
  * @param {Mixed} value - The variable to check.
  * @return {Boolean} - Is it of the EncryptedValue type?
  */

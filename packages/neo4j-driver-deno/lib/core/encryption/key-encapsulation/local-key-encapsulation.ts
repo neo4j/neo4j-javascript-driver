@@ -29,6 +29,8 @@ function b64Tou8 (b: string): Uint8Array {
 
 /**
  * An implementation of {@link KeyEncapsulationService} that uses a local, 256-bit, AES-GCM Key Encryption Key (KEK) to encrypt keys.
+ * 
+ * @experimental Part of the Client-Side Encrytion preview feature
  */
 export class LocalKeyEncapsulationService implements KeyEncapsulationService {
   private readonly _kek: Uint8Array
@@ -46,6 +48,7 @@ export class LocalKeyEncapsulationService implements KeyEncapsulationService {
    *
    * @param {KeyEncapsulationOptions} options the encapsulation options, depends on the implementation
    * @return {Promise<EncapsulationResult>} a promise that resolves to the encapsulation result
+   * @experimental Part of the Client-Side Encrytion preview feature
    */
   async encapsulate (options: Record<string, string>): Promise<EncapsulationResult> {
     const DEK = this._cryptoProvider.getRandomValues(32)
@@ -59,12 +62,16 @@ export class LocalKeyEncapsulationService implements KeyEncapsulationService {
    * @param {Int8Array} encapsulation the encapsulated byte}
    * @param {KeyEncapsulationOptions} metadata the key metadata
    * @return {Promise<Uint8Array>} a promise that resolves to the decapsulated key
+   * @experimental Part of the Client-Side Encrytion preview feature
    */
   async decapsulate (encapsulation: Int8Array, metadata: Record<string, string>): Promise<Uint8Array> {
     return new Uint8Array(await this._cryptoProvider.decrypt(this._kek, b64Tou8(metadata.iv), encapsulation.buffer as ArrayBuffer, undefined))
   }
 }
 
+/**
+ * @private
+ */
 export class LocalEncapsulationResult implements EncapsulationResult {
   private readonly _dek: Uint8Array
   private readonly _encapsulation: Int8Array
@@ -94,6 +101,7 @@ export class LocalEncapsulationResult implements EncapsulationResult {
  *
  * @param {Uint8Array} masterKey the AES-256 master key
  * @return {KeyEncapsulationService} the new key encapsulation service
+ * @experimental Part of the Client-Side Encrytion preview feature
  */
 export function localKeyEncapsulationService (masterKey: Uint8Array): LocalKeyEncapsulationService {
   return new LocalKeyEncapsulationService(masterKey)
