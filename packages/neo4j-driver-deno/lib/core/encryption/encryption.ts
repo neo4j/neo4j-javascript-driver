@@ -18,7 +18,7 @@
 import Integer, { int, isInt } from '../integer.ts'
 import { BoltProvider } from '../internal/bolt-provider.ts'
 import { EncryptedValue } from './encrypted-value.ts'
-import { EncapsulatedKeyManager } from './key-encapsulation/encapsulated-key-manager.ts'
+import { EncapsulatedKeyManager } from './encapsulated-key-manager.ts'
 import CryptoProvider from './node/crypto.ts'
 import { isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from '../temporal-types.ts'
 import type { Duration, Date, Time, LocalDateTime, LocalTime, DateTime } from '../temporal-types.ts'
@@ -28,7 +28,7 @@ import { isUUID } from '../uuid.ts'
 import type UUID from '../uuid.ts'
 import { EncryptionProfile } from './encyption-profile.ts'
 import { newError } from '../error.ts'
-import { EncapsulatedKeyRecord } from './key-encapsulation/encapsulated-key.ts'
+import { EncapsulatedKeyRecord } from './encapsulated-key.ts'
 import { stringify } from '../json.ts'
 
 const supportedAADTypes: string[] = ['BOOLEAN', 'DATE', 'INTEGER', 'LOCAL TIME', 'POINT', 'STRING', 'ZONED TIME', 'UUID', 'BYTES']
