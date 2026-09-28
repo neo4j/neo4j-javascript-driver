@@ -24,11 +24,11 @@ import { KeyEncapsulationService } from './key-encapsulation-service.ts'
  *
  * {@link EnvelopeEncryptionProfile} requires data keys to exist before they can be used for encryption. This
  * manager provides operations for creating and managing such keys.
- * 
+ *
  * When creating a key, the manager uses the configured {@link KeyEncapsulationService} to generate and encapsulate a
  * new data key and registers the resulting {@link EncapsulatedKeyRecord} with the configured
  * {@link EncapsulatedKeyRecordRepository}.
- * 
+ *
  * @since 6.3.0
  * @experimental Part of the Client-Side Encrytion preview feature
  */

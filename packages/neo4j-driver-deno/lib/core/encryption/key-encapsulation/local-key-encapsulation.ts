@@ -29,7 +29,7 @@ function b64Tou8 (b: string): Uint8Array {
 
 /**
  * An implementation of {@link KeyEncapsulationService} that uses a local, 256-bit, AES-GCM Key Encryption Key (KEK) to encrypt keys.
- * 
+ *
  * @experimental Part of the Client-Side Encrytion preview feature
  */
 export class LocalKeyEncapsulationService implements KeyEncapsulationService {
