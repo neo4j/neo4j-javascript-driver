@@ -18,8 +18,8 @@
 import { newError } from '../error'
 import Integer, { int } from '../integer'
 import { stringify } from '../json'
-import { EncapsulatedKey, EncapsulatedKeyRecord, EncapsulatedKeyRecordRepository } from './key-encapsulation/encapsulated-key'
-import { KeyEncapsulationService } from './key-encapsulation/key-encapsulation-service'
+import { EncapsulatedKey, EncapsulatedKeyRecord, EncapsulatedKeyRecordRepository } from './encapsulated-key'
+import { KeyEncapsulationService } from './key-encapsulation-service'
 
 /**
  * An interface for encryption profiles used for Neo4j Property Encryption.

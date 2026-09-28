@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { EncryptionProfile } from '../encyption-profile'
+import { EncryptionProfile } from './encyption-profile'
 import { EncapsulatedKey } from './encapsulated-key'
 import { KeyEncapsulationService } from './key-encapsulation-service'
 

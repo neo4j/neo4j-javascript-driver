@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { newError } from '../../error'
-import CryptoProvider from '../node/crypto'
+import { newError } from '../error'
+import CryptoProvider from './node/crypto'
 import { EncapsulationResult, KeyEncapsulationService } from './key-encapsulation-service'
 
 function u8ToB64 (u: Uint8Array): string {

@@ -112,8 +112,8 @@ import UnsupportedType, { isUnsupportedType } from './unsupported-type'
 import UUID, { uuid, isUUID } from './uuid'
 import { EncryptedValue, isEnc } from './encryption/encrypted-value'
 import { BoltProvider } from './internal/bolt-provider'
-import { localKeyEncapsulationService, LocalKeyEncapsulationService } from './encryption/key-encapsulation/local-key-encapsulation'
-import type { EncapsulatedKeyRecordRepository } from './encryption/key-encapsulation/encapsulated-key'
+import { localKeyEncapsulationService, LocalKeyEncapsulationService } from './encryption/local-key-encapsulation'
+import type { EncapsulatedKeyRecordRepository } from './encryption/encapsulated-key'
 import { EnvelopeEncryptionProfile, EncryptionProfile } from './encryption/encyption-profile'
 
 /**
