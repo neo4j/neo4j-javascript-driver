@@ -30,13 +30,24 @@ import { EncryptionProfile } from './encyption-profile.ts'
 import { newError } from '../error.ts'
 import { EncapsulatedKeyRecord } from './encapsulated-key.ts'
 import { stringify } from '../json.ts'
+import { ProtocolVersion } from '../protocol-version.ts'
+import UnsupportedType from '../unsupported-type.ts'
 
 const supportedAADTypes: string[] = ['BOOLEAN', 'DATE', 'INTEGER', 'LOCAL TIME', 'POINT', 'STRING', 'ZONED TIME', 'UUID', 'BYTES']
 
+/**
+ * Provides Neo4j Property Encryption functions.
+ * 
+ * @since 6.3.0
+ * @experimental Part of the Client-Side Encrytion preview feature
+ */
 export default class EncryptionService {
   private readonly _boltProvider: BoltProvider
   private readonly _profiles: Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>
   private readonly _cryptoProvider: CryptoProvider
+  /**
+   * @private
+   */
   constructor (boltProvider: BoltProvider, profiles: EncryptionProfile[]) {
     this._boltProvider = boltProvider
     this._profiles = new Map<string, { profile: EncryptionProfile, keyManager: EncapsulatedKeyManager }>()
@@ -58,7 +69,8 @@ export default class EncryptionService {
    * @param {string | {alias?: string, id?: string} | undefined} encryptRequest.keyOptions - Used to determine the key to be used, a plain string is assumed to be the id, if omitted the encryption profile's default key reference will be used
    * @param {string} encryptRequest.encryptionProfile - Name of the {@link EncryptionProfile} to use, must be provided unless the driver is configured with only 1 profile.
    * @param {any | undefined} encryptRequest.aad - Additional Authenticated Data for the encryption.
-   * @returns
+   * 
+   * @returns {Promise<Int8Array>} A Int8Array that can be stored as a ByteArray in a Neo4j database.
    */
   async encrypt (encryptRequest: { value: any, keyOptions: string | { alias?: string, id?: string }, encryptionProfile?: string, aad?: any }): Promise<Int8Array> {
     const profile = this._getProfile(encryptRequest.encryptionProfile)
@@ -98,20 +110,39 @@ export default class EncryptionService {
    * @param {any | undefined} decryptRequest.aad - The Additional Authenticated Data to verify when decrypting
    * @param {boolean | undefined} decryptRequest.usePersistedAad - Wether to use the persisted aad data stored with the ciphertext, mutually exclusive with decryptRequest.aad
    *
-   * @returns
+   * @returns {Promise<T | UnsupportedType>} The decrypted property or an {@link UnsupportedType} if decoding the decrypted bytes failed.
    */
-  async decrypt<T>(decryptRequest: { ciphertext: Int8Array, usePersistedAad?: boolean, aad?: any }): Promise<T> {
+  async decrypt<T>(decryptRequest: { ciphertext: Int8Array, usePersistedAad?: boolean, aad?: any }): Promise<T | UnsupportedType> {
     let encodedAAD
-    const struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
+    let struct
+    try {
+      struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
+    }
+    catch (e: any) {
+      return new UnsupportedType(`Undecryptable Value`, 0, 0, e.message)
+    }
     if (decryptRequest.usePersistedAad === true) {
       encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
     } else if (decryptRequest.aad != null && !this._isEmpty(decryptRequest.aad)) {
-      encodedAAD = this._boltProvider.encodeValue(decryptRequest.aad)
+      const aadType = this._identifyType(decryptRequest.aad)
+      if(aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor) {
+        encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(struct.metadata.aad_encoding_scheme_major, struct.metadata.aad_encoding_scheme_minor))
+      }
+      else {
+        throw newError("Could not encode provided AAD as it was encoded with an unsupported encoding scheme")
+      }
     }
     const profile = this._getProfile(struct.profileName)
     try {
       const decapsulatedKey = await this._decapsulateKey(profile.profile, await this._getKeyRecord(profile.profile, struct.metadata.key_id))
-      return this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), struct.typeProtocolMajor.toString() + '.' + struct.typeProtocolMinor.toString())
+      const decodedValue =  this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), new ProtocolVersion(struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber()))
+      const type = this._identifyType(decodedValue)
+      if(type.typeProtocolMajor.equals(struct.typeProtocolMajor) && type.typeProtocolMinor.equals(struct.typeProtocolMinor)) {
+        return decodedValue
+      }
+      else {
+        return new UnsupportedType(`Encrypted<${type.typeName}>`, struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), "Encrypted value was encoded with a driver too old for this driver to read it.")
+      }
     } catch (e) {
       throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
     }
