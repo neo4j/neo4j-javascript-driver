@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import Integer from '../integer.ts'
+import Integer, { int } from '../integer.ts'
 
 /**
  * @private
@@ -35,8 +35,8 @@ export class EncryptedValue {
     profileType: string,
     profileVersion: Integer,
     typeName: string,
-    typeProtocolMajor: Integer,
-    typeProtocolMinor: Integer,
+    typeProtocolMajor: number | BigInt | Integer,
+    typeProtocolMinor: number | BigInt | Integer,
     metadata: Record<string, any>
 
   ) {
@@ -45,8 +45,8 @@ export class EncryptedValue {
     this.profileType = profileType
     this.profileVersion = profileVersion
     this.typeName = typeName
-    this.typeProtocolMajor = typeProtocolMajor
-    this.typeProtocolMinor = typeProtocolMinor
+    this.typeProtocolMajor = typeProtocolMajor instanceof BigInt ? Integer.fromString(typeProtocolMajor.toString()) : int(typeProtocolMajor)
+    this.typeProtocolMinor = typeProtocolMinor instanceof BigInt ? Integer.fromString(typeProtocolMinor.toString()) : int(typeProtocolMinor)
     this.metadata = {}
     Object.keys(metadata).sort().forEach((val) => { this.metadata[val] = metadata[val] })
   }
