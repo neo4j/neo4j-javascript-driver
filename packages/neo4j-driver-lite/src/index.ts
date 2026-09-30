@@ -199,9 +199,9 @@ function driver (
   const _config = config as unknown as InternalConfig
 
   const boltMap = new Map()
-  boltMap.set('1.0', new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }))
+  boltMap.set('1', { version: new ProtocolVersion(1, 0), bolt: new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }) })
   // @ts-expect-error
-  const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
+  const boltProvider = new BoltProvider(boltMap, '1', channel.alloc)
 
   // Determine entryption/trust options from the URL.
   let routing = false
