@@ -46,13 +46,16 @@ export class KeyRepo implements EncapsulatedKeyRecordRepository {
     return await Promise.resolve(key)
   }
 
-  async setAliasById (id: string, alias: string): Promise<void> {
+  async setAliasById (id: string, alias: string | undefined): Promise<void> {
+    if (alias === undefined) {
+      for (const entry of this.aliasToId.entries()) {
+        if (entry[1] === id) {
+          this.aliasToId.delete(entry[0])
+        }
+      }
+      return await Promise.resolve()
+    }
     this.aliasToId.set(alias, id)
-    return await Promise.resolve()
-  }
-
-  async deleteAliasById (id: string, alias: string): Promise<void> {
-    this.aliasToId.delete(alias)
     return await Promise.resolve()
   }
 

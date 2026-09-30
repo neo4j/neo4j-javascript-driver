@@ -37,7 +37,7 @@ const supportedAADTypes: string[] = ['BOOLEAN', 'DATE', 'INTEGER', 'LOCAL TIME',
 
 /**
  * Provides Neo4j Property Encryption functions.
- * 
+ *
  * @since 6.3.0
  * @experimental Part of the Client-Side Encrytion preview feature
  */
@@ -69,7 +69,7 @@ export default class EncryptionService {
    * @param {string | {alias?: string, id?: string} | undefined} encryptRequest.keyOptions - Used to determine the key to be used, a plain string is assumed to be the id, if omitted the encryption profile's default key reference will be used
    * @param {string} encryptRequest.encryptionProfile - Name of the {@link EncryptionProfile} to use, must be provided unless the driver is configured with only 1 profile.
    * @param {any | undefined} encryptRequest.aad - Additional Authenticated Data for the encryption.
-   * 
+   *
    * @returns {Promise<Int8Array>} A Int8Array that can be stored as a ByteArray in a Neo4j database.
    */
   async encrypt (encryptRequest: { value: any, keyOptions: string | { alias?: string, id?: string }, encryptionProfile?: string, aad?: any }): Promise<Int8Array> {
@@ -117,31 +117,28 @@ export default class EncryptionService {
     let struct
     try {
       struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
-    }
-    catch (e: any) {
-      return new UnsupportedType(`Undecryptable Value`, 0, 0, e.message)
+    } catch (e: any) {
+      return new UnsupportedType('Undecryptable Value', 0, 0, e.message)
     }
     if (decryptRequest.usePersistedAad === true) {
       encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
     } else if (decryptRequest.aad != null && !this._isEmpty(decryptRequest.aad)) {
       const aadType = this._identifyType(decryptRequest.aad)
-      if(aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor) {
+      if (aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor) {
         encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(struct.metadata.aad_encoding_scheme_major, struct.metadata.aad_encoding_scheme_minor))
-      }
-      else {
-        throw newError("Could not encode provided AAD as it was encoded with an unsupported encoding scheme")
+      } else {
+        throw newError('Could not encode provided AAD as it was encoded with an unsupported encoding scheme')
       }
     }
     const profile = this._getProfile(struct.profileName)
     try {
       const decapsulatedKey = await this._decapsulateKey(profile.profile, await this._getKeyRecord(profile.profile, struct.metadata.key_id))
-      const decodedValue =  this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), new ProtocolVersion(struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber()))
+      const decodedValue = this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), new ProtocolVersion(struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber()))
       const type = this._identifyType(decodedValue)
-      if(type.typeProtocolMajor.equals(struct.typeProtocolMajor) && type.typeProtocolMinor.equals(struct.typeProtocolMinor)) {
+      if (type.typeProtocolMajor.equals(struct.typeProtocolMajor) && type.typeProtocolMinor.equals(struct.typeProtocolMinor)) {
         return decodedValue
-      }
-      else {
-        return new UnsupportedType(`Encrypted<${type.typeName}>`, struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), "Encrypted value was encoded with a driver too old for this driver to read it.")
+      } else {
+        return new UnsupportedType(`Encrypted<${type.typeName}>`, struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), 'Encrypted value was encoded with a driver too old for this driver to read it.')
       }
     } catch (e) {
       throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)

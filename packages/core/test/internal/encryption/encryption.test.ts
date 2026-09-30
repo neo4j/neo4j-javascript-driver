@@ -16,18 +16,17 @@
  */
 
 import EncryptionService from '../../../src/encryption/encryption'
-import { BoltProvider, EnvelopeEncryptionProfile, int, LocalKeyEncapsulationService } from '../../../src'
+import { BoltProvider, EnvelopeEncryptionProfile, int, LocalKeyEncapsulationService, ProtocolVersion } from '../../../src/'
 import { BoltProtocol, channel } from '../../../../bolt-connection'
 import { KeyRepo } from './test-util'
 
 describe('#unit EncryptionService', () => {
-  const map = new Map<string, BoltProtocol>()
-  map.set('1.0', new BoltProtocol())
+  const map = new Map<string, { version: ProtocolVersion, bolt: BoltProtocol }>()
+  map.set('1', { version: new ProtocolVersion(1, 0), bolt: new BoltProtocol() })
   // @ts-expect-error
-  const boltProvider = new BoltProvider(map, '1.0', channel.alloc)
+  const boltProvider = new BoltProvider(map, '1', channel.alloc)
   const profile = new EnvelopeEncryptionProfile({
     name: 'main',
-    defaultKeyReference: 'main',
     encapsulationService: new LocalKeyEncapsulationService(new Uint8Array(32)),
     keyRepository: new KeyRepo()
   })

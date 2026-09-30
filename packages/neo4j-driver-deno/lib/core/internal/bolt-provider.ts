@@ -4,7 +4,7 @@ import { newError } from '../error.ts'
 import UnsupportedType from '../unsupported-type.ts'
 
 export class BoltProvider {
-  private readonly _boltVersions: Map<string, {version: ProtocolVersion, bolt: any}>
+  private readonly _boltVersions: Map<string, { version: ProtocolVersion, bolt: any }>
   private readonly _defaultMajorVersion: string
   private readonly _alloc: (n: number | ArrayBuffer | Int8Array) => any
   private readonly _defaultBolt: any
@@ -13,42 +13,42 @@ export class BoltProvider {
     this._boltVersions = boltVersions
     this._defaultMajorVersion = defaultVersion
     this._alloc = alloc
-    this._defaultBolt = this._boltVersions.get(this._defaultMajorVersion)
+    this._defaultBolt = this._boltVersions.get(this._defaultMajorVersion)?.bolt
   }
 
   encodeValue (value: any): ArrayBuffer {
     const buf = new EncodingBuffer()
-    const packer = this._defaultBolt.bolt._createPacker(buf)
-    packer.packable(value, this._defaultBolt.bolt.transformer.toStructure)()
+    const packer = this._defaultBolt._createPacker(buf)
+    packer.packable(value, this._defaultBolt.transformer.toStructure)()
     return buf.buffer()
   }
 
   encodeAAD (value: any, protocolVersion: ProtocolVersion): ArrayBuffer {
     const version = this._boltVersions.get(protocolVersion.getMajor().toString())
-    if(version?.version.isGreaterOrEqualTo(protocolVersion) === true) {
+    if (version?.version.isGreaterOrEqualTo(protocolVersion) === true) {
       const buf = new EncodingBuffer()
-      const packer = this._defaultBolt.bolt._createPacker(buf)
-      packer.packable(value, this._defaultBolt.bolt.transformer.toStructure)()
+      const packer = this._defaultBolt._createPacker(buf)
+      packer.packable(value, this._defaultBolt.transformer.toStructure)()
       return buf.buffer()
     }
-    throw newError("Could not encode provided AAD as it was encoded with an unsupported encoding scheme")
+    throw newError('Could not encode provided AAD as it was encoded with an unsupported encoding scheme')
   }
 
   decodeValue (buffer: ArrayBuffer, protocolVersion: ProtocolVersion): any {
     const version = this._boltVersions.get(protocolVersion.getMajor().toString())
-    if(version?.version.isGreaterOrEqualTo(protocolVersion) === true) {
+    if (version?.version.isGreaterOrEqualTo(protocolVersion) === true) {
       return version.bolt.unpack(this._alloc(buffer))
     }
-    return new UnsupportedType("Undecryptable Value", protocolVersion.getMajor(), protocolVersion.getMinor(), "Encrypted value was encoded with a newer driver, you must update your driver version to decode it.")
+    return new UnsupportedType('Undecryptable Value', protocolVersion.getMajor(), protocolVersion.getMinor(), 'Encrypted value was encoded with a newer driver, you must update your driver version to decode it.')
   }
 
   encodeObject (object: any): Int8Array {
-    const transformer = this._defaultBolt.bolt.transformer
+    const transformer = this._defaultBolt.transformer
     const struct = transformer.toStructure(object)
     const buf = new EncodingBuffer()
     buf.writeInt8(1)
-    const packer = this._defaultBolt.bolt._createPacker(buf)
-    packer.packable(struct, this._defaultBolt.bolt.transformer.toStructure)()
+    const packer = this._defaultBolt._createPacker(buf)
+    packer.packable(struct, this._defaultBolt.transformer.toStructure)()
     return new Int8Array(buf.buffer())
   }
 

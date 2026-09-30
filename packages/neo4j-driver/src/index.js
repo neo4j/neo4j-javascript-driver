@@ -155,8 +155,8 @@ function driver (url, authToken, config = {}) {
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
 
   const boltMap = new Map()
-  boltMap.set('1.0', new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }))
-  const boltProvider = new BoltProvider(boltMap, '1.0', channel.alloc)
+  boltMap.set('1', { version: new ProtocolVersion(1, 0), bolt: new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }) })
+  const boltProvider = new BoltProvider(boltMap, '1', channel.alloc)
 
   // Determine encryption/trust options from the URL.
   let routing = false
