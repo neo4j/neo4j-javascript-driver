@@ -507,7 +507,7 @@ export default class BoltProtocol {
 
     if (queued) {
       if (this._log.isDebugEnabled()) {
-        this._log.debug(`C: ${message}`)
+        this._log.debug(`C: ${message.toString(this._log.unredactDebugLogs)}`)
       }
 
       this._chunker.messageBoundary()

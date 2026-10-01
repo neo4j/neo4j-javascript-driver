@@ -587,6 +587,7 @@ export default class ChannelConnection extends Connection {
  */
 function createConnectionLogger (connection, logger) {
   return new Logger(logger._level, (level, message) =>
-    logger._loggerFunction(level, `${connection} ${message}`)
+    logger._loggerFunction(level, `${connection} ${message}`),
+    logger.unredactDebugLogs
   )
 }

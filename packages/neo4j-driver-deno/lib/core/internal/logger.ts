@@ -37,14 +37,16 @@ const levels = {
 export class Logger {
   private readonly _level: LogLevel
   private readonly _loggerFunction: LoggerFunction
+  public unredactDebugLogs: boolean
   /**
    * @constructor
    * @param {string} level the enabled logging level.
    * @param {function(level: string, message: string)} loggerFunction the function to write the log level and message.
    */
-  constructor (level: LogLevel, loggerFunction: LoggerFunction) {
+  constructor (level: LogLevel, loggerFunction: LoggerFunction, unredactDebugLogs?: boolean) {
     this._level = level
     this._loggerFunction = loggerFunction
+    this.unredactDebugLogs = unredactDebugLogs ?? false
   }
 
   /**
@@ -55,9 +57,10 @@ export class Logger {
   static create (driverConfig: { logging?: LoggingConfig }): Logger {
     if (driverConfig?.logging != null) {
       const loggingConfig = driverConfig.logging
+      const unredactDebugLogs = extractRedactedDebug(loggingConfig)
       const level = extractConfiguredLevel(loggingConfig)
       const loggerFunction = extractConfiguredLogger(loggingConfig)
-      return new Logger(level, loggerFunction)
+      return new Logger(level, loggerFunction, unredactDebugLogs)
     }
     return this.noOp()
   }
@@ -145,7 +148,7 @@ export class Logger {
 
 class NoOpLogger extends Logger {
   constructor () {
-    super(INFO, (level: LogLevel, message: string) => {})
+    super(INFO, (level: LogLevel, message: string) => {}, false)
   }
 
   isErrorEnabled (): boolean {
@@ -204,6 +207,18 @@ function extractConfiguredLevel (loggingConfig: LoggingConfig): LogLevel {
     return configuredLevel
   }
   return DEFAULT_LEVEL
+}
+
+/**
+ * Extract if debug logs should be unredacted from the driver's logging configuration.
+ * @param {Object} loggingConfig the logging configuration.
+ * @return {boleal} the configured log level or default when none configured.
+ */
+function extractRedactedDebug (loggingConfig: LoggingConfig): boolean {
+  if (loggingConfig?.unredactDebugLogs != null) {
+    return loggingConfig.unredactDebugLogs
+  }
+  return false
 }
 
 /**

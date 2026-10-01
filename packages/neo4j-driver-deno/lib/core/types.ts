@@ -35,6 +35,7 @@ export type SessionMode = 'READ' | 'WRITE'
 export interface LoggingConfig {
   level?: LogLevel
   logger: LoggerFunction
+  unredactDebugLogs?: boolean
 }
 
 export type TrustStrategy =
