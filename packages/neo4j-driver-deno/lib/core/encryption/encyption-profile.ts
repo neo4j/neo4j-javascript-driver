@@ -130,10 +130,13 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @private
    */
   async _checkKeyCache (id: string): Promise<EncapsulatedKeyRecord | undefined> {
-    if (this._keyCache.has(id)) {
-      const entry = this._keyCache.get(id)
+    const entry = this._keyCache.get(id)
+    if (entry != null) {
       if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyCacheTTL ?? 0)) {
         return entry?.entry
+      }
+      else {
+        this._keyCache.delete(id)
       }
     }
     const key = await this.keyRepository.findById(id)
@@ -146,11 +149,13 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @private
    */
   async _checkAliasCache (alias: string): Promise<EncapsulatedKeyRecord | undefined> {
-    if (this._aliasCache.has(alias)) {
-      const entry = this._aliasCache.get(alias)
+    const entry = this._aliasCache.get(alias)
+    if (entry != null) {
       if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyAliasIndexTTL ?? 0)) {
-        // @ts-expect-error
         return await this._checkKeyCache(entry?.entry)
+      }
+      else {
+        this._aliasCache.delete(alias)
       }
     }
     const key = await this.keyRepository.findByAlias(alias)
