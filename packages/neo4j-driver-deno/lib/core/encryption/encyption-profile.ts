@@ -134,8 +134,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     if (entry != null) {
       if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyCacheTTL ?? 0)) {
         return entry?.entry
-      }
-      else {
+      } else {
         this._keyCache.delete(id)
       }
     }
@@ -153,8 +152,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     if (entry != null) {
       if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyAliasIndexTTL ?? 0)) {
         return await this._checkKeyCache(entry?.entry)
-      }
-      else {
+      } else {
         this._aliasCache.delete(alias)
       }
     }
