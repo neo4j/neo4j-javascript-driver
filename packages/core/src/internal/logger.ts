@@ -43,10 +43,10 @@ export class Logger {
    * @param {string} level the enabled logging level.
    * @param {function(level: string, message: string)} loggerFunction the function to write the log level and message.
    */
-  constructor (level: LogLevel, loggerFunction: LoggerFunction, unredactDebugLogs: boolean) {
+  constructor (level: LogLevel, loggerFunction: LoggerFunction, unredactDebugLogs?: boolean) {
     this._level = level
     this._loggerFunction = loggerFunction
-    this.unredactDebugLogs = unredactDebugLogs
+    this.unredactDebugLogs = unredactDebugLogs ?? false
   }
 
   /**
