@@ -393,8 +393,7 @@ export default class RequestMessage {
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
-      () =>
-        `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}`
+      (unredactDebugLogs) => unredactDebugLogs === true ? `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}` :  `RUN ${query} { ... } ${json.stringify(metadata)}`
     )
   }
 

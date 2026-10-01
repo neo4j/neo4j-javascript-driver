@@ -101,7 +101,7 @@ export default class RequestMessage {
     return new RequestMessage(
       RUN,
       [query, parameters],
-      () => `RUN ${query} ${json.stringify(parameters)}`
+      (unredactDebugLogs) => unredactDebugLogs === true ? `RUN ${query} ${json.stringify(parameters)}` :  `RUN ${query} { ... }`
     )
   }
 
@@ -364,8 +364,7 @@ export default class RequestMessage {
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
-      () =>
-        `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}`
+      (unredactDebugLogs) => unredactDebugLogs === true ? `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}` :  `RUN ${query} { ... } ${json.stringify(metadata)}`
     )
   }
 
@@ -393,8 +392,7 @@ export default class RequestMessage {
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
-      () =>
-        `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}`
+      (unredactDebugLogs) => unredactDebugLogs === true ? `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}` :  `RUN ${query} { ... } ${json.stringify(metadata)}`
     )
   }
 

@@ -96,7 +96,9 @@ export default class ResponseHandler {
     switch (msg.signature) {
       case RECORD:
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`S: RECORD ${json.stringify(msg)}`)
+          let string = this._log.unredactDebugLogs === true ? json.stringify(msg) : `{"signature":${msg.signature},"fields":[{ ... }]}`
+            msg.fields
+          this._log.debug(`S: RECORD ${string}`)
         }
         this._currentObserver.onNext(payload)
         break
