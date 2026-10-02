@@ -44,22 +44,22 @@ describe('EnvelopeEncryptionProfile', () => {
     // @ts-expect-error
     expect(profile._keyCache.has(ids[0] === false))
     // @ts-expect-error
-    expect(profile._aliasCache.has(names[0] === false))
+    expect(profile._aliasIndex.has(names[0] === false))
     // @ts-expect-error
     expect(profile._keyCache.has(ids[1] === false))
     // @ts-expect-error
-    expect(profile._aliasCache.has(names[1] === false))
+    expect(profile._aliasIndex.has(names[1] === false))
     // @ts-expect-error
     expect(profile._keyCache.has(ids[2] === true))
     // @ts-expect-error
-    expect(profile._aliasCache.has(names[2] === true))
+    expect(profile._aliasIndex.has(names[2] === true))
     // @ts-expect-error
     expect(profile._keyCache.has(ids[3] === true))
     // @ts-expect-error
-    expect(profile._aliasCache.has(names[3] === true))
+    expect(profile._aliasIndex.has(names[3] === true))
     // @ts-expect-error
     expect(profile._keyCache.has(ids[4] === true))
     // @ts-expect-error
-    expect(profile._aliasCache.has(names[4] === true))
+    expect(profile._aliasIndex.has(names[4] === true))
   })
 })
