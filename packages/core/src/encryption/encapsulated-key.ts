@@ -53,8 +53,9 @@ export interface EncapsulatedKeyRecordRepository {
   create: (alias: string, encapsulation: Int8Array, metadata: Record<string, string>) => Promise<EncapsulatedKeyRecord>
 
   /**
-   * Sets the alias of an encapsulated key by id. The alias must not be used by another key. To assign an alias
-   * currently used by another key, it must first be deleted from that key.
+   * Sets the alias of an encapsulated key by id.
+   * The alias must not be used by another key and the implementation of this function should throw if it is..
+   * To assign an alias currently used by another key, it must first be deleted from that key.
    *
    * @param {string} id the key id
    * @param {string | undefined} alias the key alias, may be null or undefined to remove the alias

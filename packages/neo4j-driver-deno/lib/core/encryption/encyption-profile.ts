@@ -62,12 +62,14 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   public keyRepository: EncapsulatedKeyRecordRepository
   public type: string
   public version: Integer
+  private readonly _keyCacheEnabled: boolean
   private readonly _keyCacheTTL: number
   private readonly _keyCacheMaxSize: number
+  private readonly _keyAliasIndexEnabled: boolean
   private readonly _keyAliasIndexTTL: number
   private readonly _keyAliasIndexMaxSize: number
   private readonly _keyCache: Map<string, CacheEntry<EncapsulatedKeyRecord>>
-  private readonly _aliasCache: Map<string, CacheEntry<string>>
+  private readonly _aliasIndex: Map<string, CacheEntry<string>>
 
   /**
    *
@@ -76,9 +78,9 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @param {KeyEncapsulationService} config.encapsulationService - Encapsulation service used to encapsulate and dencapsulate keys. The driver ships with {@link LocalKeyEncapsulationService}, other implementations can be found as separate packages.
    * @param {EncapsulatedKeyRecordRepository} config.keyRepository - Implementation of the {@link EncapsulatedKeyRecordRepository} interface, must be implemented so that the driver can access your key repository.
    * @param {number} config.keyCacheTTL - How long to keep a retrieved encapsulated keys cached by Id - defaults to 15 minutes
-   * @param {number} config.keyCacheMaxSize - How many items to keep in the key cache before pruning the oldest - defaults to 100
+   * @param {number} config.keyCacheMaxSize - How many items to keep in the key cache before pruning the oldest, setting to 0 will disable the cache - defaults to 100
    * @param {number} config.keyAliasIndexTTL - How long to keep the mapping of alias to key cached - defaults to 15 seconds
-   * @param {number} config.keyAliasIndexMaxSize - How many items to keep in the alias cache before pruning the oldest - defaults to 100
+   * @param {number} config.keyAliasIndexMaxSize - How many items to keep in the alias cache before pruning the oldest, setting to 0 will disable the index - defaults to 100
    */
   constructor (config: {
     name: string
@@ -92,12 +94,14 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     this.name = config.name
     this.encapsulationService = config.encapsulationService
     this.keyRepository = config.keyRepository
+    this._keyCacheEnabled = config.keyCacheMaxSize !== 0
     this._keyCacheTTL = config.keyCacheTTL ?? 15 * 60 * 1000
     this._keyCacheMaxSize = config.keyCacheMaxSize ?? 100
     this._keyCache = new Map<string, CacheEntry<EncapsulatedKeyRecord>>()
+    this._keyAliasIndexEnabled = config.keyAliasIndexMaxSize !== 0
     this._keyAliasIndexTTL = config.keyAliasIndexTTL ?? 15 * 1000
     this._keyAliasIndexMaxSize = config.keyAliasIndexMaxSize ?? 100
-    this._aliasCache = new Map<string, CacheEntry<string>>()
+    this._aliasIndex = new Map<string, CacheEntry<string>>()
     this.type = 'ENVELOPE'
     this.version = int(1)
   }
@@ -108,11 +112,11 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   async findKey (options: string | { alias?: string, id?: string }): Promise<EncapsulatedKeyRecord | undefined> {
     let key
     if (typeof options === 'string') {
-      key = await this._checkKeyCache(options)
+      key = await this._findById(options)
     } else if (options.id != null) {
-      key = await this._checkKeyCache(options.id)
+      key = await this._findById(options.id)
     } else if (options.alias != null) {
-      key = await this._checkAliasCache(options.alias)
+      key = await this._findByAlias(options.alias)
     } else {
       throw newError(`invalid key options: ${stringify(options)}`)
     }
@@ -129,13 +133,15 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   /**
    * @private
    */
-  async _checkKeyCache (id: string): Promise<EncapsulatedKeyRecord | undefined> {
-    const entry = this._keyCache.get(id)
-    if (entry != null) {
-      if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyCacheTTL ?? 0)) {
-        return entry?.entry
-      } else {
-        this._keyCache.delete(id)
+  async _findById (id: string): Promise<EncapsulatedKeyRecord | undefined> {
+    if(this._keyCacheEnabled === true) {
+      const entry = this._keyCache.get(id)
+      if (entry != null) {
+        if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyCacheTTL ?? 0)) {
+          return entry?.entry
+        } else {
+          this._keyCache.delete(id)
+        }
       }
     }
     const key = await this.keyRepository.findById(id)
@@ -147,19 +153,21 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   /**
    * @private
    */
-  async _checkAliasCache (alias: string): Promise<EncapsulatedKeyRecord | undefined> {
-    const entry = this._aliasCache.get(alias)
-    if (entry != null) {
-      if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyAliasIndexTTL ?? 0)) {
-        return await this._checkKeyCache(entry?.entry)
-      } else {
-        this._aliasCache.delete(alias)
+  async _findByAlias (alias: string): Promise<EncapsulatedKeyRecord | undefined> {
+    if(this._keyAliasIndexEnabled === true) {
+      const entry = this._aliasIndex.get(alias)
+      if (entry != null) {
+        if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyAliasIndexTTL ?? 0)) {
+          return await this._findById(entry?.entry)
+        } else {
+          this._aliasIndex.delete(alias)
+        }
       }
     }
     const key = await this.keyRepository.findByAlias(alias)
-    this._aliasCache.set(alias, { entry: key.id(), retrieved: new Date() })
+    this._aliasIndex.set(alias, { entry: key.id(), retrieved: new Date() })
     this._keyCache.set(key.id(), { entry: key, retrieved: new Date() })
-    this._pruneCache(this._aliasCache, this._keyAliasIndexMaxSize)
+    this._pruneCache(this._aliasIndex, this._keyAliasIndexMaxSize)
     this._pruneCache(this._keyCache, this._keyCacheMaxSize)
     return key
   }
