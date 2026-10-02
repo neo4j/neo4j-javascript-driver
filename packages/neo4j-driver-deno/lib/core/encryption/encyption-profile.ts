@@ -134,7 +134,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @private
    */
   async _findById (id: string): Promise<EncapsulatedKeyRecord | undefined> {
-    if(this._keyCacheEnabled === true) {
+    if (this._keyCacheEnabled) {
       const entry = this._keyCache.get(id)
       if (entry != null) {
         if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyCacheTTL ?? 0)) {
@@ -154,7 +154,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @private
    */
   async _findByAlias (alias: string): Promise<EncapsulatedKeyRecord | undefined> {
-    if(this._keyAliasIndexEnabled === true) {
+    if (this._keyAliasIndexEnabled) {
       const entry = this._aliasIndex.get(alias)
       if (entry != null) {
         if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyAliasIndexTTL ?? 0)) {
