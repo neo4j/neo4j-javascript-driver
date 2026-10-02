@@ -77,9 +77,9 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @param {string} config.name - Name of the profile, must be the same on all drivers used to access the encrypted data.
    * @param {KeyEncapsulationService} config.encapsulationService - Encapsulation service used to encapsulate and dencapsulate keys. The driver ships with {@link LocalKeyEncapsulationService}, other implementations can be found as separate packages.
    * @param {EncapsulatedKeyRecordRepository} config.keyRepository - Implementation of the {@link EncapsulatedKeyRecordRepository} interface, must be implemented so that the driver can access your key repository.
-   * @param {number} config.keyCacheTTL - How long to keep a retrieved encapsulated keys cached by Id - defaults to 15 minutes
+   * @param {number} config.keyCacheTTL - How How long in milliseconds to keep a retrieved encapsulated keys cached by Id - defaults to 15 minutes
    * @param {number} config.keyCacheMaxSize - How many items to keep in the key cache before pruning the oldest, setting to 0 will disable the cache - defaults to 100
-   * @param {number} config.keyAliasIndexTTL - How long to keep the mapping of alias to key cached - defaults to 15 seconds
+   * @param {number} config.keyAliasIndexTTL - How How long in milliseconds to keep the mapping of alias to key cached - defaults to 15 seconds
    * @param {number} config.keyAliasIndexMaxSize - How many items to keep in the alias cache before pruning the oldest, setting to 0 will disable the index - defaults to 100
    */
   constructor (config: {
@@ -98,7 +98,11 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     this._keyCacheTTL = config.keyCacheTTL ?? 15 * 60 * 1000
     this._keyCacheMaxSize = config.keyCacheMaxSize ?? 100
     this._keyCache = new Map<string, CacheEntry<EncapsulatedKeyRecord>>()
-    this._keyAliasIndexEnabled = config.keyAliasIndexMaxSize !== 0
+    if (this._keyCacheEnabled) {
+      this._keyAliasIndexEnabled = config.keyAliasIndexMaxSize !== 0
+    } else {
+      this._keyAliasIndexEnabled = false
+    }
     this._keyAliasIndexTTL = config.keyAliasIndexTTL ?? 15 * 1000
     this._keyAliasIndexMaxSize = config.keyAliasIndexMaxSize ?? 100
     this._aliasIndex = new Map<string, CacheEntry<string>>()
