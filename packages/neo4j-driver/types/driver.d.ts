@@ -19,7 +19,8 @@ import RxSession from './session-rx'
 import {
   Driver as CoreDriver,
   types,
-  SessionConfig
+  SessionConfig,
+  EncapsulatedKeyRecordRepository
 } from 'neo4j-driver-core'
 
 declare type AuthToken = types.AuthToken
@@ -44,7 +45,8 @@ export {
   Config,
   EncryptionLevel,
   TrustStrategy,
-  SessionMode
+  SessionMode,
+  EncapsulatedKeyRecordRepository
 }
 
 export default Driver

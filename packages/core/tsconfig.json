@@ -11,7 +11,8 @@
     "outDir": "lib",
     "declaration": true,
     "declarationDir": "types",
-    "isolatedModules": true
+    "isolatedModules": true,
+    "types": ["node"]
   },
   "include": [
     "src/**/*.ts",
