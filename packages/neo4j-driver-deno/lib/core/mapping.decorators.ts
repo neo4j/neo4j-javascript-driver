@@ -307,6 +307,9 @@ function convertPropertyToType (type: any) {
   }
 }
 
+/**
+ * @private
+ */
 const forExport = {
   booleanProperty,
   stringProperty,

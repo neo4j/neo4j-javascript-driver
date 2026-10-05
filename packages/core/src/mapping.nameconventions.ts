@@ -30,6 +30,9 @@ export enum StandardCase {
   CamelCase = 'camelCase'
 }
 
+/**
+ * @private
+ */
 export const nameConventions = {
   snake_case: {
     tokenize: (name: string) => name.split('_'),

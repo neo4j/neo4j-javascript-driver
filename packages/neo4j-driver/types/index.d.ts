@@ -236,6 +236,9 @@ declare const graph: {
  ...
 */
 
+/**
+ * @private
+ */
 declare const forExport: {
   authTokenManagers: typeof authTokenManagers
   driver: typeof driver
