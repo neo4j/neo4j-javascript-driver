@@ -118,17 +118,17 @@ class EncodingBuffer {
   writeBytes (val: any): void {
     const arr = new Int8Array(val._buffer)
     this._checkLength(arr.byteLength)
-    for(let i = 0; i < arr.byteLength; i++) {
+    for (let i = 0; i < arr.byteLength; i++) {
       this.writeInt8(arr[i])
     }
   }
 
   buffer (): ArrayBuffer {
-    return this._list.slice(0, this._location).buffer as ArrayBuffer
+    return this._list.slice(0, this._location).buffer
   }
 
-  _checkLength(size: number): void {
-    if(this._location + size >= this._list.byteLength) {
+  _checkLength (size: number): void {
+    if (this._location + size >= this._list.byteLength) {
       const valArray = new Int8Array(100000)
       const combined = new Int8Array([
         ...this._list,

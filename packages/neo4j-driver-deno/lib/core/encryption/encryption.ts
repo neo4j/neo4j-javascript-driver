@@ -120,7 +120,7 @@ export default class EncryptionService {
     } catch (e: any) {
       return new UnsupportedType('Undecryptable Value', 0, 0, e.message)
     }
-    if(struct.profileType === 'ENVELOPE' && struct.profileVersion.equals(int(1))) {
+    if (struct.profileType === 'ENVELOPE' && struct.profileVersion.equals(int(1))) {
       if (decryptRequest.usePersistedAad === true) {
         encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
       } else if (decryptRequest.aad != null) {
@@ -144,8 +144,7 @@ export default class EncryptionService {
       } catch (e) {
         throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
       }
-    }
-    else {
+    } else {
       throw newError(`Unsupported encryption profile version ${struct.profileVersion.toString()} of profile type ${struct.profileType}.`)
     }
   }
@@ -222,12 +221,11 @@ export default class EncryptionService {
     if (isPoint(value)) {
       const verification: (point: any) => boolean = (point: any) => {
         if (isPoint(point)) {
-          if(isInt(point.srid)) {
+          if (isInt(point.srid)) {
             if (point.srid.notEquals(value.srid)) {
-              throw newError(`Encrypted arrays of Points must only contain Points with identical srids`)
+              throw newError('Encrypted arrays of Points must only contain Points with identical srids')
             }
-          }
-          else {
+          } else {
             if (point.srid !== value.srid) {
               throw newError('Encrypted arrays of Points must only contain Points with identical srids')
             }
