@@ -16,7 +16,7 @@
  */
 
 import EncryptionService from '../../../src/encryption/encryption'
-import { BoltProvider, DateTime, EnvelopeEncryptionProfile, int, LocalKeyEncapsulationService, Point, ProtocolVersion, uuid, vector } from '../../../src/'
+import { BoltProvider, DateTime, EnvelopeEncryptionProfile, int, Integer, LocalKeyEncapsulationService, Point, ProtocolVersion, uuid, vector } from '../../../src/'
 import { BoltProtocol, channel } from '../../../../bolt-connection'
 import { KeyRepo } from './test-util'
 import UnsupportedType from '../../../src/unsupported-type'
@@ -74,13 +74,12 @@ describe('#unit EncryptionService', () => {
   it('should round-trip list of BigInt', async () => {
     const profiles = [profile]
     const enc = new EncryptionService(boltProvider, profiles)
-    const list = [BigInt(1), BigInt(2)]
     await enc.keyManager('main').create('test')
     const encValue = await enc.encrypt({ value: [BigInt(1), BigInt(2)], keyOptions: { alias: 'test' } })
-    const decValue: BigInt[] | UnsupportedType = await enc.decrypt<BigInt[]>({ ciphertext: encValue, usePersistedAad: true })
+    const decValue: Integer[] | UnsupportedType = await enc.decrypt<Integer[]>({ ciphertext: encValue, usePersistedAad: true })
     expect(decValue instanceof UnsupportedType).toBe(false)
-    expect(decValue[0] === list[0]).toBe(true)
-    expect(decValue[1] === list[1]).toBe(true)
+    // Test driver is set to return integers as driver Integer type.
+    expect(decValue).toEqual([int(1), int(2)])
   })
 
   it.each([
