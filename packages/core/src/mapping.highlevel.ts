@@ -18,7 +18,7 @@
  */
 
 import { Neo4jError, newError } from './error'
-import { nameConventions } from './mapping.nameconventions'
+import { nameConventions, StandardCase } from './mapping.nameconventions'
 
 /**
  * constructor function of any class
@@ -93,8 +93,8 @@ function translateIdentifiers (translationFunction: (name: string) => string): v
 }
 
 function getCaseTranslator (
-  databaseConvention: 'snake_case' | 'kebab-case' | 'PascalCase' | 'camelCase' | 'SCREAMING_SNAKE_CASE',
-  codeConvention: 'snake_case' | 'kebab-case' | 'PascalCase' | 'camelCase' | 'SCREAMING_SNAKE_CASE'
+  databaseConvention: StandardCase,
+  codeConvention: StandardCase
 ): ((name: string) => string) {
   const keys = Object.keys(nameConventions)
   if (!keys.includes(databaseConvention)) {
