@@ -33,7 +33,7 @@ export class EncryptedValue {
     cipherOutput: Int8Array,
     profileName: string,
     profileType: string,
-    profileVersion: Integer,
+    profileVersion: number | BigInt | Integer,
     typeName: string,
     typeProtocolMajor: number | BigInt | Integer,
     typeProtocolMinor: number | BigInt | Integer,
@@ -43,7 +43,7 @@ export class EncryptedValue {
     this.cipherOutput = cipherOutput
     this.profileName = profileName
     this.profileType = profileType
-    this.profileVersion = profileVersion
+    this.profileVersion = profileVersion instanceof BigInt ? Integer.fromString(profileVersion.toString()) : int(profileVersion)
     this.typeName = typeName
     this.typeProtocolMajor = typeProtocolMajor instanceof BigInt ? Integer.fromString(typeProtocolMajor.toString()) : int(typeProtocolMajor)
     this.typeProtocolMinor = typeProtocolMinor instanceof BigInt ? Integer.fromString(typeProtocolMinor.toString()) : int(typeProtocolMinor)

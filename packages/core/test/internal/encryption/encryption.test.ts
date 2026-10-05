@@ -16,9 +16,10 @@
  */
 
 import EncryptionService from '../../../src/encryption/encryption'
-import { BoltProvider, EnvelopeEncryptionProfile, int, LocalKeyEncapsulationService, ProtocolVersion } from '../../../src/'
+import { BoltProvider, DateTime, EnvelopeEncryptionProfile, int, LocalKeyEncapsulationService, Point, ProtocolVersion, uuid, vector } from '../../../src/'
 import { BoltProtocol, channel } from '../../../../bolt-connection'
 import { KeyRepo } from './test-util'
+import UnsupportedType from '../../../src/unsupported-type'
 
 describe('#unit EncryptionService', () => {
   const map = new Map<string, { version: ProtocolVersion, bolt: BoltProtocol }>()
@@ -35,7 +36,13 @@ describe('#unit EncryptionService', () => {
     1,
     int(1),
     Int8Array.from([1]),
-    [1, 2]
+    [1, 2],
+    uuid('8be4df61-93ca-11d2-aa0d-00e098032b8c'),
+    vector(Float32Array.from([1, 2, 3])),
+    new DateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1000)),
+    [int(1), int(2)],
+    [new Point(7203, 1, 2), new Point(7203, 3, 4)],
+    true
   ])('should encrypt correctly formatted input', async (input: any) => {
     const profiles = [profile]
     const enc = new EncryptionService(boltProvider, profiles)
@@ -48,7 +55,13 @@ describe('#unit EncryptionService', () => {
     1,
     int(1),
     Int8Array.from([1]),
-    [1, 2]
+    [1, 2],
+    uuid('8be4df61-93ca-11d2-aa0d-00e098032b8c'),
+    vector(Float32Array.from([1, 2, 3])),
+    new DateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1000)),
+    [int(1), int(2)],
+    [new Point(int(7203), 1, 2), new Point(int(7203), 3, 4)],
+    true
   ])('should round-trip correctly formatted input', async (input: any) => {
     const profiles = [profile]
     const enc = new EncryptionService(boltProvider, profiles)
@@ -56,5 +69,33 @@ describe('#unit EncryptionService', () => {
     const encValue = await enc.encrypt({ value: input, keyOptions: { alias: 'test' } })
     const decValue = await enc.decrypt({ ciphertext: encValue, usePersistedAad: true })
     expect(decValue).toEqual(input)
+  })
+
+  it('should round-trip list of BigInt', async () => {
+    const profiles = [profile]
+    const enc = new EncryptionService(boltProvider, profiles)
+    await enc.keyManager('main').create('test')
+    const encValue = await enc.encrypt({ value: [BigInt(1), BigInt(2)], keyOptions: { alias: 'test' } })
+    const decValue: BigInt[] | UnsupportedType = await enc.decrypt<BigInt[]>({ ciphertext: encValue, usePersistedAad: true })
+    expect(decValue instanceof UnsupportedType).toBe(false)
+    expect(decValue[0] === input[0]).toBe(true)
+    expect(decValue[1] === input[1]).toBe(true)
+  })
+
+  it.each([
+    'hello',
+    int(1),
+    Int8Array.from([1]),
+    true
+  ])('Aad should function properly', async (input: any) => {
+    const profiles = [profile]
+    const enc = new EncryptionService(boltProvider, profiles)
+    await enc.keyManager('main').create('test')
+    const encValue = await enc.encrypt({ value: 'hello', keyOptions: { alias: 'test' }, aad: input })
+    const persistedAAD = await enc.decrypt({ ciphertext: encValue, usePersistedAad: true })
+    expect(persistedAAD).toEqual('hello')
+    const explicitAAD = await enc.decrypt({ ciphertext: encValue, aad: input })
+    expect(explicitAAD).toEqual('hello')
+    expect(async () => await enc.decrypt({ ciphertext: encValue })).rejects.toThrow('Propety decryption failed due to internal error, see cause.')
   })
 })

@@ -182,7 +182,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   private _pruneCache (cache: Map<string, { entry: any, retrieved: Date }>, maxSize: number): void {
     if (cache.size > maxSize) {
       const entries = Array.from(cache.entries())
-      entries.sort((a, b) => b[1].retrieved.getTime() - a[1].retrieved.getTime())
+      entries.sort((a, b) => a[1].retrieved.getTime() - b[1].retrieved.getTime())
       let i = 0
       while (cache.size > maxSize) {
         cache.delete(entries[i][0])

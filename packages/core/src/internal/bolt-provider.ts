@@ -65,8 +65,10 @@ export class BoltProvider {
 
 class EncodingBuffer {
   private _list: Int8Array
+  private _location: number
   constructor () {
-    this._list = new Int8Array(0)
+    this._list = new Int8Array(100000)
+    this._location = 0
   }
 
   concat (val: ArrayBuffer): void {
@@ -79,40 +81,60 @@ class EncodingBuffer {
   }
 
   writeUInt8 (val: number): void {
-    const dv = new DataView(new ArrayBuffer(1))
-    dv.setUint8(0, val)
-    this.concat(dv.buffer)
+    this._checkLength(1)
+    const dv = new DataView(this._list.buffer)
+    dv.setUint8(this._location, val)
+    this._location += 1
   }
 
   writeInt8 (val: number): void {
-    const dv = new DataView(new ArrayBuffer(1))
-    dv.setInt8(0, val)
-    this.concat(dv.buffer)
+    this._checkLength(1)
+    const dv = new DataView(this._list.buffer)
+    dv.setInt8(this._location, val)
+    this._location += 1
   }
 
   writeInt16 (val: number): void {
-    const dv = new DataView(new ArrayBuffer(2))
-    dv.setInt16(0, val)
-    this.concat(dv.buffer)
+    this._checkLength(2)
+    const dv = new DataView(this._list.buffer)
+    dv.setInt16(this._location, val)
+    this._location += 2
   }
 
   writeInt32 (val: number): void {
-    const dv = new DataView(new ArrayBuffer(4))
-    dv.setInt32(0, val)
-    this.concat(dv.buffer)
+    this._checkLength(4)
+    const dv = new DataView(this._list.buffer)
+    dv.setInt32(this._location, val)
+    this._location += 4
   }
 
   writeFloat64 (val: number): void {
-    const dv = new DataView(new ArrayBuffer(8))
-    dv.setFloat64(0, val)
-    this.concat(dv.buffer)
+    this._checkLength(8)
+    const dv = new DataView(this._list.buffer)
+    dv.setFloat64(this._location, val)
+    this._location += 8
   }
 
   writeBytes (val: any): void {
-    this.concat(val._buffer)
+    const arr = new Int8Array(val._buffer)
+    this._checkLength(arr.byteLength)
+    for (let i = 0; i < arr.byteLength; i++) {
+      this.writeInt8(arr[i])
+    }
   }
 
   buffer (): ArrayBuffer {
-    return this._list.buffer as ArrayBuffer
+    return this._list.slice(0, this._location).buffer
+  }
+
+  _checkLength (size: number): void {
+    if (this._location + size >= this._list.byteLength) {
+      const valArray = new Int8Array(100000)
+      const combined = new Int8Array([
+        ...this._list,
+        ...valArray
+      ])
+      this._list = combined
+    }
   }
 }

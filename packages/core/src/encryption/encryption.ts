@@ -120,28 +120,32 @@ export default class EncryptionService {
     } catch (e: any) {
       return new UnsupportedType('Undecryptable Value', 0, 0, e.message)
     }
-    if (decryptRequest.usePersistedAad === true) {
-      encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
-    } else if (decryptRequest.aad != null && !this._isEmpty(decryptRequest.aad)) {
-      const aadType = this._identifyType(decryptRequest.aad)
-      if (aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor) {
-        encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(struct.metadata.aad_encoding_scheme_major, struct.metadata.aad_encoding_scheme_minor))
-      } else {
-        throw newError('Could not encode provided AAD as it was encoded with an unsupported encoding scheme')
+    if (struct.profileType === 'ENVELOPE' && struct.profileVersion.equals(int(1))) {
+      if (decryptRequest.usePersistedAad === true) {
+        encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
+      } else if (decryptRequest.aad != null) {
+        const aadType = this._identifyType(decryptRequest.aad)
+        if (aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor) {
+          encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(struct.metadata.aad_encoding_scheme_major, struct.metadata.aad_encoding_scheme_minor))
+        } else {
+          throw newError('Could not encode provided AAD as it was encoded with an unsupported encoding scheme')
+        }
       }
-    }
-    const profile = this._getProfile(struct.profileName)
-    try {
-      const decapsulatedKey = await this._decapsulateKey(profile.profile, await this._getKeyRecord(profile.profile, struct.metadata.key_id))
-      const decodedValue = this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), new ProtocolVersion(struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber()))
-      const type = this._identifyType(decodedValue)
-      if (type.typeProtocolMajor.equals(struct.typeProtocolMajor) && type.typeProtocolMinor.equals(struct.typeProtocolMinor)) {
-        return decodedValue
-      } else {
-        return new UnsupportedType(`Encrypted<${type.typeName}>`, struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), 'Encrypted value was encoded with a driver too old for this driver to read it.')
+      const profile = this._getProfile(struct.profileName)
+      try {
+        const decapsulatedKey = await this._decapsulateKey(profile.profile, await this._getKeyRecord(profile.profile, struct.metadata.key_id))
+        const decodedValue = this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), new ProtocolVersion(struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber()))
+        const type = this._identifyType(decodedValue)
+        if (type.typeProtocolMajor.equals(struct.typeProtocolMajor) && type.typeProtocolMinor.equals(struct.typeProtocolMinor)) {
+          return decodedValue
+        } else {
+          return new UnsupportedType(`Encrypted<${type.typeName}>`, struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), 'Encrypted value was encoded with a driver too old for this driver to read it.')
+        }
+      } catch (e) {
+        throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
       }
-    } catch (e) {
-      throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
+    } else {
+      throw newError(`Unsupported encryption profile version ${struct.profileVersion.toString()} of profile type ${struct.profileType}.`)
     }
   }
 
@@ -174,8 +178,12 @@ export default class EncryptionService {
       const verification: (value: any) => value is number = (value: any) => typeof value === 'number'
       return { typeName: 'FLOAT', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
-    if (typeof value === 'bigint' || isInt(value)) {
+    if (typeof value === 'bigint') {
       const verification: (value: any) => value is BigInt = (value: any) => typeof value === 'bigint'
+      return { typeName: 'INTEGER', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
+    }
+    if (isInt(value)) {
+      const verification: (value: any) => value is Integer = (value: any) => isInt(value)
       return { typeName: 'INTEGER', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isDate(value)) {
@@ -188,7 +196,7 @@ export default class EncryptionService {
     }
     if (isVector(value)) {
       const verification: (_: any) => boolean = (_: any) => { throw newError('Encrypted arrays cannot contain vector values') }
-      return { typeName: 'VECTOR', typeProtocolMajor: int(6), typeProtocolMinor: int(0), verification }
+      return { typeName: 'VECTOR', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (value instanceof Int8Array) {
       const verification: (value: any) => value is Int8Array = (value: any) => value instanceof Int8Array
@@ -204,7 +212,7 @@ export default class EncryptionService {
     }
     if (isDateTime(value)) {
       const verification: (value: any) => value is DateTime = (value: any) => isDateTime(value)
-      return { typeName: 'ZONED DATETIME', typeProtocolMajor: int(5), typeProtocolMinor: int(0), verification }
+      return { typeName: 'ZONED DATETIME', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (isTime(value)) {
       const verification: (value: any) => value is Time = (value: any) => isTime(value)
@@ -213,8 +221,14 @@ export default class EncryptionService {
     if (isPoint(value)) {
       const verification: (point: any) => boolean = (point: any) => {
         if (isPoint(point)) {
-          if (point.srid !== value.srid) {
-            throw newError('Encrypted arrays of Points must only contain Points with identical srids')
+          if (isInt(point.srid)) {
+            if (point.srid.notEquals(value.srid)) {
+              throw newError('Encrypted arrays of Points must only contain Points with identical srids')
+            }
+          } else {
+            if (point.srid !== value.srid) {
+              throw newError('Encrypted arrays of Points must only contain Points with identical srids')
+            }
           }
           if ((point.z == null && value.z != null) || (point.z != null && value.z == null)) {
             throw newError('Encrypted arrays of Points must only contain Points of the same dimensionality.')
@@ -227,7 +241,7 @@ export default class EncryptionService {
     }
     if (isUUID(value)) {
       const verification: (value: any) => value is UUID = (value: any) => isUUID(value)
-      return { typeName: 'UUID', typeProtocolMajor: int(6), typeProtocolMinor: int(1), verification }
+      return { typeName: 'UUID', typeProtocolMajor: int(1), typeProtocolMinor: int(0), verification }
     }
     if (Array.isArray(value)) {
       const type = this._identifyType(value[0])
@@ -273,14 +287,5 @@ export default class EncryptionService {
 
   private async _decapsulateKey (profile: EncryptionProfile, key: EncapsulatedKeyRecord): Promise<Uint8Array> {
     return await profile.encapsulationService.decapsulate(key.encapsulation(), key.metadata())
-  }
-
-  private _isEmpty (obj: Record<string, any>): boolean {
-    for (const prop in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, prop) != null) {
-        return false
-      }
-    }
-    return true
   }
 }

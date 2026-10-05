@@ -877,3 +877,19 @@ export function ImportEncapsulatedKey ({ neo4j }, context, { driverId, alias, pr
   })
     .catch(e => wire.writeError(e))
 }
+
+export function SetEncapsulatedKeyAlias ({ neo4j }, context, { driverId, id, alias, profileName }, wire) {
+  const driver = context.getDriver(driverId)
+  driver.encryption.keyManager(profileName)._profile.keyRepository.setAliasById(id, alias).then(key => {
+    wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias() }))
+  })
+    .catch(e => wire.writeError(e))
+}
+
+export function DeleteEncapsulatedKey ({ neo4j }, context, { driverId, id, profileName }, wire) {
+  const driver = context.getDriver(driverId)
+  driver.encryption.keyManager(profileName)._profile.keyRepository.deleteById(id).then(key => {
+    wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: null }))
+  })
+    .catch(e => wire.writeError(e))
+}

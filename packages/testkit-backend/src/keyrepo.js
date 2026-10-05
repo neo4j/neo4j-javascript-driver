@@ -13,6 +13,9 @@ export default class KeyRepo {
   }
 
   create (alias, encapsulation, metadata) {
+    if (this.aliasToId.has(alias)) {
+      throw new Error('failed to create as alias already taken')
+    }
     const id = 'testkit-key'
     this.aliasToId.set(alias, id)
     const key = {
@@ -26,17 +29,38 @@ export default class KeyRepo {
   }
 
   setAliasById (id, alias) {
+    if (this.aliasToId.has(alias)) {
+      throw new Error('failed to set alias as already taken')
+    }
+    this.deleteAliasById(id)
     this.aliasToId.set(alias, id)
-    return Promise.resolve()
+    const key = {
+      alias: () => alias,
+      id: () => id
+    }
+    return Promise.resolve(key)
   }
 
-  deleteAliasById (id, alias) {
-    this.aliasToId.delete(alias)
-    return Promise.resolve()
+  deleteAliasById (id) {
+    let key
+    for (const entry of this.aliasToId.entries()) {
+      if (entry[1] === id) {
+        this.aliasToId.delete(entry[0])
+        key = {
+          alias: () => null,
+          id: () => id
+        }
+      }
+    }
+    return Promise.resolve(key)
   }
 
   deleteById (id) {
     this.idToKey.delete(id)
-    return Promise.resolve()
+    const key = {
+      alias: () => null,
+      id: () => id
+    }
+    return Promise.resolve(key)
   }
 }
