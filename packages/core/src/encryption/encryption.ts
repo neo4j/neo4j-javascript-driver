@@ -98,7 +98,7 @@ export default class EncryptionService {
       }
       return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, profile.profile.type, profile.profile.version, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
     } catch (e) {
-      throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
+      throw newError('Propety encryption failed due to internal error, see cause.', '50N42', e as Error)
     }
   }
 
@@ -133,7 +133,8 @@ export default class EncryptionService {
       }
       const profile = this._getProfile(struct.profileName)
       try {
-        const decapsulatedKey = await this._decapsulateKey(profile.profile, await this._getKeyRecord(profile.profile, struct.metadata.key_id))
+        const key = await this._getKeyRecord(profile.profile, struct.metadata.key_id)
+        const decapsulatedKey = await this._decapsulateKey(profile.profile, key)
         const decodedValue = this._boltProvider.decodeValue(await this._cryptoProvider.decrypt(decapsulatedKey, struct.metadata.iv, struct.cipherOutput.buffer as ArrayBuffer, encodedAAD), new ProtocolVersion(struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber()))
         const type = this._identifyType(decodedValue)
         if (type.typeProtocolMajor.equals(struct.typeProtocolMajor) && type.typeProtocolMinor.equals(struct.typeProtocolMinor)) {

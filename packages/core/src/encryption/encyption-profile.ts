@@ -149,6 +149,9 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
       }
     }
     const key = await this.keyRepository.findById(id)
+    if (key == null) {
+      return undefined
+    }
     this._keyCache.set(id, { entry: key, retrieved: new Date() })
     this._pruneCache(this._keyCache, this._keyCacheMaxSize)
     return key
@@ -169,6 +172,9 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
       }
     }
     const key = await this.keyRepository.findByAlias(alias)
+    if (key == null) {
+      return undefined
+    }
     this._aliasIndex.set(alias, { entry: key.id(), retrieved: new Date() })
     this._keyCache.set(key.id(), { entry: key, retrieved: new Date() })
     this._pruneCache(this._aliasIndex, this._keyAliasIndexMaxSize)
