@@ -43,7 +43,14 @@ export {
   EncryptToBytes,
   Decrypt,
   CreateEncapsulatedKey,
-  ImportEncapsulatedKey
+  ImportEncapsulatedKey,
+  SetEncapsulatedKeyAlias,
+  DeleteEncapsulatedKey,
+  EncapsulatedKeyRepositoryFindByIdCompleted,
+  EncapsulatedKeyRepositoryFindByAliasCompleted,
+  EncapsulatedKeyRepositoryCreateCompleted,
+  EncapsulatedKeyRepositoryImportCompleted,
+  EncapsulatedKeyRepositoryErrorCompleted
 } from './request-handlers.js'
 
 export function NewSession ({ neo4j }, context, data, wire) {
