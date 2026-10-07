@@ -131,7 +131,11 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @private
    */
   async saveKey (alias: string, encapsulation: Int8Array, metadata: Record<string, string>): Promise<EncapsulatedKey> {
-    return await this.keyRepository.create(alias, encapsulation, metadata)
+    try {
+      return await this.keyRepository.create(alias, encapsulation, metadata)
+    } catch (e) {
+      throw newError('Call to EncapsulatedKeyRepository.create threw error, see cause', '50N42', e as Error)
+    }
   }
 
   /**
@@ -148,7 +152,12 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
         }
       }
     }
-    const key = await this.keyRepository.findById(id)
+    let key
+    try {
+      key = await this.keyRepository.findById(id)
+    } catch (e) {
+      throw newError('Call to EncapsulatedKeyRepository.findById threw error, see cause', '50N42', e as Error)
+    }
     if (key == null) {
       return undefined
     }
@@ -171,7 +180,12 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
         }
       }
     }
-    const key = await this.keyRepository.findByAlias(alias)
+    let key
+    try {
+      key = await this.keyRepository.findByAlias(alias)
+    } catch (e) {
+      throw newError('Call to EncapsulatedKeyRepository.findByAlias threw error, see cause', '50N42', e as Error)
+    }
     if (key == null) {
       return undefined
     }

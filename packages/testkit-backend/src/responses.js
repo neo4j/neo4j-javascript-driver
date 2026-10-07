@@ -196,6 +196,14 @@ export function EncapsulatedKeyRepositoryImportRequest ({ id, repositoryId, keyI
   return response('EncapsulatedKeyRepositoryImportRequest', { id, repositoryId, keyId, alias, encapsulation: context.binder.nativeToCypher(new Int8Array(encapsulation.buffer)), metadata })
 }
 
+export function EncapsulatedKeyRepositorySetAliasByIdRequest ({ id, repositoryId, keyId, alias }) {
+  return response('EncapsulatedKeyRepositorySetAliasByIdRequest', { id, repositoryId, keyId, alias })
+}
+
+export function EncapsulatedKeyRepositoryDeleteRequest ({ id, repositoryId, keyId }) {
+  return response('EncapsulatedKeyRepositoryDeleteRequest', { id, repositoryId, keyId })
+}
+
 export function EncapsulatedKeyRepositoryClosed ({ repositoryId }) {
   return response('EncapsulatedKeyRepositoryClosed', { repositoryId })
 }

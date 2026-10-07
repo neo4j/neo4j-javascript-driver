@@ -219,6 +219,9 @@ function createEncryptedValueTransformer () {
       return struct
     },
     fromStructure: structure => {
+      if (structure.fields.length !== 8) {
+        throw newError(`Expects encrypted structure to have 8 fields, found ${structure.fields.length}`)
+      }
       const profileType = structure.fields[0]
       const profileVersion = structure.fields[1]
       const profileName = structure.fields[2]

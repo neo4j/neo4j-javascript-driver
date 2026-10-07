@@ -78,7 +78,7 @@ export default class EncryptionService {
     const encodedValue = this._boltProvider.encodeValue(encryptRequest.value)
     let encodedAAD
     let aadType
-    if (encryptRequest.aad != null) {
+    if (encryptRequest.aad !== undefined) {
       aadType = this._identifyType(encryptRequest.aad)
       if (!supportedAADTypes.includes(aadType.typeName)) {
         throw newError(`Unsupported AAD propety type ${aadType.typeName}, supported values are ${supportedAADTypes.toString()}`)
@@ -114,21 +114,19 @@ export default class EncryptionService {
    */
   async decrypt<T>(decryptRequest: { ciphertext: Int8Array, usePersistedAad?: boolean, aad?: any }): Promise<T | UnsupportedType> {
     let encodedAAD
-    let struct
-    try {
-      struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
-    } catch (e: any) {
-      return new UnsupportedType('Undecryptable Value', 0, 0, e.message)
+    const struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
+    if (struct.typeProtocolMajor.notEquals(int(1)) || struct.typeProtocolMinor.greaterThan(int(0))) {
+      return new UnsupportedType('Undecryptable Value', struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), 'Encrypted value was encoded with a newer driver, you must update your driver version to decode it.')
     }
     if (struct.profileType === 'ENVELOPE' && struct.profileVersion.equals(int(1))) {
       if (decryptRequest.usePersistedAad === true) {
         encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
-      } else if (decryptRequest.aad != null) {
+      } else if (decryptRequest.aad !== undefined) {
         const aadType = this._identifyType(decryptRequest.aad)
         if (aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor) {
           encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(struct.metadata.aad_encoding_scheme_major, struct.metadata.aad_encoding_scheme_minor))
         } else {
-          throw newError('Could not encode provided AAD as it was encoded with an unsupported encoding scheme')
+          throw newError('AAD used to encrypt was encoded with a newer encoding scheme than this driver supports')
         }
       }
       const profile = this._getProfile(struct.profileName)
@@ -222,14 +220,11 @@ export default class EncryptionService {
     if (isPoint(value)) {
       const verification: (point: any) => boolean = (point: any) => {
         if (isPoint(point)) {
-          if (isInt(point.srid)) {
-            if (point.srid.notEquals(value.srid)) {
-              throw newError('Encrypted arrays of Points must only contain Points with identical srids')
-            }
-          } else {
-            if (point.srid !== value.srid) {
-              throw newError('Encrypted arrays of Points must only contain Points with identical srids')
-            }
+          if ((point.srid instanceof BigInt ? Integer.fromString(point.srid.toString()) : int(point.srid))
+            .notEquals(
+              value.srid instanceof BigInt ? Integer.fromString(value.srid.toString()) : int(value.srid)
+            )) {
+            throw newError('Encrypted arrays of Points must only contain Points with identical srids')
           }
           if ((point.z == null && value.z != null) || (point.z != null && value.z == null)) {
             throw newError('Encrypted arrays of Points must only contain Points of the same dimensionality.')
@@ -287,6 +282,10 @@ export default class EncryptionService {
   }
 
   private async _decapsulateKey (profile: EncryptionProfile, key: EncapsulatedKeyRecord): Promise<Uint8Array> {
-    return await profile.encapsulationService.decapsulate(key.encapsulation(), key.metadata())
+    const decapsulatedKey = await profile.encapsulationService.decapsulate(key.encapsulation(), key.metadata())
+    if (decapsulatedKey.length !== 32) {
+      throw newError(`Expected decapulated key to be 32 bytes, found ${decapsulatedKey.length}`)
+    }
+    return decapsulatedKey
   }
 }

@@ -18,6 +18,7 @@
 import { EncryptionProfile } from './encyption-profile.ts'
 import { EncapsulatedKey } from './encapsulated-key.ts'
 import { KeyEncapsulationService } from './key-encapsulation-service.ts'
+import { newError } from '../error.ts'
 
 /**
  * A manager for encapsulated keys.
@@ -89,7 +90,11 @@ export class EncapsulatedKeyManager {
    * @param {string | undefined} alias the new key alias
    */
   async setAliasById (id: string, alias?: string): Promise<void> {
-    return await this._profile.keyRepository.setAliasById(id, alias)
+    try {
+      return await this._profile.keyRepository.setAliasById(id, alias)
+    } catch (e) {
+      throw newError("Call to EncapsulatedKeyRepository.setAliasById threw error, see cause", "50N42", e as Error)
+    }
   }
 
   /**
@@ -107,6 +112,10 @@ export class EncapsulatedKeyManager {
    * @param {string} id the key id, must not be {@literal null}
    */
   async deleteById (id: string): Promise<void> {
-    return await this._profile.keyRepository.deleteById(id)
+    try {
+      return await this._profile.keyRepository.deleteById(id)
+    } catch (e) {
+      throw newError("Call to EncapsulatedKeyRepository.deleteById threw error, see cause", "50N42", e as Error)
+    }
   }
 }

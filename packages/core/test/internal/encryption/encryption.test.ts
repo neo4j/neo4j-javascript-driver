@@ -41,7 +41,9 @@ describe('#unit EncryptionService', () => {
     vector(Float32Array.from([1, 2, 3])),
     new DateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1000)),
     [int(1), int(2)],
-    [new Point(7203, 1, 2), new Point(7203, 3, 4)],
+    [new Point(7203, 1, 2), new Point(7203, 3, 4), new Point(BigInt(7203), 3, 4), new Point(int(7203), 3, 4)],
+    [new Point(int(7203), 1, 2), new Point(7203, 3, 4), new Point(BigInt(7203), 3, 4), new Point(int(7203), 3, 4)],
+    [new Point(BigInt(7203), 1, 2), new Point(7203, 3, 4), new Point(BigInt(7203), 3, 4), new Point(int(7203), 3, 4)],
     true
   ])('should encrypt correctly formatted input', async (input: any) => {
     const profiles = [profile]

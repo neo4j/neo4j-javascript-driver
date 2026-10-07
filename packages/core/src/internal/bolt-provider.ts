@@ -53,9 +53,16 @@ export class BoltProvider {
   }
 
   decodeObject (buffer: Int8Array): EncryptedValue {
+    if (buffer.length === 0) {
+      throw newError('Empty byte array provided as ciphertext to decryption.')
+    }
     if (buffer[0] === 1) {
       const transformer = this._defaultBolt.transformer
-      const struct = this._defaultBolt.unpack(this._alloc(buffer.buffer.slice(1) as ArrayBuffer))
+      const packBuf = this._alloc(buffer.buffer.slice(1) as ArrayBuffer)
+      const struct = this._defaultBolt.unpack(packBuf)
+      if (packBuf.hasRemaining() !== false) {
+        throw newError('Found data remaining after decoding ciphertext and metadata, unclean decode.')
+      }
       return transformer.fromStructure(struct)
     } else {
       throw newError(`Object is encoded with version ${buffer[0]}, this driver only supports version 1.`)
@@ -69,15 +76,6 @@ class EncodingBuffer {
   constructor () {
     this._list = new Int8Array(100000)
     this._location = 0
-  }
-
-  concat (val: ArrayBuffer): void {
-    const valArray = new Int8Array(val)
-    const combined = new Int8Array([
-      ...this._list,
-      ...valArray
-    ])
-    this._list = combined
   }
 
   writeUInt8 (val: number): void {

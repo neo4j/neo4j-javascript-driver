@@ -854,7 +854,11 @@ export function EncryptToBytes ({ neo4j }, context, { driverId, value, aad, prof
 
 export function Decrypt ({ neo4j }, context, { driverId, value, aad, usePersistedAad }, wire) {
   const driver = context.getDriver(driverId)
-  driver.encryption.decrypt({ ciphertext: context.binder.toByteArray(value), usePersistedAad, aad }).then(decryptedValue => {
+  let boundAad
+  if (aad != null) {
+    boundAad = context.binder.cypherToNative(aad)
+  }
+  driver.encryption.decrypt({ ciphertext: context.binder.toByteArray(value), usePersistedAad, aad: boundAad }).then(decryptedValue => {
     wire.writeResponse(responses.DecryptedValue({ decryptedValue: context.binder.nativeToCypher(decryptedValue) }))
   })
     .catch(e => wire.writeError(e))
@@ -955,6 +959,18 @@ export function EncapsulatedKeyRepositoryImportCompleted (_, context, { requestI
     request.resolve(undefined)
   }
   context.removeEncapsulatedKeyRepositoryImportRequest(requestId)
+}
+
+export function EncapsulatedKeyRepositorySetAliasByIdCompleted (_, context, { requestId }) {
+  const request = context.getEncapsulatedKeyRepositorySetAliasByIdRequest(requestId)
+  request.resolve(undefined)
+  context.removeEncapsulatedKeyRepositorySetAliasByIdRequest(requestId)
+}
+
+export function EncapsulatedKeyRepositorySetDeleteCompleted (_, context, { requestId }) {
+  const request = context.getEncapsulatedKeyRepositoryDeleteRequest(requestId)
+  request.resolve(undefined)
+  context.removeEncapsulatedKeyRepositoryDeleteRequest(requestId)
 }
 
 export function EncapsulatedKeyRepositoryErrorCompleted (_, context, { requestId, errorType, details }) {

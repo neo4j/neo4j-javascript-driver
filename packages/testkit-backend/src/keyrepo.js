@@ -5,7 +5,6 @@ export function NewKeyRepository (context, wire) {
     return {
       findById: (keyId) => new Promise((resolve, reject) => {
         const id = context.addEncapsulatedKeyRepositoryFindByIdRequest(resolve, reject)
-        console.log('F REPID: ', repositoryId)
         wire.writeResponse(responses.EncapsulatedKeyRepositoryFindByIdRequest({ id, repositoryId, keyId }))
       }),
       findByAlias: (alias) => new Promise((resolve, reject) => {
@@ -19,6 +18,14 @@ export function NewKeyRepository (context, wire) {
       import: (keyId, alias, encapsulation, metadata) => new Promise((resolve, reject) => {
         const id = context.addEncapsulatedKeyRepositoryImportRequest(resolve, reject)
         wire.writeResponse(responses.EncapsulatedKeyRepositoryImportRequest({ id, repositoryId, keyId, alias, encapsulation, metadata, context }))
+      }),
+      setAliasById: (keyId, alias) => new Promise((resolve, reject) => {
+        const id = context.addEncapsulatedKeyRepositorySetAliasByIdRequest(resolve, reject)
+        wire.writeResponse(responses.EncapsulatedKeyRepositorySetAliasByIdRequest({ id, repositoryId, keyId, alias }))
+      }),
+      delete: (keyId) => new Promise((resolve, reject) => {
+        const id = context.addEncapsulatedKeyRepositoryDeleteRequest(resolve, reject)
+        wire.writeResponse(responses.EncapsulatedKeyRepositoryDeleteRequest({ id, repositoryId, keyId }))
       })
     }
   })
