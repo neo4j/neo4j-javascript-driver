@@ -17,7 +17,7 @@
 
 import Integer, { int, isInt } from '../integer.ts'
 import { BoltProvider } from '../internal/bolt-provider.ts'
-import { EncryptedValue, isEnc } from './encrypted-value.ts'
+import { EncryptedValue } from './encrypted-value.ts'
 import { EncapsulatedKeyManager } from './encapsulated-key-manager.ts'
 import CryptoProvider from './node/crypto.ts'
 import { isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime } from '../temporal-types.ts'
@@ -31,7 +31,7 @@ import { newError } from '../error.ts'
 import { EncapsulatedKeyRecord } from './encapsulated-key.ts'
 import { stringify } from '../json.ts'
 import { ProtocolVersion } from '../protocol-version.ts'
-import UnsupportedType, { isUnsupportedType } from '../unsupported-type.ts'
+import UnsupportedType from '../unsupported-type.ts'
 
 const supportedAADTypes: string[] = ['BOOLEAN', 'DATE', 'INTEGER', 'LOCAL TIME', 'POINT', 'STRING', 'ZONED TIME', 'UUID', 'BYTES']
 
@@ -114,9 +114,9 @@ export default class EncryptionService {
    */
   async decrypt<T>(decryptRequest: { ciphertext: Int8Array, usePersistedAad?: boolean, aad?: any }): Promise<T | UnsupportedType> {
     let encodedAAD
-    let struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
+    const struct = this._boltProvider.decodeObject(decryptRequest.ciphertext)
     if (struct.typeProtocolMajor.notEquals(int(1)) || struct.typeProtocolMinor.greaterThan(int(0))) {
-        return new UnsupportedType('Undecryptable Value', struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), 'Encrypted value was encoded with a newer driver, you must update your driver version to decode it.')
+      return new UnsupportedType('Undecryptable Value', struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), 'Encrypted value was encoded with a newer driver, you must update your driver version to decode it.')
     }
     if (struct.profileType === 'ENVELOPE' && struct.profileVersion.equals(int(1))) {
       if (decryptRequest.usePersistedAad === true) {
@@ -223,8 +223,8 @@ export default class EncryptionService {
           if ((point.srid instanceof BigInt ? Integer.fromString(point.srid.toString()) : int(point.srid))
             .notEquals(
               value.srid instanceof BigInt ? Integer.fromString(value.srid.toString()) : int(value.srid)
-            )) {  
-            throw newError('Encrypted arrays of Points must only contain Points with identical srids')  
+            )) {
+            throw newError('Encrypted arrays of Points must only contain Points with identical srids')
           }
           if ((point.z == null && value.z != null) || (point.z != null && value.z == null)) {
             throw newError('Encrypted arrays of Points must only contain Points of the same dimensionality.')
@@ -283,7 +283,7 @@ export default class EncryptionService {
 
   private async _decapsulateKey (profile: EncryptionProfile, key: EncapsulatedKeyRecord): Promise<Uint8Array> {
     const decapsulatedKey = await profile.encapsulationService.decapsulate(key.encapsulation(), key.metadata())
-    if(decapsulatedKey.length !== 32) {
+    if (decapsulatedKey.length !== 32) {
       throw newError(`Expected decapulated key to be 32 bytes, found ${decapsulatedKey.length}`)
     }
     return decapsulatedKey

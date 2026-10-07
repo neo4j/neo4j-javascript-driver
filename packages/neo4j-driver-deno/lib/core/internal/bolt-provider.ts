@@ -53,15 +53,15 @@ export class BoltProvider {
   }
 
   decodeObject (buffer: Int8Array): EncryptedValue {
-    if(buffer.length === 0) {
-      throw newError("Empty byte array provided as ciphertext to decryption.")
+    if (buffer.length === 0) {
+      throw newError('Empty byte array provided as ciphertext to decryption.')
     }
     if (buffer[0] === 1) {
       const transformer = this._defaultBolt.transformer
       const packBuf = this._alloc(buffer.buffer.slice(1) as ArrayBuffer)
       const struct = this._defaultBolt.unpack(packBuf)
-      if(packBuf.hasRemaining()) {
-        throw newError(`Found data remaining after decoding ciphertext and metadata, unclean decode.`)
+      if (packBuf.hasRemaining() !== false) {
+        throw newError('Found data remaining after decoding ciphertext and metadata, unclean decode.')
       }
       return transformer.fromStructure(struct)
     } else {

@@ -93,7 +93,7 @@ export class EncapsulatedKeyManager {
     try {
       return await this._profile.keyRepository.setAliasById(id, alias)
     } catch (e) {
-      throw newError("Call to EncapsulatedKeyRepository.setAliasById threw error, see cause", "50N42", e as Error)
+      throw newError('Call to EncapsulatedKeyRepository.setAliasById threw error, see cause', '50N42', e as Error)
     }
   }
 
@@ -115,7 +115,7 @@ export class EncapsulatedKeyManager {
     try {
       return await this._profile.keyRepository.deleteById(id)
     } catch (e) {
-      throw newError("Call to EncapsulatedKeyRepository.deleteById threw error, see cause", "50N42", e as Error)
+      throw newError('Call to EncapsulatedKeyRepository.deleteById threw error, see cause', '50N42', e as Error)
     }
   }
 }

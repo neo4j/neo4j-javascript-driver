@@ -134,7 +134,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     try {
       return await this.keyRepository.create(alias, encapsulation, metadata)
     } catch (e) {
-      throw newError("Call to EncapsulatedKeyRepository.create threw error, see cause", "50N42", e as Error)
+      throw newError('Call to EncapsulatedKeyRepository.create threw error, see cause', '50N42', e as Error)
     }
   }
 
@@ -156,7 +156,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     try {
       key = await this.keyRepository.findById(id)
     } catch (e) {
-      throw newError("Call to EncapsulatedKeyRepository.findById threw error, see cause", "50N42", e as Error)
+      throw newError('Call to EncapsulatedKeyRepository.findById threw error, see cause', '50N42', e as Error)
     }
     if (key == null) {
       return undefined
@@ -184,7 +184,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     try {
       key = await this.keyRepository.findByAlias(alias)
     } catch (e) {
-      throw newError("Call to EncapsulatedKeyRepository.findByAlias threw error, see cause", "50N42", e as Error)
+      throw newError('Call to EncapsulatedKeyRepository.findByAlias threw error, see cause', '50N42', e as Error)
     }
     if (key == null) {
       return undefined
