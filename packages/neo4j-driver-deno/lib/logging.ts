@@ -13,8 +13,8 @@ export const logging = {
       level,
       logger: (level: LogLevel, message: string) =>
         console.log(`${Date.now()} ${level.toUpperCase()} ${message}`),
-        // Note: This 'logging' object is in its own file so we can easily access the global Date object here without conflicting
-        // with the Neo4j Date class, and without relying on 'globalThis' which isn't compatible with Node 10.
+      // Note: This 'logging' object is in its own file so we can easily access the global Date object here without conflicting
+      // with the Neo4j Date class, and without relying on 'globalThis' which isn't compatible with Node 10.
       unredactDebugLogs
     }
   }
