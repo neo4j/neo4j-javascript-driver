@@ -268,11 +268,12 @@ async function hasReachableServer (url, config) {
  * timestamp, level and message. It takes an optional `level` parameter which represents the maximum log level to be logged. Default value is 'info'.
  */
 const logging = {
-  console: level => {
+  console: (level, unredactDebugLogs) => {
     return {
       level,
       logger: (level, message) =>
-        console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
+        console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`),
+      unredactDebugLogs
     }
   }
 }
