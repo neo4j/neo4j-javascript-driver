@@ -282,7 +282,7 @@ export class Config {
      * Property `logger` represents the logging function which will be invoked for every log call with an acceptable level. The function should
      * take two string arguments `level` and `message`. The function should not execute any blocking or long-running operations
      * because it is often executed on a hot path.
-     * 
+     *
      * Property `unredactDebugLogs` will unredact debug logs to show query parameters and record fields. It should be {@link true} or {@link false},
      * leaving it undefined is the same as setting it false.
      *
