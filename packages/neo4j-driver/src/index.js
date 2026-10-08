@@ -265,7 +265,8 @@ async function hasReachableServer (url, config) {
 /**
  * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
  * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to `console.log` with
- * timestamp, level and message. It takes an optional `level` parameter which represents the maximum log level to be logged. Default value is 'info'.
+ * timestamp, level and message. It takes optional `level` parameter which represents the maximum log level to be logged with default value is 'info'
+ * and another `unredactDebugLogs` which changes the output to debug logs to unredact query parameters and record fields.
  */
 const logging = {
   console: (level, unredactDebugLogs) => {

@@ -212,7 +212,7 @@ function extractConfiguredLevel (loggingConfig: LoggingConfig): LogLevel {
 /**
  * Extract if debug logs should be unredacted from the driver's logging configuration.
  * @param {Object} loggingConfig the logging configuration.
- * @return {boleal} the configured log level or default when none configured.
+ * @return {boolean} true if debug logs should be unredacted, false when none configured.
  */
 function extractRedactedDebug (loggingConfig: LoggingConfig): boolean {
   if (loggingConfig?.unredactDebugLogs != null) {
