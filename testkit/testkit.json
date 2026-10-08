@@ -1,6 +1,6 @@
 {
   "testkit": {
     "uri": "https://github.com/neo4j-drivers/testkit.git",
-    "ref": "feat/profile-version-validation"
+    "ref": "6.x"
   }
 }
