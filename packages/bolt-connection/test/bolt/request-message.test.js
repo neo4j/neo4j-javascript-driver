@@ -47,8 +47,11 @@ describe('#unit RequestMessage', () => {
 
     expect(message.signature).toEqual(0x10)
     expect(message.fields).toEqual([query, parameters])
-    expect(message.toString()).toEqual(
+    expect(message.toString(true)).toEqual(
       `RUN ${query} ${json.stringify(parameters)}`
+    )
+    expect(message.toString(false)).toEqual(
+      `RUN ${query} { ... }`
     )
   })
 
@@ -157,8 +160,13 @@ describe('#unit RequestMessage', () => {
 
       expect(message.signature).toEqual(0x10)
       expect(message.fields).toEqual([query, parameters, expectedMetadata])
-      expect(message.toString()).toEqual(
+      expect(message.toString(true)).toEqual(
         `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+          expectedMetadata
+        )}`
+      )
+      expect(message.toString(false)).toEqual(
+        `RUN ${query} { ... } ${json.stringify(
           expectedMetadata
         )}`
       )
@@ -382,8 +390,13 @@ describe('#unit RequestMessage', () => {
 
         expect(message.signature).toEqual(0x10)
         expect(message.fields).toEqual([query, parameters, expectedMetadata])
-        expect(message.toString()).toEqual(
+        expect(message.toString(true)).toEqual(
           `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+            expectedMetadata
+          )}`
+        )
+        expect(message.toString(false)).toEqual(
+          `RUN ${query} { ... } ${json.stringify(
             expectedMetadata
           )}`
         )
@@ -420,8 +433,13 @@ describe('#unit RequestMessage', () => {
 
         expect(message.signature).toEqual(0x10)
         expect(message.fields).toEqual([query, parameters, expectedMetadata])
-        expect(message.toString()).toEqual(
+        expect(message.toString(true)).toEqual(
           `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+            expectedMetadata
+          )}`
+        )
+        expect(message.toString(false)).toEqual(
+          `RUN ${query} { ... } ${json.stringify(
             expectedMetadata
           )}`
         )
@@ -522,11 +540,16 @@ describe('#unit RequestMessage', () => {
 
         expect(message.signature).toEqual(0x10)
         expect(message.fields).toEqual([query, parameters, expectedMetadata])
-        expect(message.toString()).toEqual(
+        expect(message.toString(true)).toEqual(
           `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
             expectedMetadata
           )}`
         )
+        expect(message.toString(false)).toEqual(
+            `RUN ${query} { ... } ${json.stringify(
+              expectedMetadata
+            )}`
+          )
       })
     })
   })
@@ -842,8 +865,13 @@ describe('#unit RequestMessage', () => {
 
           expect(message.signature).toEqual(0x10)
           expect(message.fields).toEqual([query, parameters, expectedMetadata])
-          expect(message.toString()).toEqual(
+          expect(message.toString(true)).toEqual(
             `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+              expectedMetadata
+            )}`
+          )
+          expect(message.toString(false)).toEqual(
+            `RUN ${query} { ... } ${json.stringify(
               expectedMetadata
             )}`
           )

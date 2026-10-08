@@ -152,9 +152,10 @@ declare const auth: {
  * timestamp, level and message. It takes an optional `level` parameter which represents the maximum log level to be logged. Default value is 'info'.
  */
 declare const logging: {
-  console: (level: coreTypes.LogLevel) => {
+  console: (level: coreTypes.LogLevel, unredactDebugLogs?: boolean) => {
     level: coreTypes.LogLevel
     logger: (level: coreTypes.LogLevel, message: string) => void
+    unredactDebugLogs: boolean
   }
 }
 
