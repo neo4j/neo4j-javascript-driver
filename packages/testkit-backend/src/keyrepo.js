@@ -23,7 +23,7 @@ export function NewKeyRepository (context, wire) {
         const id = context.addEncapsulatedKeyRepositorySetAliasByIdRequest(resolve, reject)
         wire.writeResponse(responses.EncapsulatedKeyRepositorySetAliasByIdRequest({ id, repositoryId, keyId, alias }))
       }),
-      delete: (keyId) => new Promise((resolve, reject) => {
+      deleteById: (keyId) => new Promise((resolve, reject) => {
         const id = context.addEncapsulatedKeyRepositoryDeleteRequest(resolve, reject)
         wire.writeResponse(responses.EncapsulatedKeyRepositoryDeleteRequest({ id, repositoryId, keyId }))
       })
