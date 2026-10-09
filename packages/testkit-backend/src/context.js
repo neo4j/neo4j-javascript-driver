@@ -21,6 +21,13 @@ export default class Context {
     this._environmentLogLevel = environmentLogLevel
     this._clientCertificateProviders = {}
     this._clientCertificateProviderRequests = {}
+    this._encapsulatedKeyRepositories = {}
+    this._encapsulatedKeyRepositoryFindByIdRequests = {}
+    this._encapsulatedKeyRepositoryFindByAliasRequests = {}
+    this._encapsulatedKeyRepositoryCreateRequests = {}
+    this._encapsulatedKeyRepositoryImportRequests = {}
+    this._encapsulatedKeyRepositorySetAliasByIdRequests = {}
+    this._encapsulatedKeyRepositoryDeleteRequests = {}
   }
 
   get binder () {
@@ -252,6 +259,121 @@ export default class Context {
 
   removeClientCertificateProviderRequest (id) {
     delete this._clientCertificateProviderRequests[id]
+  }
+
+  addEncapsulatedKeyRepository (encapsulatedKeyRepositoryFactory) {
+    this._id++
+    this._encapsulatedKeyRepositories[this._id] = encapsulatedKeyRepositoryFactory(this._id)
+    return this._id
+  }
+
+  getEncapsulatedKeyRepository (id) {
+    return this._encapsulatedKeyRepositories[id]
+  }
+
+  removeEncapsulatedKeyRepository (id) {
+    delete this._encapsulatedKeyRepositories[id]
+  }
+
+  addEncapsulatedKeyRepositoryFindByIdRequest (resolve, reject) {
+    return this._add(this._encapsulatedKeyRepositoryFindByIdRequests, { resolve, reject })
+  }
+
+  getEncapsulatedKeyRepositoryFindByIdRequest (id) {
+    return this._encapsulatedKeyRepositoryFindByIdRequests[id]
+  }
+
+  removeEncapsulatedKeyRepositoryFindByIdRequest (id) {
+    delete this._encapsulatedKeyRepositoryFindByIdRequests[id]
+  }
+
+  addEncapsulatedKeyRepositoryFindByAliasRequest (resolve, reject) {
+    return this._add(this._encapsulatedKeyRepositoryFindByAliasRequests, { resolve, reject })
+  }
+
+  getEncapsulatedKeyRepositoryFindByAliasRequest (id) {
+    return this._encapsulatedKeyRepositoryFindByAliasRequests[id]
+  }
+
+  removeEncapsulatedKeyRepositoryFindByAliasRequest (id) {
+    delete this._encapsulatedKeyRepositoryFindByAliasRequests[id]
+  }
+
+  addEncapsulatedKeyRepositoryCreateRequest (resolve, reject) {
+    return this._add(this._encapsulatedKeyRepositoryCreateRequests, { resolve, reject })
+  }
+
+  getEncapsulatedKeyRepositoryCreateRequest (id) {
+    return this._encapsulatedKeyRepositoryCreateRequests[id]
+  }
+
+  removeEncapsulatedKeyRepositoryCreateRequest (id) {
+    delete this._encapsulatedKeyRepositoryCreateRequests[id]
+  }
+
+  addEncapsulatedKeyRepositoryImportRequest (resolve, reject) {
+    return this._add(this._encapsulatedKeyRepositoryImportRequests, { resolve, reject })
+  }
+
+  getEncapsulatedKeyRepositoryImportRequest (id) {
+    return this._encapsulatedKeyRepositoryImportRequests[id]
+  }
+
+  removeEncapsulatedKeyRepositoryImportRequest (id) {
+    delete this._encapsulatedKeyRepositoryImportRequests[id]
+  }
+
+  addEncapsulatedKeyRepositorySetAliasByIdRequest (resolve, reject) {
+    return this._add(this._encapsulatedKeyRepositorySetAliasByIdRequests, { resolve, reject })
+  }
+
+  getEncapsulatedKeyRepositorySetAliasByIdRequest (id) {
+    return this._encapsulatedKeyRepositorySetAliasByIdRequests[id]
+  }
+
+  removeEncapsulatedKeyRepositorySetAliasByIdRequest (id) {
+    delete this._encapsulatedKeyRepositorySetAliasByIdRequests[id]
+  }
+
+  addEncapsulatedKeyRepositoryDeleteRequest (resolve, reject) {
+    return this._add(this._encapsulatedKeyRepositoryDeleteRequests, { resolve, reject })
+  }
+
+  getEncapsulatedKeyRepositoryDeleteRequest (id) {
+    return this._encapsulatedKeyRepositoryDeleteRequests[id]
+  }
+
+  removeEncapsulatedKeyRepositoryDeleteRequest (id) {
+    delete this._encapsulatedKeyRepositoryDeleteRequests[id]
+  }
+
+  getKeyRepoRequest (id) {
+    let request = this.getEncapsulatedKeyRepositoryImportRequest(id)
+    if (request == null) {
+      request = this.getEncapsulatedKeyRepositoryCreateRequest(id)
+    }
+    if (request == null) {
+      request = this.getEncapsulatedKeyRepositoryFindByAliasRequest(id)
+    }
+    if (request == null) {
+      request = this.getEncapsulatedKeyRepositoryFindByIdRequest(id)
+    }
+    if (request == null) {
+      request = this.getEncapsulatedKeyRepositorySetAliasByIdRequest(id)
+    }
+    if (request == null) {
+      request = this.getEncapsulatedKeyRepositoryDeleteRequest(id)
+    }
+    return request
+  }
+
+  removeKeyRepoRequest (id) {
+    this.removeEncapsulatedKeyRepositoryImportRequest(id)
+    this.removeEncapsulatedKeyRepositoryCreateRequest(id)
+    this.removeEncapsulatedKeyRepositoryFindByAliasRequest(id)
+    this.removeEncapsulatedKeyRepositoryFindByIdRequest(id)
+    this.removeEncapsulatedKeyRepositorySetAliasByIdRequest(id)
+    this.removeEncapsulatedKeyRepositoryDeleteRequest(id)
   }
 
   _add (map, object) {

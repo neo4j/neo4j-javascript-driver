@@ -2,8 +2,8 @@ import {
   nativeToTestkitSummary
 } from './summary-binder.js'
 
-export function Driver ({ id }) {
-  return response('Driver', { id })
+export function Driver ({ id, keyRepositories }) {
+  return response('Driver', { id, keyRepositories })
 }
 
 export function ResolverResolutionRequired ({ id, address }) {
@@ -166,6 +166,46 @@ export function FeatureList ({ features }) {
 
 export function FakeTimeAck () {
   return response('FakeTimeAck', {})
+}
+
+export function EncryptedValue ({ encryptedBytes }) {
+  return response('EncryptedValue', { encryptedBytes })
+}
+
+export function DecryptedValue ({ decryptedValue }) {
+  return response('DecryptedValue', { decryptedValue })
+}
+
+export function EncapsulatedKey ({ id, alias }) {
+  return response('EncapsulatedKey', { id, alias })
+}
+
+export function EncapsulatedKeyRepositoryFindByIdRequest ({ id, repositoryId, keyId }) {
+  return response('EncapsulatedKeyRepositoryFindByIdRequest', { id, repositoryId, keyId })
+}
+
+export function EncapsulatedKeyRepositoryFindByAliasRequest ({ id, repositoryId, alias }) {
+  return response('EncapsulatedKeyRepositoryFindByAliasRequest', { id, repositoryId, alias })
+}
+
+export function EncapsulatedKeyRepositoryCreateRequest ({ id, repositoryId, alias, encapsulation, metadata, context }) {
+  return response('EncapsulatedKeyRepositoryCreateRequest', { id, repositoryId, alias, encapsulation: context.binder.nativeToCypher(new Int8Array(encapsulation.buffer)), metadata })
+}
+
+export function EncapsulatedKeyRepositoryImportRequest ({ id, repositoryId, keyId, alias, encapsulation, metadata, context }) {
+  return response('EncapsulatedKeyRepositoryImportRequest', { id, repositoryId, keyId, alias, encapsulation: context.binder.nativeToCypher(new Int8Array(encapsulation.buffer)), metadata })
+}
+
+export function EncapsulatedKeyRepositorySetAliasByIdRequest ({ id, repositoryId, keyId, alias }) {
+  return response('EncapsulatedKeyRepositorySetAliasByIdRequest', { id, repositoryId, keyId, alias })
+}
+
+export function EncapsulatedKeyRepositoryDeleteRequest ({ id, repositoryId, keyId }) {
+  return response('EncapsulatedKeyRepositoryDeleteRequest', { id, repositoryId, keyId })
+}
+
+export function EncapsulatedKeyRepositoryClosed ({ repositoryId }) {
+  return response('EncapsulatedKeyRepositoryClosed', { repositoryId })
 }
 
 export function response (name, data) {

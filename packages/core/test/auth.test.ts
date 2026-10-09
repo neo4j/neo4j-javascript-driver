@@ -92,7 +92,7 @@ describe('auth', () => {
     ]
 
   ])('custom token cacheKey', (args1, args2, shouldMatch) => {
-    if (shouldMatch) {
+    if (shouldMatch === true) {
       expect(cacheKey(auth.custom.apply(auth, args1))).toEqual(cacheKey(auth.custom.apply(auth, args2)))
     } else {
       expect(cacheKey(auth.custom.apply(auth, args1))).not.toEqual(cacheKey(auth.custom.apply(auth, args2)))
