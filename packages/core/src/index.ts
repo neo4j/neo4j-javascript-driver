@@ -115,7 +115,7 @@ import { EncryptedValue, isEnc } from './encryption/encrypted-value'
 import { BoltProvider } from './internal/bolt-provider'
 import { localKeyEncapsulationService, LocalKeyEncapsulationService } from './encryption/local-key-encapsulation'
 import type { EncapsulatedKeyRecordRepository } from './encryption/encapsulated-key'
-import { EnvelopeEncryptionProfile, EncryptionProfile } from './encryption/encyption-profile'
+import { EnvelopeEncryptionProfile, EncryptionProfile } from './encryption/encryption-profile'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.

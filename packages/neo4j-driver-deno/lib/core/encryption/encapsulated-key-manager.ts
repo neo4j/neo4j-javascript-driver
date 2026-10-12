@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { EncryptionProfile } from './encyption-profile.ts'
+import { EncryptionProfile } from './encryption-profile.ts'
 import { EncapsulatedKey } from './encapsulated-key.ts'
 import { KeyEncapsulationService } from './key-encapsulation-service.ts'
 import { newError } from '../error.ts'
