@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { EncryptionProfile } from './encryption/encyption-profile'
+import { EncryptionProfile } from './encryption/encryption-profile'
 import ClientCertificate, { ClientCertificateProvider } from './client-certificate'
 import { Rules } from './mapping.highlevel'
 import NotificationFilter from './notification-filter'

@@ -228,7 +228,7 @@ describe('#integration encryption tests', () => {
       'with float as AAD',
       [1, 2, 3],
       1,
-      'Unsupported AAD propety type FLOAT, supported values are'
+      'Unsupported AAD property type FLOAT, supported values are'
     ]
   ])('should fail to encrypt (%s)', async (_, value, aad, expectedMessage) => {
     await expect(driver.encryption.encrypt({ value, keyOptions: { alias: 'key1' }, aad })).rejects.toThrow(expectedMessage)

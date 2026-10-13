@@ -50,7 +50,7 @@ import HomeDatabaseCache from './internal/homedb-cache.ts'
 import { cacheKey } from './internal/auth-util.ts'
 import { ProtocolVersion } from './protocol-version.ts'
 import { Rules } from './mapping.highlevel.ts'
-import { EncryptionProfile } from './encryption/encyption-profile.ts'
+import { EncryptionProfile } from './encryption/encryption-profile.ts'
 import EncryptionService from './encryption/encryption.ts'
 import { BoltProvider } from './internal/bolt-provider.ts'
 
