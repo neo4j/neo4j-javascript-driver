@@ -98,6 +98,6 @@ describe('#unit EncryptionService', () => {
     expect(persistedAAD).toEqual('hello')
     const explicitAAD = await enc.decrypt({ ciphertext: encValue, aad: input })
     expect(explicitAAD).toEqual('hello')
-    expect(async () => await enc.decrypt({ ciphertext: encValue })).rejects.toThrow('Propety decryption failed due to internal error, see cause.')
+    expect(async () => await enc.decrypt({ ciphertext: encValue })).rejects.toThrow('Property decryption failed due to internal error, see cause.')
   })
 })

@@ -26,7 +26,7 @@ import { isVector } from '../vector.ts'
 import { isPoint } from '../spatial-types.ts'
 import { isUUID } from '../uuid.ts'
 import type UUID from '../uuid.ts'
-import { EncryptionProfile } from './encyption-profile.ts'
+import { EncryptionProfile } from './encryption-profile.ts'
 import { newError } from '../error.ts'
 import { EncapsulatedKeyRecord } from './encapsulated-key.ts'
 import { stringify } from '../json.ts'
@@ -81,7 +81,7 @@ export default class EncryptionService {
     if (encryptRequest.aad !== undefined) {
       aadType = this._identifyType(encryptRequest.aad)
       if (!supportedAADTypes.includes(aadType.typeName)) {
-        throw newError(`Unsupported AAD propety type ${aadType.typeName}, supported values are ${supportedAADTypes.toString()}`)
+        throw newError(`Unsupported AAD property type ${aadType.typeName}, supported values are ${supportedAADTypes.toString()}`)
       }
       encodedAAD = this._boltProvider.encodeValue(encryptRequest.aad)
     }
@@ -98,7 +98,7 @@ export default class EncryptionService {
       }
       return this._boltProvider.encodeObject(new EncryptedValue(new Int8Array(cyphertext), profile.profile.name, profile.profile.type, profile.profile.version, typeName, typeProtocolMajor, typeProtocolMinor, metadata))
     } catch (e) {
-      throw newError('Propety encryption failed due to internal error, see cause.', '50N42', e as Error)
+      throw newError('Property encryption failed due to internal error, see cause.', '50N42', e as Error)
     }
   }
 
@@ -141,7 +141,7 @@ export default class EncryptionService {
           return new UnsupportedType(`Encrypted<${type.typeName}>`, struct.typeProtocolMajor.toNumber(), struct.typeProtocolMinor.toNumber(), 'Encrypted value was encoded with a driver too old for this driver to read it.')
         }
       } catch (e) {
-        throw newError('Propety decryption failed due to internal error, see cause.', '50N42', e as Error)
+        throw newError('Property decryption failed due to internal error, see cause.', '50N42', e as Error)
       }
     } else {
       throw newError(`Unsupported encryption profile version ${struct.profileVersion.toString()} of profile type ${struct.profileType}.`)

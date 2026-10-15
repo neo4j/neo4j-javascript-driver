@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { EncryptionProfile } from './encryption/encyption-profile.ts'
+import { EncryptionProfile } from './encryption/encryption-profile.ts'
 import ClientCertificate, { ClientCertificateProvider } from './client-certificate.ts'
 import { Rules } from './mapping.highlevel.ts'
 import NotificationFilter from './notification-filter.ts'
