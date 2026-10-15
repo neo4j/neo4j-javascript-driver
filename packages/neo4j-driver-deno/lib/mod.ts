@@ -130,7 +130,17 @@ import {
   localKeyEncapsulationService,
   EncapsulatedKeyRecordRepository,
   EnvelopeEncryptionProfile,
-  EncryptionProfile
+  EncryptionProfile,
+  EncryptionService,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  QueryProfile,
+  SecretKey,
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  ResultTransformers
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from './bolt-connection/index.js'
@@ -617,6 +627,16 @@ export type {
   MappedQueryResult,
   ProtocolVersion,
   EncapsulatedKeyRecordRepository,
-  EncryptionProfile
+  EncryptionService,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  QueryProfile,
+  SecretKey,
+  EncryptionProfile,
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  ResultTransformers
 }
 export default forExport
