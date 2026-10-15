@@ -40,8 +40,17 @@ export default class RxSession {
    * @param {Session} param.session - The underlying session instance to relay requests
    */
   constructor ({ session, config, log } = {}) {
+    /**
+     * @private
+     */
     this._session = session
+    /**
+     * @private
+     */
     this._retryLogic = _createRetryLogic(config)
+    /**
+     * @private
+     */
     this._log = log
   }
 
@@ -82,7 +91,7 @@ export default class RxSession {
   }
 
   /**
-   * Executes the provided unit of work in a {@link READ} reactive transaction which is created with the provided
+   * Executes the provided unit of work in a {@link ACCESS_MODE_READ} reactive transaction which is created with the provided
    * transaction configuration.
    * @public
    * @param {function(txc: RxManagedTransaction): Observable} work - A unit of work to be executed.
@@ -94,7 +103,7 @@ export default class RxSession {
   }
 
   /**
-   * Executes the provided unit of work in a {@link WRITE} reactive transaction which is created with the provided
+   * Executes the provided unit of work in a {@link ACCESS_MODE_WRITE} reactive transaction which is created with the provided
    * transaction configuration.
    * @public
    * @param {function(txc: RxManagedTransaction): Observable} work - A unit of work to be executed.

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import neo4j from '../../src'
+import neo4j from '../../lib/src'
 import Neo4jContainer from './neo4j-container'
 
 const env = process.env

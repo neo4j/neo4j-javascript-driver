@@ -120,6 +120,7 @@ result1
     concatWith(close1),
     catchError(err => close1.pipe(concatWith(throwError(() => err))))
   )
+  // @ts-expect-error
   .subscribe(summaryObserver)
 
 const result2: RxResult = rxSession.run('RETURN $value', { value: '42' })
@@ -131,6 +132,7 @@ result2
     concatWith(close1),
     catchError(err => close1.pipe(concatWith(throwError(() => err))))
   )
+  // @ts-expect-error
   .subscribe(summaryObserver)
 
 const result3: RxResult = rxSession.run(
@@ -146,6 +148,7 @@ result3
     concatWith(close1),
     catchError(err => close1.pipe(concatWith(throwError(() => err))))
   )
+  // @ts-expect-error
   .subscribe(summaryObserver)
 
 const tx2: Observable<RxTransaction> = rxSession.beginTransaction(txConfig2)

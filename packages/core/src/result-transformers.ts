@@ -37,7 +37,7 @@ type ResultTransformer<T> = (result: Result) => Promise<T>
 /**
  * Defines the object which holds the common {@link ResultTransformer} used with {@link Driver#executeQuery}.
  */
-class ResultTransformers {
+export class ResultTransformers {
   /**
    * Creates a {@link ResultTransformer} which transforms {@link Result} to {@link EagerResult}
    * by consuming the whole stream.

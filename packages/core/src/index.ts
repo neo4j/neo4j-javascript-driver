@@ -97,10 +97,10 @@ import auth from './auth'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager'
 import AuthTokenManager, { authTokenManagers, AuthTokenManagers, staticAuthTokenManager, AuthTokenAndExpiration } from './auth-token-manager'
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver'
-import { Config } from './types'
+import { AuthToken, Config, TrustStrategy } from './types'
 import * as types from './types'
 import * as json from './json'
-import resultTransformers, { ResultTransformer } from './result-transformers'
+import resultTransformers, { ResultTransformer, ResultTransformers } from './result-transformers'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate'
 import * as internal from './internal' // todo: removed afterwards
 import { ProtocolVersion } from './protocol-version'
@@ -114,8 +114,11 @@ import UUID, { uuid, isUUID } from './uuid'
 import { EncryptedValue, isEnc } from './encryption/encrypted-value'
 import { BoltProvider } from './internal/bolt-provider'
 import { localKeyEncapsulationService, LocalKeyEncapsulationService } from './encryption/local-key-encapsulation'
-import type { EncapsulatedKeyRecordRepository } from './encryption/encapsulated-key'
+import type { EncapsulatedKey, EncapsulatedKeyRecord, EncapsulatedKeyRecordRepository } from './encryption/encapsulated-key'
 import { EnvelopeEncryptionProfile, EncryptionProfile } from './encryption/encyption-profile'
+import EncryptionService from './encryption/encryption'
+import { KeyEncapsulationService, SecretKey } from './encryption/key-encapsulation-service'
+import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -318,7 +321,9 @@ export {
   BoltProvider,
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncapsulatedKeyRecord,
+  EncryptionService
 }
 
 export type {
@@ -355,7 +360,15 @@ export type {
   Rule,
   Rules,
   EncapsulatedKeyRecordRepository,
-  EncryptionProfile
+  EncryptionProfile,
+  AuthToken,
+  TrustStrategy,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  SecretKey,
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  ResultTransformers
 }
 
 export default forExport

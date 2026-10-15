@@ -38,10 +38,11 @@ const browserOutput = 'lib/browser'
 
 gulp.task('nodejs', function () {
   return gulp
-    .src('src/**/*.js')
+    .src('src/**/*.*')
     .pipe(ts({
       target: 'ES5',
-      lib: ['ES6'],
+      lib: ['es6', 'ES2017.Object', 'dom', 'es2020.bigint', 'esnext.asynciterable', 'esnext.disposable'],
+      types: ['node'],
       noImplicitAny: true,
       noImplicitReturns: true,
       strictNullChecks: true,
@@ -81,7 +82,7 @@ gulp.task('minify-esm-bundle', minifyBrowserBundleTask({
 gulp.task('browser::esm', gulp.series('generate-esm-bundle', 'minify-esm-bundle'))
 
 /** Build all-in-one files for use in the browser */
-gulp.task('browser', gulp.series('nodejs', gulp.parallel('browser::umd', 'browser::esm')))
+gulp.task('all', gulp.series('nodejs', gulp.parallel('browser::umd', 'browser::esm')))
 
 gulp.task('test-nodejs', () => {
   return runJestTests()
@@ -169,8 +170,6 @@ gulp.task('run-ts-declaration-tests', function (done) {
     .on('error', err => done(err))
     .on('end', () => done())
 })
-
-gulp.task('all', gulp.series('nodejs', 'browser'))
 
 gulp.task(
   'test',

@@ -99,7 +99,30 @@ import {
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
   EncapsulatedKeyRecordRepository,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  Config,
+  AuthTokenManager,
+  ClientCertificateProviders,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncryptionService,
+  AuthToken,
+  TrustStrategy,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  NotificationFilter,
+  ResultTransformer,
+  QueryProfile,
+  BookmarkManager,
+  SecretKey,
+  AuthTokenManagers,
+  EncryptionProfile,
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  ResultTransformers,
+  RotatingClientCertificateProvider,
+  ClientCertificateProvider,
+  ConnectionProvider
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -121,7 +144,7 @@ const {
 
 const USER_AGENT = 'neo4j-javascript/' + VERSION
 
-function isAuthTokenManager (value) {
+function isAuthTokenManager (value: any): value is AuthTokenManager {
   return typeof value === 'object' &&
     value != null &&
     'getToken' in value &&
@@ -130,7 +153,7 @@ function isAuthTokenManager (value) {
     typeof value.handleSecurityException === 'function'
 }
 
-function createAuthManager (authTokenOrManager) {
+function createAuthManager (authTokenOrManager: AuthToken | AuthTokenManager): AuthTokenManager {
   if (isAuthTokenManager(authTokenOrManager)) {
     return authTokenOrManager
   }
@@ -158,18 +181,19 @@ function createAuthManager (authTokenOrManager) {
  * @param {Config} config Configuration object.
  * @returns {Driver}
  */
-function driver (url, authToken, config = {}) {
+function driver (url: string, authToken: AuthToken, config: Config = {}): Driver {
   assertString(url, 'Bolt URL')
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
 
   const boltMap = new Map()
   boltMap.set('1', { version: new ProtocolVersion(1, 0), bolt: new BoltProtocol(undefined, undefined, { disableLosslessIntegers: config.disableLosslessIntegers, useBigInt: config.useBigInt }) })
+  // @ts-expect-error
   const boltProvider = new BoltProvider(boltMap, '1', channel.alloc)
 
   // Determine encryption/trust options from the URL.
   let routing = false
   let encrypted = false
-  let trust
+  let trust: TrustStrategy | undefined
   switch (parsedUrl.scheme) {
     case 'bolt':
       break
@@ -195,7 +219,7 @@ function driver (url, authToken, config = {}) {
       routing = true
       break
     default:
-      throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
+      throw new Error(`Unknown scheme: ${parsedUrl.scheme ?? ''}`)
   }
 
   // Encryption enabled on URL, propagate trust to the config.
@@ -214,7 +238,8 @@ function driver (url, authToken, config = {}) {
   const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
-  config.userAgent = config.userAgent || USER_AGENT
+  config.userAgent = config.userAgent ?? USER_AGENT
+  // @ts-expect-error
   config.boltAgent = internal.boltAgent.fromVersion(VERSION)
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
@@ -231,9 +256,9 @@ function driver (url, authToken, config = {}) {
     boltProvider
   )
 
-  function createConnectionProviderFunction () {
+  function createConnectionProviderFunction (): (id: any, config: any, log: any, hostNameResolver: any) => ConnectionProvider {
     if (routing) {
-      return (id, config, log, hostNameResolver) =>
+      return (id: any, config: any, log: any, hostNameResolver: any) =>
         new RoutingConnectionProvider({
           id,
           config,
@@ -252,7 +277,7 @@ function driver (url, authToken, config = {}) {
         )
       }
 
-      return (id, config, log) =>
+      return (id: any, config: any, log: any) =>
         new DirectConnectionProvider({
           id,
           config,
@@ -276,7 +301,7 @@ function driver (url, authToken, config = {}) {
  * @returns {true} When the server is reachable
  * @throws {Error} When the server is not reachable or the url is invalid
  */
-async function hasReachableServer (url, config) {
+async function hasReachableServer (url: string, config: Config): Promise<boolean> {
   const nonLoggedDriver = driver(url, { scheme: 'none', principal: '', credentials: '' }, config)
   try {
     await nonLoggedDriver.getNegotiatedProtocolVersion()
@@ -288,15 +313,15 @@ async function hasReachableServer (url, config) {
 
 /**
  * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
- * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to `console.log` with
+ * @property {function(level: ?string, unredactDebugLogs: ?boolean): object} console the function to create a logging config that prints all messages to `console.log` with
  * timestamp, level and message. It takes optional `level` parameter which represents the maximum log level to be logged with default value is 'info'
  * and another `unredactDebugLogs` which changes the output to debug logs to unredact query parameters and record fields.
  */
 const logging = {
-  console: (level, unredactDebugLogs) => {
+  console: (level: string, unredactDebugLogs: boolean) => {
     return {
       level,
-      logger: (level, message) =>
+      logger: (level: string, message: string) =>
         console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`),
       unredactDebugLogs
     }
@@ -325,11 +350,9 @@ const types = {
   Time,
   Integer,
   Vector,
-  Rule,
-  Rules,
   ProtocolVersion,
-  EncapsulatedKeyRecordRepository,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncryptionService
 }
 
 /**
@@ -465,7 +488,6 @@ const forExport = {
   isUUID,
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
-  EncapsulatedKeyRecordRepository,
   EnvelopeEncryptionProfile
 }
 
@@ -557,6 +579,26 @@ export {
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
   EncapsulatedKeyRecordRepository,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncryptionService,
+  AuthTokenManager,
+  ClientCertificateProvider,
+  ClientCertificateProviders,
+  RotatingClientCertificateProvider,
+  AuthToken,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  NotificationFilter,
+  ResultTransformer,
+  QueryProfile,
+  BookmarkManager,
+  SecretKey,
+  AuthTokenManagers,
+  EncryptionProfile,
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  ResultTransformers
 }
 export default forExport

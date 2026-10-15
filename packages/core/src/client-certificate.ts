@@ -139,7 +139,7 @@ class ClientCertificateProviders {
   /**
    *
    * @param {object} param0 - The params
-   * @param {ClientCertificate} param0.initialCertificate - The certificated used by the driver until {@link RotatingClientCertificateProvider#updateCertificate} get called.
+   * @param {ClientCertificate} param0.initialCertificate - The certificated used by the driver until {@link RotatingClientCertificateProvider.updateCertificate} get called.
    *
    * @returns {RotatingClientCertificateProvider} The rotating client certificate provider
    * @throws {TypeError} If initialCertificate is not a ClientCertificate.

@@ -28,7 +28,7 @@
  */
 type KeyEncapsulationOptions = Record<string, string>
 
-type SecretKey = Uint8Array
+export type SecretKey = Uint8Array
 
 /**
  * The result of a key encapsulation operation.
