@@ -47,7 +47,7 @@
     "set_version::deno": "pnpm -C packages/neo4j-driver-deno run set_version ",
     "build::deno": "pnpm -C packages/neo4j-driver-deno run build ",
     "build::notci": "pnpm install",
-    "docs": "pnpm -r run docs --concurrency 1",
+    "docs": "pnpm -r run docs",
     "test::unit": "pnpm -r run test::unit",
     "test::deno": "pnpm -r run test::deno",
     "test::integration": "pnpm -r run test::integration",

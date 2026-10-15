@@ -130,7 +130,17 @@ import {
   localKeyEncapsulationService,
   EncapsulatedKeyRecordRepository,
   EnvelopeEncryptionProfile,
-  EncryptionProfile
+  EncryptionProfile,
+  EncryptionService,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  QueryProfile,
+  SecretKey,
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  ResultTransformers
 } from 'neo4j-driver-core'
 import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from 'neo4j-driver-bolt-connection'
 
@@ -616,6 +626,16 @@ export type {
   MappedQueryResult,
   ProtocolVersion,
   EncapsulatedKeyRecordRepository,
-  EncryptionProfile
+  EncryptionService,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  QueryProfile,
+  SecretKey,
+  EncryptionProfile,
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  ResultTransformers
 }
 export default forExport

@@ -1,0 +1,16 @@
+{
+    "externalSymbolLinkMappings": {
+        "global": {
+            "Promise": "#"
+        },
+        "typescript": {
+            "Promise": "#",
+            "String": "#",
+            "Number": "#",
+            "BigInt": "#"
+        },
+        "rxjs": {
+            "Observable": "https://rxjs.dev/guide/observable"
+        }
+    }
+}

@@ -29,7 +29,7 @@ import UUID, { isUUID, uuid } from './uuid'
 /**
  * An object containing rule factories for use with the Object Mapping feature.
  * Each factory produces an instance of the {@link Rule} type that validates and handles the type
- * All factories except {@link rule.asObject} can take an optional instance of a {@link Rule} to override those fields of the produced rule.
+ * All factories except asObject can take an optional instance of a {@link Rule} to override those fields of the produced rule.
  * The fields of Rule are:
  * - optional: marks a field as optional, and the driver will not throw if it is missing during mapping
  * - from: The string used to identify this value in the database. For when parameters or returned fields do not match the name of your domain objects fields.

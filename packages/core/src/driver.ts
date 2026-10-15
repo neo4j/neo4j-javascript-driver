@@ -892,6 +892,9 @@ class Driver {
     )
   }
 
+  /**
+   * @private
+   */
   _homeDatabaseCallback (cacheKey: string, database: any): void {
     this.homeDatabaseCache.set(cacheKey, database)
   }

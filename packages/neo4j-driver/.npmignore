@@ -8,7 +8,7 @@ testkit-backend/
 build/
 test/
 .gitignore
-esdoc.json
+typedoc.json
 gulpfile.babel.js
 runTests.sh
 runTests.ps1

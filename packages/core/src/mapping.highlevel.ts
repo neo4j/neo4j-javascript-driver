@@ -119,7 +119,7 @@ function getCaseTranslator (
  *
  * @property {function(databaseConvention: string, codeConvention: string)} getCaseTranslator Creates a translation function from record key names to object property names, for use with the {@link RecordObjectMapping.translateIdentifiers} function
  *
- * @property {function(constructor: GenericConstructor, rules: Rules)} register Registers a set of {@link Rules} to be used by {@link hydrated} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
+ * @property {function(constructor: GenericConstructor, rules: Rules)} register Registers a set of {@link Rules} to be used by {@link ResultTransformers.hydrated} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
  *
  * @property {function(translationFunction: any)} translateIdentifiers Sets a default name translation from record keys to object properties. Provide a function that maps FROM your object properties names TO record key names.
  */
@@ -139,7 +139,7 @@ export const RecordObjectMapping = Object.freeze({
  */
   getCaseTranslator,
   /**
- * Registers a set of {@link Rules} to be used by {@link hydrated} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
+ * Registers a set of {@link Rules} to be used by {@link ResultTransformers.hydrated} for the provided class when no other rules are specified. This registry exists in global memory, not the driver instance.
  *
  * @example
  * // The following code:

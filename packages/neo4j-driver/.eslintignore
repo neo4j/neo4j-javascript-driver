@@ -1,4 +1,6 @@
 build
 docs
 lib
+test
+test/types
 node_modules

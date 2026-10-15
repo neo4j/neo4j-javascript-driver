@@ -82,7 +82,7 @@ interface GenericResultObserver<R> {
   onKeys?: (keys: string[]) => void
 
   /**
-   * Receive the each record present on the {@link @Result}
+   * Receive the each record present on the {@link Result}
    * @param {Record} record The {@link Record} produced
    */
   onNext?: (record: R) => void
@@ -743,7 +743,7 @@ class GenericResult<R, T extends GenericQueryResult<R>> implements Promise<T> {
 /**
  * A stream of {@link Record} representing the result of a query.
  * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
- * summary, or rejected with error that contains {@link string} code and {@link string} message.
+ * summary, or rejected with error that contains {@link String} code and {@link String} message.
  * Alternatively can be consumed lazily using {@link Result#subscribe} function.
  * @access public
  */
@@ -754,7 +754,7 @@ class Result<R extends RecordShape = RecordShape> extends GenericResult<Record<R
 /**
  * A stream of mapped Objects representing the result of a query as mapped with a Record Object Mapping function.
  * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
- * summary, or rejected with error that contains {@link string} code and {@link string} message.
+ * summary, or rejected with error that contains {@link String} code and {@link String} message.
  * Alternatively can be consumed lazily using {@link MappedResult#subscribe} function.
  * @access public
  */
