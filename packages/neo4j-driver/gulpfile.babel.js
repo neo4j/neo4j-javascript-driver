@@ -28,7 +28,6 @@ const rollupCommonJs = require('@rollup/plugin-commonjs')
 const rollupNodeResolve = require('@rollup/plugin-node-resolve').default
 const rollupPolyfillNode = require('rollup-plugin-polyfill-node')
 const semver = require('semver')
-const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const stream = require('stream')
 const ts = require('gulp-typescript')
 const log = require('fancy-log')
@@ -97,11 +96,13 @@ gulp.task('test-nodejs-stub', () => {
 })
 
 gulp.task('test-nodejs-integration', async () => {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   await sharedNeo4j.start()
   return runJestTests('#integration*', false)
 })
 
 gulp.task('test-browser', async () => {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   await sharedNeo4j.start()
   return runJestTests('#integration*', true)
 })
@@ -136,16 +137,19 @@ gulp.task('set', function () {
 })
 
 gulp.task('start-neo4j', function (done) {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   // .catch(done) passes the error to the callback, which is why we cannot just use .finally()
   sharedNeo4j.start().then(done).catch(done)
 })
 
 gulp.task('stop-neo4j', function (done) {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   // .catch(done) passes the error to the callback, which is why we cannot just use .finally()
   sharedNeo4j.stop().then(done).catch(done)
 })
 
 gulp.task('run-stress-tests', async function () {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   await sharedNeo4j.start()
   const stresstest = require('./test/stress-test')
   return stresstest()
