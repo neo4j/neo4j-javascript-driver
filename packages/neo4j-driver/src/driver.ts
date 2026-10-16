@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Driver as CoreDriver, driver, internal } from 'neo4j-driver-core'
+import { Driver as CoreDriver, driver, internal, SessionConfig } from 'neo4j-driver-core'
 import RxSession from './session-rx'
 
 const {
@@ -31,8 +31,6 @@ const { READ, WRITE } = driver
  *
  * Drivers are reasonably expensive to create - you should strive to keep one
  * driver instance around per Neo4j Instance you connect to.
- *
- * @access public
  */
 class Driver extends CoreDriver {
   /**
@@ -60,7 +58,8 @@ class Driver extends CoreDriver {
     notificationFilter,
     auth,
     disableAutoCommitRetries
-  } = {}) {
+  }: SessionConfig = {}): RxSession {
+    // @ts-expect-error
     return new RxSession({
       session: this._newSession({
         defaultAccessMode,
@@ -69,13 +68,17 @@ class Driver extends CoreDriver {
         impersonatedUser,
         auth,
         reactive: false,
+        // @ts-expect-error
         fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize),
         bookmarkManager,
         notificationFilter,
+        // @ts-expect-error
         log: this._log,
         disableAutoCommitRetries
       }),
+      // @ts-expect-error
       config: this._config,
+      // @ts-expect-error
       log: this._log
     })
   }
@@ -84,7 +87,7 @@ class Driver extends CoreDriver {
 /**
  * @private
  */
-function validateFetchSizeValue (rawValue, defaultWhenAbsent) {
+function validateFetchSizeValue (rawValue: string, defaultWhenAbsent: number): number {
   const fetchSize = parseInt(rawValue, 10)
   if (fetchSize > 0 || fetchSize === FETCH_ALL) {
     return fetchSize

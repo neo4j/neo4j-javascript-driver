@@ -243,7 +243,10 @@ class Session {
     return result
   }
 
-  _run <T extends ResultStreamObserver = ResultStreamObserver>(
+  /**
+   * @private
+   */
+  _run<T extends ResultStreamObserver = ResultStreamObserver>(
     query: Query,
     parameters: any,
     customRunner: ConnectionConsumer<T>
@@ -338,6 +341,9 @@ class Session {
     return this._beginTransaction(this._mode, txConfig, { api: TELEMETRY_APIS.UNMANAGED_TRANSACTION })
   }
 
+  /**
+   * @private
+   */
   _beginTransaction (accessMode: SessionMode, txConfig: TxConfig, apiTelemetryConfig?: NonAutoCommitApiTelemetryConfig): TransactionPromise {
     if (!this._open) {
       throw newError('Cannot begin a transaction on a closed session.')
@@ -408,7 +414,7 @@ class Session {
   }
 
   /**
-   * Execute given unit of work in a {@link READ} transaction.
+   * Execute given unit of work in a {@link ACCESS_MODE_READ} transaction.
    *
    * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
@@ -434,7 +440,7 @@ class Session {
   }
 
   /**
-   * Execute given unit of work in a {@link WRITE} transaction.
+   * Execute given unit of work in a {@link ACCESS_MODE_WRITE} transaction.
    *
    * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
@@ -548,6 +554,9 @@ class Session {
     return this.close()
   }
 
+  /**
+   * @private
+   */
   _connectionHolderWithMode (mode: SessionMode): ConnectionHolder {
     if (mode === ACCESS_MODE_READ) {
       return this._readConnectionHolder

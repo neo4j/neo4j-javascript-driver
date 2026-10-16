@@ -28,7 +28,6 @@ const rollupCommonJs = require('@rollup/plugin-commonjs')
 const rollupNodeResolve = require('@rollup/plugin-node-resolve').default
 const rollupPolyfillNode = require('rollup-plugin-polyfill-node')
 const semver = require('semver')
-const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const stream = require('stream')
 const ts = require('gulp-typescript')
 const log = require('fancy-log')
@@ -38,10 +37,11 @@ const browserOutput = 'lib/browser'
 
 gulp.task('nodejs', function () {
   return gulp
-    .src('src/**/*.js')
+    .src('src/**/*.*')
     .pipe(ts({
       target: 'ES5',
-      lib: ['ES6'],
+      lib: ['es6', 'ES2017.Object', 'dom', 'es2020.bigint', 'esnext.asynciterable', 'esnext.disposable'],
+      types: ['node'],
       noImplicitAny: true,
       noImplicitReturns: true,
       strictNullChecks: true,
@@ -81,7 +81,7 @@ gulp.task('minify-esm-bundle', minifyBrowserBundleTask({
 gulp.task('browser::esm', gulp.series('generate-esm-bundle', 'minify-esm-bundle'))
 
 /** Build all-in-one files for use in the browser */
-gulp.task('browser', gulp.series('nodejs', gulp.parallel('browser::umd', 'browser::esm')))
+gulp.task('all', gulp.series('nodejs', gulp.parallel('browser::umd', 'browser::esm')))
 
 gulp.task('test-nodejs', () => {
   return runJestTests()
@@ -96,11 +96,13 @@ gulp.task('test-nodejs-stub', () => {
 })
 
 gulp.task('test-nodejs-integration', async () => {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   await sharedNeo4j.start()
   return runJestTests('#integration*', false)
 })
 
 gulp.task('test-browser', async () => {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   await sharedNeo4j.start()
   return runJestTests('#integration*', true)
 })
@@ -135,16 +137,19 @@ gulp.task('set', function () {
 })
 
 gulp.task('start-neo4j', function (done) {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   // .catch(done) passes the error to the callback, which is why we cannot just use .finally()
   sharedNeo4j.start().then(done).catch(done)
 })
 
 gulp.task('stop-neo4j', function (done) {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   // .catch(done) passes the error to the callback, which is why we cannot just use .finally()
   sharedNeo4j.stop().then(done).catch(done)
 })
 
 gulp.task('run-stress-tests', async function () {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   await sharedNeo4j.start()
   const stresstest = require('./test/stress-test')
   return stresstest()
@@ -169,8 +174,6 @@ gulp.task('run-ts-declaration-tests', function (done) {
     .on('error', err => done(err))
     .on('end', () => done())
 })
-
-gulp.task('all', gulp.series('nodejs', 'browser'))
 
 gulp.task(
   'test',

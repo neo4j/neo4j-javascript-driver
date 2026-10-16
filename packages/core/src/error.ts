@@ -81,7 +81,6 @@ class GQLError extends Error {
   classification: ErrorClassification
   rawClassification?: string
   cause?: Error
-  __proto__: GQLError
 
   /**
    * @constructor
@@ -95,9 +94,6 @@ class GQLError extends Error {
     // eslint-disable-next-line
     // @ts-ignore: not available in ES6 yet
     super(message, cause != null ? { cause } : undefined)
-    this.constructor = GQLError
-    // eslint-disable-next-line no-proto
-    this.__proto__ = GQLError.prototype
     /**
      * Optional, nested error which caused the error
      *
@@ -224,9 +220,6 @@ class Neo4jError extends GQLError {
    */
   constructor (message: string, code: Neo4jErrorCode, gqlStatus: string, gqlStatusDescription: string, diagnosticRecord?: DiagnosticRecord, cause?: Error) {
     super(message, gqlStatus, gqlStatusDescription, diagnosticRecord, cause)
-    this.constructor = Neo4jError
-    // eslint-disable-next-line no-proto
-    this.__proto__ = Neo4jError.prototype
     /**
      * The Neo4j Error code
      *

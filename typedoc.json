@@ -1,0 +1,7 @@
+{
+    "entryPointStrategy": "packages",
+    "entryPoints": ["packages/core", "packages/neo4j-driver"],
+    "packageOptions": {
+        "entryPoints": ["src/index.ts"]
+    }
+}
