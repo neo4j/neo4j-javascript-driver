@@ -261,10 +261,9 @@ export default class Context {
     delete this._clientCertificateProviderRequests[id]
   }
 
-  addEncapsulatedKeyRepository (encapsulatedKeyRepositoryFactory) {
-    this._id++
-    this._encapsulatedKeyRepositories[this._id] = encapsulatedKeyRepositoryFactory(this._id)
-    return this._id
+  addEncapsulatedKeyRepository (encapsulatedKeyRepositoryFactory, id) {
+    this._encapsulatedKeyRepositories[id] = encapsulatedKeyRepositoryFactory()
+    return id
   }
 
   getEncapsulatedKeyRepository (id) {

@@ -189,11 +189,11 @@ export function EncapsulatedKeyRepositoryFindByAliasRequest ({ id, repositoryId,
 }
 
 export function EncapsulatedKeyRepositoryCreateRequest ({ id, repositoryId, alias, encapsulation, metadata, context }) {
-  return response('EncapsulatedKeyRepositoryCreateRequest', { id, repositoryId, alias, encapsulation: context.binder.nativeToCypher(new Int8Array(encapsulation.buffer)), metadata })
+  return response('EncapsulatedKeyRepositoryCreateRequest', { id, repositoryId, alias, encapsulation: context.binder.toHexString(new Int8Array(encapsulation.buffer)), metadata })
 }
 
 export function EncapsulatedKeyRepositoryImportRequest ({ id, repositoryId, keyId, alias, encapsulation, metadata, context }) {
-  return response('EncapsulatedKeyRepositoryImportRequest', { id, repositoryId, keyId, alias, encapsulation: context.binder.nativeToCypher(new Int8Array(encapsulation.buffer)), metadata })
+  return response('EncapsulatedKeyRepositoryImportRequest', { id, repositoryId, keyId, alias, encapsulation: context.binder.toHexString(new Int8Array(encapsulation.buffer)), metadata })
 }
 
 export function EncapsulatedKeyRepositorySetAliasByIdRequest ({ id, repositoryId, keyId, alias }) {

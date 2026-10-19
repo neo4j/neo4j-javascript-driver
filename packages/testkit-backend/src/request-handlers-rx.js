@@ -43,7 +43,6 @@ export {
   EncryptToBytes,
   Decrypt,
   CreateEncapsulatedKey,
-  ImportEncapsulatedKey,
   SetEncapsulatedKeyAlias,
   DeleteEncapsulatedKey,
   EncapsulatedKeyRepositoryFindByIdCompleted,
