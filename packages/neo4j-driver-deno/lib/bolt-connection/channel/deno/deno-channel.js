@@ -249,7 +249,7 @@ const TrustStrategy = {
       hostname: config.address.resolvedHost(), 
       port: config.address.port(),
       caCerts
-    })
+    }).setNoDelay(true).setKeepAlive(true)
   },
   TRUST_SYSTEM_CA_SIGNED_CERTIFICATES: function (config) {
     assertNotClientCertificates(config)
@@ -257,7 +257,7 @@ const TrustStrategy = {
     return Deno.connectTls({ 
       hostname: config.address.resolvedHost(), 
       port: config.address.port()
-    })
+    }).setNoDelay(true).setKeepAlive(true)
   },
   TRUST_ALL_CERTIFICATES: function (config) {
     throw newError(
