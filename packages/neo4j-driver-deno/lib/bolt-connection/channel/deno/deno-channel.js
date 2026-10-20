@@ -282,15 +282,21 @@ async function _connect (config) {
       hostname: config.address.resolvedHost(), 
       port: config.address.port() 
     })
-    socket.setNoDelay(true)
-    socket.setKeepAlive(true)
-    return socket
+    return socket.then(socket => {
+      socket.setNoDelay(true)
+      socket.setKeepAlive(true)
+      return socket
+    })
   }
   const trustStrategyName = getTrustStrategyName(config)
   const trustStrategy = TrustStrategy[trustStrategyName]
 
   if (trustStrategy != null) {
-    return await trustStrategy(config)
+    return await trustStrategy(config).then(socket => {
+      socket.setNoDelay(true)
+      socket.setKeepAlive(true)
+      return socket
+    })
   }
   
   throw newError(
