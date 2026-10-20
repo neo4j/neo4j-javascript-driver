@@ -27,6 +27,7 @@ export default class Context {
     this._encapsulatedKeyRepositoryCreateRequests = {}
     this._encapsulatedKeyRepositorySetAliasByIdRequests = {}
     this._encapsulatedKeyRepositoryDeleteRequests = {}
+    this._driverIdToRepoIds = {}
   }
 
   get binder () {
@@ -271,6 +272,17 @@ export default class Context {
 
   removeEncapsulatedKeyRepository (id) {
     delete this._encapsulatedKeyRepositories[id]
+  }
+
+  addDriverIdToKeyRepositoryIds (driverId, repoIds) {
+    this._driverIdToRepoIds[driverId] = repoIds
+  }
+
+  removeEncapsulatedKeyRepositoryForDriver (driverId) {
+    this._driverIdToRepoIds[driverId].forEach(element => {
+      this.removeEncapsulatedKeyRepository(element)
+    })
+    delete this._driverIdToRepoIds[driverId]
   }
 
   addEncapsulatedKeyRepositoryFindByIdRequest (resolve, reject) {

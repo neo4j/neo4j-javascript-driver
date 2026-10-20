@@ -45,11 +45,13 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     useBigInt: true,
     logging: neo4j.logging.console(context.logLevel || context.environmentLogLevel)
   }
+  const keyRepoIds = []
   if ('propertyEncryptionProfiles' in data) {
     let profiles = []
     data.propertyEncryptionProfiles.forEach(profile => {
       const keyRepoId = profile.repositoryId
       NewKeyRepository(context, wire, keyRepoId)
+      keyRepoIds.push(keyRepoId)
       profiles = profiles.concat([
         new neo4j.EnvelopeEncryptionProfile({
           name: profile.name,
@@ -132,11 +134,13 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     return
   }
   const id = context.addDriver(driver)
+  context.addDriverIdToKeyRepositoryIds(id, keyRepoIds)
   wire.writeResponse(responses.Driver({ id }))
 }
 
 export function DriverClose (_, context, data, wire) {
   const { driverId } = data
+  context.removeEncapsulatedKeyRepositoryForDriver(driverId)
   const driver = context.getDriver(driverId)
   return driver
     .close()
