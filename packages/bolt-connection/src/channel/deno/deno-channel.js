@@ -278,10 +278,13 @@ async function assertNotClientCertificates (config) {
 
 async function _connect (config) {
   if (!isEncrypted(config)) {
-    return Deno.connect({ 
+    let socket = Deno.connect({ 
       hostname: config.address.resolvedHost(), 
       port: config.address.port() 
-    }).setNoDelay(true).setKeepAlive(true)
+    })
+    socket.setNoDelay(true)
+    socket.setKeepAlive(true)
+    return socket
   }
   const trustStrategyName = getTrustStrategyName(config)
   const trustStrategy = TrustStrategy[trustStrategyName]
