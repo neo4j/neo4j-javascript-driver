@@ -292,11 +292,7 @@ async function _connect (config) {
   const trustStrategy = TrustStrategy[trustStrategyName]
 
   if (trustStrategy != null) {
-    return await trustStrategy(config).then(socket => {
-      socket.setNoDelay(true)
-      socket.setKeepAlive(true)
-      return socket
-    })
+    return await trustStrategy(config)
   }
   
   throw newError(
