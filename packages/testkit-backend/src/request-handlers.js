@@ -45,13 +45,13 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     useBigInt: true,
     logging: neo4j.logging.console(context.logLevel || context.environmentLogLevel)
   }
-  let keyRepositories
+  const keyRepoIds = []
   if ('propertyEncryptionProfiles' in data) {
     let profiles = []
-    keyRepositories = []
     data.propertyEncryptionProfiles.forEach(profile => {
-      const keyRepoId = NewKeyRepository(context, wire)
-      keyRepositories.push(keyRepoId)
+      const keyRepoId = profile.repositoryId
+      NewKeyRepository(context, wire, keyRepoId)
+      keyRepoIds.push(keyRepoId)
       profiles = profiles.concat([
         new neo4j.EnvelopeEncryptionProfile({
           name: profile.name,
@@ -134,11 +134,13 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     return
   }
   const id = context.addDriver(driver)
-  wire.writeResponse(responses.Driver({ id, keyRepositories }))
+  context.addDriverIdToKeyRepositoryIds(id, keyRepoIds)
+  wire.writeResponse(responses.Driver({ id }))
 }
 
 export function DriverClose (_, context, data, wire) {
   const { driverId } = data
+  context.removeEncapsulatedKeyRepositoryForDriver(driverId)
   const driver = context.getDriver(driverId)
   return driver
     .close()
@@ -877,14 +879,6 @@ export function CreateEncapsulatedKey ({ neo4j }, context, { driverId, alias, pr
   }
 }
 
-export function ImportEncapsulatedKey ({ neo4j }, context, { driverId, id, alias, profileName, encapsulation, metadata }, wire) {
-  const driver = context.getDriver(driverId)
-  driver.encryption.keyManager(profileName)._profile.keyRepository.import(id, alias, context.binder.toByteArray(encapsulation), metadata).then(key => {
-    wire.writeResponse(responses.EncapsulatedKey({ id: key.id(), alias: key.alias() }))
-  })
-    .catch(e => wire.writeError(e))
-}
-
 export function SetEncapsulatedKeyAlias ({ neo4j }, context, { driverId, id, alias, profileName }, wire) {
   const driver = context.getDriver(driverId)
   driver.encryption.keyManager(profileName)._profile.keyRepository.setAliasById(id, alias).then(key => {
@@ -907,7 +901,7 @@ export function EncapsulatedKeyRepositoryFindByIdCompleted (_, context, { reques
     request.resolve({
       id: () => record.id,
       alias: () => record.alias,
-      encapsulation: () => context.binder.cypherToNative(record.encapsulation),
+      encapsulation: () => context.binder.toByteArray(record.encapsulation),
       metadata: () => record.metadata
     })
   } else {
@@ -922,7 +916,7 @@ export function EncapsulatedKeyRepositoryFindByAliasCompleted (_, context, { req
     request.resolve({
       id: () => record.id,
       alias: () => record.alias,
-      encapsulation: () => context.binder.cypherToNative(record.encapsulation),
+      encapsulation: () => context.binder.toByteArray(record.encapsulation),
       metadata: () => record.metadata
     })
   } else {
@@ -937,28 +931,13 @@ export function EncapsulatedKeyRepositoryCreateCompleted (_, context, { requestI
     request.resolve({
       id: () => record.id,
       alias: () => record.alias,
-      encapsulation: () => context.binder.cypherToNative(record.encapsulation),
+      encapsulation: () => context.binder.toByteArray(record.encapsulation),
       metadata: () => record.metadata
     })
   } else {
     request.resolve(undefined)
   }
   context.removeEncapsulatedKeyRepositoryCreateRequest(requestId)
-}
-
-export function EncapsulatedKeyRepositoryImportCompleted (_, context, { requestId, record }) {
-  const request = context.getEncapsulatedKeyRepositoryImportRequest(requestId)
-  if (record != null) {
-    request.resolve({
-      id: () => record.id,
-      alias: () => record.alias,
-      encapsulation: () => context.binder.cypherToNative(record.encapsulation),
-      metadata: () => record.metadata
-    })
-  } else {
-    request.resolve(undefined)
-  }
-  context.removeEncapsulatedKeyRepositoryImportRequest(requestId)
 }
 
 export function EncapsulatedKeyRepositorySetAliasByIdCompleted (_, context, { requestId }) {

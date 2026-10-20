@@ -25,9 +25,9 @@ export default class Context {
     this._encapsulatedKeyRepositoryFindByIdRequests = {}
     this._encapsulatedKeyRepositoryFindByAliasRequests = {}
     this._encapsulatedKeyRepositoryCreateRequests = {}
-    this._encapsulatedKeyRepositoryImportRequests = {}
     this._encapsulatedKeyRepositorySetAliasByIdRequests = {}
     this._encapsulatedKeyRepositoryDeleteRequests = {}
+    this._driverIdToRepoIds = {}
   }
 
   get binder () {
@@ -261,10 +261,9 @@ export default class Context {
     delete this._clientCertificateProviderRequests[id]
   }
 
-  addEncapsulatedKeyRepository (encapsulatedKeyRepositoryFactory) {
-    this._id++
-    this._encapsulatedKeyRepositories[this._id] = encapsulatedKeyRepositoryFactory(this._id)
-    return this._id
+  addEncapsulatedKeyRepository (encapsulatedKeyRepositoryFactory, id) {
+    this._encapsulatedKeyRepositories[id] = encapsulatedKeyRepositoryFactory()
+    return id
   }
 
   getEncapsulatedKeyRepository (id) {
@@ -273,6 +272,17 @@ export default class Context {
 
   removeEncapsulatedKeyRepository (id) {
     delete this._encapsulatedKeyRepositories[id]
+  }
+
+  addDriverIdToKeyRepositoryIds (driverId, repoIds) {
+    this._driverIdToRepoIds[driverId] = repoIds
+  }
+
+  removeEncapsulatedKeyRepositoryForDriver (driverId) {
+    this._driverIdToRepoIds[driverId].forEach(element => {
+      this.removeEncapsulatedKeyRepository(element)
+    })
+    delete this._driverIdToRepoIds[driverId]
   }
 
   addEncapsulatedKeyRepositoryFindByIdRequest (resolve, reject) {
@@ -311,18 +321,6 @@ export default class Context {
     delete this._encapsulatedKeyRepositoryCreateRequests[id]
   }
 
-  addEncapsulatedKeyRepositoryImportRequest (resolve, reject) {
-    return this._add(this._encapsulatedKeyRepositoryImportRequests, { resolve, reject })
-  }
-
-  getEncapsulatedKeyRepositoryImportRequest (id) {
-    return this._encapsulatedKeyRepositoryImportRequests[id]
-  }
-
-  removeEncapsulatedKeyRepositoryImportRequest (id) {
-    delete this._encapsulatedKeyRepositoryImportRequests[id]
-  }
-
   addEncapsulatedKeyRepositorySetAliasByIdRequest (resolve, reject) {
     return this._add(this._encapsulatedKeyRepositorySetAliasByIdRequests, { resolve, reject })
   }
@@ -348,10 +346,7 @@ export default class Context {
   }
 
   getKeyRepoRequest (id) {
-    let request = this.getEncapsulatedKeyRepositoryImportRequest(id)
-    if (request == null) {
-      request = this.getEncapsulatedKeyRepositoryCreateRequest(id)
-    }
+    let request = this.getEncapsulatedKeyRepositoryCreateRequest(id)
     if (request == null) {
       request = this.getEncapsulatedKeyRepositoryFindByAliasRequest(id)
     }
@@ -368,7 +363,6 @@ export default class Context {
   }
 
   removeKeyRepoRequest (id) {
-    this.removeEncapsulatedKeyRepositoryImportRequest(id)
     this.removeEncapsulatedKeyRepositoryCreateRequest(id)
     this.removeEncapsulatedKeyRepositoryFindByAliasRequest(id)
     this.removeEncapsulatedKeyRepositoryFindByIdRequest(id)
