@@ -192,10 +192,6 @@ export function EncapsulatedKeyRepositoryCreateRequest ({ id, repositoryId, alia
   return response('EncapsulatedKeyRepositoryCreateRequest', { id, repositoryId, alias, encapsulation: context.binder.toHexString(new Int8Array(encapsulation.buffer)), metadata })
 }
 
-export function EncapsulatedKeyRepositoryImportRequest ({ id, repositoryId, keyId, alias, encapsulation, metadata, context }) {
-  return response('EncapsulatedKeyRepositoryImportRequest', { id, repositoryId, keyId, alias, encapsulation: context.binder.toHexString(new Int8Array(encapsulation.buffer)), metadata })
-}
-
 export function EncapsulatedKeyRepositorySetAliasByIdRequest ({ id, repositoryId, keyId, alias }) {
   return response('EncapsulatedKeyRepositorySetAliasByIdRequest', { id, repositoryId, keyId, alias })
 }

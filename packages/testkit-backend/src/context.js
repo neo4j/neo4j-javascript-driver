@@ -25,7 +25,6 @@ export default class Context {
     this._encapsulatedKeyRepositoryFindByIdRequests = {}
     this._encapsulatedKeyRepositoryFindByAliasRequests = {}
     this._encapsulatedKeyRepositoryCreateRequests = {}
-    this._encapsulatedKeyRepositoryImportRequests = {}
     this._encapsulatedKeyRepositorySetAliasByIdRequests = {}
     this._encapsulatedKeyRepositoryDeleteRequests = {}
   }
@@ -310,18 +309,6 @@ export default class Context {
     delete this._encapsulatedKeyRepositoryCreateRequests[id]
   }
 
-  addEncapsulatedKeyRepositoryImportRequest (resolve, reject) {
-    return this._add(this._encapsulatedKeyRepositoryImportRequests, { resolve, reject })
-  }
-
-  getEncapsulatedKeyRepositoryImportRequest (id) {
-    return this._encapsulatedKeyRepositoryImportRequests[id]
-  }
-
-  removeEncapsulatedKeyRepositoryImportRequest (id) {
-    delete this._encapsulatedKeyRepositoryImportRequests[id]
-  }
-
   addEncapsulatedKeyRepositorySetAliasByIdRequest (resolve, reject) {
     return this._add(this._encapsulatedKeyRepositorySetAliasByIdRequests, { resolve, reject })
   }
@@ -347,10 +334,7 @@ export default class Context {
   }
 
   getKeyRepoRequest (id) {
-    let request = this.getEncapsulatedKeyRepositoryImportRequest(id)
-    if (request == null) {
-      request = this.getEncapsulatedKeyRepositoryCreateRequest(id)
-    }
+    let request = this.getEncapsulatedKeyRepositoryCreateRequest(id)
     if (request == null) {
       request = this.getEncapsulatedKeyRepositoryFindByAliasRequest(id)
     }
@@ -367,7 +351,6 @@ export default class Context {
   }
 
   removeKeyRepoRequest (id) {
-    this.removeEncapsulatedKeyRepositoryImportRequest(id)
     this.removeEncapsulatedKeyRepositoryCreateRequest(id)
     this.removeEncapsulatedKeyRepositoryFindByAliasRequest(id)
     this.removeEncapsulatedKeyRepositoryFindByIdRequest(id)

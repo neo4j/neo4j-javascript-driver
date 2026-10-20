@@ -936,21 +936,6 @@ export function EncapsulatedKeyRepositoryCreateCompleted (_, context, { requestI
   context.removeEncapsulatedKeyRepositoryCreateRequest(requestId)
 }
 
-export function EncapsulatedKeyRepositoryImportCompleted (_, context, { requestId, record }) {
-  const request = context.getEncapsulatedKeyRepositoryImportRequest(requestId)
-  if (record != null) {
-    request.resolve({
-      id: () => record.id,
-      alias: () => record.alias,
-      encapsulation: () => context.binder.toByteArray(record.encapsulation),
-      metadata: () => record.metadata
-    })
-  } else {
-    request.resolve(undefined)
-  }
-  context.removeEncapsulatedKeyRepositoryImportRequest(requestId)
-}
-
 export function EncapsulatedKeyRepositorySetAliasByIdCompleted (_, context, { requestId }) {
   const request = context.getEncapsulatedKeyRepositorySetAliasByIdRequest(requestId)
   request.resolve(undefined)

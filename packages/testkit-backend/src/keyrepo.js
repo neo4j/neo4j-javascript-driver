@@ -15,10 +15,6 @@ export function NewKeyRepository (context, wire, repositoryId) {
         const id = context.addEncapsulatedKeyRepositoryCreateRequest(resolve, reject)
         wire.writeResponse(responses.EncapsulatedKeyRepositoryCreateRequest({ id, repositoryId, alias, encapsulation, metadata, context }))
       }),
-      import: (keyId, alias, encapsulation, metadata) => new Promise((resolve, reject) => {
-        const id = context.addEncapsulatedKeyRepositoryImportRequest(resolve, reject)
-        wire.writeResponse(responses.EncapsulatedKeyRepositoryImportRequest({ id, repositoryId, keyId, alias, encapsulation, metadata, context }))
-      }),
       setAliasById: (keyId, alias) => new Promise((resolve, reject) => {
         const id = context.addEncapsulatedKeyRepositorySetAliasByIdRequest(resolve, reject)
         wire.writeResponse(responses.EncapsulatedKeyRepositorySetAliasByIdRequest({ id, repositoryId, keyId, alias }))

@@ -48,7 +48,6 @@ export {
   EncapsulatedKeyRepositoryFindByIdCompleted,
   EncapsulatedKeyRepositoryFindByAliasCompleted,
   EncapsulatedKeyRepositoryCreateCompleted,
-  EncapsulatedKeyRepositoryImportCompleted,
   EncapsulatedKeyRepositoryErrorCompleted
 } from './request-handlers.js'
 
