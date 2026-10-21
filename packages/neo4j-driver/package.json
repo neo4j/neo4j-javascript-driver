@@ -32,7 +32,7 @@
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "npx typedoc src/index.ts",
     "versionRelease": "gulp set --x $VERSION",
-    "browser": "gulp all && gulp test-browser",
+    "browser": "gulp browser && gulp test-browser",
     "prepare": "pnpm run build",
     "clean": "rm -fr node_modules lib build"
   },
