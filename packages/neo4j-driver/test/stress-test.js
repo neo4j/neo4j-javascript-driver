@@ -16,8 +16,8 @@
  */
 
 import { internal } from 'neo4j-driver-core'
-import neo4j from '../src'
-import { READ, WRITE } from '../src/driver'
+import neo4j from '../lib'
+import { READ, WRITE } from '../lib/driver'
 import parallelLimit from 'async/parallelLimit'
 import sharedNeo4j from './internal/shared-neo4j'
 
