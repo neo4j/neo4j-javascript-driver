@@ -775,6 +775,38 @@ describe.each([
       })
   }, 10000)
 
+  it.each(usersDataSet)('keeps connections to servers still used by other databases after refresh [user=%s]', async (user) => {
+    const pool = newPool()
+    await pool.acquire({}, server3)
+    await pool.acquire({}, server7)
+    expectPoolToContain(pool, [server3, server7])
+
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable('databaseA', [server1, server2], [server3], [server2], int(Date.now() + 300000)),
+        newRoutingTable(
+          'databaseB',
+          [server1, server2],
+          [server3, server7],
+          [server2],
+          int(0) // expired routing table
+        )
+      ],
+      pool,
+      {
+        databaseB: {
+          'server1:7687': newRoutingTable('databaseB', [server1, server2], [server4], [server2])
+        }
+      }
+    )
+
+    await connectionProvider.acquireConnection({ accessMode: READ, database: 'databaseB', impersonatedUser: user })
+
+    expectRoutingTable(connectionProvider, 'databaseB', [server1, server2], [server4], [server2])
+    expectPoolToContain(pool, [server3])
+    expectPoolToNotContain(pool, [server7])
+  }, 10000)
+
   it.each(usersDataSet)('forgets all routers when they fail while acquiring read connection [user=%s]', (user, done) => {
     const connectionProvider = newRoutingConnectionProvider(
       [
