@@ -227,8 +227,7 @@ function newTlsOptions (hostname, ca = undefined, clientCertificate = undefined)
  * @return {net.Socket} the given socket.
  */
 function configureSocket (socket) {
-  socket.setKeepAlive(true)
-  return socket
+  return socket.setNoDelay(true).setKeepAlive(true)
 }
 
 /**
