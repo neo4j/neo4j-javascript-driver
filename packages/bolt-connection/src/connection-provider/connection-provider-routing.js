@@ -670,12 +670,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   }
 
   async _updateRoutingTable (newRoutingTable) {
-    // close old connections to servers not present in the new routing table
-    await this._connectionPool.keepAll(newRoutingTable.allServers())
     this._routingTableRegistry.removeExpired()
     this._routingTableRegistry.register(
       newRoutingTable
     )
+    // close old connections to servers not present in any known routing table
+    await this._connectionPool.keepAll(this._routingTableRegistry.allServers())
 
     this._log.info(`Updated routing table ${newRoutingTable}`)
   }
@@ -770,6 +770,16 @@ class RoutingTableRegistry {
     return typeof defaultSupplier === 'function'
       ? defaultSupplier()
       : defaultSupplier
+  }
+
+  /**
+   * Retrieves the servers of every registered routing table
+   * @returns {Array<ServerAddress>} The servers, without duplicates
+   */
+  allServers () {
+    const servers = new Map()
+    this._forEach(table => table.allServers().forEach(server => servers.set(server.asKey(), server)))
+    return [...servers.values()]
   }
 
   /**
