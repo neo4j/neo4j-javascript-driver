@@ -32,6 +32,7 @@ export default {
   scheme,
   cluster,
   get testNonClusterSafe () {
+    // @ts-expect-error
     return cluster ? test.skip.bind(test) : test
   },
   get httpPort (): string {
