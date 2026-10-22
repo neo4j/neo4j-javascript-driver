@@ -223,7 +223,7 @@ const forExport = {
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
   EnvelopeEncryptionProfile,
-  EncryptionService,
+  EncryptionService
 }
 
 export {
@@ -363,7 +363,7 @@ export type {
   EncapsulatedKeyRecord,
   EncapsulatedKey,
   KeyEncapsulationService,
-  SecretKey,
+  SecretKey
 }
 
 export default forExport
