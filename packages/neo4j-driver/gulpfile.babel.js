@@ -27,8 +27,8 @@ const rollup = require('rollup')
 const rollupCommonJs = require('@rollup/plugin-commonjs')
 const rollupNodeResolve = require('@rollup/plugin-node-resolve').default
 const rollupPolyfillNode = require('rollup-plugin-polyfill-node')
-const semver = require('semver')
 const sharedNeo4j = require('./test/internal/shared-neo4j').default
+const semver = require('semver')
 const stream = require('stream')
 const ts = require('gulp-typescript')
 const log = require('fancy-log')
@@ -38,10 +38,11 @@ const browserOutput = 'lib/browser'
 
 gulp.task('nodejs', function () {
   return gulp
-    .src('src/**/*.js')
+    .src('src/**/*.*')
     .pipe(ts({
       target: 'ES5',
-      lib: ['ES6'],
+      lib: ['es6', 'ES2017.Object', 'dom', 'es2020.bigint', 'esnext.asynciterable', 'esnext.disposable'],
+      types: ['node', 'jest'],
       noImplicitAny: true,
       noImplicitReturns: true,
       strictNullChecks: true,

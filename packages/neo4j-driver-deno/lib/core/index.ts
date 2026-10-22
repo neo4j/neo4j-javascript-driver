@@ -97,10 +97,10 @@ import auth from './auth.ts'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager.ts'
 import AuthTokenManager, { authTokenManagers, AuthTokenManagers, staticAuthTokenManager, AuthTokenAndExpiration } from './auth-token-manager.ts'
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver.ts'
-import { Config } from './types.ts'
+import { AuthToken, Config, TrustStrategy } from './types.ts'
 import * as types from './types.ts'
 import * as json from './json.ts'
-import resultTransformers, { ResultTransformer } from './result-transformers.ts'
+import resultTransformers, { ResultTransformer, ResultTransformers } from './result-transformers.ts'
 import ClientCertificate, { clientCertificateProviders, ClientCertificateProvider, ClientCertificateProviders, RotatingClientCertificateProvider, resolveCertificateProvider } from './client-certificate.ts'
 import * as internal from './internal/index.ts'
 import { ProtocolVersion } from './protocol-version.ts'
@@ -114,8 +114,11 @@ import UUID, { uuid, isUUID } from './uuid.ts'
 import { EncryptedValue, isEnc } from './encryption/encrypted-value.ts'
 import { BoltProvider } from './internal/bolt-provider.ts'
 import { localKeyEncapsulationService, LocalKeyEncapsulationService } from './encryption/local-key-encapsulation.ts'
-import type { EncapsulatedKeyRecordRepository } from './encryption/encapsulated-key.ts'
+import type { EncapsulatedKey, EncapsulatedKeyRecord, EncapsulatedKeyRecordRepository } from './encryption/encapsulated-key.ts'
 import { EnvelopeEncryptionProfile, EncryptionProfile } from './encryption/encryption-profile.ts'
+import EncryptionService from './encryption/encryption.ts'
+import { KeyEncapsulationService, SecretKey } from './encryption/key-encapsulation-service.ts'
+import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants.ts'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -318,7 +321,9 @@ export {
   BoltProvider,
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncapsulatedKeyRecord,
+  EncryptionService
 }
 
 export type {
@@ -355,7 +360,15 @@ export type {
   Rule,
   Rules,
   EncapsulatedKeyRecordRepository,
-  EncryptionProfile
+  EncryptionProfile,
+  AuthToken,
+  TrustStrategy,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  SecretKey,
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  ResultTransformers
 }
 
 export default forExport

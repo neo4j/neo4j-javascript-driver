@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import neo4j from '../../src'
 import Neo4jContainer from './neo4j-container'
 
 const env = process.env
@@ -40,7 +39,11 @@ const ipv6Enabled =
   env.TEST_NEO4J_IPV6_ENABLED !== undefined
     ? env.TEST_NEO4J_IPV6_ENABLED.toUpperCase() === 'TRUE'
     : true
-const authToken = neo4j.auth.basic(username, password)
+const authToken = {
+  scheme: 'basic',
+  principal: username,
+  credentials: password
+}
 
 const neo4jContainer = new Neo4jContainer({
   user: username,
@@ -69,7 +72,7 @@ async function restart (configOverride) {
 }
 
 async function cleanupAndGetProtocolVersionAndBookmarks (driver) {
-  const session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
+  const session = driver.session({ defaultAccessMode: 'WRITE' })
   try {
     const result = await session.executeWrite(tx =>
       tx.run('MATCH (n) DETACH DELETE n')
@@ -88,7 +91,7 @@ async function cleanupAndGetProtocolVersion (driver) {
 }
 
 async function getEdition (driver) {
-  const session = driver.session({ defaultAccessMode: neo4j.session.READ })
+  const session = driver.session({ defaultAccessMode: 'READ' })
   try {
     const result = await session.executeRead(tx =>
       tx.run('CALL dbms.components() YIELD edition')

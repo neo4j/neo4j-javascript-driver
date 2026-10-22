@@ -24,11 +24,13 @@ import Transaction from 'neo4j-driver-core'
  */
 export default class RxTransaction {
   /**
-   * @constructor
    * @protected
    * @param {Transaction} txc - The underlying transaction instance to relay requests
    */
   constructor (txc) {
+    /**
+     * @private
+     */
     this._txc = txc
   }
 

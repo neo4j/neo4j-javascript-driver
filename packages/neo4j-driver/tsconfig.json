@@ -2,6 +2,8 @@
   "compilerOptions": {
     "module": "es6",
     "target": "es6",
+    "lib": ["es6", "ES2017.Object", "dom", "es2020.bigint", "esnext.asynciterable"],
+    "types": ["node"],
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "strictNullChecks": true,
@@ -9,5 +11,5 @@
     "esModuleInterop": true,
     "allowJs": true
   },
-  "include": ["types/**/*.ts", "test/types/**/*.ts", "*.ts"]
+  "include": ["types/**/*.ts", "test/types/**/*.ts", "test/*.ts","*.ts", "*src/*.ts"]
 }

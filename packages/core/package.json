@@ -12,8 +12,6 @@
     "test::watch": "jest --watch",
     "test::unit": "pnpm run test",
     "test::deno": "deno test --allow-all ./test/deno/",
-    "predocs": "pnpm run build && pnpm run build::es6",
-    "docs": "esdoc -c esdoc.json",
     "prepare": "pnpm run build",
     "clean": "rm -fr node_modules lib types"
   },

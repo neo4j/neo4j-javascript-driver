@@ -49,7 +49,7 @@ interface ResultObserver {
   onKeys?: (keys: string[]) => void
 
   /**
-   * Receive each record present on the {@link @Result}
+   * Receive each record present on the {@link Result}
    * @param {Record} record The {@link Record} produced
    */
   onNext?: (record: Record) => void
