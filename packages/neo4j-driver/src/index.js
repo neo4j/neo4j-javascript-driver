@@ -99,7 +99,14 @@ import {
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
   EncapsulatedKeyRecordRepository,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncryptionService,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  SecretKey,
+  EncryptionProfile
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -329,7 +336,9 @@ const types = {
   Rules,
   ProtocolVersion,
   EncapsulatedKeyRecordRepository,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncapsulatedKeyRecord,
+  EncryptionService
 }
 
 /**
@@ -557,6 +566,13 @@ export {
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
   EncapsulatedKeyRecordRepository,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncryptionService,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  SecretKey,
+  EncryptionProfile
 }
 export default forExport

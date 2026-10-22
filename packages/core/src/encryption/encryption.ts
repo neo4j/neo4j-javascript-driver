@@ -66,7 +66,7 @@ export default class EncryptionService {
    *
    * @param {Object} encryptRequest - The value to encrypt and associated metadata for the encryption
    * @param {any} encryptRequest.value - The value to encrypt, must be a value able to be saved as a Neo4j Property.
-   * @param {string | {alias?: string, id?: string} | undefined} encryptRequest.keyOptions - Used to determine the key to be used, a plain string is assumed to be the id, if omitted the encryption profile's default key reference will be used
+   * @param {string | Object | undefined} encryptRequest.keyOptions - Used to determine the key to be used, a plain string is assumed to be the id, if omitted the encryption profile's default key reference will be used
    * @param {string} encryptRequest.encryptionProfile - Name of the {@link EncryptionProfile} to use, must be provided unless the driver is configured with only 1 profile.
    * @param {any | undefined} encryptRequest.aad - Additional Authenticated Data for the encryption.
    *
