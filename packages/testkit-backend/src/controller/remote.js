@@ -1,7 +1,7 @@
 import Controller from './interface.js'
 import { WebSocketServer } from 'ws'
 import { createServer } from 'http'
-import { HttpStaticServer } from '../infrastructure.js'
+import { HttpStaticServer } from '../infrastructure/index.js'
 import consoleRemote from '../console.remote.js'
 
 /**
