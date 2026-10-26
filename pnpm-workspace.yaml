@@ -1,6 +1,13 @@
 packages:
   - packages/*
 
+allowBuilds:
+  core-js: true
+  cpu-features: true
+  es5-ext: true
+  nx: true
+  ssh2: true
+
 blockExoticSubdeps: true
 
 minimumReleaseAge: 4320
