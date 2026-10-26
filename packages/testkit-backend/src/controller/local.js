@@ -1,9 +1,9 @@
-import Context from '../context'
-import Controller from './interface'
-import stringify from '../stringify'
-import { isFrontendError } from '../request-handlers'
-import CypherNativeBinders from '../cypher-native-binders'
-import FakeTime from '../mock/fake-time'
+import Context from '../context.js'
+import Controller from './interface.js'
+import stringify from '../stringify.js'
+import { isFrontendError } from '../request-handlers.js'
+import CypherNativeBinders from '../cypher-native-binders.js'
+import FakeTime from '../mock/fake-time.js'
 
 /**
  * Local controller handles the requests locally by redirecting them to the correct request handler/service.

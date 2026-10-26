@@ -1,1 +1,1 @@
-export { HttpStaticServer } from './http-static.server'
+export { HttpStaticServer } from './http-static.server.js'
