@@ -23,9 +23,6 @@ class BrowserEnvironment extends NodeEnvironment {
     await super.setup()
     this.global.WebSocket = WebSocket
     this.global.window = globalThis
-    this.global.window.navigator = {
-      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
-    }
     await Config.default.startNeo4j()
     this.global.process.env = process.env
     this.global.process.env.TEST_CONTAINERS_DISABLED = 'TRUE'
