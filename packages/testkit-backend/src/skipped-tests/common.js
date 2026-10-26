@@ -14,7 +14,8 @@ const skippedTests = [
     'Using numbers out of bound',
     ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_should_echo_temporal_type'),
     ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_nested_duration'),
-    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_duration_components')
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_duration_components'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_duration_components_ns_safe')
   ),
   skip(
     'Testkit implementation is deprecated',
