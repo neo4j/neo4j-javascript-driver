@@ -193,6 +193,11 @@ class Session {
    * before the Result is fully consumed, it will be consumed in the background. However,
    * in this case any error that occurs will be swallowed silently. Therefore, it is reccomended to always
    * fully consume Results from Session.run.
+   * 
+   * Note: Unlike {@link Session#executeRead}, {@link Session#executeWrite} and {@link Driver#executeQuery}
+   * the query executed will not be retried in the event of a transient error. Any networking issue or deadlock
+   * will cause the {@link Result} to throw and error when consumed, any change to the database will not be
+   * committed and it must be manually retried by the user.
    *
    * @public
    * @param {mixed} query - Cypher query to execute
