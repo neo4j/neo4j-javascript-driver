@@ -1,8 +1,8 @@
-import Controller from './interface'
+import Controller from './interface.js'
 import { WebSocketServer } from 'ws'
 import { createServer } from 'http'
-import { HttpStaticServer } from '../infrastructure'
-import consoleRemote from '../console.remote'
+import { HttpStaticServer } from '../infrastructure/index.js'
+import consoleRemote from '../console.remote.js'
 
 /**
  * RemoteController handles the requests by sending them a remote client.

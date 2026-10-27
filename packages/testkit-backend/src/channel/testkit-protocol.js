@@ -1,6 +1,6 @@
 import readline from 'readline'
 import EventEmitter from 'events'
-import stringify from '../stringify'
+import stringify from '../stringify.js'
 
 export default class Protocol extends EventEmitter {
   constructor (stream) {

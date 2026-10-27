@@ -1,6 +1,6 @@
-import Controller from './interface'
-import LocalController from './local'
-import RemoteController from './remote'
+import Controller from './interface.js'
+import LocalController from './local.js'
+import RemoteController from './remote.js'
 
 /**
  * Controllers are pieces of code responsible for redirecting requests to the correct handler.

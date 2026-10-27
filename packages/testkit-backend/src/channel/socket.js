@@ -1,7 +1,7 @@
-import Channel from './interface'
+import Channel from './interface.js'
 import net from 'net'
 import { randomBytes } from 'crypto'
-import Protocol from './testkit-protocol'
+import Protocol from './testkit-protocol.js'
 
 function generateRandomId () {
   return randomBytes(16).toString('hex')

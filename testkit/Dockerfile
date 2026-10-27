@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
-ARG NODE_VERSION=18
-ARG DENO_VERSION=2.5.1
+ARG NODE_VERSION=24
+ARG DENO_VERSION=2.9.8
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV NODE_OPTIONS --max_old_space_size=4096 --use-openssl-ca
@@ -13,7 +13,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y curl
 
-RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:=10}.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION:=24}.x | bash -
 
 RUN apt-get update && \
     apt-get upgrade -y && \
