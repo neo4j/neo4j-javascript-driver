@@ -9,9 +9,7 @@
 .npm/
 pnpm-lock.yaml
 
-packages/benchkit-backend
 packages/testkit-backend
 packages/*/test
 testkit/
-benchkit/
 
