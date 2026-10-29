@@ -433,7 +433,12 @@ export {
   rule,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EnvelopeEncryptionProfile,
+  EncryptionService,
+  UnsupportedType
 }
 
 export type {
