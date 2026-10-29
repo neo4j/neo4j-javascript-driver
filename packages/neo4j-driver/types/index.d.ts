@@ -113,7 +113,6 @@ import {
   uuid,
   UUID,
   isUUID,
-  BoltProvider,
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
   EncapsulatedKeyRecordRepository,
@@ -340,7 +339,6 @@ declare const forExport: {
   isUUID: typeof isUUID
   uuid: typeof uuid
   UUID: typeof UUID
-  BoltProvider: typeof BoltProvider
   LocalKeyEncapsulationService: typeof LocalKeyEncapsulationService
   localKeyEncapsulationService: typeof localKeyEncapsulationService
   EnvelopeEncryptionProfile: typeof EnvelopeEncryptionProfile
