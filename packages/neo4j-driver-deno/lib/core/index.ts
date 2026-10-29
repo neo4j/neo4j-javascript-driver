@@ -114,8 +114,10 @@ import UUID, { uuid, isUUID } from './uuid.ts'
 import { EncryptedValue, isEnc } from './encryption/encrypted-value.ts'
 import { BoltProvider } from './internal/bolt-provider.ts'
 import { localKeyEncapsulationService, LocalKeyEncapsulationService } from './encryption/local-key-encapsulation.ts'
-import type { EncapsulatedKeyRecordRepository } from './encryption/encapsulated-key.ts'
+import type { EncapsulatedKey, EncapsulatedKeyRecord, EncapsulatedKeyRecordRepository } from './encryption/encapsulated-key.ts'
 import { EnvelopeEncryptionProfile, EncryptionProfile } from './encryption/encryption-profile.ts'
+import EncryptionService from './encryption/encryption.ts'
+import { KeyEncapsulationService, SecretKey } from './encryption/key-encapsulation-service.ts'
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -220,7 +222,8 @@ const forExport = {
   BoltProvider,
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncryptionService
 }
 
 export {
@@ -318,7 +321,8 @@ export {
   BoltProvider,
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncryptionService
 }
 
 export type {
@@ -355,7 +359,11 @@ export type {
   Rule,
   Rules,
   EncapsulatedKeyRecordRepository,
-  EncryptionProfile
+  EncryptionProfile,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  SecretKey
 }
 
 export default forExport

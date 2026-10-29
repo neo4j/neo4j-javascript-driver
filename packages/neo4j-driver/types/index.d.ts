@@ -112,7 +112,18 @@ import {
   VectorType,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EncapsulatedKeyRecordRepository,
+  EnvelopeEncryptionProfile,
+  EncryptionService,
+  UnsupportedType,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  SecretKey,
+  EncryptionProfile
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -328,6 +339,11 @@ declare const forExport: {
   isUUID: typeof isUUID
   uuid: typeof uuid
   UUID: typeof UUID
+  LocalKeyEncapsulationService: typeof LocalKeyEncapsulationService
+  localKeyEncapsulationService: typeof localKeyEncapsulationService
+  EnvelopeEncryptionProfile: typeof EnvelopeEncryptionProfile
+  EncryptionService: typeof EncryptionService
+  UnsupportedType: typeof UnsupportedType
 }
 
 export {
@@ -417,7 +433,12 @@ export {
   rule,
   uuid,
   UUID,
-  isUUID
+  isUUID,
+  LocalKeyEncapsulationService,
+  localKeyEncapsulationService,
+  EnvelopeEncryptionProfile,
+  EncryptionService,
+  UnsupportedType
 }
 
 export type {
@@ -446,7 +467,13 @@ export type {
   Rules,
   StandardCase,
   MappedQueryResult,
-  VectorType
+  VectorType,
+  EncryptionProfile,
+  EncapsulatedKeyRecordRepository,
+  EncapsulatedKeyRecord,
+  EncapsulatedKey,
+  KeyEncapsulationService,
+  SecretKey
 }
 
 export default forExport
