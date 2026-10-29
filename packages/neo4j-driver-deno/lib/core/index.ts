@@ -321,7 +321,8 @@ export {
   BoltProvider,
   LocalKeyEncapsulationService,
   localKeyEncapsulationService,
-  EnvelopeEncryptionProfile
+  EnvelopeEncryptionProfile,
+  EncryptionService
 }
 
 export type {
@@ -359,7 +360,6 @@ export type {
   Rules,
   EncapsulatedKeyRecordRepository,
   EncryptionProfile,
-  EncryptionService,
   EncapsulatedKeyRecord,
   EncapsulatedKey,
   KeyEncapsulationService,
