@@ -211,18 +211,18 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     }
   }
 
-  removeFromKeyCache(id: string): void {
+  removeFromKeyCache (id: string): void {
     this._keyCache.delete(id)
     this.setAliasIndexEntry(id, undefined)
   }
 
-  setAliasIndexEntry(id: string, alias: string | undefined): void {
+  setAliasIndexEntry (id: string, alias: string | undefined): void {
     this._aliasIndex.forEach((val, key) => {
-      if(val.entry === id) {
+      if (val.entry === id) {
         this._aliasIndex.delete(key)
       }
     })
-    if(alias != null) {
+    if (alias != null) {
       this._aliasIndex.set(alias, { entry: id, retrieved: new Date() })
     }
   }
