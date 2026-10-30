@@ -89,5 +89,8 @@
     "neo4j-driver-bolt-connection": "workspace:*",
     "neo4j-driver-core": "workspace:*",
     "rxjs": "^7.8.2"
+  },
+  "optionalDependencies": {
+    "neo4j-driver-query-api-connection": "workspace:*"
   }
 }

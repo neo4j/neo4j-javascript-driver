@@ -48,6 +48,7 @@ const features = [
   'Feature:API:Type.UnsupportedType',
   'Feature:API:Type.Vector',
   'Feature:API:Type.UUID',
+  'Feature:HTTP:QueryAPI:2.0',
   'Feature:IdempotentRetries',
   'Optimization:AuthPipelining',
   'Optimization:EagerTransactionBegin',
