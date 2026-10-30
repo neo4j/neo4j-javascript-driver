@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "lib": ["ES2018", "dom", "es2020.bigint", "esnext.asynciterable", "esnext.disposable"],
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "downlevelIteration": true,
+    "outDir": "lib",
+    "declaration": true,
+    "declarationDir": "types",
+    "isolatedModules": true,
+    "allowJs": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "src/http-connection/browser/stream.js"  
+]
+}
