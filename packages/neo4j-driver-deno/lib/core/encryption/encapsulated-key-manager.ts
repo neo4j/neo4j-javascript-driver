@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { EncryptionProfile } from './encryption-profile.ts'
+import { EncryptionProfile, EnvelopeEncryptionProfile } from './encryption-profile.ts'
 import { EncapsulatedKey } from './encapsulated-key.ts'
 import { KeyEncapsulationService } from './key-encapsulation-service.ts'
 import { newError } from '../error.ts'
@@ -91,7 +91,10 @@ export class EncapsulatedKeyManager {
    */
   async setAliasById (id: string, alias?: string): Promise<void> {
     try {
-      return await this._profile.keyRepository.setAliasById(id, alias)
+      await this._profile.keyRepository.setAliasById(id, alias)
+      if (this._profile instanceof EnvelopeEncryptionProfile) {
+        this._profile.setAliasIndexEntry(id, alias)
+      }
     } catch (e) {
       throw newError('Call to EncapsulatedKeyRepository.setAliasById threw error, see cause', '50N42', e as Error)
     }
@@ -113,7 +116,10 @@ export class EncapsulatedKeyManager {
    */
   async deleteById (id: string): Promise<void> {
     try {
-      return await this._profile.keyRepository.deleteById(id)
+      await this._profile.keyRepository.deleteById(id)
+      if (this._profile instanceof EnvelopeEncryptionProfile) {
+        this._profile.removeFromKeyCache(id)
+      }
     } catch (e) {
       throw newError('Call to EncapsulatedKeyRepository.deleteById threw error, see cause', '50N42', e as Error)
     }
