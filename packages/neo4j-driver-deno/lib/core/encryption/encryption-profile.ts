@@ -62,14 +62,12 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   public keyRepository: EncapsulatedKeyRecordRepository
   public type: string
   public version: Integer
-  private readonly _keyCacheEnabled: boolean
   private readonly _keyCacheTTL: number
   private readonly _keyCacheMaxSize: number
-  private readonly _keyAliasIndexEnabled: boolean
   private readonly _keyAliasIndexTTL: number
   private readonly _keyAliasIndexMaxSize: number
-  private readonly _keyCache: Map<string, CacheEntry<EncapsulatedKeyRecord>>
-  private readonly _aliasIndex: Map<string, CacheEntry<string>>
+  private readonly _keyCache: Map<string, CacheEntry<EncapsulatedKeyRecord>> | undefined
+  private readonly _aliasIndex: Map<string, CacheEntry<string>> | undefined
 
   /**
    *
@@ -94,18 +92,16 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     this.name = config.name
     this.encapsulationService = config.encapsulationService
     this.keyRepository = config.keyRepository
-    this._keyCacheEnabled = config.keyCacheMaxSize !== 0
+    if (config.keyCacheMaxSize !== 0) {
+      this._keyCache = new Map<string, CacheEntry<EncapsulatedKeyRecord>>()
+    }
     this._keyCacheTTL = config.keyCacheTTL ?? 15 * 60 * 1000
     this._keyCacheMaxSize = config.keyCacheMaxSize ?? 100
-    this._keyCache = new Map<string, CacheEntry<EncapsulatedKeyRecord>>()
-    if (this._keyCacheEnabled) {
-      this._keyAliasIndexEnabled = config.keyAliasIndexMaxSize !== 0
-    } else {
-      this._keyAliasIndexEnabled = false
+    if (this._keyCache != null && config.keyAliasIndexMaxSize !== 0) {
+      this._aliasIndex = new Map<string, CacheEntry<string>>()
     }
     this._keyAliasIndexTTL = config.keyAliasIndexTTL ?? 15 * 1000
     this._keyAliasIndexMaxSize = config.keyAliasIndexMaxSize ?? 100
-    this._aliasIndex = new Map<string, CacheEntry<string>>()
     this.type = 'ENVELOPE'
     this.version = int(1)
   }
@@ -133,10 +129,10 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   async saveKey (alias: string, encapsulation: Int8Array, metadata: Record<string, string>): Promise<EncapsulatedKey> {
     try {
       const key = await this.keyRepository.create(alias, encapsulation, metadata)
-      if(this._keyCacheEnabled === true) { 
-        this._keyCache.set(alias, {entry: key, retrieved: new Date()})
-        if (this._keyAliasIndexEnabled === true && alias != null) {
-          this._aliasIndex.set(alias, {entry: key.id(), retrieved: new Date()})
+      if (this._keyCache != null) {
+        this._keyCache.set(alias, { entry: key, retrieved: new Date() })
+        if (this._aliasIndex != null && alias != null) {
+          this._aliasIndex.set(alias, { entry: key.id(), retrieved: new Date() })
         }
       }
       return key
@@ -149,7 +145,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @private
    */
   async _findById (id: string): Promise<EncapsulatedKeyRecord | undefined> {
-    if (this._keyCacheEnabled) {
+    if (this._keyCache != null) {
       const entry = this._keyCache.get(id)
       if (entry != null) {
         if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyCacheTTL ?? 0)) {
@@ -168,7 +164,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     if (key == null) {
       return undefined
     }
-    if(this._keyCacheEnabled === true) {
+    if (this._keyCache != null) {
       this._keyCache.set(id, { entry: key, retrieved: new Date() })
       this._pruneCache(this._keyCache, this._keyCacheMaxSize)
     }
@@ -179,7 +175,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    * @private
    */
   async _findByAlias (alias: string): Promise<EncapsulatedKeyRecord | undefined> {
-    if (this._keyAliasIndexEnabled) {
+    if (this._aliasIndex != null) {
       const entry = this._aliasIndex.get(alias)
       if (entry != null) {
         if (new Date().getTime() - (entry?.retrieved.getTime() ?? 0) < (this._keyAliasIndexTTL ?? 0)) {
@@ -198,10 +194,10 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     if (key == null) {
       return undefined
     }
-    if(this._keyCacheEnabled === true) {
+    if (this._keyCache != null) {
       this._keyCache.set(key.id(), { entry: key, retrieved: new Date() })
       this._pruneCache(this._keyCache, this._keyCacheMaxSize)
-      if(this._keyAliasIndexEnabled === true) {
+      if (this._aliasIndex != null) {
         this._aliasIndex.set(alias, { entry: key.id(), retrieved: new Date() })
         this._pruneCache(this._aliasIndex, this._keyAliasIndexMaxSize)
       }
@@ -225,17 +221,19 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   }
 
   removeFromKeyCache (id: string): void {
-    if(this._keyCacheEnabled === true) {
+    if (this._keyCache != null) {
       this._keyCache.delete(id)
       this.setAliasIndexEntry(id, undefined)
     }
   }
 
   setAliasIndexEntry (id: string, alias: string | undefined): void {
-    if(this._keyAliasIndexEnabled === true) {
+    if (this._aliasIndex != null) {
       this._aliasIndex.forEach((val, key) => {
         if (val.entry === id) {
-          this._aliasIndex.delete(key)
+          if (this._aliasIndex != null) {
+            this._aliasIndex.delete(key)
+          }
         }
       })
       if (alias != null) {
