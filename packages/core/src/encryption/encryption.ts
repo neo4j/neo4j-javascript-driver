@@ -130,7 +130,7 @@ export default class EncryptionService {
         if (aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor) {
           encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(struct.metadata.aad_encoding_scheme_major, struct.metadata.aad_encoding_scheme_minor))
         } else {
-          throw newError('AAD used to encrypt was encoded with a newer encoding scheme than this driver supports')
+          throw newError('AAD used to encrypt was encoded with a different encoding scheme than this driver supports')
         }
       }
       const profile = this._getProfile(struct.profileName)
