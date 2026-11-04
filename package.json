@@ -46,7 +46,7 @@
     "build": "pnpm install --frozen-lockfile",
     "set_version::deno": "pnpm -C packages/neo4j-driver-deno run set_version ",
     "build::deno": "pnpm -C packages/neo4j-driver-deno run build ",
-    "build::notci": "pnpm install",
+    "build::notci": "pnpm install --no-frozen-lockfile --force",
     "docs": "pnpm -r run docs --concurrency 1",
     "test::unit": "pnpm -r run test::unit",
     "test::deno": "pnpm -r run test::deno",
