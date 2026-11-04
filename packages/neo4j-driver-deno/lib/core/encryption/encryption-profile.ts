@@ -132,7 +132,14 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
    */
   async saveKey (alias: string, encapsulation: Int8Array, metadata: Record<string, string>): Promise<EncapsulatedKey> {
     try {
-      return await this.keyRepository.create(alias, encapsulation, metadata)
+      const key = await this.keyRepository.create(alias, encapsulation, metadata)
+      if(this._keyCacheEnabled === true) { 
+        this._keyCache.set(alias, {entry: key, retrieved: new Date()})
+        if (this._keyAliasIndexEnabled === true && alias != null) {
+          this._aliasIndex.set(alias, {entry: key.id(), retrieved: new Date()})
+        }
+      }
+      return key
     } catch (e) {
       throw newError('Call to EncapsulatedKeyRepository.create threw error, see cause', '50N42', e as Error)
     }
@@ -161,8 +168,10 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     if (key == null) {
       return undefined
     }
-    this._keyCache.set(id, { entry: key, retrieved: new Date() })
-    this._pruneCache(this._keyCache, this._keyCacheMaxSize)
+    if(this._keyCacheEnabled === true) {
+      this._keyCache.set(id, { entry: key, retrieved: new Date() })
+      this._pruneCache(this._keyCache, this._keyCacheMaxSize)
+    }
     return key
   }
 
@@ -189,10 +198,14 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     if (key == null) {
       return undefined
     }
-    this._aliasIndex.set(alias, { entry: key.id(), retrieved: new Date() })
-    this._keyCache.set(key.id(), { entry: key, retrieved: new Date() })
-    this._pruneCache(this._aliasIndex, this._keyAliasIndexMaxSize)
-    this._pruneCache(this._keyCache, this._keyCacheMaxSize)
+    if(this._keyCacheEnabled === true) {
+      this._keyCache.set(key.id(), { entry: key, retrieved: new Date() })
+      this._pruneCache(this._keyCache, this._keyCacheMaxSize)
+      if(this._keyAliasIndexEnabled === true) {
+        this._aliasIndex.set(alias, { entry: key.id(), retrieved: new Date() })
+        this._pruneCache(this._aliasIndex, this._keyAliasIndexMaxSize)
+      }
+    }
     return key
   }
 
@@ -212,18 +225,22 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   }
 
   removeFromKeyCache (id: string): void {
-    this._keyCache.delete(id)
-    this.setAliasIndexEntry(id, undefined)
+    if(this._keyCacheEnabled === true) {
+      this._keyCache.delete(id)
+      this.setAliasIndexEntry(id, undefined)
+    }
   }
 
   setAliasIndexEntry (id: string, alias: string | undefined): void {
-    this._aliasIndex.forEach((val, key) => {
-      if (val.entry === id) {
-        this._aliasIndex.delete(key)
+    if(this._keyAliasIndexEnabled === true) {
+      this._aliasIndex.forEach((val, key) => {
+        if (val.entry === id) {
+          this._aliasIndex.delete(key)
+        }
+      })
+      if (alias != null) {
+        this._aliasIndex.set(alias, { entry: id, retrieved: new Date() })
       }
-    })
-    if (alias != null) {
-      this._aliasIndex.set(alias, { entry: id, retrieved: new Date() })
     }
   }
 }
