@@ -122,13 +122,13 @@ export default class EncryptionService {
       if (decryptRequest.usePersistedAad === true) {
         encodedAAD = struct.metadata.aad !== undefined ? struct.metadata.aad.buffer : undefined
       } else if (decryptRequest.aad !== undefined) {
-        if (struct.metadata.aad_encoding_scheme_major == null || struct.metadata.aad_encoding_scheme_minor == null) {
-          throw newError('Provided AAD mismatch')
-        }
         const aadType = this._identifyType(decryptRequest.aad)
         // The below if statement functions until there are multiple major version encoding schemes.
-        if (aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor) {
-          encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(struct.metadata.aad_encoding_scheme_major, struct.metadata.aad_encoding_scheme_minor))
+        if (
+          struct.metadata.aad_encoding_scheme_major == null || struct.metadata.aad_encoding_scheme_major == null ||
+          aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor
+        ) {
+          encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(aadType.typeProtocolMajor.toNumber(), aadType.typeProtocolMinor.toNumber()))
         } else {
           throw newError('AAD used to encrypt was encoded with a different encoding scheme than this driver supports')
         }
