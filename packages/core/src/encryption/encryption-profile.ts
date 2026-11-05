@@ -130,9 +130,11 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     try {
       const key = await this.keyRepository.create(alias, encapsulation, metadata)
       if (this._keyCache != null) {
-        this._keyCache.set(alias, { entry: key, retrieved: new Date() })
+        this._keyCache.set(key.id(), { entry: key, retrieved: new Date() })
+        this._pruneCache(this._keyCache, this._keyCacheMaxSize)
         if (this._aliasIndex != null && alias != null) {
           this._aliasIndex.set(alias, { entry: key.id(), retrieved: new Date() })
+          this._pruneCache(this._aliasIndex, this._keyAliasIndexMaxSize)
         }
       }
       return key
@@ -220,6 +222,9 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
     }
   }
 
+  /**
+   * @private
+   */
   removeFromKeyCache (id: string): void {
     if (this._keyCache != null) {
       this._keyCache.delete(id)
@@ -228,6 +233,7 @@ export class EnvelopeEncryptionProfile implements EncryptionProfile {
   }
 
   setAliasIndexEntry (id: string, alias: string | undefined): void {
+    this._keyCache?.delete(id)
     if (this._aliasIndex != null) {
       this._aliasIndex.forEach((val, key) => {
         if (val.entry === id) {
