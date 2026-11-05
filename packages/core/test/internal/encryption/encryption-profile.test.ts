@@ -27,7 +27,7 @@ describe('EnvelopeEncryptionProfile', () => {
     })
     expect(profile.saveKey('testKey', new Int8Array(32), {})).resolves.not.toThrow()
   })
-  it('should throw when saving key with same alias', async () => {
+  it('correctly prune cache', async () => {
     const profile = new EnvelopeEncryptionProfile({
       name: 'test',
       encapsulationService: new LocalKeyEncapsulationService(new Uint8Array(32)),

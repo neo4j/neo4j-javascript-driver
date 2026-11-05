@@ -100,4 +100,27 @@ describe('#unit EncryptionService', () => {
     expect(explicitAAD).toEqual('hello')
     expect(async () => await enc.decrypt({ ciphertext: encValue })).rejects.toThrow('Property decryption failed due to internal error, see cause.')
   })
+
+  it('Should not keep deleted key in cache', async () => {
+    const profiles = [profile]
+    const enc = new EncryptionService(boltProvider, profiles)
+    const key = await enc.keyManager('main').create('test')
+
+    const encValue = await enc.encrypt({ value: 'hello', keyOptions: { alias: 'test' } })
+    await enc.decrypt({ ciphertext: encValue })
+    await enc.keyManager('main').deleteById(key.id())
+    expect(async () => await enc.decrypt({ ciphertext: encValue })).rejects.toThrow('Property decryption failed due to internal error, see cause.')
+  }, 60000)
+
+  it('Should not keep deleted alias in index', async () => {
+    const profiles = [profile]
+    const enc = new EncryptionService(boltProvider, profiles)
+    const key = await enc.keyManager('main').create('test')
+
+    const encValue = await enc.encrypt({ value: 'hello', keyOptions: { alias: 'test' } })
+    await enc.decrypt({ ciphertext: encValue })
+    await enc.keyManager('main').setAliasById(key.id(), 'test2')
+    const key2 = await enc.keyManager('main').findByAlias('test')
+    expect(key2).not.toEqual(key)
+  }, 60000)
 })
