@@ -74,5 +74,5 @@
     "ts-standard::neo4j-driver": "ts-standard --fix --project ./packages/neo4j-driver/tsconfig.json",
     "standard": "standard --fix --env jest"
   },
-  "packageManager": "pnpm@12.15.0"
+  "packageManager": "pnpm@12.16.1"
 }
