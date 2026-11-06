@@ -229,7 +229,9 @@ export function SessionRun (_, context, data, wire) {
 
   const id = context.addResult(result)
 
-  wire.writeResponse(responses.Result({ id }))
+  result.keys().then(keys => {
+    wire.writeResponse(responses.Result({ id, keys }))
+  })
 }
 
 export function ResultNext (_, context, data, wire) {
