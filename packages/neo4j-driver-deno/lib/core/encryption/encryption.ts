@@ -125,8 +125,8 @@ export default class EncryptionService {
         const aadType = this._identifyType(decryptRequest.aad)
         // The below if statement functions until there are multiple major version encoding schemes.
         if (
-          struct.metadata.aad_encoding_scheme_major == null || struct.metadata.aad_encoding_scheme_major == null ||
-          aadType.typeProtocolMajor !== struct.metadata.aad_encoding_scheme_major || aadType.typeProtocolMinor !== struct.metadata.aad_encoding_scheme_minor
+          struct.metadata.aad_encoding_scheme_major == null || struct.metadata.aad_encoding_scheme_minor == null ||
+          aadType.typeProtocolMajor.notEquals(struct.metadata.aad_encoding_scheme_major) || aadType.typeProtocolMinor.notEquals(struct.metadata.aad_encoding_scheme_minor)
         ) {
           encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(aadType.typeProtocolMajor.toNumber(), aadType.typeProtocolMinor.toNumber()))
         } else {
