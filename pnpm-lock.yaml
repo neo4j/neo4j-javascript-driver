@@ -332,6 +332,9 @@ importers:
       esdoc:
         specifier: 1.1.0
         version: 1.1.0(supports-color@8.1.1)
+      esdoc-ecmascript-proposal-plugin:
+        specifier: 1.0.0
+        version: 1.0.0
       esdoc-importpath-plugin:
         specifier: 1.0.2
         version: 1.0.2
@@ -3238,6 +3241,10 @@ packages:
 
   esdoc-coverage-plugin@1.1.0:
     resolution: {integrity: sha512-M+94/Y+eoM08V3teiJIYpJ5HF13jH4cC9LQZrjmA91mlAqCHtNzelHF9ZdWofoOFYFRNpllFsXTFsJgwVa000A==}
+    engines: {node: '>= 6.0.0'}
+
+  esdoc-ecmascript-proposal-plugin@1.0.0:
+    resolution: {integrity: sha512-PuaU/O8d+Sb0J6qQdyhmy74h/2cp/2kqsvPuoCiK+50Rw54nlGqXxvWNaaNikS5qntE0FfssnwZtUPa6q4RiXg==}
     engines: {node: '>= 6.0.0'}
 
   esdoc-external-ecmascript-plugin@1.0.0:
@@ -10491,6 +10498,8 @@ snapshots:
       cheerio: 0.22.0
 
   esdoc-coverage-plugin@1.1.0: {}
+
+  esdoc-ecmascript-proposal-plugin@1.0.0: {}
 
   esdoc-external-ecmascript-plugin@1.0.0:
     dependencies:
