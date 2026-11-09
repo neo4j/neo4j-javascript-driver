@@ -126,7 +126,7 @@ export default class EncryptionService {
         // The below if statement functions until there are multiple major version encoding schemes.
         if (
           struct.metadata.aad_encoding_scheme_major == null || struct.metadata.aad_encoding_scheme_minor == null ||
-          aadType.typeProtocolMajor.notEquals(struct.metadata.aad_encoding_scheme_major) || aadType.typeProtocolMinor.notEquals(struct.metadata.aad_encoding_scheme_minor)
+          aadType.typeProtocolMajor.equals(struct.metadata.aad_encoding_scheme_major) || aadType.typeProtocolMinor.equals(struct.metadata.aad_encoding_scheme_minor)
         ) {
           encodedAAD = this._boltProvider.encodeAAD(decryptRequest.aad, new ProtocolVersion(aadType.typeProtocolMajor.toNumber(), aadType.typeProtocolMinor.toNumber()))
         } else {
