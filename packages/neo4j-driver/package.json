@@ -59,6 +59,7 @@
     "esdoc": "1.1.0",
     "esdoc-importpath-plugin": "1.0.2",
     "esdoc-standard-plugin": "1.0.0",
+    "esdoc-ecmascript-proposal-plugin": "1.0.0",
     "fancy-log": "2.0.0",
     "gulp": "4.0.2",
     "gulp-batch": "1.0.5",
@@ -89,5 +90,8 @@
     "neo4j-driver-bolt-connection": "workspace:*",
     "neo4j-driver-core": "workspace:*",
     "rxjs": "^7.8.2"
+  },
+  "optionalDependencies": {
+    "neo4j-driver-query-api-connection": "workspace:*"
   }
 }

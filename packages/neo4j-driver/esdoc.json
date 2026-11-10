@@ -51,6 +51,12 @@
     {
       "name": "esdoc-type-inference-plugin", 
       "option": {"enable": false}
+    },
+    {
+        "name": "esdoc-ecmascript-proposal-plugin",
+        "option": {
+            "all": true
+        }
     }
   ]
 }
