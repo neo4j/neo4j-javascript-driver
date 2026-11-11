@@ -76,6 +76,7 @@ export default class HttpConnectionProvider extends ConnectionProvider {
     private _openConnections: { [n: number]: HttpConnection }
     private _pool: internal.pool.Pool<HttpConnection>
     private _newHttpConnection: NewHttpConnection
+    private _version: string
 
     constructor(config: HttpConnectionProviderConfig, { newPool, newHttpConnection }: HttpConnectionProviderInjectable = {
         newPool: (...params) => new Pool<HttpConnection>(...params),
@@ -109,19 +110,19 @@ export default class HttpConnectionProvider extends ConnectionProvider {
 
     async verifyConnectivityAndGetServerInfo(param: { database: string; accessMode?: string | undefined } | undefined): Promise<ServerInfo> {
         const discoveryInfo = await HttpConnection.discover({ scheme: this._scheme, address: this._address, path: this._path })
-
-        // @ts-expect-error sending unexpected data
-        const connection = await this._pool.acquire({ queryEndpoint: this._queryEndpoint }, this._address)
+        this._version = `Neo4j/${discoveryInfo.version}`
+        // @ts-ignore sending unexpected data
+        //const connection = await this._pool.acquire({ queryEndpoint: this._queryEndpoint, version: this._version }, this._address)
 
         try {
-            await run(connection, param)
+            //await run(connection, param)
             var [major, minor] = discoveryInfo.version.split('.');
             return new ServerInfo({
                 address: this._address.asHostPort(),
-                version: discoveryInfo.version
+                version: `Neo4j/${discoveryInfo.version}`
             }, new ProtocolVersion(parseInt(major), parseInt(minor)))
         } finally {
-            await connection.release()
+            //await connection.release()
         }
     }
 
@@ -164,6 +165,11 @@ export default class HttpConnectionProvider extends ConnectionProvider {
         release: (address: internal.serverAddress.ServerAddress, connection: HttpConnection) => Promise<void>): Promise<HttpConnection> {
 
         const auth = context.auth ?? await this._authTokenManager.getToken()
+        if (this._version == null) {
+            const discoveryInfo = await HttpConnection.discover({ scheme: this._scheme, address: this._address, path: this._path })
+            this._version = `Neo4j/${discoveryInfo.version}`
+            console.log("HERE", this._version)
+        }
 
         const connection: HttpConnection = this._newHttpConnection({
             release: async () => await release(address, connection),
@@ -185,7 +191,8 @@ export default class HttpConnectionProvider extends ConnectionProvider {
                 }
 
                 return error
-            }
+            },
+            version: this._version
         })
 
         this._openConnections[connection.id] = connection

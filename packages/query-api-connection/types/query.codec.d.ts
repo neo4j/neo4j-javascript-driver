@@ -35,8 +35,8 @@ export type RawQueryFailuresResponse = {
 };
 export type RawQueryResponse = RawQuerySuccessResponse | RawQueryFailuresResponse;
 export declare class QueryResponseCodec {
-    static ofResponse(config: types.InternalConfig, url: String, response: Response): Promise<QueryResponseCodec>;
-    static of(config: types.InternalConfig, contentType: string, response: RawQueryResponse): QueryResponseCodec;
+    static ofResponse(config: types.InternalConfig, url: String, response: Response, serverVersion: string): Promise<QueryResponseCodec>;
+    static of(config: types.InternalConfig, contentType: string, response: RawQueryResponse, serverVersion: string): QueryResponseCodec;
     get keys(): string[] | Promise<string[]>;
     get meta(): Record<string, unknown> | Promise<Record<string, unknown>>;
     stream(): Generator<any[]> | AsyncGenerator<any[]>;

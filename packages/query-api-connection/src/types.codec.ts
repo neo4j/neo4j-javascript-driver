@@ -146,7 +146,7 @@ class TypedJsonCodecV10 extends TypedJsonCodec {
     }
 
     decodeProfile(queryPlan: ProfiledQueryPlan): Record<string, unknown> {
-        return Object.fromEntries(
+        const profile = Object.fromEntries(
             Object.entries(queryPlan)
                 .map(([key, value]) => {
                     let actualKey: string = key
@@ -169,6 +169,10 @@ class TypedJsonCodecV10 extends TypedJsonCodec {
                     return [actualKey, actualValue]
                 })
         )
+        if (profile.children == null) {
+            profile.children = []
+        }
+        return profile
     }
 
 

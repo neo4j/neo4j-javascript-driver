@@ -34,6 +34,7 @@ export interface HttpConnectionConfig {
     config: any
     logger: internal.logger.Logger,
     errorHandler: (error: Error & { code: string, retryable: boolean }) => Error
+    version: string
 }
 
 
@@ -52,6 +53,7 @@ export default class HttpConnection extends Connection {
     private _open: boolean
     private _currentTx: { id: string, affinity?: string, host?: string, expires: Date,  database: string } | undefined
     private _workPipe: Pipe
+    private _version: string
 
     constructor(config: HttpConnectionConfig) {
         super()
@@ -67,6 +69,7 @@ export default class HttpConnection extends Connection {
         this._workPipe = new Pipe(config.logger)
         this._abortControllers = []
         this._sessionAffinityHeader = config.config.httpSessionAffinityHeader ?? 'neo4j-cluster-affinity'
+        this._version = config.version
     }
 
     run(query: string, parameters?: Record<string, unknown> | undefined, config?: RunQueryConfig | undefined): internal.observer.ResultStreamObserver {
@@ -101,7 +104,8 @@ export default class HttpConnection extends Connection {
 
             const res = await fetch(request.url, request)
             const batchSize = config?.fetchSize ?? Number.MAX_SAFE_INTEGER
-            const codec = await QueryResponseCodec.ofResponse(this._config, request.url, res);
+            console.log("version", this._version)
+            const codec = await QueryResponseCodec.ofResponse(this._config, request.url, res, this._version);
 
             observer.onKeys(await codec.keys)
             const stream = codec.stream()

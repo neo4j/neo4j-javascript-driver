@@ -28,6 +28,7 @@ export interface HttpConnectionConfig {
         code: string;
         retryable: boolean;
     }) => Error;
+    version: string;
 }
 export default class HttpConnection extends Connection {
     private _release;
@@ -43,6 +44,7 @@ export default class HttpConnection extends Connection {
     private _open;
     private _currentTx;
     private _workPipe;
+    private _version;
     constructor(config: HttpConnectionConfig);
     run(query: string, parameters?: Record<string, unknown> | undefined, config?: RunQueryConfig | undefined): internal.observer.ResultStreamObserver;
     private _headers;

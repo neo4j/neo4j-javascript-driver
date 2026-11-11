@@ -43,6 +43,7 @@ export default class HttpConnectionProvider extends ConnectionProvider {
     private _openConnections;
     private _pool;
     private _newHttpConnection;
+    private _version;
     constructor(config: HttpConnectionProviderConfig, { newPool, newHttpConnection }?: HttpConnectionProviderInjectable);
     acquireConnection(param?: {
         accessMode?: string | undefined;

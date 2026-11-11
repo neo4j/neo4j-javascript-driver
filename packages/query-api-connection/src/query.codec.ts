@@ -49,7 +49,8 @@ export class QueryResponseCodec {
     static async ofResponse(
         config: types.InternalConfig,
         url: String,
-        response: Response
+        response: Response,
+        serverVersion: string,
         ): Promise<QueryResponseCodec> {
 
         const contentType = response.headers.get('Content-Type') ?? ''
@@ -68,14 +69,15 @@ export class QueryResponseCodec {
             
             return new QueryJsonlResponseCodec(
                 TypedJsonCodec.of(contentType, config),
-                it
+                it,
+                serverVersion
             )
         }
 
         try {
             const text = await response.text()
             const body = text !== '' ? JSON.parse(text) : {};
-            return QueryResponseCodec.of(config, contentType, body);
+            return QueryResponseCodec.of(config, contentType, body, serverVersion);
         } catch (error) {
             throw newError(`Failure accessing "${url}"`, 'SERVICE_UNAVAILABLE', error as Error)
         }
@@ -84,11 +86,12 @@ export class QueryResponseCodec {
     static of(
         config: types.InternalConfig,
         contentType: string,
-        response: RawQueryResponse): QueryResponseCodec {
+        response: RawQueryResponse,
+        serverVersion: string): QueryResponseCodec {
 
         if (isSuccess(response)) {
             if (contentType === NEO4J_QUERY_CONTENT_TYPE) {
-                return new QuerySuccessResponseCodec(TypedJsonCodec.of(contentType, config), response)
+                return new QuerySuccessResponseCodec(TypedJsonCodec.of(contentType, config), response, serverVersion)
             }
             return new QueryFailureResponseCodec(newError(
                 `Wrong content-type. Expected "${NEO4J_QUERY_CONTENT_TYPE}", but got "${contentType}".`,
@@ -122,7 +125,8 @@ class QuerySuccessResponseCodec extends QueryResponseCodec {
 
     constructor(
         private readonly _typedJsonCodec: TypedJsonCodec,
-        private readonly _response: RawQuerySuccessResponse) {
+        private readonly _response: RawQuerySuccessResponse,
+        private readonly _serverVersion: string) {
         super()
     }
 
@@ -148,7 +152,10 @@ class QuerySuccessResponseCodec extends QueryResponseCodec {
                 this._typedJsonCodec.decodeProfile(this._response.profiledQueryPlan) : null,
             plan: this._response.queryPlan != null ?
                 this._typedJsonCodec.decodeProfile(this._response.queryPlan) : null,
-            notifications: this._response.notifications
+            notifications: this._response.notifications,
+            server: {
+                version: this._serverVersion
+            }
         }
     }
 
@@ -162,7 +169,8 @@ class QueryJsonlResponseCodec extends QueryResponseCodec {
 
     constructor(
         private readonly _typedJsonCodec: TypedJsonCodec,
-        private readonly _it: AsyncIterableIterator<Event> ) {
+        private readonly _it: AsyncIterableIterator<Event>,
+        private readonly _serverVersion: string ) {
             super()
             this._done = false
     }
@@ -228,7 +236,10 @@ class QueryJsonlResponseCodec extends QueryResponseCodec {
                 this._typedJsonCodec.decodeProfile(event._body.profiledQueryPlan) : null,
             plan: event._body.queryPlan != null ?
                 this._typedJsonCodec.decodeProfile(event._body.queryPlan) : null,
-            notifications: event._body.notifications
+            notifications: event._body.notifications,
+            server: {
+                version: this._serverVersion
+            }
         }
     }
 
