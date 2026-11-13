@@ -10,10 +10,6 @@
     "build": "tsc -p tsconfig.build.json",
     "prepublish": "downdoc README.adoc",
     "postpublish": "downdoc README.adoc",
-    "test": "pnpm test::unit && pnpm test::integration",
-    "test::watch": "jest --watch",
-    "test::unit": "jest --passWithNoTests",
-    "test::integration": "jest --passWithNoTests -c jest.integration.config.ts",
     "prepare": "pnpm run build",
     "clean": "rm -fr node_modules lib types"
   },
