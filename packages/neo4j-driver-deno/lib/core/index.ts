@@ -87,7 +87,7 @@ import NotificationFilter, {
 import Result, { MappedQueryResult, QueryResult, ResultObserver } from './result.ts'
 import EagerResult from './result-eager.ts'
 import ConnectionProvider, { Releasable } from './connection-provider.ts'
-import Connection from './connection.ts'
+import Connection, { BeginTransactionConfig, CommitTransactionConfig, RunQueryConfig } from './connection.ts'
 import Transaction from './transaction.ts'
 import ManagedTransaction from './transaction-managed.ts'
 import TransactionPromise from './transaction-promise.ts'
@@ -332,6 +332,9 @@ export type {
   QueryResult,
   MappedQueryResult,
   ResultObserver,
+  BeginTransactionConfig,
+  CommitTransactionConfig,
+  RunQueryConfig,
   TransactionConfig,
   BookmarkManager,
   BookmarkManagerConfig,

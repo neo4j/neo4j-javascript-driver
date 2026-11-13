@@ -114,6 +114,9 @@ import {
   BoltProtocol,
   channel
 } from 'neo4j-driver-bolt-connection'
+import {
+  HttpConnectionProvider
+} from 'neo4j-driver-query-api-connection'
 
 import RxSession from './session-rx'
 import RxTransaction from './transaction-rx'
@@ -176,6 +179,7 @@ function driver (url, authToken, config = {}) {
   // Determine encryption/trust options from the URL.
   let routing = false
   let encrypted = false
+  let http = false
   let trust
   switch (parsedUrl.scheme) {
     case 'bolt':
@@ -200,6 +204,13 @@ function driver (url, authToken, config = {}) {
       encrypted = true
       trust = 'TRUST_ALL_CERTIFICATES'
       routing = true
+      break
+    case 'http':
+      http = true
+      break
+    case 'https':
+      http = true
+      encrypted = true
       break
     default:
       throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
@@ -239,6 +250,26 @@ function driver (url, authToken, config = {}) {
   )
 
   function createConnectionProviderFunction () {
+    if (http) {
+      return (
+        id,
+        config,
+        log,
+        hostNameResolver
+      ) => new HttpConnectionProvider({
+        id,
+        config,
+        log,
+        hostNameResolver,
+        authTokenManager,
+        scheme: parsedUrl.scheme,
+        address,
+        path: extractPath(url),
+        userAgent: config.userAgent,
+        boltAgent: config.boltAgent,
+        routingContext: parsedUrl.query
+      })
+    }
     if (routing) {
       return (id, config, log, hostNameResolver) =>
         new RoutingConnectionProvider({
@@ -308,6 +339,19 @@ const logging = {
       unredactDebugLogs
     }
   }
+}
+
+function extractPath (url) {
+  const withoutScheme = url.replace(/^https?:\/\//, '')
+  const pathStart = withoutScheme.indexOf('/')
+  if (pathStart === -1) {
+    return ''
+  }
+  const raw = withoutScheme.substring(pathStart)
+  const withoutQuery = raw.split('?')[0]
+  const withoutFragment = withoutQuery.split('#')[0]
+  const trimmed = withoutFragment.replace(/\/+$/, '')
+  return trimmed
 }
 
 /**

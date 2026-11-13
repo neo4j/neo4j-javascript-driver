@@ -38,8 +38,8 @@ export function RetryableDone () {
   return response('RetryableDone', null)
 }
 
-export function Result ({ id }) {
-  return response('Result', { id })
+export function Result ({ id, keys }) {
+  return response('Result', { id, keys })
 }
 
 export function NullRecord () {
@@ -116,7 +116,7 @@ export function AuthorizationToken (data) {
 }
 
 export function AuthTokenManagerHandleSecurityExceptionRequest ({ id, authTokenManagerId, auth, code }) {
-  return response('AuthTokenManagerHandleSecurityExceptionRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth), error_code: code })
+  return response('AuthTokenManagerHandleSecurityExceptionRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth), errorCode: code })
 }
 
 export function BearerAuthTokenManager ({ id }) {
