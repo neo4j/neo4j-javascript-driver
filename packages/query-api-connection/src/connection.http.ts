@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { Connection, types, internal, newError, ProtocolVersion } from "neo4j-driver-core"
-import { BeginTransactionConfig, CommitTransactionConfig, RunQueryConfig } from "neo4j-driver-core/types/connection"
-import { ResultStreamObserver } from "./stream-observers"
-import { QueryRequestCodec, QueryResponseCodec, RawQueryResponse } from "./query.codec"
-import { BeginTransactionRequestCodec, RawBeginTransactionResponse, BeginTransactionResponseCodec, CommitTransactionRequestCodec, RawCommitTransactionResponse, CommitTransactionResponseCodec, RollbackTransactionRequestCodec, RawRollbackTransactionResponse, RollbackTransactionResponseCodec } from "./transaction.codec"
-import Pipe from "./lang/pipe"
+import { Connection, types, internal, newError, ProtocolVersion } from 'neo4j-driver-core'
+import { BeginTransactionConfig, CommitTransactionConfig, RunQueryConfig } from 'neo4j-driver-core'
+import { ResultStreamObserver } from './stream-observers'
+import { QueryRequestCodec, QueryResponseCodec, RawQueryResponse } from './query.codec'
+import { BeginTransactionRequestCodec, RawBeginTransactionResponse, BeginTransactionResponseCodec, CommitTransactionRequestCodec, RawCommitTransactionResponse, CommitTransactionResponseCodec, RollbackTransactionRequestCodec, RawRollbackTransactionResponse, RollbackTransactionResponseCodec } from './transaction.codec'
+import Pipe from './lang/pipe'
 
 export type HttpScheme = 'http' | 'https'
 

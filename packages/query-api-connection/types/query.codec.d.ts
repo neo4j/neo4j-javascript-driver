@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { types } from "neo4j-driver-core";
-import { RunQueryConfig } from "neo4j-driver-core/types/connection";
-import { Counters, NotificationShape, ProfiledQueryPlan, RawQueryValue, RawQueryError } from "./types.codec";
+import { types } from 'neo4j-driver-core';
+import { RunQueryConfig } from 'neo4j-driver-core';
+import { Counters, NotificationShape, ProfiledQueryPlan, RawQueryValue, RawQueryError } from './types.codec';
 export type RawQueryData = {
     fields: string[];
     values: RawQueryValue[][];

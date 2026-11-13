@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { internal } from "neo4j-driver-core"
+import { internal } from 'neo4j-driver-core'
 
 export default class Pipe {
     private promise: Promise<void>

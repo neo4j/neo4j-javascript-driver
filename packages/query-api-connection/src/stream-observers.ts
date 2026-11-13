@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Record, ResultObserver, internal } from "neo4j-driver-core"
-import { FSM, FSMTransition } from "./fsm";
+import { Record, ResultObserver, internal } from 'neo4j-driver-core'
+import { FSM, FSMTransition } from './fsm'
 
 export interface ResultStreamObserverConfig {
     highRecordWatermark: number,

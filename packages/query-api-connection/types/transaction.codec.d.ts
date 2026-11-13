@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { types } from "neo4j-driver-core";
-import { BeginTransactionConfig } from "neo4j-driver-core/types/connection";
+import { types } from 'neo4j-driver-core';
+import { BeginTransactionConfig } from 'neo4j-driver-core';
 export type BeginTransactionRequestCodecConfig = Pick<BeginTransactionConfig, 'bookmarks' | 'txConfig' | 'mode' | 'impersonatedUser'>;
 export type CommitTransactionRequestCodecConfig = {};
 export type RollbackTransactionRequestCodecConfig = {};

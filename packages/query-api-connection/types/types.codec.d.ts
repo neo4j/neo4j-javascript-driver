@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { types } from "neo4j-driver-core";
+import { types } from 'neo4j-driver-core';
 export type RawQueryValueTypes = 'Null' | 'Boolean' | 'Integer' | 'Float' | 'String' | 'Time' | 'Date' | 'LocalTime' | 'ZonedDateTime' | 'OffsetDateTime' | 'LocalDateTime' | 'Duration' | 'Point' | 'Base64' | 'Map' | 'List' | 'Node' | 'Relationship' | 'Path';
 export type NodeShape = {
     _element_id: string;

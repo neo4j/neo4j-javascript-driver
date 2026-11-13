@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ResultObserver, internal } from "neo4j-driver-core";
+import { ResultObserver, internal } from 'neo4j-driver-core';
 export interface ResultStreamObserverConfig {
     highRecordWatermark: number;
     lowRecordWatermark: number;

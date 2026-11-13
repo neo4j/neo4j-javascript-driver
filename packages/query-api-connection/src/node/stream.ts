@@ -15,6 +15,6 @@
  * limitations under the License.
  */
 
-import { TransformStream, TextDecoderStream, TransformStreamDefaultController, Transformer } from "stream/web"
+import { TransformStream, TextDecoderStream, TransformStreamDefaultController, Transformer } from 'stream/web'
 export { TransformStream, TextDecoderStream, TransformStreamDefaultController }
 export type {Transformer}

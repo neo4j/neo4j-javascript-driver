@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TransformStreamDefaultController, Transformer } from "../node/stream";
+import { TransformStreamDefaultController, Transformer } from '../node/stream';
 export default class LineTransformer implements Transformer<string, string> {
     private _rest;
     constructor(_rest?: string | undefined);

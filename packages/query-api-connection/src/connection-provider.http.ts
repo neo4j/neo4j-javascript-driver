@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, internal, AuthTokenManager, Connection, Releasable, types, ServerInfo, ProtocolVersion } from "neo4j-driver-core"
-import HttpConnection, { HttpScheme } from "./connection.http"
+import { ConnectionProvider, internal, AuthTokenManager, Connection, Releasable, types, ServerInfo, ProtocolVersion } from 'neo4j-driver-core'
+import HttpConnection, { HttpScheme } from './connection.http'
 
 const {
     pool: {

@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Connection, types, internal, ProtocolVersion } from "neo4j-driver-core";
-import { BeginTransactionConfig, CommitTransactionConfig, RunQueryConfig } from "neo4j-driver-core/types/connection";
+import { Connection, types, internal, ProtocolVersion } from 'neo4j-driver-core';
+import { BeginTransactionConfig, CommitTransactionConfig, RunQueryConfig } from 'neo4j-driver-core';
 export type HttpScheme = 'http' | 'https';
 export interface HttpConnectionConfig {
     release: () => Promise<void>;

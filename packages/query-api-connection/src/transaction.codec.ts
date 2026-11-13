@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { error, newError, types } from "neo4j-driver-core"
-import { BeginTransactionConfig } from "neo4j-driver-core/types/connection"
-import { NEO4J_QUERY_CONTENT_TYPE, encodeAuthToken, encodeTransactionBody } from "./codec"
+import { error, newError, types } from 'neo4j-driver-core'
+import { BeginTransactionConfig } from 'neo4j-driver-core'
+import { NEO4J_QUERY_CONTENT_TYPE, encodeAuthToken, encodeTransactionBody } from './codec'
 
 export type BeginTransactionRequestCodecConfig = Pick<BeginTransactionConfig, 'bookmarks' | 'txConfig' | 'mode' | 'impersonatedUser'>
 export type CommitTransactionRequestCodecConfig = {}

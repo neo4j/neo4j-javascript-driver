@@ -15,6 +15,6 @@
  * limitations under the License.
  */
 
-import HttpConnectionProvider from "./connection-provider.http"
+import HttpConnectionProvider from './connection-provider.http'
 
 export { HttpConnectionProvider }

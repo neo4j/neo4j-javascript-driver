@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { types } from "neo4j-driver-core"
-import { BeginTransactionConfig } from "neo4j-driver-core/types/connection"
+import { types } from 'neo4j-driver-core'
+import { BeginTransactionConfig } from 'neo4j-driver-core'
 
 
 export const NEO4J_QUERY_CONTENT_TYPE = 'application/vnd.neo4j.query'

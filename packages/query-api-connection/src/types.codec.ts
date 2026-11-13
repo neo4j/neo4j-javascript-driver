@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Date, DateTime, Duration, Integer, LocalDateTime, LocalTime, Node, Path, PathSegment, Point, Relationship, Time, error, int, internal, isDateTime, isTime, newError, types } from "neo4j-driver-core"
-import { NEO4J_QUERY_CONTENT_TYPE, NEO4J_QUERY_CONTENT_TYPE_V1_0, NEO4J_QUERY_CONTENT_TYPE_V1_0_JSONL } from "./codec"
+import { Date, DateTime, Duration, Integer, LocalDateTime, LocalTime, Node, Path, PathSegment, Point, Relationship, Time, error, int, internal, isDateTime, isTime, newError, types } from 'neo4j-driver-core'
+import { NEO4J_QUERY_CONTENT_TYPE, NEO4J_QUERY_CONTENT_TYPE_V1_0, NEO4J_QUERY_CONTENT_TYPE_V1_0_JSONL } from './codec'
 
 
 export type RawQueryValueTypes = 'Null' | 'Boolean' | 'Integer' | 'Float' | 'String' |
