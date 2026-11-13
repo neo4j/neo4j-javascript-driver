@@ -320,10 +320,7 @@ export function TransactionRun (_, context, data, wire) {
   }
   const result = tx.tx.run(cypher, params)
   const id = context.addResult(result)
-
-  result.keys().then(keys => {
-    wire.writeResponse(responses.Result({ id, keys }))
-  })
+  wire.writeResponse(responses.Result({ id }))
 }
 
 export function RetryablePositive (_, context, data, wire) {

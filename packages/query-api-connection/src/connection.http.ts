@@ -104,7 +104,6 @@ export default class HttpConnection extends Connection {
 
             const res = await fetch(request.url, request)
             const batchSize = config?.fetchSize ?? Number.MAX_SAFE_INTEGER
-            console.log("version", this._version)
             const codec = await QueryResponseCodec.ofResponse(this._config, request.url, res, this._version);
 
             observer.onKeys(await codec.keys)
@@ -360,7 +359,7 @@ export default class HttpConnection extends Connection {
                 return { query, version: json.neo4j_version, edition: json.neo4j_edition }
             })
             .catch(e => {
-                throw newError(`Failure discovering endpoints. Caused by: ${e.message}`, 'SERVICE_UNAVAILABLE', e)
+                throw newError(`Failure discovering endpoints. Caused by: ${e.message}`, 'ServiceUnavailable', e)
             })
     }
 
@@ -447,6 +446,6 @@ async function readBodyAndReaders<T extends Record<string, unknown>> (url: strin
             headers: headers.map(header => response.headers.get(header))
         }        
     } catch (error) {
-        throw newError(`Failure accessing "${url}"`, 'SERVICE_UNAVAILABLE', error)
+        throw newError(`Failure accessing "${url}"`, 'ServiceUnavailable', error)
     }
 }

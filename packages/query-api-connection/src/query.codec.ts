@@ -79,7 +79,7 @@ export class QueryResponseCodec {
             const body = text !== '' ? JSON.parse(text) : {};
             return QueryResponseCodec.of(config, contentType, body, serverVersion);
         } catch (error) {
-            throw newError(`Failure accessing "${url}"`, 'SERVICE_UNAVAILABLE', error as Error)
+            throw newError(`Failure accessing "${url}"`, 'ServiceUnavailable', error as Error)
         }
     }
 

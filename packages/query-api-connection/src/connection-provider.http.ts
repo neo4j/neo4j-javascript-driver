@@ -168,7 +168,6 @@ export default class HttpConnectionProvider extends ConnectionProvider {
         if (this._version == null) {
             const discoveryInfo = await HttpConnection.discover({ scheme: this._scheme, address: this._address, path: this._path })
             this._version = `Neo4j/${discoveryInfo.version}`
-            console.log("HERE", this._version)
         }
 
         const connection: HttpConnection = this._newHttpConnection({
@@ -180,9 +179,6 @@ export default class HttpConnectionProvider extends ConnectionProvider {
             logger: this._log,
             errorHandler: (error: Error & { code: string, retryable: boolean }): Error => {
                 if (error == null || typeof error.code !== 'string' || !error.code.startsWith('Neo.ClientError.Security.') || context?.auth != null) {
-                    if (error != null && error.code === 'SERVICE_UNAVAILABLE') {
-                        this._queryEndpoint = undefined
-                    }
                     return error
                 }
                 const handled = this._authTokenManager.handleSecurityException(auth, error.code as unknown as `Neo.ClientError.Security.${string}`)
