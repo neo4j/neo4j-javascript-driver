@@ -21,6 +21,7 @@ export interface ResultStreamObserverConfig {
     beforeError?: (error: Error) => void;
     afterComplete?: (metadata: unknown) => void;
     server: internal.serverAddress.ServerAddress;
+    database: string;
 }
 export declare class ResultStreamObserver implements internal.observer.ResultStreamObserver {
     private _paused;
@@ -37,6 +38,7 @@ export declare class ResultStreamObserver implements internal.observer.ResultStr
     private _server;
     private _haveRecordStreamed;
     private readonly _fsm;
+    private _database;
     constructor(config: ResultStreamObserverConfig);
     get completed(): boolean;
     get paused(): boolean;

@@ -388,6 +388,7 @@ class TypedJsonCodecV10 extends TypedJsonCodec {
         // P14DT16H12M
         const durationStringWithP = value.slice(1, value.length)
 
+        let year = '0'
         let month = '0'
         let week = '0'
         let day = '0'
@@ -403,6 +404,12 @@ class TypedJsonCodecV10 extends TypedJsonCodec {
                 currentNumber = currentNumber + ch
             } else {
                 switch (ch) {
+                    case 'Y':
+                        if (timePart) {
+                            throw newError(`Duration is not well formatted. Unexpected Duration component ${ch} in time part`, error.PROTOCOL_ERROR)
+                        }
+                        year = currentNumber;
+                        break
                     case 'M':
                         // minutes
                         if (timePart) {
