@@ -385,7 +385,6 @@ function extractPath (url: string): string {
   return trimmed
 }
 
-
 /**
  * Object containing constructors for all neo4j types.
  */

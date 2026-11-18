@@ -24,6 +24,7 @@ export interface ResultStreamObserverConfig {
     beforeError?: (error: Error) => void;
     afterComplete?: (metadata: unknown) => void;
     server: internal.serverAddress.ServerAddress
+    database: string
 }
 
 type Events = 'keys' | 'next' | 'error' | 'completed'
@@ -44,6 +45,7 @@ export class ResultStreamObserver implements internal.observer.ResultStreamObser
     private _server: internal.serverAddress.ServerAddress
     private _haveRecordStreamed: boolean
     private readonly _fsm: FSM<States, Events>
+    private _database: string
 
 
     constructor(config: ResultStreamObserverConfig) {
@@ -57,6 +59,7 @@ export class ResultStreamObserver implements internal.observer.ResultStreamObser
         this._server = config.server
         this._haveRecordStreamed = false
         this._fsm = newFSM(this)
+        this._database = config.database
 
         this._resultObservers = []
     }
@@ -198,7 +201,8 @@ export class ResultStreamObserver implements internal.observer.ResultStreamObser
                     pulled: true,
                     has_keys: this._keys.length > 0
                 }
-            }
+            },
+            { db: this._database }
         ) : {}
         this._metadata = completionMetadata
         this._completed = true

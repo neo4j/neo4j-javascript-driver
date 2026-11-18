@@ -73,12 +73,17 @@ export default class HttpConnection extends Connection {
     }
 
     run(query: string, parameters?: Record<string, unknown> | undefined, config?: RunQueryConfig | undefined): internal.observer.ResultStreamObserver {
+        if (config?.database == null && this._currentTx?.database == null) {
+            throw newError("providing a database name is mandatory when using Query API")
+        }
         const observer = new ResultStreamObserver({
             highRecordWatermark: config?.highRecordWatermark ?? Number.MAX_SAFE_INTEGER,
             lowRecordWatermark: config?.lowRecordWatermark ?? Number.MIN_SAFE_INTEGER,
             afterComplete: config?.afterComplete,
             beforeError: config?.beforeError,
             server: this._address,
+            // @ts-expect-error if these were undefined we'd have thrown.
+            database: config?.database || this._currentTx?.database
         })
 
         const requestCodec = QueryRequestCodec.of(
@@ -152,12 +157,17 @@ export default class HttpConnection extends Connection {
 
 
     beginTransaction(config: BeginTransactionConfig): internal.observer.ResultStreamObserver {
+        if (config?.database == null && this._currentTx?.database == null) {
+            throw newError("providing a database name is mandatory when using Query API")
+        }
         const observer = new ResultStreamObserver({
             server: this._address,
             afterComplete: config?.afterComplete,
             beforeError: config.beforeError,
             highRecordWatermark: Number.MAX_SAFE_INTEGER,
             lowRecordWatermark: Number.MIN_SAFE_INTEGER,
+            // @ts-expect-error if these were undefined we'd have thrown.
+            database: config?.database || this._currentTx?.database
           })
         observer.prepareToHandleSingleResponse()
 
@@ -222,6 +232,8 @@ export default class HttpConnection extends Connection {
             beforeError: config.beforeError,
             highRecordWatermark: Number.MAX_SAFE_INTEGER,
             lowRecordWatermark: Number.MIN_SAFE_INTEGER,
+            // @ts-expect-error if this was undefined we'd have thrown.
+            database: this._currentTx?.database
           })
         observer.prepareToHandleSingleResponse()
 
@@ -276,6 +288,8 @@ export default class HttpConnection extends Connection {
             beforeError: config.beforeError,
             highRecordWatermark: Number.MAX_SAFE_INTEGER,
             lowRecordWatermark: Number.MIN_SAFE_INTEGER,
+            // @ts-expect-error if this was undefined we'd have thrown.
+            database: this._currentTx?.database
           })
         observer.prepareToHandleSingleResponse()
 
