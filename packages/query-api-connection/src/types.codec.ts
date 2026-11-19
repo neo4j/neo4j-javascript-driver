@@ -526,8 +526,7 @@ class TypedJsonCodecV10 extends TypedJsonCodec {
 
     _decodeNode(value: NodeShape): Node<bigint | number | Integer> {
         return new Node(
-            // @ts-expect-error identity doesn't return
-            undefined,
+            int(0),
             value._labels,
             this._decodeMap(value._properties ?? {}),
             value._element_id
@@ -536,10 +535,9 @@ class TypedJsonCodecV10 extends TypedJsonCodec {
 
     _decodeRelationship(value: RelationshipShape): Relationship<bigint | number | Integer> {
         return new Relationship(
-            // @ts-expect-error identity doesn't return
-            undefined,
-            undefined,
-            undefined,
+            int(0),
+            int(0),
+            int(0),
             value._type,
             this._decodeMap(value._properties ?? {}),
             value._element_id,
