@@ -87,7 +87,7 @@ import NotificationFilter, {
 import Result, { MappedQueryResult, QueryResult, ResultObserver } from './result'
 import EagerResult from './result-eager'
 import ConnectionProvider, { Releasable } from './connection-provider'
-import Connection from './connection'
+import Connection, { BeginTransactionConfig, CommitTransactionConfig, RunQueryConfig } from './connection'
 import Transaction from './transaction'
 import ManagedTransaction from './transaction-managed'
 import TransactionPromise from './transaction-promise'
@@ -332,6 +332,9 @@ export type {
   QueryResult,
   MappedQueryResult,
   ResultObserver,
+  BeginTransactionConfig,
+  CommitTransactionConfig,
+  RunQueryConfig,
   TransactionConfig,
   BookmarkManager,
   BookmarkManagerConfig,

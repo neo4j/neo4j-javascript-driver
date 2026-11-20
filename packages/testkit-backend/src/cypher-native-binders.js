@@ -46,6 +46,15 @@ export default function CypherNativeBinders (neo4j) {
         if (Number.isInteger(x)) {
           return valueResponse('CypherInt', x)
         }
+        if (Number.isNaN(x)) {
+          return valueResponse('CypherFloat', 'NaN')
+        }
+        if (x === Infinity) {
+          return valueResponse('CypherFloat', '+Infinity')
+        }
+        if (x === -Infinity) {
+          return valueResponse('CypherFloat', '-Infinity')
+        }
         return valueResponse('CypherFloat', x)
       case 'bigint':
         return valueResponse('CypherInt', neo4j.int(x).toNumber())
@@ -226,6 +235,17 @@ export default function CypherNativeBinders (neo4j) {
       case 'CypherInt':
         return BigInt(data.value)
       case 'CypherFloat':
+        if (typeof data.value === 'string') {
+          if (data.value === 'NaN') {
+            return NaN
+          }
+          if (data.value === '+Infinity') {
+            return Infinity
+          }
+          if (data.value === '-Infinity') {
+            return -Infinity
+          }
+        }
         return data.value
       case 'CypherNull':
         return data.value
