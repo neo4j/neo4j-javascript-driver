@@ -110,11 +110,6 @@ async function copyAndTransform(inDir: string, outDir: string) {
           `// @deno-types=${relativeRoot}/bolt-connection/types/index.d.ts\n` +
             `import {$1} from '${relativeRoot}/bolt-connection/index.js'`,
         );
-        contents = contents.replace(
-          /import {([^}]*)} from \'neo4j-driver-query-api-connection\'/,
-          `// @deno-types=${relativeRoot}/query-api-connection/types/index.d.ts\n` +
-            `import {$1} from '${relativeRoot}/query-api-connection/index.ts'`,
-        );
       } else if (existingFile.name.endsWith(".js")) {
 
         // transform .js file imports in bolt-connection:

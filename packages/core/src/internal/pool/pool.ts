@@ -21,9 +21,9 @@ import { Logger } from '../logger'
 import { ServerAddress } from '../server-address'
 
 type Release<R extends unknown = unknown> = (address: ServerAddress, resource: R) => Promise<void>
-type Create<R extends unknown = unknown> = (acquisitionContext: unknown, address: ServerAddress, release: Release<R>) => Promise<R>
+type Create<R extends unknown = unknown> = (acquisitionContext: any, address: ServerAddress, release: Release<R>) => Promise<R>
 type Destroy<R extends unknown = unknown> = (resource: R) => Promise<void>
-type ValidateOnAcquire<R extends unknown = unknown> = (acquisitionContext: unknown, resource: R) => (Promise<boolean> | boolean)
+type ValidateOnAcquire<R extends unknown = unknown> = (acquisitionContext: any, resource: R) => (Promise<boolean> | boolean)
 type ValidateOnRelease<R extends unknown = unknown> = (resource: R) => (Promise<boolean> | boolean)
 type InstallObserver<R extends unknown = unknown> = (resource: R, observer: unknown) => void
 type RemoveObserver<R extends unknown = unknown> = (resource: R) => void

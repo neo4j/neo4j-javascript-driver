@@ -34,7 +34,7 @@ export class ResultStreamObserver implements internal.observer.ResultStreamObser
     private _paused: boolean
     private _queuedRecords: Record[]
     private _completed: boolean
-    private _keys: string[]
+    private _keys: string[] | undefined
     private _highRecordWatermark: number
     private _lowRecordWatermark: number
     private _resultObservers: ResultObserver[]
@@ -132,7 +132,7 @@ export class ResultStreamObserver implements internal.observer.ResultStreamObser
         this._keys = keys
         const observingOnKeys = this._resultObservers.filter(o => o.onKeys)
         if (observingOnKeys.length > 0) {
-            observingOnKeys.forEach(o => o.onKeys!(this._keys))
+            observingOnKeys.forEach(o => o.onKeys!(this._keys || []))
         }
     }
 
@@ -142,7 +142,7 @@ export class ResultStreamObserver implements internal.observer.ResultStreamObser
 
     _onNext(rawRecord: any[]): void {
         this._haveRecordStreamed = true
-        const record = new Record(this._keys, rawRecord)
+        const record = new Record(this._keys || [], rawRecord)
         const observingOnNext = this._resultObservers.filter(o => o.onNext)
         if (observingOnNext.length > 0) {
             observingOnNext.forEach(o => o.onNext!(record))
@@ -199,7 +199,7 @@ export class ResultStreamObserver implements internal.observer.ResultStreamObser
                 stream_summary: {
                     have_records_streamed: this._haveRecordStreamed,
                     pulled: true,
-                    has_keys: this._keys.length > 0
+                    has_keys: (this._keys || []).length > 0
                 }
             },
             { db: this._database }

@@ -57,13 +57,9 @@ export class QueryResponseCodec {
 
         if (contentType === NEO4J_QUERY_CONTENT_TYPE_V1_0_JSONL) {
             const decoder = new TextDecoderStream();
-            // @ts-expect-error
             const it = response.body?.pipeThrough(decoder)
-                // @ts-expect-error
                 .pipeThrough(new TransformStream(new LineTransformer()))
-                // @ts-expect-error
                 .pipeThrough(new TransformStream(new QueryApiEventTransformer()))
-                // @ts-expect-error
                 .values()!;
 
             
@@ -162,9 +158,9 @@ class QuerySuccessResponseCodec extends QueryResponseCodec {
 }
 
 class QueryJsonlResponseCodec extends QueryResponseCodec {
-    private _keys: string[]
+    private _keys: string[] | undefined
     private _error: Error | undefined
-    private _meta: Record<string, unknown>
+    private _meta: Record<string, unknown> | undefined
     private _done: boolean
 
     constructor(
@@ -190,7 +186,7 @@ class QueryJsonlResponseCodec extends QueryResponseCodec {
 
                 this._processHeader(event)
 
-                return this._keys
+                return this._keys || []
             })
     }
 
@@ -220,11 +216,11 @@ class QueryJsonlResponseCodec extends QueryResponseCodec {
                         this._processHeader(event)
                     }
                     // next
-                    return this.meta
+                    return this.meta || {}
                 }
 
                 this._processSummary(event)
-                return this._meta
+                return this._meta || {}
             })
     }
 
@@ -336,7 +332,6 @@ export class QueryRequestCodec {
     }
 
     get accept(): string {
-        // @ts-expect-error
         if (ReadableStream.prototype.values == null) {
             //older versions of Safari (until Safari 27) don't support async iteration of ReadableStreams, which we need for this
             return `${NEO4J_QUERY_CONTENT_TYPE}, application/json`

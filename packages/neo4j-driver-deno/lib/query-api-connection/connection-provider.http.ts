@@ -76,7 +76,7 @@ export default class HttpConnectionProvider extends ConnectionProvider {
     private _openConnections: { [n: number]: HttpConnection }
     private _pool: internal.pool.Pool<HttpConnection>
     private _newHttpConnection: NewHttpConnection
-    private _version: string
+    private _version: string | undefined
 
     constructor(config: HttpConnectionProviderConfig, { newPool, newHttpConnection }: HttpConnectionProviderInjectable = {
         newPool: (...params) => new Pool<HttpConnection>(...params),
@@ -131,7 +131,7 @@ export default class HttpConnectionProvider extends ConnectionProvider {
         try {
             await run(connection, param) 
             return true
-        } catch (error) {
+        } catch (error: any) {
             if (AUTHENTICATION_ERRORS.includes(error.code)) {
                 return false
             }
@@ -201,7 +201,7 @@ export default class HttpConnectionProvider extends ConnectionProvider {
             conn.queryEndpoint = context.queryEndpoint
             conn.auth = context.auth ?? await this._authTokenManager.getToken()
             return true
-        } catch (error) {
+        } catch (error: any) {
             this._log.debug(
                 `The connection ${conn.id} is not valid because of an error ${error.code} '${error.message}'`
             )

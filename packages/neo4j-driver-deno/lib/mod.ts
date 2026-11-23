@@ -134,7 +134,6 @@ import {
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from './bolt-connection/index.js'
-// @deno-types=./query-api-connection/types/index.d.ts
 import {
   HttpConnectionProvider
 } from './query-api-connection/index.ts'

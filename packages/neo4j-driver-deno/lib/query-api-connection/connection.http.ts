@@ -107,6 +107,7 @@ export default class HttpConnection extends Connection {
     
             this._log?.debug(`${this} REQUEST: ${JSON.stringify(request)}`)
 
+            console.log(request.url)
             const res = await fetch(request.url, request)
             const batchSize = config?.fetchSize ?? Number.MAX_SAFE_INTEGER
             const codec = await QueryResponseCodec.ofResponse(this._config, request.url, res, this._version);
@@ -191,6 +192,7 @@ export default class HttpConnection extends Connection {
     
             this._log?.debug(`${this} REQUEST: ${JSON.stringify(request)} `)
 
+            console.log(request.url)
             const res = await fetch(request.url, request) 
             const {
                 body: rawBeginTransactionResponse,
@@ -257,6 +259,7 @@ export default class HttpConnection extends Connection {
     
             this._log?.debug(`${this} REQUEST: ${JSON.stringify(request)} `)
 
+            console.log(request.url)
             const res = await fetch(request.url, request)
             const {
                 body: rawCommitTransactionResponse,
@@ -313,6 +316,7 @@ export default class HttpConnection extends Connection {
     
             this._log?.debug(`${this} REQUEST: ${JSON.stringify(request)} `)
 
+            console.log(request.url)
             const res = await fetch(request.url, request)
             const {
                 body: rawRollbackTransactionResponse,
@@ -359,6 +363,7 @@ export default class HttpConnection extends Connection {
         version: string
         edition: string
     }> {
+        console.log(`${scheme}://${address.asHostPort()}${path ?? ''}`)
         return await fetch(`${scheme}://${address.asHostPort()}${path ?? ''}`, {
             headers: {
                 Accept: 'application/json',
@@ -459,7 +464,7 @@ async function readBodyAndReaders<T extends Record<string, unknown>> (url: strin
             body: text !== '' ? JSON.parse(text) : {},
             headers: headers.map(header => response.headers.get(header))
         }        
-    } catch (error) {
+    } catch (error: any) {
         throw newError(`Failure accessing "${url}"`, 'ServiceUnavailable', error)
     }
 }

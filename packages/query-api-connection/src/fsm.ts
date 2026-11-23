@@ -22,7 +22,7 @@ export type FSMTransition<S extends string = string, R extends unknown = unknown
 
 export type FSMState<S extends string = string, E extends string = string> = {
     name: S, 
-    events: Record<E, (input: unknown) => FSMTransition<S, unknown>>
+    events: Record<E, (input: any) => FSMTransition<S, unknown>>
 }
 
 export class FSM<S extends string = string, E extends string = string> {
@@ -35,7 +35,7 @@ export class FSM<S extends string = string, E extends string = string> {
         this.current = states[0]
     }
 
-    onEvent<R>(event: E, input: unknown): R {
+    onEvent<R>(event: E, input: any): R {
         const { nextState, result } = this.current.events[event](input)
         this.transition(nextState)
         return result as R
