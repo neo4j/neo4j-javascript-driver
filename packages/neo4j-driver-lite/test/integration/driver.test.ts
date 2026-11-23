@@ -29,8 +29,9 @@ describe('neo4j-driver-lite', () => {
   }, 60000)
 
   beforeEach(() => {
+    const port = Config.scheme === 'http' || Config.scheme === 'http' ? Config.httpPort : Config.boltPort
     driver = neo4j.driver(
-      `${Config.scheme}://${Config.hostname}:${Config.boltPort}`,
+      `${Config.scheme}://${Config.hostname}:${port}`,
       neo4j.auth.basic(Config.username, Config.password)
     )
   })

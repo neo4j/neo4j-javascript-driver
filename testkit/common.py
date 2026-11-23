@@ -28,6 +28,8 @@ def run_in(cwd):
 
 
 def run_in_driver_repo(args, env=None, check=True):
+    print("ARGUMENTS HERE:")
+    print(args)
     return run(args, env, DRIVER_REPO, check=check)
 
 
