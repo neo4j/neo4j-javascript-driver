@@ -20,12 +20,12 @@ export type FSMTransition<S extends string = string, R extends unknown = unknown
 };
 export type FSMState<S extends string = string, E extends string = string> = {
     name: S;
-    events: Record<E, (input: unknown) => FSMTransition<S, unknown>>;
+    events: Record<E, (input: any) => FSMTransition<S, unknown>>;
 };
 export declare class FSM<S extends string = string, E extends string = string> {
     private current;
     private readonly states;
     constructor(...states: FSMState<S, E>[]);
-    onEvent<R>(event: E, input: unknown): R;
+    onEvent<R>(event: E, input: any): R;
     private transition;
 }

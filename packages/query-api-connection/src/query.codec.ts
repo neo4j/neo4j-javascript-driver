@@ -57,14 +57,19 @@ export class QueryResponseCodec {
 
         if (contentType === NEO4J_QUERY_CONTENT_TYPE_V1_0_JSONL) {
             const decoder = new TextDecoderStream();
+            // @ts-ignore
             const it = response.body?.pipeThrough(decoder)
+                // @ts-ignore
                 .pipeThrough(new TransformStream(new LineTransformer()))
+                // @ts-ignore
                 .pipeThrough(new TransformStream(new QueryApiEventTransformer()))
+                // @ts-ignore
                 .values()!;
 
             
             return new QueryJsonlResponseCodec(
                 TypedJsonCodec.of(contentType, config),
+                // @ts-ignore
                 it,
                 serverVersion
             )
@@ -332,6 +337,7 @@ export class QueryRequestCodec {
     }
 
     get accept(): string {
+        // @ts-ignore
         if (ReadableStream.prototype.values == null) {
             //older versions of Safari (until Safari 27) don't support async iteration of ReadableStreams, which we need for this
             return `${NEO4J_QUERY_CONTENT_TYPE}, application/json`
