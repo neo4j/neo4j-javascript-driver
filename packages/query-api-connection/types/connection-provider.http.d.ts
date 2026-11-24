@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, internal, AuthTokenManager, Connection, Releasable, types, ServerInfo } from 'neo4j-driver-core';
+import { ConnectionProvider, internal, AuthTokenManager, Connection, Releasable, types, ServerInfo, ProtocolVersion } from 'neo4j-driver-core';
 import HttpConnection, { HttpScheme } from './connection.http';
 export type HttpConnectionProviderConfig = {
     id: number;
@@ -66,6 +66,7 @@ export default class HttpConnectionProvider extends ConnectionProvider {
     supportsSessionAuth(): Promise<boolean>;
     supportsUserImpersonation(): Promise<boolean>;
     close(): Promise<void>;
+    getNegotiatedProtocolVersion(): Promise<ProtocolVersion>;
     private _createConnection;
     private _validateConnectionOnAcquire;
     private _destroyConnection;

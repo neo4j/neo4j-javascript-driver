@@ -62,6 +62,7 @@ export default class HttpConnection extends Connection {
         query: string;
         version: string;
         edition: string;
+        api_versions: string[];
     }>;
     get id(): number;
     set auth(auth: types.AuthToken);

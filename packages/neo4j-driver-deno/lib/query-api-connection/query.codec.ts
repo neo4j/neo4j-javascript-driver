@@ -392,8 +392,8 @@ export class QueryRequestCodec {
             return { $type: 'Integer', _value: value.toString() }
         } else if (isInt(value)) {
             return { $type: 'Integer', _value: value.toString() }
-        } else if (value instanceof Uint8Array) {
-            return { $type: 'Base64', _value: btoa(String.fromCharCode.apply(null, Array.from(value.values()))) }
+        } else if (value instanceof Int8Array) {
+            return { $type: 'Base64', _value: toHexString(value) }
         } else if (value instanceof Array) {
             return { $type: 'List', _value: value.map(this._encodeValue.bind(this)) }
         } else if (isIterable(value)) {
@@ -455,3 +455,12 @@ function isSuccess(obj: RawQueryResponse): obj is RawQuerySuccessResponse {
     }
     return true
 }
+
+function toHexString (byteArray: Int8Array) {
+    const uint =  new Uint8Array(byteArray.buffer)
+    let string = ''
+    for (let i = 0; i < uint.length; i++) {
+      string += (('0' + uint[i].toString(16) + ' ').slice(-3))
+    }
+    return string.slice(0, -1)
+  }

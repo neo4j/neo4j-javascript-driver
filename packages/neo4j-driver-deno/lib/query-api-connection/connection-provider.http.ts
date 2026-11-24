@@ -159,6 +159,13 @@ export default class HttpConnectionProvider extends ConnectionProvider {
         await Promise.all(Object.values(this._openConnections).map(c => c.close()))
     }
 
+    async getNegotiatedProtocolVersion(): Promise<ProtocolVersion> {
+        const discoveryInfo = await HttpConnection.discover({ scheme: this._scheme, address: this._address, path: this._path })
+
+        const version = discoveryInfo.api_versions.sort()[0].split(".")
+        return new ProtocolVersion(parseInt(version[0]), parseInt(version[1]))
+    }
+
     private async _createConnection(
         context: AcquisitionContext,
         address: internal.serverAddress.ServerAddress,

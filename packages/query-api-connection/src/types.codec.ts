@@ -514,10 +514,10 @@ class TypedJsonCodecV10 extends TypedJsonCodec {
         )
     }
 
-    _decodeBase64(value: string): Uint8Array {
+    _decodeBase64(value: string): Int8Array {
         const binaryString: string = atob(value)
         // @ts-expect-error See https://developer.mozilla.org/en-US/docs/Glossary/Base64
-        return Uint8Array.from(binaryString, (b) => b.codePointAt(0))
+        return Int8Array.from(binaryString, (b) => b.codePointAt(0))
     }
 
     _decodeList(value: RawQueryValue[]): unknown[] {

@@ -358,19 +358,25 @@ export default class HttpConnection extends Connection {
         query: string
         version: string
         edition: string
+        api_versions: string[]
     }> {
         return await fetch(`${scheme}://${address.asHostPort()}${path ?? ''}`, {
             headers: {
                 Accept: 'application/json',
             }
         })
-            .then(async (res) => (await res.json()) as Record<string, string>)
+            .then(async (res) => (await res.json()) as Record<string, string | string[]>)
             .then(json => {
                 if (typeof json.query !== 'string') {
                     throw new Error('Query API is not available')
                 }
                 const query = json.query.endsWith('/') ? json.query.substring(0, json.query.length - 1) : json.query
-                return { query, version: json.neo4j_version, edition: json.neo4j_edition }
+                return { 
+                    query: query as string,
+                    version: json.neo4j_version as string,
+                    edition: json.neo4j_edition as string,
+                    api_versions: json.query_api_versions as string[]
+                }
             })
             .catch(e => {
                 throw newError(`Failure discovering endpoints. Caused by: ${e.message}`, 'ServiceUnavailable', e)

@@ -41,7 +41,7 @@ describe('neo4j-driver-lite', () => {
   })
 
   Config.testNonClusterSafe('should run a query over a session', async () => {
-    const result: QueryResult = await driver.session().run('RETURN 2')
+    const result: QueryResult = await driver.session({ database: 'neo4j' }).run('RETURN 2')
     expect(result.records.length).toEqual(1)
     expect(result.records[0].length).toEqual(1)
     result.records[0].forEach(val => expect(val).toEqual(int(2)))
