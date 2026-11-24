@@ -1,10 +1,10 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 ARG NODE_VERSION=24
 ARG DENO_VERSION=2.9.8
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV NODE_OPTIONS --max_old_space_size=4096 --use-openssl-ca
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NODE_OPTIONS="--max_old_space_size=4096 --use-openssl-ca"
 
 # Configuring NodeJS version
 RUN apt-get clean 
