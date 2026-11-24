@@ -28,6 +28,10 @@ describe('auth', () => {
     expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda' })
   })
 
+  test('.bearer() with realm', () => {
+    expect(auth.bearer('==Qyahiadakkda', 'realm')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda', realm: 'realm' })
+  })
+
   test.each([
     [
       ['user', 'pass', 'realm', 'scheme', { param: 'param' }],
