@@ -23,8 +23,8 @@ import { stringify } from './json'
  * basic authentication token.
  * @property {function(base64EncodedTicket: string)} kerberos the function to create a Kerberos authentication token.
  * Accepts a single string argument - base64 encoded Kerberos ticket.
- * @property {function(base64EncodedTicket: string)} bearer the function to create a Bearer authentication token.
- * Accepts a single string argument - base64 encoded Bearer ticket.
+ * @property {function(base64EncodedTicket: string, realm: ?string)} bearer the function to create a Bearer authentication token.
+ * Accepts a string argument - a base64 encoded Bearer ticket, and optionally a realm.
  * @property {function(principal: string, credentials: string, realm: string, scheme: string, parameters: ?object)} custom
  * the function to create a custom authentication token.
  */
@@ -48,10 +48,11 @@ const auth = {
       credentials: base64EncodedTicket
     }
   },
-  bearer: (base64EncodedToken: string) => {
+  bearer: (base64EncodedToken: string, realm?: string) => {
     return {
       scheme: 'bearer',
-      credentials: base64EncodedToken
+      credentials: base64EncodedToken,
+      realm
     }
   },
   none: () => {
