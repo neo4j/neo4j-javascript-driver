@@ -55,7 +55,7 @@ export default class UUID {
     let string = ''
     for (let i = 0; i < this._typedArray.length; i++) {
       string += (('0' + this._typedArray[i].toString(16)).slice(-2))
-      if (uuidV4DashLocations.indexOf(i) !== -1) {
+      if (uuidV4DashLocations.includes(i)) {
         string += '-'
       }
     }
