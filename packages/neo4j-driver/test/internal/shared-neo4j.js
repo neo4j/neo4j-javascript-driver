@@ -117,6 +117,13 @@ export default {
   cleanupAndGetProtocolVersionAndBookmarks,
   getEdition,
   hostname,
+  get hostnameWithSchemePort () {
+    if (scheme === 'http' || scheme === 'https') {
+      return this.hostnameWithHttpPort
+    } else {
+      return this.hostnameWithBoltPort
+    }
+  },
   get hostnameWithBoltPort () {
     return `${hostname}:${neo4jContainer.getBoltPort(boltPort)}`
   },

@@ -4,7 +4,7 @@ function mapPlan (plan, binder) {
     operatorType: plan.operatorType,
     args: binder.objectMemberBitIntToNumber(plan.arguments, true),
     identifiers: plan.identifiers,
-    children: plan.children ? plan.children.map(mapChild) : undefined
+    children: plan.children && plan.children.length !== 0 ? plan.children.map(mapChild) : undefined
   }
 }
 
@@ -29,7 +29,7 @@ function mapProfile (profile, binder) {
     pageCacheHits: profile.pageCacheHits != null ? Number(profile.pageCacheHits) : undefined,
     pageCacheMisses: profile.pageCacheMisses != null ? Number(profile.pageCacheMisses) : undefined,
     time: profile.time != null ? Number(profile.time) : undefined,
-    children: profile.children ? profile.children.map(mapChild) : undefined,
+    children: profile.children ? profile.children.map(mapChild) : undefined
   }
 }
 

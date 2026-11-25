@@ -66,5 +66,8 @@
   "dependencies": {
     "neo4j-driver-bolt-connection": "workspace:*",
     "neo4j-driver-core": "workspace:*"
+  },
+  "optionalDependencies": {
+    "neo4j-driver-query-api-connection": "workspace:*"
   }
 }

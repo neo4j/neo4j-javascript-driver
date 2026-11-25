@@ -13,6 +13,8 @@ if __name__ == "__main__":
 
     if is_lite():
         filter = "--filter=!neo4j-driver"
+    elif os.environ["TEST_NEO4J_SCHEME"] == "http" or os.environ["TEST_NEO4J_SCHEME"] == "https":
+        filter = "--filter=!neo4j-driver-deno --filter=!neo4j-driver-lite --filter=!neo4j-driver"
     else:
         filter = "--filter=!neo4j-driver-deno --filter=!neo4j-driver-lite"
 

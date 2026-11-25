@@ -29,8 +29,9 @@ describe('neo4j-driver-lite', () => {
   }, 60000)
 
   beforeEach(() => {
+    const port = Config.scheme === 'http' || Config.scheme === 'http' ? Config.httpPort : Config.boltPort
     driver = neo4j.driver(
-      `${Config.scheme}://${Config.hostname}:${Config.boltPort}`,
+      `${Config.scheme}://${Config.hostname}:${port}`,
       neo4j.auth.basic(Config.username, Config.password)
     )
   })
@@ -40,7 +41,7 @@ describe('neo4j-driver-lite', () => {
   })
 
   Config.testNonClusterSafe('should run a query over a session', async () => {
-    const result: QueryResult = await driver.session().run('RETURN 2')
+    const result: QueryResult = await driver.session({ database: 'neo4j' }).run('RETURN 2')
     expect(result.records.length).toEqual(1)
     expect(result.records[0].length).toEqual(1)
     result.records[0].forEach(val => expect(val).toEqual(int(2)))

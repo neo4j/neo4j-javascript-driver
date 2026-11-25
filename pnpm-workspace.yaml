@@ -12,6 +12,23 @@ blockExoticSubdeps: true
 
 minimumReleaseAge: 4320
 
+minimumReleaseAgeExclude:
+  - '@pnpm/exe.android-arm64@12.18.0'
+  - '@pnpm/exe.android-x64@12.18.0'
+  - '@pnpm/exe.darwin-arm64@12.18.0'
+  - '@pnpm/exe.darwin-x64@12.18.0'
+  - '@pnpm/exe.freebsd-x64@12.18.0'
+  - '@pnpm/exe.linux-arm64-musl@12.18.0'
+  - '@pnpm/exe.linux-arm64@12.18.0'
+  - '@pnpm/exe.linux-ppc64@12.18.0'
+  - '@pnpm/exe.linux-riscv64@12.18.0'
+  - '@pnpm/exe.linux-s390x@12.18.0'
+  - '@pnpm/exe.linux-x64-musl@12.18.0'
+  - '@pnpm/exe.linux-x64@12.18.0'
+  - '@pnpm/exe.win32-arm64@12.18.0'
+  - '@pnpm/exe.win32-x64@12.18.0'
+  - pnpm@12.18.0
+
 overrides:
   brace-expansion@>=4.0.0 <5.0.5: '>=5.0.5'
   braces@<3.0.3: '>=3.0.3'

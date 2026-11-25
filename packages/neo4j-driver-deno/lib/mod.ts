@@ -134,6 +134,9 @@ import {
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import { DirectConnectionProvider, RoutingConnectionProvider, BoltProtocol, channel } from './bolt-connection/index.js'
+import {
+  HttpConnectionProvider
+} from './query-api-connection/index.ts'
 
 type AuthToken = coreTypes.AuthToken
 type Config = coreTypes.Config
@@ -216,6 +219,7 @@ function driver (
   let routing = false
   let encrypted = false
   let trust: TrustStrategy | undefined
+  let http = false
   switch (parsedUrl.scheme) {
     case 'bolt':
       break
@@ -239,6 +243,13 @@ function driver (
       encrypted = true
       trust = 'TRUST_ALL_CERTIFICATES'
       routing = true
+      break
+    case 'http':
+      http = true
+      break
+    case 'https':
+      http = true
+      encrypted = true
       break
     default:
       throw new Error(`Unknown scheme: ${(parsedUrl.scheme as string) ?? 'null'}`)
@@ -279,6 +290,28 @@ function driver (
   )
 
   function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
+    if (http) {
+      return (
+        id,
+        config,
+        log,
+        hostNameResolver
+      ) => new HttpConnectionProvider({
+        id,
+        config,
+        log,
+        hostNameResolver,
+        authTokenManager,
+        // @ts-expect-error
+        scheme: parsedUrl.scheme,
+        address,
+        path: extractPath(url),
+        userAgent: config.userAgent,
+        // @ts-expect-error
+        boltAgent: config.boltAgent,
+        routingContext: parsedUrl.query
+      })
+    }
     if (routing) {
       return (
         id: number,
@@ -336,6 +369,19 @@ async function hasReachableServer (url: string, config?: Pick<Config, 'logging'>
   } finally {
     await nonLoggedDriver.close()
   }
+}
+
+function extractPath (url: string): string {
+  const withoutScheme = url.replace(/^https?:\/\//, '')
+  const pathStart = withoutScheme.indexOf('/')
+  if (pathStart === -1) {
+    return ''
+  }
+  const raw = withoutScheme.substring(pathStart)
+  const withoutQuery = raw.split('?')[0]
+  const withoutFragment = withoutQuery.split('#')[0]
+  const trimmed = withoutFragment.replace(/\/+$/, '')
+  return trimmed
 }
 
 /**

@@ -65,6 +65,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
   const packageImportsMap = {
     'neo4j-driver-core': `${relativeRoot}/core/index.ts`,
     'neo4j-driver-bolt-connection': `${relativeRoot}/bolt-connection/index.js`,
+    'neo4j-driver-query-api-connection': `${relativeRoot}/query-api-connection/index.ts`,
     // Replace the 'buffer' npm package with the compatible implementation from the deno standard library
     'buffer': 'https://deno.land/std@0.119.0/node/buffer.ts',  // or can use 'https://esm.sh/buffer@6.0.3'
     // Replace the 'string_decoder' npm package with the compatible implementation from the deno standard library
@@ -171,6 +172,10 @@ await copyAndTransform(
 await copyAndTransform(
   "../bolt-connection/types",
   join(rootOutDir, "bolt-connection", "types"),
+);
+await copyAndTransform(
+  "../query-api-connection/src",
+  join(rootOutDir, "query-api-connection"),
 );
 await copyAndTransform("../neo4j-driver-lite/src", rootOutDir);
 // Deno convention is to use "mod.ts" not "index.ts", so let's do that at least for the main/root import:
