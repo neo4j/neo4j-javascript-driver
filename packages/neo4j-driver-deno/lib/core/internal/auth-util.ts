@@ -20,13 +20,10 @@ import { AuthToken } from '../types.ts'
 
 export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
   if (impersonatedUser != null) {
-    return 'basic:' + impersonatedUser
+    return 'impersonated:' + impersonatedUser
   }
   if (auth === undefined) {
     return 'DEFAULT'
-  }
-  if (auth.scheme === 'basic') {
-    return 'basic:' + (auth.principal ?? '')
   }
   return stringify(auth, { sortedElements: true })
 }

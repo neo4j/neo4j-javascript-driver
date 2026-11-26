@@ -20,7 +20,7 @@ import { cacheKey } from '../../src/internal/auth-util'
 
 describe('#unit cacheKey()', () => {
   it.each([
-    ['basic', auth.basic('hello', 'basic'), 'basic:hello'],
+    ['basic', auth.basic('hello', 'basic'), '{"credentials":"basic","principal":"hello","scheme":"basic"}'],
     ['kerberos', auth.kerberos('kerberosString'), '{"credentials":"kerberosString","principal":"","scheme":"kerberos"}'],
     ['bearer', auth.bearer('bearerToken'), '{"credentials":"bearerToken","scheme":"bearer"}'],
     ['custom without parameters', auth.custom('hello', 'custom', 'realm', 'scheme'), '{"credentials":"custom","principal":"hello","realm":"realm","scheme":"scheme"}'],

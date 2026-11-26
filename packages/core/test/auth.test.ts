@@ -110,7 +110,7 @@ describe('auth', () => {
         principal: 'user',
         credentials: 'password'
       },
-      'basic:user'
+      '{"credentials":"password","principal":"user","scheme":"basic"}'
     ],
     [
       {
