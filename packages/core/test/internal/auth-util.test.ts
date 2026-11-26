@@ -21,8 +21,8 @@ import { cacheKey } from '../../src/internal/auth-util'
 describe('#unit cacheKey()', () => {
   it.each([
     ['basic', auth.basic('hello', 'basic'), 'basic:hello'],
-    ['kerberos', auth.kerberos('kerberosString'), 'kerberos:kerberosString'],
-    ['bearer', auth.bearer('bearerToken'), 'bearer:bearerToken'],
+    ['kerberos', auth.kerberos('kerberosString'), '{"credentials":"kerberosString","principal":"","scheme":"kerberos"}'],
+    ['bearer', auth.bearer('bearerToken'), '{"credentials":"bearerToken","scheme":"bearer"}'],
     ['custom without parameters', auth.custom('hello', 'custom', 'realm', 'scheme'), '{"credentials":"custom","principal":"hello","realm":"realm","scheme":"scheme"}'],
     ['custom with parameters', auth.custom('hello', 'custom', 'realm', 'scheme', { array: [1, 2, 3] }), '{"credentials":"custom","parameters":{"array":[1,2,3]},"principal":"hello","realm":"realm","scheme":"scheme"}']
   ])('should create correct cacheKey for % auth token', (_, token, expectedKey) => {

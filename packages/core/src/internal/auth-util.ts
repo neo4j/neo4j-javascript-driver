@@ -28,14 +28,5 @@ export function cacheKey (auth?: AuthToken, impersonatedUser?: string): string {
   if (auth.scheme === 'basic') {
     return 'basic:' + (auth.principal ?? '')
   }
-  if (auth.scheme === 'kerberos') {
-    return 'kerberos:' + auth.credentials
-  }
-  if (auth.scheme === 'bearer') {
-    return 'bearer:' + auth.credentials
-  }
-  if (auth.scheme === 'none') {
-    return 'none'
-  }
   return stringify(auth, { sortedElements: true })
 }

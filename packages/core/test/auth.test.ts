@@ -117,21 +117,21 @@ describe('auth', () => {
         scheme: 'bearer',
         credentials: 'Base64EncodedString'
       },
-      'bearer:Base64EncodedString'
+      '{"credentials":"Base64EncodedString","scheme":"bearer"}'
     ],
     [
       {
         scheme: 'kerberos',
         credentials: 'Base64EncodedString'
       },
-      'kerberos:Base64EncodedString'
+      '{"credentials":"Base64EncodedString","scheme":"kerberos"}'
     ],
     [
       {
         scheme: 'none',
         credentials: ''
       },
-      'none'
+      '{"credentials":"","scheme":"none"}'
     ]
   ])('token cacheKey', (token, expected) => {
     expect(cacheKey(token)).toEqual(expected)
